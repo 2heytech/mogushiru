@@ -127,3 +127,14 @@ describe('1日の食事の保存・呼び出し・リセット', () => {
     expect(useAppStore.getState().menu).toEqual(emptyMenu())
   })
 })
+
+describe('料理を選ぶ画面での追加と取り消し', () => {
+  it('追加した項目の uid で、その項目だけを外せる', () => {
+    useAppStore.setState({ menu: emptyMenu() })
+    const { addItem, removeItem } = useAppStore.getState()
+    const a = addItem('breakfast', { kind: 'food', refId: '01026', portion: 60 })
+    addItem('breakfast', { kind: 'food', refId: '07013', portion: 15 })
+    removeItem('breakfast', a)
+    expect(useAppStore.getState().menu.breakfast.map((i) => i.refId)).toEqual(['07013'])
+  })
+})

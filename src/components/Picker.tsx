@@ -161,6 +161,7 @@ export function Picker({
   onToggleFavorite,
   onRegisterProduct,
   onPick,
+  onUnpick,
   onClose,
 }: {
   slot: Slot
@@ -171,7 +172,10 @@ export function Picker({
   onToggleFavorite: (jan: string) => void
   // データにない市販品を栄養成分表示から登録する
   onRegisterProduct: () => void
-  onPick: (item: Omit<MenuItem, 'uid'>) => void
+  // 追加して、献立に入った項目の uid を返す
+  onPick: (item: Omit<MenuItem, 'uid'>) => string
+  // この画面で追加したものを外す（もう一度押したとき）
+  onUnpick: (uid: string) => void
   onClose: () => void
 }) {
   const [tab, setTab] = useState<Tab>('all')
@@ -208,14 +212,26 @@ export function Picker({
   useEffect(() => {
     listRef.current?.scrollTo({ top: 0 })
   }, [tab, category])
-  // 選んでも画面は閉じず、続けて選べる。追加した数をカードに、最後に追加したものを下の帯に出す
-  const [added, setAdded] = useState<Record<string, number>>({})
-  const [lastAdded, setLastAdded] = useState<string | null>(null)
-  const totalAdded = Object.values(added).reduce((a, b) => a + b, 0)
+  // 選んでも画面は閉じず、続けて選べる。もう一度押すと選択を外す。
+  // 選んだカードに印を、下の帯に最後の操作と選んだ数を出す
+  const [added, setAdded] = useState<Record<string, string>>({})
+  const [lastAction, setLastAction] = useState<string | null>(null)
+  const totalAdded = Object.keys(added).length
   const pick = (c: Card) => {
-    onPick(c.item)
-    setAdded((a) => ({ ...a, [c.key]: (a[c.key] ?? 0) + 1 }))
-    setLastAdded(c.name)
+    const uid = added[c.key]
+    if (uid) {
+      onUnpick(uid)
+      setAdded((a) => {
+        const rest = { ...a }
+        delete rest[c.key]
+        return rest
+      })
+      setLastAction(`「${c.name}」を外しました`)
+    } else {
+      const newUid = onPick(c.item)
+      setAdded((a) => ({ ...a, [c.key]: newUid }))
+      setLastAction(`「${c.name}」を追加`)
+    }
   }
   const switchTab = (t: Tab) => {
     setTab(t)
@@ -305,7 +321,8 @@ export function Picker({
                     <button
                       type="button"
                       onClick={() => pick(c)}
-                      className="group relative flex h-full w-full flex-col items-center rounded-2xl bg-white p-3 text-center shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+                      aria-pressed={Boolean(added[c.key])}
+                      className={`group relative flex h-full w-full flex-col items-center rounded-2xl bg-white p-3 text-center shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${added[c.key] ? 'ring-2 ring-ok' : ''}`}
                     >
                       {tab === 'all' && query && (
                         <span className={`absolute top-2 left-2 rounded-full px-2 py-0.5 text-[11px] font-bold ${KIND_BADGE[c.kind].className}`}>
@@ -314,7 +331,7 @@ export function Picker({
                       )}
                       {added[c.key] && (
                         <span className={`absolute right-2 rounded-full bg-ok px-2 py-0.5 text-[11px] font-bold text-white ${c.kind === 'product' ? 'top-11' : 'top-2'}`}>
-                          ✓ {added[c.key] > 1 ? `${added[c.key]}つ` : '追加'}
+                          ✓ 追加
                         </span>
                       )}
                       {c.image ? (
@@ -350,7 +367,7 @@ export function Picker({
         </div>
         <footer className="mt-3 flex shrink-0 items-center gap-3">
           <p className="min-w-0 flex-1 truncate text-sm text-ink-soft" aria-live="polite">
-            {lastAdded ? `「${lastAdded}」を追加（${totalAdded}品）` : 'タップで追加。続けて選べます'}
+            {lastAction ? `${lastAction}（${totalAdded}品）` : 'タップで追加、もう一度で取り消し'}
           </p>
           <button type="button" onClick={onClose} className="min-h-11 shrink-0 rounded-full bg-coral px-6 text-sm font-bold text-white hover:bg-coral-dark">
             {totalAdded > 0 ? 'できた' : '閉じる'}

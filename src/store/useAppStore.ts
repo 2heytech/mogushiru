@@ -26,7 +26,8 @@ type State = {
   favoriteProductIds: string[]
   savedMenus: SavedMenu[]
   setProfile: (p: Profile) => void
-  addItem: (slot: Slot, item: Omit<MenuItem, 'uid'>) => void
+  // 追加した項目の uid を返す（料理を選ぶ画面で、もう一度押したら外すため）
+  addItem: (slot: Slot, item: Omit<MenuItem, 'uid'>) => string
   updatePortion: (slot: Slot, uid: string, portion: number) => void
   // 献立の料理をアレンジした材料で置き換える（null で元のレシピに戻す）
   customizeItem: (slot: Slot, uid: string, ingredients: Ingredient[] | null) => void
@@ -81,8 +82,11 @@ export const useAppStore = create<State>()(
       favoriteProductIds: [],
       savedMenus: [],
       setProfile: (profile) => set({ profile, profileSet: true }),
-      addItem: (slot, item) =>
-        set((s) => ({ menu: { ...s.menu, [slot]: [...s.menu[slot], { ...item, uid: uid() }] } })),
+      addItem: (slot, item) => {
+        const id = uid()
+        set((s) => ({ menu: { ...s.menu, [slot]: [...s.menu[slot], { ...item, uid: id }] } }))
+        return id
+      },
       updatePortion: (slot, id, portion) =>
         set((s) => ({ menu: { ...s.menu, [slot]: s.menu[slot].map((i) => (i.uid === id ? { ...i, portion } : i)) } })),
       customizeItem: (slot, id, ingredients) =>
