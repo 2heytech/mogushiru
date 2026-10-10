@@ -1,5 +1,6 @@
 // 料理レシピ（YAML）→ 配信用の料理データ（純粋関数）
 import { ingredientsTotals } from '../../src/domain/nutrition'
+import { illustrationGenre } from './illustration-genre'
 import { NUTRIENT_KEYS, SLOTS, type Dish, type DishCategory, type DishSource, type Food, type Ingredient, type Nutrients } from '../../src/domain/types'
 
 export type RecipeInput = {
@@ -56,7 +57,10 @@ export function buildDishes(recipes: RecipeInput[], foods: Map<string, Food>, il
     if ((r.category !== 'drink' && kcal < KCAL_RANGE.min) || kcal > KCAL_RANGE.max) warnings.push(`${where}: 1人前 ${kcal} kcal は範囲外の可能性`)
     if ((nutrients.salt ?? 0) > SALT_MAX) warnings.push(`${where}: 食塩 ${nutrients.salt} g は多すぎる可能性`)
 
-    const illustration = ILLUSTRATION_EXTS.map((ext) => `${r.id}.${ext}`).find((f) => illustrations.has(f)) ?? ''
+    // 1品ずつの絵がなければ、ジャンル別の共通の絵（genre/）を使う
+    const genre = `genre/${illustrationGenre(r.name, r.category)}.svg`
+    const illustration =
+      ILLUSTRATION_EXTS.map((ext) => `${r.id}.${ext}`).find((f) => illustrations.has(f)) ?? (illustrations.has(genre) ? genre : '')
     dishes.push({
       id: r.id,
       name: r.name,

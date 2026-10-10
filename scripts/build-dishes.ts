@@ -20,7 +20,8 @@ const recipes = readdirSync('data/recipes')
     templateErrors.push(...errors)
     return recipes
   })
-const illustrations = new Set(existsSync('public/illustrations') ? readdirSync('public/illustrations') : [])
+const listDir = (dir: string) => (existsSync(dir) ? readdirSync(dir) : [])
+const illustrations = new Set([...listDir('public/illustrations'), ...listDir('public/illustrations/genre').map((f) => `genre/${f}`)])
 
 const built = buildDishes(recipes, foods, illustrations)
 const { dishes, warnings } = built

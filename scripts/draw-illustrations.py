@@ -809,6 +809,102 @@ CLOCHE = ('<ellipse cx="64" cy="88" rx="46" ry="12" fill="#fff"/>'
           '<circle cx="64" cy="38" r="6" fill="#ff8a65"/><path d="M40 70 Q42 56 56 52" fill="none" stroke="#fff" stroke-width="4"/>')
 FALLBACK = {f'category/{c}': (c, CLOCHE) for c in BG}
 
+# ---- ジャンル別の共通の絵（郷土料理など、1品ずつの絵がない料理に使う。scripts/lib/illustration-genre.ts と対応） ----
+def donabe(top):
+    return ('<path d="M10 70 q-6 -2 -4 6 q2 6 10 4 M118 70 q6 -2 4 6 q-2 6 -10 4" fill="#c97a4a"/>'
+            '<path d="M14 70 Q16 106 64 106 Q112 106 114 70Z" fill="#c97a4a"/><path d="M24 86 q40 12 80 0" fill="none" stroke="#e8a878" stroke-width="3"/>'
+            f'<ellipse cx="64" cy="70" rx="50" ry="16" fill="#f5d99a"/>{top}')
+
+def kushi(x, balls):
+    out = f'<path d="M{x} 24 L{x} 108" stroke="#d9b07a" stroke-width="4"/>'
+    for i, c in enumerate(balls):
+        out += f'<circle cx="{x}" cy="{40 + i * 22}" r="12" fill="{c}"/>'
+    return out
+
+def hosomaki(x, y, inner):
+    return (f'<rect x="{x-12}" y="{y-12}" width="24" height="24" rx="10" fill="#2f4a3a"/><circle cx="{x}" cy="{y}" r="8" fill="#fff" stroke="none"/>'
+            f'<circle cx="{x}" cy="{y}" r="3.5" fill="{inner}" stroke="none"/>')
+
+def nigiri(x, y, fish, band=''):
+    return (f'<rect x="{x-14}" y="{y}" width="28" height="14" rx="6" fill="#fff"/>'
+            f'<path d="M{x-17} {y+4} Q{x-16} {y-8} {x} {y-8} Q{x+16} {y-8} {x+17} {y+4} Q{x} {y+2} {x-17} {y+4}Z" fill="{fish}"/>{band}')
+
+GENRE = {
+    'zoni': ('soup', bowl('#e0573a', '#fff1d6', rx=46,
+        top='<rect x="44" y="50" width="22" height="16" rx="4" fill="#fff"/><path d="M70 58 q8 -10 18 -2 q-8 8 -18 2Z" fill="#ff9fb0" stroke-width="2.5"/>'
+            '<circle cx="80" cy="66" r="5" fill="#ff9a3c" stroke-width="2.5"/><path d="M34 60 q6 -6 12 0 q-6 4 -12 0Z" fill="#4fae5c" stroke-width="2.5"/>')),
+    'nabe': ('main', donabe('<rect x="30" y="62" width="16" height="12" rx="2" fill="#fff"/><path d="M50 72 l18 -10" stroke="#9bd36a" stroke-width="6"/>'
+        '<path d="M64 60 a9 6 0 0 1 18 0Z" fill="#8a5a34"/><circle cx="90" cy="70" r="6" fill="#ff9a3c" stroke-width="2.5"/>'
+        '<path d="M68 74 q8 -6 16 2 q-8 6 -16 -2Z" fill="#4fae5c" stroke-width="2.5"/><path d="M36 76 q6 -4 12 0" fill="none" stroke="#fff" stroke-width="3"/>')),
+    'kayu': ('staple', bowl('#cfe6fa', '#fffaf0', rx=44,
+        top=dots([(46, 60), (56, 56), (72, 58), (82, 62), (62, 64)], 1.8, '#e8dcc4', False) + '<circle cx="64" cy="56" r="6" fill="#e8455a"/>'
+            + '<path d="M58 34 q-4 -6 0 -12 M70 34 q-4 -6 0 -12" fill="none" stroke="#fff" stroke-width="3"/>')),
+    'soba': ('noodle', noodle_bowl('soba', NOODLE_TOP['kake'])),
+    'udon': ('noodle', noodle_bowl('udon', NOODLE_TOP['kake'])),
+    'somen': ('noodle', '<path d="M18 64 Q20 104 64 104 Q108 104 110 64Z" fill="#d7f0ff"/><ellipse cx="64" cy="64" rx="46" ry="14" fill="#eaf8ff"/>'
+        '<path d="M30 64 q10 -8 20 0 t20 0 t20 0 t10 0 M36 70 q10 -6 20 0 t20 0 t18 0" fill="none" stroke="#fffdf6" stroke-width="4"/>'
+        '<path d="M30 64 q10 -8 20 0 t20 0 t20 0 t10 0 M36 70 q10 -6 20 0 t20 0 t18 0" fill="none" stroke-width="1.5"/>'
+        '<path d="M44 60 q8 -4 14 0" fill="none" stroke="#ff8aa0" stroke-width="3"/><path d="M70 62 q8 -4 14 0" fill="none" stroke="#7cc98a" stroke-width="3"/>'
+        '<rect x="80" y="50" width="12" height="12" rx="3" fill="#fff" fill-opacity=".8" stroke-width="2.5" transform="rotate(12 86 56)"/>'),
+    'jiru': ('soup', miso('<circle cx="44" cy="58" r="6" fill="#fff4dc"/><path d="M54 52 l10 -2 l-2 10Z" fill="#ff9a3c"/>'
+        '<rect x="66" y="52" width="12" height="10" rx="2" fill="#9a9a9a"/><circle cx="82" cy="62" r="6" fill="#fff"/><path d="M58 64 l10 0" stroke="#8a5a34" stroke-width="4"/>',
+        surface='#dd9a4e')),
+    'sushi': ('staple', '<rect x="14" y="76" width="100" height="24" rx="5" fill="#e3c98a"/><path d="M24 100 v6 M104 100 v6" stroke-width="6"/>'
+        + nigiri(36, 64, '#ff8a73') + nigiri(64, 64, '#ffd94d', '<path d="M60 56 v18" stroke="#2f4a3a" stroke-width="5"/>') + hosomaki(94, 70, '#7cc98a')),
+    'onigiri': ('staple', onigiri('')),
+    'don': ('bowl', donburi(DON['don-katsudon'])),
+    'gohan': ('staple', bowl('#ff8a65', '#e8c27a', mound=34,
+        top=''.join(f'<path d="M{x} {y} l8 -3" stroke="{c}" stroke-width="4"/>' for x, y, c in
+                    [(46, 54, '#ff9a3c'), (62, 46, '#8a5a34'), (74, 54, '#ff9a3c'), (54, 58, '#8a5a34')])
+            + dots([(68, 42), (84, 58)], 3, '#7cc98a'))),
+    'curry': D['curry-rice'],
+    'gyoza': D['gyoza'],
+    'dango': ('snack', plate(cy=96, rx=48, ry=12) + '<g transform="rotate(-18 50 66)">' + kushi(50, ['#ffb0c4', '#fff', '#a8d86a']) + '</g>'
+        + '<g transform="rotate(14 80 66)">' + kushi(80, ['#d9984a', '#d9984a', '#d9984a'])
+        + '<path d="M70 34 q10 6 20 0 M70 56 q10 6 20 0 M70 78 q10 6 20 0" fill="none" stroke="#a8602e" stroke-width="3"/></g>'),
+    'manju': ('snack', plate(cy=88) + '<path d="M22 88 Q22 58 46 58 Q70 58 70 88Z" fill="#fff8ec"/>'
+        '<path d="M58 88 Q58 54 82 54 Q106 54 106 88Z" fill="#c9823e"/><circle cx="82" cy="68" r="5" fill="#8a4a2e" stroke="none"/>'
+        '<path d="M34 44 q-4 -6 0 -12 M46 40 q-4 -6 0 -12" fill="none" stroke="#fff" stroke-width="3"/>'),
+    'mochi': ('snack', plate(cy=88) + '<ellipse cx="40" cy="78" rx="18" ry="14" fill="#fff"/><ellipse cx="66" cy="72" rx="18" ry="14" fill="#8fc46a"/>'
+        '<ellipse cx="90" cy="80" rx="18" ry="14" fill="#8a4a3e"/>' + dots([(84, 76), (94, 74), (90, 84)], 1.6, '#c98a7a', False)
+        + '<path d="M58 66 q6 -4 12 -2" fill="none" stroke="#c9eba0" stroke-width="3"/>'),
+    'yokan': ('snack', small_dish('<path d="M26 82 L36 50 H70 L60 82Z" fill="#8a4a5e"/><path d="M70 50 L80 58 L70 90 L60 82Z" fill="#6b3446"/>'
+        '<path d="M60 82 L70 90 H32 L26 82Z" fill="#a8606e"/><path d="M80 82 L88 62 H106 L98 82Z" fill="#8a4a5e"/>'
+        '<path d="M42 58 l12 0" stroke="#c98aa0" stroke-width="3"/>', '#d6f2dc')),
+    'okashi': ('snack', '<path d="M18 84 L60 58 L110 80 L66 106Z" fill="#fffdf6" stroke-width="2.5"/>'
+        '<circle cx="48" cy="72" r="20" fill="#d9984a"/><path d="M34 70 h28" stroke="#3d5a4a" stroke-width="7"/>' + dots([(42, 82), (56, 62)], 1.6, '#a8602e', False)
+        + '<path d="M80 62 q8 -8 14 0 q8 2 4 10 q4 8 -6 10 q-4 8 -12 2 q-10 2 -8 -8 q-6 -8 8 -14Z" fill="#ffc0d0"/><circle cx="86" cy="72" r="3.5" fill="#ffe07a" stroke-width="2"/>'),
+    'tsukemono': ('side', small_dish('<g transform="rotate(-10 44 72)"><rect x="30" y="60" width="28" height="10" rx="3" fill="#ffe14d"/><rect x="34" y="70" width="28" height="10" rx="3" fill="#ffd21f"/></g>'
+        + dots([(70, 72), (82, 70)], 8, '#9bd36a') + dots([(70, 72), (82, 70)], 4, '#e8f7c8', False)
+        + '<path d="M84 84 q8 -10 16 -2 q-6 8 -16 2Z M66 86 q8 -8 16 -2 q-8 8 -16 2Z" fill="#8a4a8e"/>', '#fff4dc')),
+    'sashimi': D['sashimi'] if 'sashimi' in D else ('main', sashimi_set(slices('#ff8a73'))),
+    'aemono': ('side', kobachi('<path d="M38 66 Q40 46 64 46 Q88 46 90 66Z" fill="#4fae5c"/><path d="M44 62 Q48 50 64 50 Q80 50 84 62Z" fill="#f2dcae" stroke-width="2.5"/>'
+        + dots([(56, 54), (66, 52), (74, 56)], 1.6, INK, False) + '<path d="M50 58 l6 -4 M72 58 l6 -4" stroke="#ff9a3c" stroke-width="3"/>')),
+    'nimono': ('main', bowl('#e0573a', '#d9a45a', rx=46,
+        top='<circle cx="44" cy="58" r="8" fill="#fff4dc"/><path d="M60 50 a10 7 0 0 1 20 0Z" fill="#8a5a34"/><path d="M60 50 h20" stroke-width="2.5"/>'
+            '<path d="M70 66 l3 -6 l4 4 l5 -2 l-1 6 l4 4 l-6 2 l-1 5 l-4 -4 l-5 2 l1 -6 l-4 -3Z" fill="#ff9a3c" stroke-width="2"/>'
+            '<rect x="82" y="56" width="10" height="10" rx="2" fill="#9a9a9a" transform="rotate(20 87 61)"/>'
+            '<path d="M48 70 q6 -8 14 -4 q-6 8 -14 4Z" fill="#7cc98a" stroke-width="2.5"/>')),
+    'agemono': ('main', tempura_paper() + batter(54, 66, 44, 18, -20) + batter(74, 78, 40, 18, -6)
+        + '<path d="M88 56 q10 -4 14 6 q-8 4 -14 -6Z" fill="#6cbf5a" stroke-width="2.5"/>'),
+    'tofu': ('side', small_dish('<path d="M38 62 L64 52 L90 62 V80 L64 90 L38 80Z" fill="#fff"/><path d="M38 62 L64 72 L90 62 M64 72 V90" fill="none" stroke-width="2.5"/>'
+        + negi([(56, 60), (68, 58)]) + '<circle cx="62" cy="64" r="4" fill="#ffc06a" stroke-width="2"/>', '#7aa8e0')),
+    'tamago': ('main', bowl('#fff', '#d9a45a', rx=44,
+        top='<path d="M28 62 q8 -12 18 -6 q8 -10 18 -2 q10 -8 18 2 q10 -4 14 6 q-6 8 -16 4 q-8 6 -16 0 q-10 6 -18 0 q-12 4 -18 -4Z" fill="#ffd94d"/>'
+            '<path d="M40 58 q6 -4 12 0 M66 56 q6 -4 12 0" fill="none" stroke="#fff6c8" stroke-width="3"/>'
+            '<path d="M60 48 q4 -8 10 -4 M64 46 l-2 -6" fill="none" stroke="#4fae5c" stroke-width="3"/>')),
+    'fish': ('main', long_plate() + whole_fish('#9fb8d4', '#e8f0f8') + oroshi()),
+    'meat': ('main', plate() + '<rect x="30" y="58" width="24" height="22" rx="6" fill="#a8582e"/><rect x="56" y="54" width="24" height="22" rx="6" fill="#b8683a"/>'
+        '<rect x="42" y="72" width="24" height="20" rx="6" fill="#9a4e28"/><path d="M34 64 h16 M60 60 h16 M46 78 h16" stroke="#e8b088" stroke-width="3"/>'
+        + garnish()),
+    'yaki': ('main', plate() + '<ellipse cx="62" cy="74" rx="38" ry="18" fill="#d9984a"/><ellipse cx="62" cy="70" rx="32" ry="13" fill="#7a3a22"/>'
+        '<path d="M38 70 q6 -6 12 0 t12 0 t12 0 t12 0" fill="none" stroke="#fff" stroke-width="3"/>' + dots([(48, 64), (60, 74), (74, 64), (82, 72)], 1.8, '#6cbf5a', False)
+        + '<path d="M56 58 q4 -4 8 0 M68 60 q4 -4 8 0" fill="none" stroke="#ffb0a0" stroke-width="3"/>'),
+}
+
+os.makedirs(os.path.join(OUT, 'genre'), exist_ok=True)
+D.update({f'genre/{g}': v for g, v in GENRE.items()})
+
 os.makedirs(os.path.join(OUT, 'category'), exist_ok=True)
 D.update(FALLBACK)
 for k, (cat, body) in D.items():
