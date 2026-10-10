@@ -1,12 +1,13 @@
 // 使い方: npx tsx scripts/build-kyodo.ts
 // data/raw/maff-kyodo.json（農水省「うちの郷土料理」の材料表）と data/kyodo/ingredients.yaml（材料名→成分表の対応表）から
 // 1人前の料理レシピ data/recipes/kyodo.yaml を生成する。取り込めなかった料理と理由は data/kyodo/report.md に書く
-import { existsSync, readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { parse } from 'yaml'
 import type { Food } from '../src/domain/types'
 import type { RecipeInput } from './lib/dishes'
 import { buildRuleIndex, convertKyodo, type IngredientRule, type KyodoOverride } from './lib/kyodo'
 import type { MaffRecipe } from './lib/maff'
+import { expandTemplate, isTemplate, type TemplateInput } from './lib/templates'
 
 // 1人前としてありえない値は取り込まない（材料表の読み違い・人数の書き方の違いを避ける）
 // 調味料は煮汁に残る分も数えるので、汁物・麺以外で食塩が多すぎるもの（煮汁の多い煮物・漬物の下漬けなど）も外す
@@ -23,10 +24,12 @@ const overrides: Record<string, KyodoOverride> = existsSync('data/kyodo/override
   : {}
 const index = buildRuleIndex(rules)
 
-// 既存の料理名（郷土料理と同じ名前なら県名を付ける）
+// 既存の料理名（郷土料理と同じ名前なら県名を付ける）。料理の型は展開した名前で比べる
 const existingNames = new Set<string>()
-for (const f of ['main', 'side', 'staple', 'drink-snack']) {
-  for (const r of parse(readFileSync(`data/recipes/${f}.yaml`, 'utf8')) as RecipeInput[]) existingNames.add(r.name)
+for (const f of readdirSync('data/recipes').filter((f) => f.endsWith('.yaml') && f !== 'kyodo.yaml')) {
+  for (const r of parse(readFileSync(`data/recipes/${f}`, 'utf8')) as (RecipeInput | TemplateInput)[]) {
+    for (const x of isTemplate(r) ? expandTemplate(r).recipes : [r]) existingNames.add(x.name)
+  }
 }
 
 const ok: RecipeInput[] = []

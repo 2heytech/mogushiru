@@ -1,0 +1,2375 @@
+# 日本でふだん食べる代表的な料理（data/coverage/everyday-dishes.txt のチェックリストで不足していたもの）
+# 分量は一般的な家庭・外食の1人前。各料理のコメントに決め方を書く
+
+# ---- 主食・丼・麺・パン
+
+# 主食・丼・麺・パン（日本で食べられる代表的な料理の追加分）
+# 分量はすべて「一般的な家庭・外食の1人前」（README の決め方3）。成分表に料理そのものがある材料（とんかつ・ハンバーグ・赤飯など）はそれを1つの材料として使った。
+
+# ---- ごはん・寿司・洋風ごはん ----
+- id: genmai-rice
+  name: 玄米ごはん
+  kana: げんまいごはん げんまい
+  category: staple
+  suggestedSlots: [breakfast, lunch, dinner]
+  # 茶碗1杯150g（既存の「ごはん」と同じ量）。
+  ingredients:
+    - { foodId: "01085", grams: 150, role: ごはん, alternatives: ["01155", "01088"] } # ごはん（玄米）。発芽玄米は 01155
+
+- id: mugi-rice
+  name: 麦ごはん
+  kana: むぎごはん むぎめし
+  category: staple
+  suggestedSlots: [breakfast, lunch, dinner]
+  # 茶碗1杯150g。押麦3割（白米7：押麦3）で炊いたものを、白米めしと押麦めしの重さの比で分けて計上。
+  ingredients:
+    - { foodId: "01088", grams: 105, role: ごはん } # ごはん（白米）
+    - { foodId: "01170", grams: 45, role: 麦 } # おおむぎ 押麦 めし
+
+- id: zakkoku-rice
+  name: 雑穀ごはん
+  kana: ざっこくごはん
+  category: staple
+  suggestedSlots: [breakfast, lunch, dinner]
+  # 茶碗1杯150g。白米1合に雑穀大さじ2（約25g）の割合。雑穀は乾物の重さで計上（炊いて増えた分は水）。
+  ingredients:
+    - { foodId: "01088", grams: 140, role: ごはん } # ごはん（白米）
+    - { foodId: "01002", grams: 1.5 } # あわ 精白粒
+    - { foodId: "01011", grams: 1.5 } # きび 精白粒
+    - { foodId: "01139", grams: 1.5 } # ひえ 精白粒
+    - { foodId: "01005", grams: 1.5 } # おおむぎ 七分つき押麦
+
+- id: takikomi-gohan
+  name: 炊き込みご飯（五目）
+  kana: たきこみごはん ごもくごはん かやくごはん
+  category: staple
+  suggestedSlots: [lunch, dinner]
+  # 茶碗大盛り1杯（ごはん180g）。米1合あたり鶏肉50g・具野菜各25g程度の一般的な配合を1人前に換算。
+  ingredients:
+    - { foodId: "01088", grams: 180, role: ごはん } # ごはん（白米）
+    - { foodId: "11221", grams: 20, role: 肉, alternatives: ["11224", "11163"] } # 鶏もも肉（皮つき）
+    - { foodId: "06214", grams: 10 } # にんじん
+    - { foodId: "06084", grams: 10 } # ごぼう
+    - { foodId: "08039", grams: 8 } # しいたけ
+    - { foodId: "02003", grams: 10 } # こんにゃく
+    - { foodId: "04040", grams: 5 } # 油揚げ
+    - { foodId: "17007", grams: 6 } # しょうゆ（濃口）
+    - { foodId: "16025", grams: 4 } # みりん
+    - { foodId: "16001", grams: 3 } # 日本酒
+    - { foodId: "17012", grams: 0.5 } # 食塩
+
+- id: nigiri-sushi
+  name: にぎり寿司（8貫）
+  kana: にぎりずし すし おすし
+  category: staple
+  suggestedSlots: [lunch, dinner]
+  # 1人前8貫。シャリ1貫約19g（ごはん150g＋すし酢）、ネタ1貫12〜15g、玉子のみ20g。
+  ingredients:
+    - { foodId: "01088", grams: 150, role: ごはん } # ごはん（白米）
+    - { foodId: "17102", grams: 15 } # すし酢 にぎり用
+    - { foodId: "10253", grams: 15, role: ネタ } # まぐろ赤身（生）
+    - { foodId: "10144", grams: 15 } # サーモン（生）
+    - { foodId: "10243", grams: 12 } # はまち（生）
+    - { foodId: "10193", grams: 12 } # たい（生）
+    - { foodId: "10345", grams: 12 } # いか（するめいか）
+    - { foodId: "10322", grams: 12 } # くるまえび ゆで
+    - { foodId: "10140", grams: 12 } # イクラ
+    - { foodId: "12018", grams: 20 } # 厚焼きたまご
+    - { foodId: "09004", grams: 0.5 } # 焼きのり（軍艦用）
+    - { foodId: "17081", grams: 2 } # 練りわさび
+    - { foodId: "17007", grams: 6 } # しょうゆ（つけじょうゆ）
+    - { foodId: "06105", grams: 10 } # しょうが 甘酢漬（ガリ）
+
+- id: tekka-maki
+  name: 鉄火巻（1本）
+  kana: てっかまき
+  category: staple
+  suggestedSlots: [lunch, dinner, other]
+  # 細巻き1本（6切れ）。のり半切1/2枚、すし飯約100g、まぐろ25g。
+  ingredients:
+    - { foodId: "01088", grams: 95, role: ごはん } # ごはん（白米）
+    - { foodId: "17103", grams: 8 } # すし酢 巻き寿司・箱寿司用
+    - { foodId: "10253", grams: 25, role: 具, alternatives: ["10425", "10144"] } # まぐろ赤身（生）
+    - { foodId: "09004", grams: 1.5 } # 焼きのり
+    - { foodId: "17081", grams: 1 } # 練りわさび
+    - { foodId: "17007", grams: 4 } # しょうゆ（つけじょうゆ）
+
+- id: kappa-maki
+  name: かっぱ巻（1本）
+  kana: かっぱまき
+  category: staple
+  suggestedSlots: [lunch, dinner, other]
+  # 細巻き1本（6切れ）。すし飯約100g、きゅうり25g。
+  ingredients:
+    - { foodId: "01088", grams: 95, role: ごはん } # ごはん（白米）
+    - { foodId: "17103", grams: 8 } # すし酢 巻き寿司・箱寿司用
+    - { foodId: "06065", grams: 25, role: 具 } # きゅうり
+    - { foodId: "05018", grams: 1 } # いりごま
+    - { foodId: "09004", grams: 1.5 } # 焼きのり
+    - { foodId: "17007", grams: 4 } # しょうゆ（つけじょうゆ）
+
+- id: temaki-sushi
+  name: 手巻き寿司
+  kana: てまきずし
+  category: staple
+  suggestedSlots: [lunch, dinner]
+  # 家庭の手巻き寿司1人前（のり1/4枚で5〜6本）。すし飯200g、具は刺身・卵・きゅうりなどを合計約100g。
+  ingredients:
+    - { foodId: "01088", grams: 190, role: ごはん } # ごはん（白米）
+    - { foodId: "17101", grams: 18 } # すし酢 ちらし・稲荷用
+    - { foodId: "09004", grams: 4.5 } # 焼きのり（全形1.5枚）
+    - { foodId: "10253", grams: 25, role: 具, alternatives: ["10144", "10260"] } # まぐろ赤身（生）
+    - { foodId: "10144", grams: 25 } # サーモン（生）
+    - { foodId: "10345", grams: 10 } # いか（するめいか）
+    - { foodId: "12018", grams: 20 } # 厚焼きたまご
+    - { foodId: "10376", grams: 10 } # かに風味かまぼこ
+    - { foodId: "06065", grams: 15 } # きゅうり
+    - { foodId: "06095", grams: 1 } # しそ 葉
+    - { foodId: "17081", grams: 1 } # 練りわさび
+    - { foodId: "17007", grams: 8 } # しょうゆ
+
+- id: omurice
+  name: オムライス
+  kana: おむらいす
+  category: staple
+  suggestedSlots: [lunch, dinner]
+  # 1皿。ケチャップライス（ごはん200g）を卵2個で包み、ケチャップをかける。
+  ingredients:
+    - { foodId: "01088", grams: 200, role: ごはん } # ごはん（白米）
+    - { foodId: "11221", grams: 40, role: 肉, alternatives: ["11176", "11186"] } # 鶏もも肉（皮つき）
+    - { foodId: "06153", grams: 30 } # たまねぎ
+    - { foodId: "17036", grams: 35 } # ケチャップ（ライス25g＋上に10g）
+    - { foodId: "14006", grams: 5 } # サラダ油
+    - { foodId: "12004", grams: 100, role: 卵 } # 卵（生）2個
+    - { foodId: "13003", grams: 10 } # 牛乳
+    - { foodId: "14017", grams: 5 } # バター（有塩）
+    - { foodId: "17012", grams: 0.5 } # 食塩
+
+- id: hayashi-rice
+  name: ハヤシライス
+  kana: はやしらいす
+  category: bowl
+  suggestedSlots: [lunch, dinner]
+  # 1皿（ごはん200g）。ルウの箱の分量（4皿分でルウ80g・肉250g・たまねぎ300g）を1人前に換算。
+  ingredients:
+    - { foodId: "01088", grams: 200, role: ごはん } # ごはん（白米）
+    - { foodId: "11046", grams: 60, role: 肉, alternatives: ["11075", "11129"] } # 牛ばら肉
+    - { foodId: "06153", grams: 75 } # たまねぎ
+    - { foodId: "08031", grams: 20 } # マッシュルーム 生
+    - { foodId: "17052", grams: 20 } # ハヤシルウ
+    - { foodId: "17036", grams: 5 } # ケチャップ
+    - { foodId: "14006", grams: 3 } # サラダ油
+
+- id: doria
+  name: ドリア
+  kana: どりあ ちきんどりあ
+  category: staple
+  suggestedSlots: [lunch, dinner]
+  # 1皿。バターライス（ごはん180g）にホワイトソース100gとチーズをのせて焼く。
+  ingredients:
+    - { foodId: "01088", grams: 180, role: ごはん } # ごはん（白米）
+    - { foodId: "14017", grams: 5 } # バター（有塩）
+    - { foodId: "11221", grams: 40, role: 具, alternatives: ["10329", "11186"] } # 鶏もも肉（皮つき）。えびドリアは 10329
+    - { foodId: "06153", grams: 30 } # たまねぎ
+    - { foodId: "08031", grams: 15 } # マッシュルーム 生
+    - { foodId: "17109", grams: 100 } # ホワイトソース
+    - { foodId: "13036", grams: 20 } # ナチュラルチーズ ゴーダ（とろけるチーズ）
+    - { foodId: "13038", grams: 3 } # 粉チーズ（パルメザン）
+    - { foodId: "17012", grams: 0.5 } # 食塩
+
+- id: paella
+  name: パエリア
+  kana: ぱえりあ
+  category: staple
+  suggestedSlots: [lunch, dinner]
+  # 1皿（ごはん換算200g）。米2合・魚介と鶏肉合わせて約400gの4人分を1人前に換算。サフランは成分表にないため省略。
+  ingredients:
+    - { foodId: "01088", grams: 200, role: ごはん, alternatives: ["01168"] } # ごはん（白米）
+    - { foodId: "11221", grams: 30, role: 肉 } # 鶏もも肉（皮つき）
+    - { foodId: "10329", grams: 30, role: 魚介 } # えび（ブラックタイガー）
+    - { foodId: "10281", grams: 30 } # あさり（可食部。殻つき約75g）
+    - { foodId: "10345", grams: 20 } # いか（するめいか）
+    - { foodId: "06153", grams: 20 } # たまねぎ
+    - { foodId: "06247", grams: 15 } # パプリカ（赤）
+    - { foodId: "06182", grams: 30 } # トマト
+    - { foodId: "06223", grams: 2 } # にんにく
+    - { foodId: "14001", grams: 8 } # オリーブ油
+    - { foodId: "17027", grams: 2 } # コンソメ（固形ブイヨン）
+    - { foodId: "17012", grams: 0.5 } # 食塩
+    - { foodId: "07156", grams: 3 } # レモン 果汁
+
+- id: bibimbap
+  name: ビビンバ
+  kana: びびんば びびんぱ
+  category: bowl
+  suggestedSlots: [lunch, dinner]
+  # 1杯（ごはん220g）。ナムル3種各20〜30g・牛そぼろ40g・卵黄。コチュジャンは成分表にないため豆板醤＋砂糖で代用。
+  ingredients:
+    - { foodId: "01088", grams: 220, role: ごはん } # ごはん（白米）
+    - { foodId: "11046", grams: 40, role: 肉, alternatives: ["11089", "11163"] } # 牛ばら肉
+    - { foodId: "06292", grams: 30 } # もやし（ゆで）
+    - { foodId: "06268", grams: 30 } # ほうれんそう（ゆで）
+    - { foodId: "06123", grams: 20 } # ぜんまい（ゆで）
+    - { foodId: "06214", grams: 15 } # にんじん
+    - { foodId: "06236", grams: 20 } # キムチ
+    - { foodId: "12010", grams: 17 } # 鶏卵 卵黄 生（1個分）
+    - { foodId: "14002", grams: 6 } # ごま油
+    - { foodId: "05018", grams: 1 } # いりごま
+    - { foodId: "17007", grams: 5 } # しょうゆ（濃口）
+    - { foodId: "03003", grams: 4 } # 砂糖（上白糖）
+    - { foodId: "17004", grams: 5 } # 豆板醤（コチュジャンの代わり）
+    - { foodId: "17012", grams: 0.5 } # 食塩
+
+- id: gapao-rice
+  name: ガパオライス
+  kana: がぱおらいす がぱお
+  category: bowl
+  suggestedSlots: [lunch, dinner]
+  # 1皿（ごはん200g）。鶏ひき肉80gのバジル炒めに目玉焼きをのせる。
+  ingredients:
+    - { foodId: "01088", grams: 200, role: ごはん, alternatives: ["01168"] } # ごはん（白米）。ジャスミンライスなら 01168
+    - { foodId: "11230", grams: 80, role: 肉, alternatives: ["11163"] } # 鶏ひき肉
+    - { foodId: "06153", grams: 30 } # たまねぎ
+    - { foodId: "06247", grams: 20 } # パプリカ（赤）
+    - { foodId: "06245", grams: 15 } # ピーマン
+    - { foodId: "06238", grams: 3 } # バジル 葉 生
+    - { foodId: "06223", grams: 2 } # にんにく
+    - { foodId: "17107", grams: 6 } # ナンプラー
+    - { foodId: "17031", grams: 6 } # オイスターソース
+    - { foodId: "03003", grams: 2 } # 砂糖（上白糖）
+    - { foodId: "14006", grams: 5 } # サラダ油
+    - { foodId: "12021", grams: 50, role: 卵 } # 目玉焼き（1個）
+
+- id: taco-rice
+  name: タコライス
+  kana: たこらいす
+  category: bowl
+  suggestedSlots: [lunch, dinner]
+  # 1皿（ごはん200g）。スパイスで炒めたひき肉60gとレタス・トマト・チーズをのせる。
+  ingredients:
+    - { foodId: "01088", grams: 200, role: ごはん } # ごはん（白米）
+    - { foodId: "11089", grams: 60, role: 肉, alternatives: ["11163"] } # 牛ひき肉
+    - { foodId: "06153", grams: 20 } # たまねぎ
+    - { foodId: "17036", grams: 10 } # ケチャップ
+    - { foodId: "17001", grams: 5 } # ウスターソース
+    - { foodId: "17072", grams: 1 } # チリパウダー
+    - { foodId: "14006", grams: 3 } # サラダ油
+    - { foodId: "06312", grams: 20 } # レタス
+    - { foodId: "06182", grams: 30 } # トマト
+    - { foodId: "13037", grams: 15 } # ナチュラルチーズ チェダー
+    - { foodId: "17005", grams: 3 } # チリペッパーソース
+
+- id: loco-moco
+  name: ロコモコ
+  kana: ろこもこ
+  category: bowl
+  suggestedSlots: [lunch, dinner]
+  # 1皿（ごはん200g）。ハンバーグ100g（成分表18群「合いびきハンバーグ」）と目玉焼き、グレービー（デミグラスソース）。
+  ingredients:
+    - { foodId: "01088", grams: 200, role: ごはん } # ごはん（白米）
+    - { foodId: "18050", grams: 100, role: ハンバーグ } # 合いびきハンバーグ
+    - { foodId: "12021", grams: 50, role: 卵 } # 目玉焼き（1個）
+    - { foodId: "17105", grams: 40 } # デミグラスソース
+    - { foodId: "17036", grams: 5 } # ケチャップ
+    - { foodId: "06312", grams: 15 } # レタス
+    - { foodId: "06182", grams: 20 } # トマト
+
+- id: risotto
+  name: リゾット
+  kana: りぞっと ちーずりぞっと
+  category: staple
+  suggestedSlots: [lunch, dinner]
+  # 1皿。きのことチーズのリゾット。米70g相当を炊き上がりのごはん180gで計上し、ブイヨン・牛乳・チーズで煮る。
+  ingredients:
+    - { foodId: "01088", grams: 180, role: ごはん } # ごはん（白米）
+    - { foodId: "06153", grams: 20 } # たまねぎ
+    - { foodId: "08031", grams: 20, role: 具, alternatives: ["08016", "10329"] } # マッシュルーム 生
+    - { foodId: "14017", grams: 6 } # バター（有塩）
+    - { foodId: "14001", grams: 3 } # オリーブ油
+    - { foodId: "17027", grams: 2 } # コンソメ（固形ブイヨン）
+    - { foodId: "13003", grams: 30 } # 牛乳
+    - { foodId: "13038", grams: 8 } # 粉チーズ（パルメザン）
+    - { foodId: "17012", grams: 0.3 } # 食塩
+
+- id: kaisendon
+  name: 海鮮丼
+  kana: かいせんどん
+  category: bowl
+  suggestedSlots: [lunch, dinner]
+  # 1杯。すし飯（ごはん230g）に刺身5〜6種を計約140g。
+  ingredients:
+    - { foodId: "01088", grams: 230, role: ごはん } # ごはん（白米）
+    - { foodId: "17102", grams: 15 } # すし酢 にぎり用
+    - { foodId: "10253", grams: 30, role: 刺身 } # まぐろ赤身（生）
+    - { foodId: "10144", grams: 30 } # サーモン（生）
+    - { foodId: "10243", grams: 20 } # はまち（生）
+    - { foodId: "10345", grams: 15 } # いか（するめいか）
+    - { foodId: "10319", grams: 15 } # 甘えび（生）
+    - { foodId: "10313", grams: 15 } # ほたて貝柱（生）
+    - { foodId: "10140", grams: 10 } # イクラ
+    - { foodId: "12018", grams: 10 } # 厚焼きたまご
+    - { foodId: "06095", grams: 1 } # しそ 葉
+    - { foodId: "09004", grams: 0.5 } # 焼きのり
+    - { foodId: "17081", grams: 2 } # 練りわさび
+    - { foodId: "17007", grams: 10 } # しょうゆ
+
+- id: unadon
+  name: うな丼
+  kana: うなどん うなじゅう
+  category: bowl
+  suggestedSlots: [lunch, dinner]
+  # 1杯（ごはん250g）。うなぎのかば焼1/2尾（約80g）とたれ。
+  ingredients:
+    - { foodId: "01088", grams: 250, role: ごはん } # ごはん（白米）
+    - { foodId: "10070", grams: 80, role: うなぎ } # うなぎ かば焼
+    - { foodId: "17007", grams: 6 } # しょうゆ（たれ）
+    - { foodId: "16025", grams: 6 } # みりん（たれ）
+    - { foodId: "03003", grams: 2 } # 砂糖（たれ）
+
+- id: negitoro-don
+  name: ねぎとろ丼
+  kana: ねぎとろどん
+  category: bowl
+  suggestedSlots: [lunch, dinner]
+  # 1杯（ごはん230g）。ねぎとろ80g（赤身と脂身をたたいたもの）。
+  ingredients:
+    - { foodId: "01088", grams: 230, role: ごはん } # ごはん（白米）
+    - { foodId: "10253", grams: 50, role: まぐろ } # まぐろ赤身（生）
+    - { foodId: "10459", grams: 30 } # くろまぐろ 養殖 脂身 生
+    - { foodId: "06227", grams: 5 } # 青ねぎ
+    - { foodId: "09004", grams: 1 } # 焼きのり
+    - { foodId: "17081", grams: 1 } # 練りわさび
+    - { foodId: "17007", grams: 8 } # しょうゆ
+
+- id: tanindon
+  name: 他人丼
+  kana: たにんどん
+  category: bowl
+  suggestedSlots: [lunch, dinner]
+  # 親子丼（既存）と同じ分量で、鶏肉を牛肉に替えたもの。
+  ingredients:
+    - { foodId: "01088", grams: 230, role: ごはん } # ごはん（白米）
+    - { foodId: "11046", grams: 60, role: 肉, alternatives: ["11129"] } # 牛ばら肉。豚肉なら 11129
+    - { foodId: "12004", grams: 60, role: 卵 } # 卵（生）
+    - { foodId: "06153", grams: 40 } # たまねぎ
+    - { foodId: "17007", grams: 10 } # しょうゆ（濃口）
+    - { foodId: "16025", grams: 10 } # みりん
+    - { foodId: "03003", grams: 3 } # 砂糖（上白糖）
+    - { foodId: "17021", grams: 50 } # だし（かつお・昆布）
+    - { foodId: "06274", grams: 2 } # 切りみつば
+
+- id: sauce-katsudon
+  name: ソースカツ丼
+  kana: そーすかつどん
+  category: bowl
+  suggestedSlots: [lunch, dinner]
+  # 1杯（ごはん230g）。とんかつ100g（成分表「とんかつ（豚ロース）」）をソースにくぐらせ、キャベツの上にのせる。
+  ingredients:
+    - { foodId: "01088", grams: 230, role: ごはん } # ごはん（白米）
+    - { foodId: "11276", grams: 100, role: とんかつ, alternatives: ["18022"] } # とんかつ（豚ロース）
+    - { foodId: "06061", grams: 30 } # キャベツ
+    - { foodId: "17001", grams: 10 } # ウスターソース
+    - { foodId: "17003", grams: 10 } # とんかつソース（濃厚ソース）
+    - { foodId: "03003", grams: 2 } # 砂糖（上白糖）
+
+- id: roast-beef-don
+  name: ローストビーフ丼
+  kana: ろーすとびーふどん
+  category: bowl
+  suggestedSlots: [lunch, dinner]
+  # 1杯（ごはん230g）。ローストビーフ80gと卵黄、しょうゆだれ。
+  ingredients:
+    - { foodId: "01088", grams: 230, role: ごはん } # ごはん（白米）
+    - { foodId: "11104", grams: 80, role: 肉 } # ローストビーフ
+    - { foodId: "12010", grams: 17 } # 鶏卵 卵黄 生（1個分）
+    - { foodId: "06154", grams: 10 } # たまねぎ（水さらし）
+    - { foodId: "17007", grams: 8 } # しょうゆ（たれ）
+    - { foodId: "16025", grams: 6 } # みりん（たれ）
+    - { foodId: "03003", grams: 2 } # 砂糖（たれ）
+    - { foodId: "17081", grams: 1 } # 練りわさび
+    - { foodId: "06227", grams: 3 } # 青ねぎ
+
+- id: tenshinhan
+  name: 天津飯
+  kana: てんしんはん てんしんどん かにたま
+  category: bowl
+  suggestedSlots: [lunch, dinner]
+  # 1杯（ごはん230g）。卵2個のかに玉に甘酢あん（鶏がらだし100mL）をかける。
+  ingredients:
+    - { foodId: "01088", grams: 230, role: ごはん } # ごはん（白米）
+    - { foodId: "12004", grams: 100, role: 卵 } # 卵（生）2個
+    - { foodId: "10376", grams: 20 } # かに風味かまぼこ
+    - { foodId: "06227", grams: 5 } # 青ねぎ
+    - { foodId: "14006", grams: 6 } # サラダ油
+    - { foodId: "17024", grams: 100 } # 鶏がらだし（あん）
+    - { foodId: "17007", grams: 8 } # しょうゆ（濃口）
+    - { foodId: "03003", grams: 4 } # 砂糖（上白糖）
+    - { foodId: "17015", grams: 5 } # 酢（穀物酢）
+    - { foodId: "02034", grams: 5 } # 片栗粉
+
+- id: okayu
+  name: おかゆ（白がゆ）
+  kana: おかゆ かゆ しらがゆ
+  category: staple
+  suggestedSlots: [breakfast, dinner]
+  # 茶碗大盛り1杯（全がゆ250g）。成分表の「水稲全かゆ 精白米」をそのまま使う。
+  ingredients:
+    - { foodId: "01093", grams: 250, role: かゆ, alternatives: ["01090", "01097"] } # こめ 水稲全かゆ 精白米
+    - { foodId: "17012", grams: 0.3 } # 食塩
+
+- id: sekihan
+  name: 赤飯
+  kana: せきはん おこわ
+  category: staple
+  suggestedSlots: [lunch, dinner, other]
+  # 茶碗1杯160g（成分表「もち米製品 赤飯」）にごま塩。
+  ingredients:
+    - { foodId: "01118", grams: 160, role: ごはん } # こめ もち米製品 赤飯
+    - { foodId: "05018", grams: 1 } # いりごま（ごま塩）
+    - { foodId: "17012", grams: 0.3 } # 食塩（ごま塩）
+
+- id: inari-sushi
+  name: いなり寿司（3個）
+  kana: いなりずし おいなりさん
+  category: staple
+  suggestedSlots: [lunch, other]
+  # 3個（油揚げ1.5枚＝30g、すし飯1個約45g）。揚げは砂糖・しょうゆ・みりんで甘辛く煮る。
+  ingredients:
+    - { foodId: "01088", grams: 120, role: ごはん } # ごはん（白米）
+    - { foodId: "17101", grams: 12 } # すし酢 ちらし・稲荷用
+    - { foodId: "04040", grams: 30, role: 油揚げ } # 油揚げ
+    - { foodId: "03003", grams: 6 } # 砂糖（上白糖）
+    - { foodId: "17007", grams: 6 } # しょうゆ（濃口）
+    - { foodId: "16025", grams: 4 } # みりん
+    - { foodId: "05018", grams: 1 } # いりごま
+
+- id: chirashi-sushi
+  name: ちらし寿司
+  kana: ちらしずし ばらずし ごもくずし
+  category: staple
+  suggestedSlots: [lunch, dinner]
+  # 家庭の五目ちらし1皿（すし飯約220g）。具は煮しめ・錦糸卵・えびなど計約90g。
+  ingredients:
+    - { foodId: "01088", grams: 200, role: ごはん } # ごはん（白米）
+    - { foodId: "17101", grams: 20 } # すし酢 ちらし・稲荷用
+    - { foodId: "06364", grams: 10 } # かんぴょう 甘煮
+    - { foodId: "08053", grams: 10 } # 干ししいたけ 甘煮
+    - { foodId: "06214", grams: 10 } # にんじん
+    - { foodId: "06371", grams: 10 } # 甘酢れんこん
+    - { foodId: "12004", grams: 25 } # 卵（生）（錦糸卵）
+    - { foodId: "14006", grams: 1 } # サラダ油
+    - { foodId: "10322", grams: 15, role: 具, alternatives: ["10144", "10140"] } # くるまえび ゆで
+    - { foodId: "06021", grams: 5 } # 絹さや（ゆで）
+    - { foodId: "10448", grams: 3 } # 桜でんぶ
+    - { foodId: "09004", grams: 0.5 } # 焼きのり
+
+- id: futomaki
+  name: 太巻き（1/2本）
+  kana: ふとまき まきずし えほうまき
+  category: staple
+  suggestedSlots: [lunch, dinner, other]
+  # 太巻き1本（すし飯約240g・具約120g）の半分（4切れ）。恵方巻を1本食べるときは2人前。
+  ingredients:
+    - { foodId: "01088", grams: 120, role: ごはん } # ごはん（白米）
+    - { foodId: "17103", grams: 12 } # すし酢 巻き寿司・箱寿司用
+    - { foodId: "09004", grams: 1.5 } # 焼きのり（全形1/2枚）
+    - { foodId: "06364", grams: 8 } # かんぴょう 甘煮
+    - { foodId: "08053", grams: 8 } # 干ししいたけ 甘煮
+    - { foodId: "12018", grams: 20 } # 厚焼きたまご
+    - { foodId: "06065", grams: 10 } # きゅうり
+    - { foodId: "10376", grams: 10 } # かに風味かまぼこ
+    - { foodId: "10448", grams: 3 } # 桜でんぶ
+
+- id: ochazuke-salmon
+  name: お茶漬け（鮭茶漬け）
+  kana: おちゃづけ さけちゃづけ しゃけちゃづけ
+  category: staple
+  suggestedSlots: [breakfast, dinner, other]
+  # 茶碗1杯（ごはん150g）に焼いた塩ざけ20gをほぐしてのせ、緑茶150mLをかける。
+  ingredients:
+    - { foodId: "01088", grams: 150, role: ごはん } # ごはん（白米）
+    - { foodId: "10139", grams: 20, role: 具, alternatives: ["17125", "10202"] } # 塩ざけ。市販のお茶漬けの素（さけ）は 17125
+    - { foodId: "16037", grams: 150 } # 緑茶（せん茶 浸出液）150mL
+    - { foodId: "09004", grams: 0.5 } # 焼きのり
+    - { foodId: "05018", grams: 0.5 } # いりごま
+    - { foodId: "17081", grams: 0.5 } # 練りわさび
+    - { foodId: "17012", grams: 0.3 } # 食塩
+
+- id: zosui-egg
+  name: 雑炊（卵雑炊）
+  kana: ぞうすい たまごぞうすい おじや
+  category: staple
+  suggestedSlots: [breakfast, dinner]
+  # 1杯（ごはん150g）をだし200mLで煮て卵1個でとじる。汁ごと食べる量。
+  ingredients:
+    - { foodId: "01088", grams: 150, role: ごはん } # ごはん（白米）
+    - { foodId: "17021", grams: 200 } # だし（かつお・昆布）
+    - { foodId: "12004", grams: 50, role: 卵 } # 卵（生）
+    - { foodId: "06227", grams: 5 } # 青ねぎ
+    - { foodId: "17008", grams: 6 } # うすくちしょうゆ
+    - { foodId: "16025", grams: 3 } # みりん
+    - { foodId: "17012", grams: 0.8 } # 食塩
+
+# ---- 麺 ----
+- id: curry-udon
+  name: カレーうどん
+  kana: かれーうどん
+  category: noodle
+  suggestedSlots: [lunch, dinner]
+  # ゆでうどん1玉230g。だし300mLにカレールウ18gを溶かし、片栗粉でとろみ。汁まで飲み干す量。
+  ingredients:
+    - { foodId: "01039", grams: 230, role: めん } # うどん（ゆで）
+    - { foodId: "17021", grams: 300 } # だし（かつお・昆布）
+    - { foodId: "17051", grams: 18 } # カレールウ
+    - { foodId: "17007", grams: 8 } # しょうゆ（濃口）
+    - { foodId: "16025", grams: 6 } # みりん
+    - { foodId: "11129", grams: 40, role: 肉, alternatives: ["11046", "11221"] } # 豚ばら肉
+    - { foodId: "06153", grams: 30 } # たまねぎ
+    - { foodId: "06226", grams: 10 } # 長ねぎ
+    - { foodId: "02034", grams: 3 } # 片栗粉
+
+- id: yaki-udon
+  name: 焼きうどん
+  kana: やきうどん
+  category: noodle
+  suggestedSlots: [lunch, dinner]
+  # ゆでうどん1玉230g。しょうゆ味（ソース焼きそばと同じ具の量）。
+  ingredients:
+    - { foodId: "01039", grams: 230, role: めん } # うどん（ゆで）
+    - { foodId: "11129", grams: 40, role: 肉, alternatives: ["11163", "11221"] } # 豚ばら肉
+    - { foodId: "06061", grams: 50 } # キャベツ
+    - { foodId: "06153", grams: 20 } # たまねぎ
+    - { foodId: "06214", grams: 10 } # にんじん
+    - { foodId: "14006", grams: 6 } # サラダ油
+    - { foodId: "17007", grams: 12 } # しょうゆ（濃口）
+    - { foodId: "16025", grams: 4 } # みりん
+    - { foodId: "10092", grams: 1 } # かつお 削り節
+
+- id: kamatama-udon
+  name: 釜玉うどん
+  kana: かまたまうどん
+  category: noodle
+  suggestedSlots: [lunch, dinner]
+  # ゆでたての釜揚げうどん1玉230gに生卵1個とだししょうゆ。
+  ingredients:
+    - { foodId: "01039", grams: 230, role: めん } # うどん（ゆで）
+    - { foodId: "12004", grams: 50, role: 卵 } # 卵（生）
+    - { foodId: "17087", grams: 15 } # だししょうゆ
+    - { foodId: "06227", grams: 5 } # 青ねぎ
+    - { foodId: "10092", grams: 1 } # かつお 削り節
+
+- id: zaru-udon
+  name: ざるうどん
+  kana: ざるうどん
+  category: noodle
+  suggestedSlots: [lunch, dinner]
+  # ゆでうどん1玉230g。つけつゆはざるそば（既存）と同じ60g。
+  ingredients:
+    - { foodId: "01039", grams: 230, role: めん } # うどん（ゆで）
+    - { foodId: "17029", grams: 60 } # めんつゆ（ストレート）
+    - { foodId: "06226", grams: 5 } # 長ねぎ
+    - { foodId: "06365", grams: 2 } # しょうが おろし
+    - { foodId: "09004", grams: 0.5 } # 焼きのり
+
+- id: nabeyaki-udon
+  name: 鍋焼きうどん
+  kana: なべやきうどん
+  category: noodle
+  suggestedSlots: [lunch, dinner]
+  # 1人用土鍋1杯。かけうどん（既存）のつゆに、えび天・鶏肉・卵・かまぼこ・しいたけ・青菜をのせる。
+  ingredients:
+    - { foodId: "01039", grams: 230, role: めん } # うどん（ゆで）
+    - { foodId: "17021", grams: 300 } # だし（かつお・昆布）
+    - { foodId: "17008", grams: 15 } # うすくちしょうゆ
+    - { foodId: "16025", grams: 10 } # みりん
+    - { foodId: "17012", grams: 0.5 } # 食塩
+    - { foodId: "10416", grams: 40, role: 天ぷら } # えびの天ぷら（1本）
+    - { foodId: "11221", grams: 30 } # 鶏もも肉（皮つき）
+    - { foodId: "12004", grams: 50, role: 卵 } # 卵（生）
+    - { foodId: "08039", grams: 10 } # しいたけ
+    - { foodId: "10379", grams: 15 } # かまぼこ
+    - { foodId: "06226", grams: 10 } # 長ねぎ
+    - { foodId: "06268", grams: 20 } # ほうれんそう（ゆで）
+
+- id: tororo-soba
+  name: とろろそば
+  kana: とろろそば やまかけそば
+  category: noodle
+  suggestedSlots: [lunch, dinner]
+  # ゆでそば220g。かけうどん（既存）と同じつゆに、すりおろした山芋50gをかける。
+  ingredients:
+    - { foodId: "01128", grams: 220, role: めん } # そば（ゆで）
+    - { foodId: "17021", grams: 300 } # だし（かつお・昆布）
+    - { foodId: "17008", grams: 18 } # うすくちしょうゆ
+    - { foodId: "16025", grams: 10 } # みりん
+    - { foodId: "17012", grams: 1 } # 食塩
+    - { foodId: "02025", grams: 50, role: とろろ, alternatives: ["02023", "02022"] } # やまといも 生。長いもは 02023
+    - { foodId: "06227", grams: 5 } # 青ねぎ
+    - { foodId: "09004", grams: 0.5 } # 焼きのり
+    - { foodId: "17081", grams: 0.5 } # 練りわさび
+
+- id: kamo-nanban
+  name: 鴨南蛮そば
+  kana: かもなんばん かもなんばんそば かもそば
+  category: noodle
+  suggestedSlots: [lunch, dinner]
+  # ゆでそば220g。合鴨肉60gと焼いた長ねぎを、甘めのかけつゆ300mLで煮る。
+  ingredients:
+    - { foodId: "01128", grams: 220, role: めん } # そば（ゆで）
+    - { foodId: "11205", grams: 60, role: 肉, alternatives: ["11221"] } # かも あいがも 肉 皮つき 生
+    - { foodId: "06226", grams: 30 } # 長ねぎ
+    - { foodId: "17021", grams: 300 } # だし（かつお・昆布）
+    - { foodId: "17007", grams: 15 } # しょうゆ（濃口）
+    - { foodId: "16025", grams: 12 } # みりん
+    - { foodId: "03003", grams: 2 } # 砂糖（上白糖）
+    - { foodId: "17012", grams: 0.5 } # 食塩
+
+- id: hiyashi-chuka
+  name: 冷やし中華
+  kana: ひやしちゅうか ひやしちゅーか
+  category: noodle
+  suggestedSlots: [lunch, dinner]
+  # 中華めん（ゆで）230g。しょうゆだれ（しょうゆ・酢・砂糖・ごま油）と具4種。
+  ingredients:
+    - { foodId: "01048", grams: 230, role: めん } # 中華めん（ゆで）
+    - { foodId: "11176", grams: 20, role: 具, alternatives: ["11195", "10376"] } # ロースハム
+    - { foodId: "06065", grams: 30 } # きゅうり
+    - { foodId: "12004", grams: 30 } # 卵（生）（錦糸卵）
+    - { foodId: "14006", grams: 1 } # サラダ油
+    - { foodId: "06182", grams: 30 } # トマト
+    - { foodId: "17007", grams: 18 } # しょうゆ（たれ）
+    - { foodId: "17015", grams: 15 } # 酢（たれ）
+    - { foodId: "03003", grams: 8 } # 砂糖（たれ）
+    - { foodId: "14002", grams: 4 } # ごま油（たれ）
+    - { foodId: "17024", grams: 20 } # 鶏がらだし（たれ）
+    - { foodId: "05018", grams: 1 } # いりごま
+    - { foodId: "17058", grams: 1 } # からし 練り
+
+- id: miso-ramen
+  name: みそラーメン
+  kana: みそらーめん
+  category: noodle
+  suggestedSlots: [lunch, dinner]
+  # 中華めん（ゆで）230g。濃縮みそスープ32gをお湯で割る（しょうゆラーメン（既存）とほぼ同じ量。食塩6g以内に収めた）。炒め野菜とひき肉をのせる。
+  ingredients:
+    - { foodId: "01048", grams: 230, role: めん } # 中華めん（ゆで）
+    - { foodId: "17143", grams: 32 } # ラーメンスープ 濃縮 みそ味
+    - { foodId: "06291", grams: 50 } # もやし
+    - { foodId: "06061", grams: 20 } # キャベツ
+    - { foodId: "11163", grams: 20, role: 肉 } # 豚ひき肉
+    - { foodId: "14016", grams: 4 } # ラード（炒め油）
+    - { foodId: "06180", grams: 15 } # コーン（缶詰）
+    - { foodId: "06226", grams: 5 } # 長ねぎ
+
+- id: shio-ramen
+  name: 塩ラーメン
+  kana: しおらーめん
+  category: noodle
+  suggestedSlots: [lunch, dinner]
+  # 中華めん（ゆで）230g。中華だし350mLを食塩で調味（成分表に塩味の濃縮スープがないため）。具はしょうゆラーメン（既存）と同じ。
+  ingredients:
+    - { foodId: "01048", grams: 230, role: めん } # 中華めん（ゆで）
+    - { foodId: "17025", grams: 350 } # 中華だし
+    - { foodId: "17012", grams: 4 } # 食塩
+    - { foodId: "14002", grams: 3 } # ごま油（香味油）
+    - { foodId: "11195", grams: 20, role: チャーシュー } # チャーシュー（焼き豚）
+    - { foodId: "06152", grams: 15 } # メンマ
+    - { foodId: "06226", grams: 5 } # 長ねぎ
+    - { foodId: "10384", grams: 5 } # なると
+
+- id: tonkotsu-ramen
+  name: とんこつラーメン
+  kana: とんこつらーめん
+  category: noodle
+  suggestedSlots: [lunch, dinner]
+  # 細めん（ゆで）200g。成分表に豚骨スープがないため、中華だし300mLにラード（豚脂）を加えて近似。
+  ingredients:
+    - { foodId: "01048", grams: 200, role: めん } # 中華めん（ゆで）
+    - { foodId: "17025", grams: 300 } # 中華だし
+    - { foodId: "14016", grams: 10 } # ラード（豚骨スープの脂の代わり）
+    - { foodId: "17012", grams: 3.5 } # 食塩
+    - { foodId: "17007", grams: 5 } # しょうゆ（濃口）
+    - { foodId: "11195", grams: 30, role: チャーシュー } # チャーシュー（焼き豚）
+    - { foodId: "06227", grams: 5 } # 青ねぎ
+    - { foodId: "08007", grams: 10 } # きくらげ（ゆで）
+    - { foodId: "06104", grams: 5 } # しょうが 酢漬（紅しょうが）
+    - { foodId: "05018", grams: 1 } # いりごま
+
+- id: tsukemen
+  name: つけ麺
+  kana: つけめん
+  category: noodle
+  suggestedSlots: [lunch, dinner]
+  # 太めん（ゆで）300g（店の並盛り）。濃縮しょうゆスープ25gを中華だしで割ったつけ汁。つけ汁は飲み干す前提で全量計上。
+  ingredients:
+    - { foodId: "01048", grams: 300, role: めん } # 中華めん（ゆで）
+    - { foodId: "17142", grams: 25 } # ラーメンスープ（しょうゆ）
+    - { foodId: "17025", grams: 150 } # 中華だし
+    - { foodId: "17015", grams: 5 } # 酢（穀物酢）
+    - { foodId: "03003", grams: 3 } # 砂糖（上白糖）
+    - { foodId: "11195", grams: 30, role: チャーシュー } # チャーシュー（焼き豚）
+    - { foodId: "06152", grams: 20 } # メンマ
+    - { foodId: "12005", grams: 25 } # ゆで卵（1/2個）
+    - { foodId: "06226", grams: 5 } # 長ねぎ
+    - { foodId: "09004", grams: 1 } # 焼きのり
+
+- id: tantanmen
+  name: 担々麺
+  kana: たんたんめん
+  category: noodle
+  suggestedSlots: [lunch, dinner]
+  # 中華めん（ゆで）230g。中華だし300mLに練りごま20g・ラー油。肉みそ（豚ひき肉40g）とチンゲン菜。
+  ingredients:
+    - { foodId: "01048", grams: 230, role: めん } # 中華めん（ゆで）
+    - { foodId: "17025", grams: 300 } # 中華だし
+    - { foodId: "05042", grams: 20 } # ごま ねり
+    - { foodId: "17007", grams: 18 } # しょうゆ（濃口）
+    - { foodId: "17006", grams: 4 } # ラー油
+    - { foodId: "17004", grams: 3 } # 豆板醤
+    - { foodId: "11163", grams: 40, role: 肉 } # 豚ひき肉
+    - { foodId: "17106", grams: 5 } # テンメンジャン
+    - { foodId: "14006", grams: 3 } # サラダ油
+    - { foodId: "06161", grams: 30 } # チンゲン菜（ゆで）
+    - { foodId: "06226", grams: 10 } # 長ねぎ
+
+- id: napolitan
+  name: ナポリタン
+  kana: なぽりたん すぱげってぃ ぱすた
+  category: noodle
+  suggestedSlots: [lunch, dinner]
+  # スパゲッティ乾100g（ゆで220g、成分表の重量変化率220%）。ケチャップ40gで炒める喫茶店風。ゆでめんの食塩はゆで汁由来。
+  ingredients:
+    - { foodId: "01064", grams: 220, role: めん } # スパゲッティ（ゆで）
+    - { foodId: "11186", grams: 30, role: 具, alternatives: ["11176", "11183"] } # ウインナー
+    - { foodId: "06153", grams: 40 } # たまねぎ
+    - { foodId: "06245", grams: 15 } # ピーマン
+    - { foodId: "08033", grams: 10 } # マッシュルーム（水煮缶）
+    - { foodId: "17036", grams: 40 } # ケチャップ
+    - { foodId: "14006", grams: 6 } # サラダ油
+    - { foodId: "14017", grams: 5 } # バター（有塩）
+    - { foodId: "13038", grams: 3 } # 粉チーズ（パルメザン）
+
+- id: carbonara
+  name: カルボナーラ
+  kana: かるぼなーら すぱげってぃ ぱすた
+  category: noodle
+  suggestedSlots: [lunch, dinner]
+  # スパゲッティ乾100g（ゆで220g）。全卵1個・生クリーム30g・粉チーズ15g・ベーコン30g。
+  ingredients:
+    - { foodId: "01064", grams: 220, role: めん } # スパゲッティ（ゆで）
+    - { foodId: "11183", grams: 30, role: 具 } # ベーコン
+    - { foodId: "12004", grams: 50, role: 卵 } # 卵（生）
+    - { foodId: "13014", grams: 30 } # 生クリーム（乳脂肪）
+    - { foodId: "13038", grams: 15 } # 粉チーズ（パルメザン）
+    - { foodId: "14001", grams: 5 } # オリーブ油
+    - { foodId: "17063", grams: 0.3 } # こしょう 黒 粉
+
+- id: peperoncino
+  name: ペペロンチーノ
+  kana: ぺぺろんちーの すぱげってぃ ぱすた
+  category: noodle
+  suggestedSlots: [lunch, dinner]
+  # スパゲッティ乾100g（ゆで220g）。オリーブ油15g・にんにく1片・赤唐辛子。塩はゆで汁由来（ゆでめんの食塩に含まれる）。
+  ingredients:
+    - { foodId: "01064", grams: 220, role: めん } # スパゲッティ（ゆで）
+    - { foodId: "14001", grams: 15 } # オリーブ油
+    - { foodId: "06223", grams: 6 } # にんにく
+    - { foodId: "06172", grams: 0.5 } # とうがらし 果実 乾
+    - { foodId: "06239", grams: 1 } # パセリ 葉 生
+
+- id: tarako-spaghetti
+  name: たらこスパゲッティ
+  kana: たらこすぱげってぃ めんたいこすぱげってぃ ぱすた
+  category: noodle
+  suggestedSlots: [lunch, dinner]
+  # スパゲッティ乾100g（ゆで220g）。たらこ1/2腹（30g）とバターであえる。
+  ingredients:
+    - { foodId: "01064", grams: 220, role: めん } # スパゲッティ（ゆで）
+    - { foodId: "10202", grams: 30, role: たらこ, alternatives: ["10204"] } # たらこ。明太子は 10204
+    - { foodId: "14017", grams: 10 } # バター（有塩）
+    - { foodId: "17007", grams: 3 } # しょうゆ（濃口）
+    - { foodId: "09004", grams: 0.5 } # 焼きのり
+    - { foodId: "06095", grams: 1 } # しそ 葉
+
+- id: vongole
+  name: ボンゴレ
+  kana: ぼんごれ ぼんごれびあんこ あさりのすぱげってぃ ぱすた
+  category: noodle
+  suggestedSlots: [lunch, dinner]
+  # スパゲッティ乾100g（ゆで220g）。殻つきあさり約150g（可食部40g）を白ワインで蒸す。
+  ingredients:
+    - { foodId: "01064", grams: 220, role: めん } # スパゲッティ（ゆで）
+    - { foodId: "10281", grams: 40, role: 具 } # あさり（可食部）
+    - { foodId: "14001", grams: 12 } # オリーブ油
+    - { foodId: "06223", grams: 4 } # にんにく
+    - { foodId: "16010", grams: 15 } # 白ワイン
+    - { foodId: "06172", grams: 0.3 } # とうがらし 果実 乾
+    - { foodId: "06239", grams: 1 } # パセリ 葉 生
+
+- id: wafu-kinoko-pasta
+  name: 和風きのこパスタ
+  kana: わふうきのこぱすた きのこすぱげってぃ わふうぱすた
+  category: noodle
+  suggestedSlots: [lunch, dinner]
+  # スパゲッティ乾100g（ゆで220g）。きのこ3種計70gとベーコンをバターじょうゆで炒める。
+  ingredients:
+    - { foodId: "01064", grams: 220, role: めん } # スパゲッティ（ゆで）
+    - { foodId: "08016", grams: 30, role: きのこ } # しめじ
+    - { foodId: "08028", grams: 20 } # まいたけ 生
+    - { foodId: "08025", grams: 20 } # エリンギ 生
+    - { foodId: "11183", grams: 20, role: 具, alternatives: ["10260"] } # ベーコン。ツナなら 10260
+    - { foodId: "14017", grams: 8 } # バター（有塩）
+    - { foodId: "14001", grams: 5 } # オリーブ油
+    - { foodId: "17007", grams: 8 } # しょうゆ（濃口）
+    - { foodId: "06223", grams: 2 } # にんにく
+    - { foodId: "09004", grams: 0.5 } # 焼きのり
+
+- id: lasagna
+  name: ラザニア
+  kana: らざにあ
+  category: noodle
+  suggestedSlots: [lunch, dinner]
+  # 1皿。ラザニア用パスタ乾45g（ゆで100g、成分表のマカロニ・スパゲッティ ゆで）にミートソースとホワイトソースを重ねて焼く。
+  ingredients:
+    - { foodId: "01064", grams: 100, role: めん } # マカロニ・スパゲッティ（ゆで）
+    - { foodId: "11089", grams: 30, role: ひき肉 } # 牛ひき肉
+    - { foodId: "11163", grams: 30 } # 豚ひき肉
+    - { foodId: "06153", grams: 30 } # たまねぎ
+    - { foodId: "06214", grams: 10 } # にんじん
+    - { foodId: "06184", grams: 60 } # トマト水煮缶
+    - { foodId: "17036", grams: 10 } # ケチャップ
+    - { foodId: "14006", grams: 4 } # サラダ油
+    - { foodId: "17109", grams: 80 } # ホワイトソース
+    - { foodId: "13056", grams: 20 } # ナチュラルチーズ モッツァレラ
+    - { foodId: "13038", grams: 5 } # 粉チーズ（パルメザン）
+    - { foodId: "17012", grams: 0.5 } # 食塩
+
+- id: pho
+  name: フォー
+  kana: ふぉー
+  category: noodle
+  suggestedSlots: [lunch, dinner]
+  # 1杯。米めん乾60g（成分表に米めんのゆでがないため、乾めんのビーフンで計上）。牛肉と鶏がらスープ350mL、ナンプラーで調味。
+  ingredients:
+    - { foodId: "01115", grams: 60, role: めん } # ビーフン（乾）
+    - { foodId: "11076", grams: 40, role: 肉, alternatives: ["11220"] } # 輸入牛肉 もも 皮下脂肪なし 生。鶏肉のフォーは 11220
+    - { foodId: "17024", grams: 350 } # 鶏がらだし
+    - { foodId: "17107", grams: 10 } # ナンプラー
+    - { foodId: "17012", grams: 1.5 } # 食塩
+    - { foodId: "06291", grams: 30 } # もやし
+    - { foodId: "06153", grams: 10 } # たまねぎ
+    - { foodId: "06385", grams: 3 } # コリアンダー（パクチー）
+    - { foodId: "06227", grams: 3 } # 青ねぎ
+    - { foodId: "07145", grams: 5 } # ライム 果汁
+
+- id: reimen
+  name: 冷麺
+  kana: れいめん もりおかれいめん
+  category: noodle
+  suggestedSlots: [lunch, dinner]
+  # 1杯。冷めん（生）150g（成分表にゆでがないため生の重さ）。冷たい鶏がらスープ250mLに牛肉・ゆで卵・キムチ・梨。
+  ingredients:
+    - { foodId: "01150", grams: 150, role: めん } # こむぎ その他 冷めん 生
+    - { foodId: "17024", grams: 250 } # 鶏がらだし
+    - { foodId: "17007", grams: 8 } # しょうゆ（濃口）
+    - { foodId: "17012", grams: 1 } # 食塩
+    - { foodId: "17015", grams: 5 } # 酢（穀物酢）
+    - { foodId: "03003", grams: 4 } # 砂糖（上白糖）
+    - { foodId: "11271", grams: 20, role: 肉 } # 牛もも肉（赤身・ゆで）
+    - { foodId: "12005", grams: 25 } # ゆで卵（1/2個）
+    - { foodId: "06236", grams: 30 } # キムチ
+    - { foodId: "06065", grams: 15 } # きゅうり
+    - { foodId: "07088", grams: 15 } # 梨
+    - { foodId: "05018", grams: 0.5 } # いりごま
+
+- id: cup-ramen
+  name: カップラーメン
+  kana: かっぷらーめん かっぷめん そくせきめん いんすたんとらーめん
+  category: noodle
+  suggestedSlots: [lunch, dinner, other]
+  # レギュラーサイズ1食（乾めん78g＋湯）。成分表「中華スタイル即席カップめん しょうゆ味 調理後全体」で、乾78gが調理後約360gになる（エネルギー比417/90）。汁まで飲み干した場合。
+  ingredients:
+    - { foodId: "01200", grams: 360, role: めん, alternatives: ["01201", "01204"] } # 即席カップめん しょうゆ味 調理後全体。塩味は 01201、和風（うどん・そば）は 01204
+
+- id: somen
+  name: そうめん
+  kana: そうめん ひやむぎ
+  category: noodle
+  suggestedSlots: [lunch, dinner]
+  # 乾めん2束100g（ゆで270g、成分表の重量変化率270%）。つけつゆ80g。
+  ingredients:
+    - { foodId: "01044", grams: 270, role: めん, alternatives: ["01046"] } # そうめん（ゆで）。手延べは 01046
+    - { foodId: "17029", grams: 80 } # めんつゆ（ストレート）
+    - { foodId: "06226", grams: 5 } # 長ねぎ
+    - { foodId: "06365", grams: 2 } # しょうが おろし
+    - { foodId: "06280", grams: 5 } # みょうが
+
+# ---- パン ----
+- id: french-toast
+  name: フレンチトースト
+  kana: ふれんちとーすと
+  category: bread
+  suggestedSlots: [breakfast, other]
+  # 食パン6枚切り1枚を卵1個・牛乳50mL・砂糖の卵液に浸し、バターで焼く。
+  ingredients:
+    - { foodId: "01026", grams: 60, role: パン, alternatives: ["01031"] } # 食パン。フランスパンなら 01031
+    - { foodId: "12004", grams: 50 } # 卵（生）
+    - { foodId: "13003", grams: 50 } # 牛乳 50mL（約50g）
+    - { foodId: "03003", grams: 8 } # 砂糖（上白糖）
+    - { foodId: "14017", grams: 8 } # バター（有塩）
+    - { foodId: "03023", grams: 10 } # メープルシロップ
+
+- id: mixed-sandwich
+  name: ミックスサンドイッチ
+  kana: みっくすさんどいっち さんどいっち さんど
+  category: bread
+  suggestedSlots: [breakfast, lunch, other]
+  # 12枚切り食パン4枚分（耳なし80g）で3種（ハム・たまご・野菜）。
+  ingredients:
+    - { foodId: "01175", grams: 80, role: パン } # 角形食パン 耳を除いたもの
+    - { foodId: "14017", grams: 5 } # バター（有塩）
+    - { foodId: "11176", grams: 20, role: 具 } # ロースハム
+    - { foodId: "12005", grams: 30 } # ゆで卵
+    - { foodId: "13040", grams: 10 } # プロセスチーズ
+    - { foodId: "06065", grams: 15 } # きゅうり
+    - { foodId: "06312", grams: 10 } # レタス
+    - { foodId: "06182", grams: 20 } # トマト
+    - { foodId: "17042", grams: 12 } # マヨネーズ
+
+- id: egg-sandwich
+  name: たまごサンド
+  kana: たまごさんど たまごさんどいっち
+  category: bread
+  suggestedSlots: [breakfast, lunch, other]
+  # 12枚切り食パン4枚分（耳なし70g）にゆで卵1個強のたまごサラダ。
+  ingredients:
+    - { foodId: "01175", grams: 70, role: パン } # 角形食パン 耳を除いたもの
+    - { foodId: "14017", grams: 4 } # バター（有塩）
+    - { foodId: "12005", grams: 60, role: 卵 } # ゆで卵
+    - { foodId: "17042", grams: 15 } # マヨネーズ
+    - { foodId: "17012", grams: 0.3 } # 食塩
+    - { foodId: "17065", grams: 0.1 } # こしょう
+
+- id: hot-dog
+  name: ホットドッグ
+  kana: ほっとどっぐ
+  category: bread
+  suggestedSlots: [breakfast, lunch, other]
+  # ドッグパン1個（コッペパン60g）にフランクフルト1本50gと炒めキャベツ。
+  ingredients:
+    - { foodId: "01028", grams: 60, role: パン } # コッペパン
+    - { foodId: "11189", grams: 50, role: ソーセージ, alternatives: ["11186"] } # フランクフルトソーセージ
+    - { foodId: "06061", grams: 20 } # キャベツ
+    - { foodId: "14006", grams: 2 } # サラダ油
+    - { foodId: "17036", grams: 10 } # ケチャップ
+    - { foodId: "17059", grams: 3 } # 練りマスタード
+
+- id: hamburger
+  name: ハンバーガー
+  kana: はんばーがー
+  category: bread
+  suggestedSlots: [lunch, other]
+  # バンズ1個60g、焼いた牛100%パティ50g、レタス・トマト・たまねぎ・ピクルスとソース。
+  ingredients:
+    - { foodId: "01213", grams: 60, role: パン } # バンズ
+    - { foodId: "11272", grams: 50, role: パティ, alternatives: ["18050"] } # 牛ひき肉（焼き）
+    - { foodId: "06312", grams: 10 } # レタス
+    - { foodId: "06182", grams: 20 } # トマト
+    - { foodId: "06153", grams: 10 } # たまねぎ
+    - { foodId: "06070", grams: 5 } # ピクルス サワー型
+    - { foodId: "17036", grams: 10 } # ケチャップ
+    - { foodId: "17059", grams: 3 } # 練りマスタード
+    - { foodId: "17042", grams: 5 } # マヨネーズ
+    - { foodId: "17012", grams: 0.3 } # 食塩（パティの下味）
+
+- id: cheeseburger
+  name: チーズバーガー
+  kana: ちーずばーがー
+  category: bread
+  suggestedSlots: [lunch, other]
+  # ハンバーガーにスライスチーズ1枚（18g）を足したもの。
+  ingredients:
+    - { foodId: "01213", grams: 60, role: パン } # バンズ
+    - { foodId: "11272", grams: 50, role: パティ, alternatives: ["18050"] } # 牛ひき肉（焼き）
+    - { foodId: "13040", grams: 18, role: チーズ } # プロセスチーズ（スライス1枚）
+    - { foodId: "06312", grams: 10 } # レタス
+    - { foodId: "06182", grams: 20 } # トマト
+    - { foodId: "06153", grams: 10 } # たまねぎ
+    - { foodId: "06070", grams: 5 } # ピクルス サワー型
+    - { foodId: "17036", grams: 10 } # ケチャップ
+    - { foodId: "17059", grams: 3 } # 練りマスタード
+    - { foodId: "17042", grams: 5 } # マヨネーズ
+    - { foodId: "17012", grams: 0.3 } # 食塩（パティの下味）
+
+- id: pizza-margherita
+  name: ピザ（マルゲリータ）
+  kana: ぴざ まるげりーた
+  category: bread
+  suggestedSlots: [lunch, dinner, other]
+  # Mサイズ（25cm）1枚の半分（4切れ）。生地100g・トマトソース・モッツァレラ50g・バジル。
+  ingredients:
+    - { foodId: "01076", grams: 100, role: 生地 } # こむぎ その他 ピザ生地
+    - { foodId: "06184", grams: 40 } # トマト水煮缶（ソース）
+    - { foodId: "17035", grams: 5 } # トマトペースト
+    - { foodId: "13056", grams: 50, role: チーズ } # ナチュラルチーズ モッツァレラ
+    - { foodId: "06238", grams: 2 } # バジル 葉 生
+    - { foodId: "14001", grams: 5 } # オリーブ油
+    - { foodId: "17012", grams: 0.5 } # 食塩
+
+# ---- 主菜・鍋
+
+# 主菜・鍋（担当B）
+- id: saba-misoni
+  name: さばの味噌煮
+  kana: さばのみそに さばみそ
+  category: main
+  suggestedSlots: [lunch, dinner]
+  # 一般的な家庭の1人前（さば1切れ、煮上がり80g）。煮魚なので成分表の「水煮」を使い、みそ煮の煮汁は全量を数えた。
+  ingredients:
+    - { foodId: "10155", grams: 80, role: 魚, alternatives: ["10405", "10159"] } # まさば 水煮（ごまさば水煮・たいせいようさば水煮）
+    - { foodId: "17045", grams: 12 } # みそ（淡色辛みそ）
+    - { foodId: "03003", grams: 5 } # 砂糖（上白糖）
+    - { foodId: "16025", grams: 6 } # みりん
+    - { foodId: "16001", grams: 10 } # 日本酒
+    - { foodId: "06103", grams: 3 } # しょうが
+    - { foodId: "06226", grams: 10 } # 長ねぎ
+
+- id: karei-nitsuke
+  name: かれいの煮付け
+  kana: かれいのにつけ にざかな
+  category: main
+  suggestedSlots: [lunch, dinner]
+  # 一般的な家庭の1人前（かれい1切れ、可食部100g）。煮魚なので成分表の「水煮」を使い、煮汁の調味料は全量を数えた。
+  ingredients:
+    - { foodId: "10101", grams: 100, role: 魚, alternatives: ["10105", "10194"] } # かれい まがれい 水煮（子持ちがれい水煮・まだい水煮）
+    - { foodId: "17007", grams: 10 } # しょうゆ（濃口）
+    - { foodId: "16025", grams: 10 } # みりん
+    - { foodId: "16001", grams: 10 } # 日本酒
+    - { foodId: "03003", grams: 3 } # 砂糖（上白糖）
+    - { foodId: "06103", grams: 3 } # しょうが
+
+- id: gindara-saikyoyaki
+  name: 銀だらの西京焼き
+  kana: ぎんだらのさいきょうやき さいきょうやき ぎんだら
+  category: main
+  suggestedSlots: [lunch, dinner]
+  # 一般的な家庭・定食の1切れ（80g）。銀だらは焼きの成分値がないため生で書く。西京みそは魚に付いて残る分（約8g）だけ数えた。
+  ingredients:
+    - { foodId: "10115", grams: 80, role: 魚, alternatives: ["10171", "10144"] } # ぎんだら 生（さわら・サーモン）
+    - { foodId: "17044", grams: 8 } # 米みそ 甘みそ（西京みそ）
+    - { foodId: "16025", grams: 4 } # みりん
+    - { foodId: "16001", grams: 3 } # 日本酒
+
+- id: unagi-kabayaki
+  name: うなぎの蒲焼き
+  kana: うなぎのかばやき かばやき うなぎ
+  category: main
+  suggestedSlots: [lunch, dinner]
+  # 成分表に料理そのもの（10070 うなぎ かば焼）があるのでそれを使う。1人前は1/2尾強の100g。
+  ingredients:
+    - { foodId: "10070", grams: 100, role: うなぎ } # うなぎ かば焼（たれ込み）
+
+- id: ebi-chili
+  name: えびチリ
+  kana: えびちり えびのちりそーす
+  category: main
+  suggestedSlots: [lunch, dinner]
+  # 一般的な家庭の1人前（むきえび80g）。スープは鶏がらだしで、ソースは全量を数えた。
+  ingredients:
+    - { foodId: "10329", grams: 80, role: えび, alternatives: ["10415"] } # えび（ブラックタイガー）（バナメイえび）
+    - { foodId: "02034", grams: 4 } # 片栗粉
+    - { foodId: "06226", grams: 15 } # 長ねぎ
+    - { foodId: "06103", grams: 2 } # しょうが
+    - { foodId: "06223", grams: 2 } # にんにく
+    - { foodId: "17036", grams: 15 } # ケチャップ
+    - { foodId: "17004", grams: 3 } # 豆板醤
+    - { foodId: "03003", grams: 3 } # 砂糖（上白糖）
+    - { foodId: "16001", grams: 5 } # 日本酒
+    - { foodId: "17024", grams: 50 } # 鶏がらだし
+    - { foodId: "14006", grams: 6 } # サラダ油
+
+- id: ika-fry
+  name: いかリング（イカフライ）
+  kana: いかりんぐ いかふらい
+  category: main
+  suggestedSlots: [lunch, dinner]
+  # 成分表に料理そのもの（18019 いかフライ、衣・揚げ油込み）があるのでそれを使う。1人前はリング6〜7個の100g。
+  ingredients:
+    - { foodId: "18019", grams: 100, role: いかフライ } # 洋風料理 フライ類 いかフライ
+    - { foodId: "17002", grams: 10 } # 中濃ソース
+    - { foodId: "06061", grams: 30 } # キャベツ（付け合わせ）
+
+- id: chicken-katsu
+  name: チキンカツ
+  kana: ちきんかつ
+  category: main
+  suggestedSlots: [lunch, dinner]
+  # 一般的な家庭の1枚（鶏むね肉100g）。衣は薄力粉・卵・パン粉、吸油は衣の重量の目安で10g。
+  ingredients:
+    - { foodId: "11219", grams: 100, role: 肉, alternatives: ["11221", "11227"] } # 鶏むね肉（皮つき）（もも・ささみ）
+    - { foodId: "01015", grams: 5 } # 薄力粉
+    - { foodId: "12004", grams: 8 } # 卵（生）
+    - { foodId: "01079", grams: 12 } # パン粉
+    - { foodId: "14006", grams: 10 } # サラダ油（揚げ油の吸油）
+    - { foodId: "17003", grams: 15 } # とんかつソース
+    - { foodId: "06061", grams: 40 } # キャベツ（付け合わせ）
+
+- id: banbanji
+  name: 蒸し鶏（棒棒鶏）
+  kana: むしどり ばんばんじー
+  category: main
+  suggestedSlots: [lunch, dinner]
+  # 一般的な家庭の1人前（鶏むね肉100g）。蒸し鶏の成分値がないため生で書く。ごまだれは市販品の大さじ1。
+  ingredients:
+    - { foodId: "11220", grams: 100, role: 肉, alternatives: ["11227", "11219"] } # 鶏むね肉（皮なし）（ささみ・むね皮つき）
+    - { foodId: "16001", grams: 3 } # 日本酒
+    - { foodId: "06065", grams: 40 } # きゅうり
+    - { foodId: "06182", grams: 30 } # トマト
+    - { foodId: "17098", grams: 15 } # ごまだれ
+
+- id: buta-kakuni
+  name: 豚の角煮
+  kana: ぶたのかくに かくに
+  category: main
+  suggestedSlots: [lunch, dinner]
+  # 一般的な家庭の1人前（豚ばら100g、角切り2〜3個）。下ゆでで落ちる脂は考えず、煮汁の調味料は全量を数えた。
+  ingredients:
+    - { foodId: "11129", grams: 100, role: 肉 } # 豚ばら肉
+    - { foodId: "17007", grams: 12 } # しょうゆ（濃口）
+    - { foodId: "03003", grams: 6 } # 砂糖（上白糖）
+    - { foodId: "16025", grams: 8 } # みりん
+    - { foodId: "16001", grams: 15 } # 日本酒
+    - { foodId: "06103", grams: 3 } # しょうが
+    - { foodId: "06226", grams: 10 } # 長ねぎ
+
+- id: hoikoro
+  name: 回鍋肉
+  kana: ほいこーろー
+  category: main
+  suggestedSlots: [lunch, dinner]
+  # 一般的な家庭の1人前（豚ばら70g・キャベツ100g）。
+  ingredients:
+    - { foodId: "11129", grams: 70, role: 肉, alternatives: ["11119", "11123"] } # 豚ばら肉（かたロース・ロース）
+    - { foodId: "06061", grams: 100 } # キャベツ
+    - { foodId: "06245", grams: 20 } # ピーマン
+    - { foodId: "06226", grams: 10 } # 長ねぎ
+    - { foodId: "06223", grams: 2 } # にんにく
+    - { foodId: "17106", grams: 10 } # テンメンジャン
+    - { foodId: "17004", grams: 2 } # 豆板醤
+    - { foodId: "17007", grams: 4 } # しょうゆ（濃口）
+    - { foodId: "16001", grams: 5 } # 日本酒
+    - { foodId: "03003", grams: 2 } # 砂糖（上白糖）
+    - { foodId: "14006", grams: 5 } # サラダ油
+
+- id: chinjao-rosu
+  name: 青椒肉絲
+  kana: ちんじゃおろーす ちんじゃおるーすー
+  category: main
+  suggestedSlots: [lunch, dinner]
+  # 一般的な家庭の1人前（牛肉70g・ピーマン60g・たけのこ40g）。
+  ingredients:
+    - { foodId: "11047", grams: 70, role: 肉, alternatives: ["11130", "11123"] } # 牛もも（乳用肥育牛 脂身つき）（豚もも・豚ロース）
+    - { foodId: "06245", grams: 60 } # ピーマン
+    - { foodId: "06151", grams: 40 } # たけのこ（水煮）
+    - { foodId: "02034", grams: 2 } # 片栗粉
+    - { foodId: "17031", grams: 6 } # オイスターソース
+    - { foodId: "17007", grams: 5 } # しょうゆ（濃口）
+    - { foodId: "16001", grams: 5 } # 日本酒
+    - { foodId: "03003", grams: 1 } # 砂糖（上白糖）
+    - { foodId: "14006", grams: 6 } # サラダ油
+
+- id: butashabu-salad
+  name: 豚しゃぶサラダ
+  kana: ぶたしゃぶさらだ れいしゃぶ
+  category: main
+  suggestedSlots: [lunch, dinner]
+  # 一般的な家庭の1人前（豚ロース薄切り 生90g→ゆで70g）。ゆでた後の重さで「ゆで」の成分値を使う。ドレッシングは大さじ1。
+  ingredients:
+    - { foodId: "11125", grams: 70, role: 肉 } # 豚ロース 脂身つき ゆで
+    - { foodId: "06312", grams: 40 } # レタス
+    - { foodId: "06065", grams: 20 } # きゅうり
+    - { foodId: "06182", grams: 30 } # トマト
+    - { foodId: "06154", grams: 10 } # たまねぎ（水さらし）
+    - { foodId: "17117", grams: 15 } # ごまドレッシング
+
+- id: pork-saute
+  name: ポークソテー
+  kana: ぽーくそてー ぽーくすてーき
+  category: main
+  suggestedSlots: [lunch, dinner]
+  # 一般的な家庭の1枚（豚ロース120g）。塩こしょうと薄力粉をまぶして焼く。
+  ingredients:
+    - { foodId: "11123", grams: 120, role: 肉, alternatives: ["11119"] } # 豚ロース（脂身つき）（かたロース）
+    - { foodId: "01015", grams: 3 } # 薄力粉
+    - { foodId: "17012", grams: 0.8 } # 食塩
+    - { foodId: "17065", grams: 0.1 } # こしょう
+    - { foodId: "14006", grams: 4 } # サラダ油
+    - { foodId: "06263", grams: 30 } # ブロッコリー（付け合わせ）
+
+- id: meatball
+  name: ミートボール
+  kana: みーとぼーる にくだんご
+  category: main
+  suggestedSlots: [breakfast, lunch, dinner]
+  # 成分表に料理そのもの（18015 ミートボール、そう菜）があるのでそれを使う。1人前は5〜6個の100g。
+  ingredients:
+    - { foodId: "18015", grams: 100, role: ミートボール } # 洋風料理 素揚げ類 ミートボール
+
+- id: roll-cabbage
+  name: ロールキャベツ
+  kana: ろーるきゃべつ
+  category: main
+  suggestedSlots: [lunch, dinner]
+  # 一般的な家庭の1人前（2個、キャベツ100g・合いびき肉60g）。コンソメ煮で、スープは固形ブイヨン分を数えた。
+  ingredients:
+    - { foodId: "06061", grams: 100 } # キャベツ
+    - { foodId: "11089", grams: 30, role: ひき肉, alternatives: ["11230"] } # 牛ひき肉（鶏ひき肉）
+    - { foodId: "11163", grams: 30, role: ひき肉, alternatives: ["11230"] } # 豚ひき肉
+    - { foodId: "06153", grams: 20 } # たまねぎ
+    - { foodId: "01079", grams: 4 } # パン粉
+    - { foodId: "12004", grams: 8 } # 卵（生）
+    - { foodId: "13003", grams: 8 } # 牛乳
+    - { foodId: "17012", grams: 0.3 } # 食塩
+    - { foodId: "17027", grams: 2.5 } # コンソメ（固形ブイヨン）
+
+- id: pot-au-feu
+  name: ポトフ
+  kana: ぽとふ
+  category: main
+  suggestedSlots: [lunch, dinner]
+  # 一般的な家庭の1人前（ウインナー2本と大きめの野菜、スープ200mL）。スープは飲み干す前提で固形ブイヨン分を数えた。
+  ingredients:
+    - { foodId: "11186", grams: 40, role: 肉, alternatives: ["11183"] } # ウインナー（ベーコン）
+    - { foodId: "06061", grams: 60 } # キャベツ
+    - { foodId: "02017", grams: 60 } # じゃがいも
+    - { foodId: "06214", grams: 30 } # にんじん
+    - { foodId: "06153", grams: 40 } # たまねぎ
+    - { foodId: "17027", grams: 2.5 } # コンソメ（固形ブイヨン）
+    - { foodId: "17012", grams: 0.3 } # 食塩
+    - { foodId: "17065", grams: 0.1 } # こしょう
+
+- id: yakiniku-karubi
+  name: 焼肉（牛カルビ）
+  kana: やきにく かるび ぎゅうかるび
+  category: main
+  suggestedSlots: [lunch, dinner]
+  # 一般的な家庭・外食の1人前（生100g→焼き80g）。焼いた後の重さで「焼き」の成分値を使い、たれは大さじ1弱。
+  ingredients:
+    - { foodId: "11252", grams: 80, role: 肉, alternatives: ["11277"] } # 牛ばら肉（焼き）（豚ばら焼き）
+    - { foodId: "17113", grams: 15 } # 焼き肉のたれ
+    - { foodId: "06312", grams: 20 } # レタス（包む葉）
+
+- id: shabushabu
+  name: しゃぶしゃぶ
+  kana: しゃぶしゃぶ ぎゅうしゃぶ
+  category: main
+  suggestedSlots: [dinner]
+  # 鍋の1人前（牛かたロース100g＋野菜・豆腐）。昆布だしの湯は飲まないので数えず、つけだれ（ぽん酢20g・ごまだれ10g）を数えた。
+  ingredients:
+    - { foodId: "11034", grams: 100, role: 肉, alternatives: ["11123", "11129"] } # 牛かたロース（乳用肥育牛）（豚ロース・豚ばら）
+    - { foodId: "06233", grams: 60 } # はくさい
+    - { foodId: "06226", grams: 20 } # 長ねぎ
+    - { foodId: "06099", grams: 20 } # しゅんぎく
+    - { foodId: "08001", grams: 20 } # えのきたけ
+    - { foodId: "04033", grams: 50 } # 絹ごし豆腐
+    - { foodId: "17110", grams: 20 } # ぽん酢しょうゆ
+    - { foodId: "17098", grams: 10 } # ごまだれ
+
+- id: gyuniku-shigureni
+  name: 牛肉のしぐれ煮
+  kana: ぎゅうにくのしぐれに しぐれに
+  category: main
+  suggestedSlots: [lunch, dinner]
+  # 主菜としての1人前（牛こま切れ80g）。しょうがを多めに入れて甘辛く煮る。煮汁の調味料は全量を数えた。
+  ingredients:
+    - { foodId: "11047", grams: 80, role: 肉, alternatives: ["11046"] } # 牛もも（乳用肥育牛 脂身つき）（牛ばら）
+    - { foodId: "06103", grams: 10 } # しょうが
+    - { foodId: "17007", grams: 10 } # しょうゆ（濃口）
+    - { foodId: "03003", grams: 5 } # 砂糖（上白糖）
+    - { foodId: "16025", grams: 8 } # みりん
+    - { foodId: "16001", grams: 10 } # 日本酒
+
+- id: mabo-nasu
+  name: 麻婆なす
+  kana: まーぼーなす
+  category: main
+  suggestedSlots: [lunch, dinner]
+  # 一般的な家庭の1人前（なす1.5本120g・豚ひき肉50g）。なすは油を吸うので炒め油を10gとした。
+  ingredients:
+    - { foodId: "06191", grams: 120 } # なす
+    - { foodId: "11163", grams: 50, role: ひき肉, alternatives: ["11230", "11089"] } # 豚ひき肉（鶏ひき肉・牛ひき肉）
+    - { foodId: "06226", grams: 10 } # 長ねぎ
+    - { foodId: "06223", grams: 2 } # にんにく
+    - { foodId: "06103", grams: 2 } # しょうが
+    - { foodId: "17004", grams: 3 } # 豆板醤
+    - { foodId: "17106", grams: 5 } # テンメンジャン
+    - { foodId: "17007", grams: 5 } # しょうゆ（濃口）
+    - { foodId: "03003", grams: 2 } # 砂糖（上白糖）
+    - { foodId: "16001", grams: 5 } # 日本酒
+    - { foodId: "17093", grams: 1 } # 顆粒中華だし
+    - { foodId: "02034", grams: 3 } # 片栗粉
+    - { foodId: "14006", grams: 10 } # サラダ油
+    - { foodId: "14002", grams: 2 } # ごま油
+
+- id: ebi-mayo
+  name: エビマヨ
+  kana: えびまよ
+  category: main
+  suggestedSlots: [lunch, dinner]
+  # 一般的な家庭・中華料理店の1人前（むきえび80g）。片栗粉をまぶして揚げ焼き（吸油6g）し、マヨネーズソースで和える。
+  ingredients:
+    - { foodId: "10329", grams: 80, role: えび, alternatives: ["10415"] } # えび（ブラックタイガー）（バナメイえび）
+    - { foodId: "02034", grams: 6 } # 片栗粉
+    - { foodId: "16001", grams: 3 } # 日本酒
+    - { foodId: "14006", grams: 6 } # サラダ油（揚げ油の吸油）
+    - { foodId: "17042", grams: 15 } # マヨネーズ
+    - { foodId: "03003", grams: 3 } # 砂糖（上白糖）
+    - { foodId: "17036", grams: 5 } # ケチャップ
+    - { foodId: "13003", grams: 5 } # 牛乳
+    - { foodId: "06312", grams: 20 } # レタス（付け合わせ）
+
+- id: yurinchi
+  name: 油淋鶏
+  kana: ゆーりんちー
+  category: main
+  suggestedSlots: [lunch, dinner]
+  # 一般的な家庭の1人前（鶏もも から揚げ100g）。揚げた鶏は成分表の「から揚げ」（下味の塩分込み）の値を使い、ねぎだれは全量を数えた。
+  ingredients:
+    - { foodId: "11289", grams: 100, role: 肉 } # 鶏のから揚げ（若どり もも 皮つき）
+    - { foodId: "06226", grams: 15 } # 長ねぎ
+    - { foodId: "06103", grams: 2 } # しょうが
+    - { foodId: "17007", grams: 7 } # しょうゆ（濃口）
+    - { foodId: "17015", grams: 10 } # 酢（穀物酢）
+    - { foodId: "03003", grams: 5 } # 砂糖（上白糖）
+    - { foodId: "14002", grams: 2 } # ごま油
+    - { foodId: "06312", grams: 20 } # レタス（付け合わせ）
+
+- id: quiche
+  name: キッシュ
+  kana: きっしゅ きっしゅろれーぬ
+  category: main
+  suggestedSlots: [breakfast, lunch]
+  # 直径18cmの型で焼いた1/6切れ（約165g）。パイ皮と卵液（卵・生クリーム・牛乳）、ベーコン・ほうれん草・チーズ。
+  ingredients:
+    - { foodId: "15079", grams: 35 } # パイ パイ皮
+    - { foodId: "12004", grams: 30, role: 卵 } # 卵（生）
+    - { foodId: "13014", grams: 20 } # 生クリーム（乳脂肪）
+    - { foodId: "13003", grams: 20 } # 牛乳
+    - { foodId: "11183", grams: 15, role: 具, alternatives: ["11176"] } # ベーコン（ロースハム）
+    - { foodId: "06267", grams: 20 } # ほうれんそう（生）
+    - { foodId: "06153", grams: 15 } # たまねぎ
+    - { foodId: "13032", grams: 10 } # ナチュラルチーズ エメンタール
+    - { foodId: "14006", grams: 1 } # サラダ油
+    - { foodId: "17012", grams: 0.3 } # 食塩
+
+- id: omelette
+  name: オムレツ
+  kana: おむれつ ぷれーんおむれつ
+  category: main
+  suggestedSlots: [breakfast, lunch]
+  # 一般的な家庭の1人前（卵2個）。バターで焼き、ケチャップを添える。
+  ingredients:
+    - { foodId: "12004", grams: 100, role: 卵 } # 卵（生）2個
+    - { foodId: "13003", grams: 15 } # 牛乳
+    - { foodId: "17012", grams: 0.5 } # 食塩
+    - { foodId: "17065", grams: 0.1 } # こしょう
+    - { foodId: "14017", grams: 5 } # バター（有塩）
+    - { foodId: "17036", grams: 10 } # ケチャップ
+
+- id: scrambled-egg
+  name: スクランブルエッグ
+  kana: すくらんぶるえっぐ いりたまご
+  category: main
+  suggestedSlots: [breakfast]
+  # 一般的な家庭の1人前（卵2個）。牛乳を加えてバターでやわらかく炒める。
+  ingredients:
+    - { foodId: "12004", grams: 100, role: 卵 } # 卵（生）2個
+    - { foodId: "13003", grams: 15 } # 牛乳
+    - { foodId: "17012", grams: 0.4 } # 食塩
+    - { foodId: "17065", grams: 0.1 } # こしょう
+    - { foodId: "14017", grams: 5 } # バター（有塩）
+
+- id: chawanmushi
+  name: 茶碗蒸し
+  kana: ちゃわんむし
+  category: side
+  suggestedSlots: [lunch, dinner]
+  # 茶碗1個（卵液100g）。卵1/2個とだし（卵の3倍）に鶏・えび・しいたけ・かまぼこ。主菜にはエネルギーが小さいので副菜にした。
+  ingredients:
+    - { foodId: "12004", grams: 25, role: 卵 } # 卵（生）
+    - { foodId: "17021", grams: 75 } # だし（かつお・昆布）
+    - { foodId: "17008", grams: 2 } # うすくちしょうゆ
+    - { foodId: "16025", grams: 1 } # みりん
+    - { foodId: "17012", grams: 0.3 } # 食塩
+    - { foodId: "11227", grams: 15 } # ささみ
+    - { foodId: "10329", grams: 10 } # えび（ブラックタイガー）
+    - { foodId: "08039", grams: 5 } # しいたけ
+    - { foodId: "10379", grams: 10 } # かまぼこ
+    - { foodId: "06274", grams: 2 } # 切りみつば
+
+- id: yudofu
+  name: 湯豆腐
+  kana: ゆどうふ
+  category: main
+  suggestedSlots: [dinner]
+  # 鍋の1人前（豆腐2/3丁200g）。昆布だしの湯は飲まないので数えず、ぽん酢と薬味を数えた。
+  ingredients:
+    - { foodId: "04032", grams: 200, role: 豆腐, alternatives: ["04033"] } # 木綿豆腐（絹ごし豆腐）
+    - { foodId: "06226", grams: 10 } # 長ねぎ
+    - { foodId: "10092", grams: 1 } # かつお 削り節
+    - { foodId: "17110", grams: 20 } # ぽん酢しょうゆ
+
+- id: agedashi-tofu
+  name: 揚げ出し豆腐
+  kana: あげだしどうふ
+  category: main
+  suggestedSlots: [lunch, dinner]
+  # 一般的な家庭・居酒屋の1人前（絹ごし豆腐1/2丁150g）。片栗粉をまぶして揚げ（吸油8g）、天つゆ50mLをかける。
+  ingredients:
+    - { foodId: "04033", grams: 150, role: 豆腐, alternatives: ["04032"] } # 絹ごし豆腐（木綿豆腐）
+    - { foodId: "02034", grams: 10 } # 片栗粉
+    - { foodId: "14006", grams: 8 } # サラダ油（揚げ油の吸油）
+    - { foodId: "17029", grams: 50 } # めんつゆ（ストレート）
+    - { foodId: "06134", grams: 30 } # だいこん（おろし）
+    - { foodId: "06227", grams: 3 } # 青ねぎ
+
+- id: takoyaki
+  name: たこ焼き
+  kana: たこやき
+  category: main
+  suggestedSlots: [lunch, other]
+  # 1人前8個（焼き上がり約220g）。生地は薄力粉40g・卵・だしで、ソース・マヨネーズ・かつお節・あおのりをかける。
+  ingredients:
+    - { foodId: "01015", grams: 40 } # 薄力粉
+    - { foodId: "12004", grams: 25 } # 卵（生）
+    - { foodId: "17021", grams: 120 } # だし（かつお・昆布）
+    - { foodId: "10362", grams: 25, role: たこ } # ゆでだこ
+    - { foodId: "06061", grams: 15 } # キャベツ
+    - { foodId: "01172", grams: 5 } # 天かす
+    - { foodId: "06104", grams: 3 } # しょうが 酢漬（紅しょうが）
+    - { foodId: "06227", grams: 5 } # 青ねぎ
+    - { foodId: "14006", grams: 4 } # サラダ油
+    - { foodId: "17085", grams: 15 } # お好み焼きソース
+    - { foodId: "17042", grams: 8 } # マヨネーズ
+    - { foodId: "10092", grams: 0.5 } # かつお 削り節
+    - { foodId: "09002", grams: 0.3 } # あおのり
+
+- id: monjayaki
+  name: もんじゃ焼き
+  kana: もんじゃやき もんじゃ
+  category: main
+  suggestedSlots: [lunch, dinner, other]
+  # 1人前（キャベツ80g・薄力粉15gをだしでゆるく溶いた基本のもんじゃ）。具は天かす・桜えび、味付けはウスターソース。
+  ingredients:
+    - { foodId: "06061", grams: 80 } # キャベツ
+    - { foodId: "01015", grams: 15 } # 薄力粉
+    - { foodId: "17021", grams: 150 } # だし（かつお・昆布）
+    - { foodId: "17001", grams: 15 } # ウスターソース
+    - { foodId: "10325", grams: 3 } # さくらえび 素干し
+    - { foodId: "01172", grams: 8 } # 天かす
+    - { foodId: "14006", grams: 4 } # サラダ油
+
+- id: yakitori-negima-tare
+  name: 焼き鳥（ねぎま・たれ）
+  kana: やきとり ねぎま たれ
+  category: main
+  suggestedSlots: [dinner, other]
+  # 3本（鶏もも 焼き上がり80g＋長ねぎ30g）。焼いた後の重さで「焼き」の成分値を使い、たれは12g。
+  ingredients:
+    - { foodId: "11222", grams: 80, role: 肉 } # 鶏もも肉（皮つき・焼き）
+    - { foodId: "06226", grams: 30 } # 長ねぎ
+    - { foodId: "17112", grams: 12 } # 焼き鳥のたれ
+
+- id: yakitori-momo-shio
+  name: 焼き鳥（もも・塩）
+  kana: やきとり もも しお
+  category: main
+  suggestedSlots: [dinner, other]
+  # 3本（鶏もも 焼き上がり90g）。焼いた後の重さで「焼き」の成分値を使う。
+  ingredients:
+    - { foodId: "11222", grams: 90, role: 肉 } # 鶏もも肉（皮つき・焼き）
+    - { foodId: "17012", grams: 0.8 } # 食塩
+
+- id: oden
+  name: おでん
+  kana: おでん かんとうだき
+  category: main
+  suggestedSlots: [lunch, dinner]
+  # 一般的な家庭の1人前（大根・卵・練り物など7品）。つゆは控えめに100mL飲む前提で、だしと調味料をその分だけ数えた。
+  ingredients:
+    - { foodId: "06134", grams: 80 } # だいこん
+    - { foodId: "12005", grams: 50, role: 卵 } # ゆで卵
+    - { foodId: "10381", grams: 30 } # ちくわ
+    - { foodId: "04041", grams: 30 } # がんもどき
+    - { foodId: "02003", grams: 50 } # こんにゃく
+    - { foodId: "10385", grams: 25 } # はんぺん
+    - { foodId: "10386", grams: 30 } # さつま揚げ
+    - { foodId: "09056", grams: 10 } # まこんぶ 素干し 水煮（結び昆布）
+    - { foodId: "17021", grams: 100 } # だし（かつお・昆布）
+    - { foodId: "17008", grams: 6 } # うすくちしょうゆ
+    - { foodId: "16025", grams: 4 } # みりん
+
+- id: buri-daikon
+  name: ぶり大根
+  kana: ぶりだいこん
+  category: main
+  suggestedSlots: [lunch, dinner]
+  # 一般的な家庭の1人前（ぶり80g・大根120g）。ぶりは煮た後の成分値がないため生で書く。煮汁の調味料は全量を数えた。
+  ingredients:
+    - { foodId: "10241", grams: 80, role: 魚 } # ぶり（生）
+    - { foodId: "06134", grams: 120 } # だいこん
+    - { foodId: "06103", grams: 3 } # しょうが
+    - { foodId: "17007", grams: 12 } # しょうゆ（濃口）
+    - { foodId: "03003", grams: 5 } # 砂糖（上白糖）
+    - { foodId: "16025", grams: 10 } # みりん
+    - { foodId: "16001", grams: 15 } # 日本酒
+
+# 鍋（1人前の具＋つゆ200mL程度を飲む前提）
+- id: yosenabe
+  name: 寄せ鍋
+  kana: よせなべ
+  category: main
+  suggestedSlots: [dinner]
+  # 鍋の1人前（鶏・たら・えびと野菜・豆腐）。つゆは市販のしょうゆ味なべつゆ（ストレート）を200mL飲む前提で数えた。
+  ingredients:
+    - { foodId: "11221", grams: 50, role: 肉, alternatives: ["11129"] } # 鶏もも肉（皮つき）（豚ばら）
+    - { foodId: "10205", grams: 50, role: 魚, alternatives: ["10171"] } # たら（生）（さわら）
+    - { foodId: "10329", grams: 20 } # えび（ブラックタイガー）
+    - { foodId: "06233", grams: 80 } # はくさい
+    - { foodId: "06226", grams: 30 } # 長ねぎ
+    - { foodId: "06099", grams: 20 } # しゅんぎく
+    - { foodId: "08039", grams: 20 } # しいたけ
+    - { foodId: "08001", grams: 20 } # えのきたけ
+    - { foodId: "04032", grams: 50 } # 木綿豆腐
+    - { foodId: "06214", grams: 10 } # にんじん
+    - { foodId: "17140", grams: 200 } # なべつゆ ストレート しょうゆ味（200mL）
+
+- id: mizutaki
+  name: 水炊き
+  kana: みずたき とりなべ
+  category: main
+  suggestedSlots: [dinner]
+  # 鍋の1人前（鶏もも100g＋野菜・豆腐）。鶏がらのスープを200mL飲む前提で数え、ぽん酢20gをつける。
+  ingredients:
+    - { foodId: "11221", grams: 100, role: 肉, alternatives: ["11286"] } # 鶏もも肉（皮つき）（手羽もと）
+    - { foodId: "06233", grams: 80 } # はくさい
+    - { foodId: "06226", grams: 30 } # 長ねぎ
+    - { foodId: "06099", grams: 20 } # しゅんぎく
+    - { foodId: "08039", grams: 20 } # しいたけ
+    - { foodId: "04032", grams: 50 } # 木綿豆腐
+    - { foodId: "17024", grams: 200 } # 鶏がらだし（200mL）
+    - { foodId: "17110", grams: 20 } # ぽん酢しょうゆ
+
+- id: motsunabe
+  name: もつ鍋
+  kana: もつなべ
+  category: main
+  suggestedSlots: [dinner]
+  # 鍋の1人前（牛小腸80g・キャベツ100g・にら30g）。しょうゆ味のスープを200mL飲む前提で、だしと調味料をその分だけ数えた。
+  ingredients:
+    - { foodId: "11098", grams: 80, role: もつ } # うし 小腸 生
+    - { foodId: "06061", grams: 100 } # キャベツ
+    - { foodId: "06207", grams: 30 } # にら
+    - { foodId: "06084", grams: 20 } # ごぼう
+    - { foodId: "04032", grams: 50 } # 木綿豆腐
+    - { foodId: "06223", grams: 3 } # にんにく
+    - { foodId: "17024", grams: 180 } # 鶏がらだし
+    - { foodId: "17007", grams: 10 } # しょうゆ（濃口）
+    - { foodId: "16001", grams: 10 } # 日本酒
+    - { foodId: "16025", grams: 5 } # みりん
+
+- id: kimchi-nabe
+  name: キムチ鍋
+  kana: きむちなべ ちげ
+  category: main
+  suggestedSlots: [dinner]
+  # 鍋の1人前（豚ばら60g・キムチ70g・豆腐80g）。スープを200mL飲む前提で、鶏がらだしとみそ・しょうゆを数えた。
+  ingredients:
+    - { foodId: "11129", grams: 60, role: 肉, alternatives: ["11221"] } # 豚ばら肉（鶏もも）
+    - { foodId: "06236", grams: 70 } # キムチ
+    - { foodId: "04032", grams: 80 } # 木綿豆腐
+    - { foodId: "06233", grams: 50 } # はくさい
+    - { foodId: "06207", grams: 20 } # にら
+    - { foodId: "06226", grams: 20 } # 長ねぎ
+    - { foodId: "08001", grams: 20 } # えのきたけ
+    - { foodId: "17024", grams: 180 } # 鶏がらだし
+    - { foodId: "17045", grams: 8 } # みそ（淡色辛みそ）
+    - { foodId: "17007", grams: 3 } # しょうゆ（濃口）
+    - { foodId: "14002", grams: 3 } # ごま油
+
+- id: sukiyaki
+  name: すき焼き
+  kana: すきやき
+  category: main
+  suggestedSlots: [dinner]
+  # ふつうの家庭の関東風1人前（牛肉100g＋野菜・焼き豆腐・しらたき、溶き卵1個）。割下（しょうゆ・みりん・砂糖・酒）は全量を数えた。
+  ingredients:
+    - { foodId: "11034", grams: 100, role: 肉, alternatives: ["11047", "11123"] } # 牛かたロース（乳用肥育牛）（牛もも・豚ロース）
+    - { foodId: "04038", grams: 50 } # 焼き豆腐
+    - { foodId: "02005", grams: 40 } # しらたき
+    - { foodId: "06226", grams: 40 } # 長ねぎ
+    - { foodId: "06099", grams: 30 } # しゅんぎく
+    - { foodId: "08039", grams: 20 } # しいたけ
+    - { foodId: "06233", grams: 50 } # はくさい
+    - { foodId: "17007", grams: 15 } # しょうゆ（濃口）
+    - { foodId: "16025", grams: 15 } # みりん
+    - { foodId: "03003", grams: 6 } # 砂糖（上白糖）
+    - { foodId: "16001", grams: 10 } # 日本酒
+    - { foodId: "12004", grams: 50 } # 卵（生）つけ卵
+    - { foodId: "14015", grams: 3 } # 牛脂
+
+- id: goya-champuru
+  name: ゴーヤーチャンプルー
+  kana: ごーやーちゃんぷるー ごーやちゃんぷる
+  category: main
+  suggestedSlots: [lunch, dinner]
+  # ふつうの家庭の1人前（ゴーヤー1/3本60g・木綿豆腐100g・豚ばら40g・卵1個）。
+  ingredients:
+    - { foodId: "06205", grams: 60 } # にがうり
+    - { foodId: "04032", grams: 100, role: 豆腐, alternatives: ["04036"] } # 木綿豆腐（沖縄豆腐）
+    - { foodId: "11129", grams: 40, role: 肉, alternatives: ["11317"] } # 豚ばら肉（ランチョンミート）
+    - { foodId: "12004", grams: 50 } # 卵（生）
+    - { foodId: "14006", grams: 5 } # サラダ油
+    - { foodId: "17007", grams: 4 } # しょうゆ（濃口）
+    - { foodId: "17012", grams: 0.5 } # 食塩
+    - { foodId: "10092", grams: 1 } # かつお 削り節
+
+# ---- 副菜・汁物
+
+# 副菜・汁物（代表的な料理の追加分 C）
+- id: kiriboshi-ni
+  name: 切り干し大根の煮物
+  kana: きりぼしだいこんのにもの きりぼしだいこん
+  category: side
+  suggestedSlots: [lunch, dinner]
+  # 出典: 成分表2015年版 第3章「そう菜9 切り干し大根の煮物」の平均配合割合（0.3%未満の材料は塩分の多いものを除き省略、糖類は上白糖にまとめた）。
+  # 1人前 100g（小鉢1つ）。成分表 18032「切り干し大根の煮物」100g当たり 48kcal に合わせて材料の総量を決めた（材料合計 28g、加えた水は含まない）。
+  # 配合表の切干しだいこんは乾物の重量比のため、乾の食品で書いた。
+  ingredients:
+    - { foodId: "06136", grams: 6, role: 切干しだいこん } # 切干しだいこん 乾（配合 21.6%）
+    - { foodId: "06215", grams: 5 } # にんじん 根 皮なし ゆで（配合 16.9%）
+    - { foodId: "17019", grams: 4.5 } # かつおだし 荒節（配合 16.1%）
+    - { foodId: "04086", grams: 3.5, role: 油揚げ, alternatives: ["11221"] } # 油揚げ 油抜き ゆで（配合 12.4%）
+    - { foodId: "17007", grams: 3 } # こいくちしょうゆ（配合 10.0%）
+    - { foodId: "03003", grams: 3 } # 上白糖（配合 9.1%＋異性化液糖 1.3%）
+    - { foodId: "17008", grams: 1.5 } # うすくちしょうゆ（配合 5.8%）
+    - { foodId: "14006", grams: 1 } # 調合油（配合 3.2%）
+    - { foodId: "16023", grams: 0.3 } # 合成清酒（配合 1.2%）
+    - { foodId: "16025", grams: 0.3 } # 本みりん（配合 0.9%）
+    - { foodId: "17028", grams: 0.3 } # 顆粒和風だし（配合 0.9%）
+
+- id: hijiki-ni
+  name: ひじきの煮物
+  kana: ひじきのにもの ひじきのいために ひじき
+  category: side
+  suggestedSlots: [lunch, dinner]
+  # 出典: 成分表2015年版 第3章「そう菜14 ひじきの炒め煮」の平均配合割合（0.3%未満の材料は塩分の多いものを除き省略、糖類は上白糖にまとめた）。
+  # 1人前 70g（小鉢1つ）。成分表 18037「ひじきのいため煮」100g当たり 75kcal に合わせて材料の総量を決めた（材料合計 32g、加えた水は含まない）。
+  # ひじきは乾物の重量比として扱い（ゆでとすると 18037 のエネルギーに合わない）、乾の食品で書いた。
+  ingredients:
+    - { foodId: "06215", grams: 7 } # にんじん 根 皮なし ゆで（配合 21.2%）
+    - { foodId: "09050", grams: 5.5, role: ひじき, alternatives: ["09053"] } # ほしひじき ステンレス釜 乾（配合 16.7%）
+    - { foodId: "04086", grams: 5, role: 油揚げ } # 油揚げ 油抜き ゆで（配合 15.1%）
+    - { foodId: "17007", grams: 4.5 } # こいくちしょうゆ（配合 13.8%）
+    - { foodId: "03003", grams: 3.5 } # 上白糖（配合 8.3%＋ぶどう糖・異性化液糖など 2.6%）
+    - { foodId: "17019", grams: 3 } # かつおだし 荒節（配合 9.5%）
+    - { foodId: "16025", grams: 1.5 } # 本みりん（配合 4.3%）
+    - { foodId: "14006", grams: 1.2 } # 調合油（配合 3.8%）
+    - { foodId: "17028", grams: 0.6 } # 顆粒和風だし（配合 2.0%）
+    - { foodId: "06025", grams: 0.5 } # グリンピース 冷凍（配合 1.6%）
+
+- id: satoimo-nikkorogashi
+  name: 里芋の煮っころがし
+  kana: さといものにっころがし さといものにもの
+  category: side
+  suggestedSlots: [lunch, dinner]
+  # 一般的な家庭の1人前（里芋3〜4個 100g）。煮汁はほぼ煮詰めて絡める前提で、調味料は全量を数えた。
+  ingredients:
+    - { foodId: "02011", grams: 100, role: さといも, alternatives: ["02019"] } # さといも 球茎 水煮
+    - { foodId: "17021", grams: 30 } # かつお・昆布だし
+    - { foodId: "17007", grams: 6 } # こいくちしょうゆ
+    - { foodId: "03003", grams: 4 } # 上白糖
+    - { foodId: "16025", grams: 4 } # 本みりん
+
+- id: daikon-ni
+  name: 大根の煮物
+  kana: だいこんのにもの だいこんのにつけ ふろふきだいこん
+  category: side
+  suggestedSlots: [lunch, dinner]
+  # 一般的な家庭の1人前（輪切り2切れ 120g）。だしは大根に含まれる分として 50g を数えた。
+  ingredients:
+    - { foodId: "06135", grams: 120, role: だいこん } # だいこん 根 皮なし ゆで
+    - { foodId: "17021", grams: 50 } # かつお・昆布だし
+    - { foodId: "17008", grams: 6 } # うすくちしょうゆ
+    - { foodId: "16025", grams: 4 } # 本みりん
+    - { foodId: "03003", grams: 2 } # 上白糖
+
+- id: potato-salad
+  name: ポテトサラダ
+  kana: ぽてとさらだ ぽてさら
+  category: side
+  suggestedSlots: [breakfast, lunch, dinner]
+  # 一般的な家庭・総菜の1人前（小鉢 約120g）。
+  ingredients:
+    - { foodId: "02019", grams: 80, role: じゃがいも } # じゃがいも 塊茎 皮なし 水煮
+    - { foodId: "06065", grams: 10 } # きゅうり 果実 生
+    - { foodId: "06215", grams: 5 } # にんじん 根 皮なし ゆで
+    - { foodId: "06154", grams: 5 } # たまねぎ りん茎 水さらし
+    - { foodId: "11176", grams: 10, role: ハム, alternatives: ["12005", "10260"] } # ロースハム
+    - { foodId: "17042", grams: 12, role: マヨネーズ, alternatives: ["17118"] } # マヨネーズ 全卵型
+    - { foodId: "17012", grams: 0.3 } # 食塩
+    - { foodId: "17065", grams: 0.02 } # こしょう 混合 粉
+
+- id: macaroni-salad
+  name: マカロニサラダ
+  kana: まかろにさらだ
+  category: side
+  suggestedSlots: [breakfast, lunch, dinner]
+  # 一般的な家庭・総菜の1人前（小鉢 約90g）。マカロニは乾 20g をゆでた重さ（約 50g）で書いた。
+  ingredients:
+    - { foodId: "01064", grams: 50, role: マカロニ } # マカロニ・スパゲッティ ゆで
+    - { foodId: "06065", grams: 10 } # きゅうり 果実 生
+    - { foodId: "06215", grams: 5 } # にんじん 根 皮なし ゆで
+    - { foodId: "06154", grams: 5 } # たまねぎ りん茎 水さらし
+    - { foodId: "11176", grams: 10, role: ハム, alternatives: ["10260", "12005"] } # ロースハム
+    - { foodId: "17042", grams: 12, role: マヨネーズ, alternatives: ["17118"] } # マヨネーズ 全卵型
+    - { foodId: "17012", grams: 0.3 } # 食塩
+    - { foodId: "17065", grams: 0.02 } # こしょう 混合 粉
+
+- id: caesar-salad
+  name: シーザーサラダ
+  kana: しーざーさらだ
+  category: side
+  suggestedSlots: [lunch, dinner]
+  # 一般的な家庭・外食の1人前（サラダボウル1つ）。ドレッシングはマヨネーズ・オリーブ油・レモン汁・粉チーズで作る家庭風。
+  ingredients:
+    - { foodId: "06316", grams: 60, role: レタス, alternatives: ["06312"] } # コスレタス 葉 生
+    - { foodId: "01174", grams: 8 } # 角形食パン 焼き（クルトン）
+    - { foodId: "11316", grams: 8, role: ベーコン } # ばらベーコン 油いため
+    - { foodId: "13038", grams: 4 } # ナチュラルチーズ パルメザン
+    - { foodId: "17042", grams: 8, role: ドレッシング, alternatives: ["17117", "17040"] } # マヨネーズ 全卵型
+    - { foodId: "14001", grams: 3 } # オリーブ油
+    - { foodId: "07156", grams: 2 } # レモン 果汁 生
+    - { foodId: "17065", grams: 0.03 } # こしょう 混合 粉
+
+- id: coleslaw
+  name: コールスロー
+  kana: こーるすろー こーるすろーさらだ
+  category: side
+  suggestedSlots: [breakfast, lunch, dinner]
+  # 一般的な家庭・総菜の1人前（小鉢 約85g）。
+  ingredients:
+    - { foodId: "06061", grams: 60, role: キャベツ } # キャベツ 結球葉 生
+    - { foodId: "06214", grams: 5 } # にんじん 根 皮なし 生
+    - { foodId: "06180", grams: 10 } # スイートコーン 缶詰 ホールカーネルスタイル
+    - { foodId: "17042", grams: 8, role: マヨネーズ, alternatives: ["17118", "17149"] } # マヨネーズ 全卵型
+    - { foodId: "17015", grams: 2 } # 穀物酢
+    - { foodId: "03003", grams: 1 } # 上白糖
+    - { foodId: "17012", grams: 0.3 } # 食塩
+
+- id: harusame-salad
+  name: 春雨サラダ
+  kana: はるさめさらだ ちゅうかはるさめ
+  category: side
+  suggestedSlots: [lunch, dinner]
+  # 一般的な家庭・総菜の1人前（小鉢 約90g）。春雨は乾 10g をゆでた重さ（約 40g）で書いた。
+  ingredients:
+    - { foodId: "02061", grams: 40, role: はるさめ, alternatives: ["02062"] } # 緑豆はるさめ ゆで
+    - { foodId: "06065", grams: 20 } # きゅうり 果実 生
+    - { foodId: "06214", grams: 5 } # にんじん 根 皮なし 生
+    - { foodId: "11176", grams: 8, role: ハム, alternatives: ["12022"] } # ロースハム
+    - { foodId: "17015", grams: 6 } # 穀物酢
+    - { foodId: "17007", grams: 4 } # こいくちしょうゆ
+    - { foodId: "03003", grams: 3 } # 上白糖
+    - { foodId: "14002", grams: 2 } # ごま油
+    - { foodId: "05018", grams: 1 } # ごま いり
+
+- id: gobo-salad
+  name: ごぼうサラダ
+  kana: ごぼうさらだ
+  category: side
+  suggestedSlots: [lunch, dinner]
+  # 一般的な家庭・総菜の1人前（小鉢 約65g）。
+  ingredients:
+    - { foodId: "06085", grams: 40, role: ごぼう } # ごぼう 根 ゆで
+    - { foodId: "06215", grams: 10 } # にんじん 根 皮なし ゆで
+    - { foodId: "17042", grams: 10, role: マヨネーズ, alternatives: ["17118", "17117"] } # マヨネーズ 全卵型
+    - { foodId: "05018", grams: 2 } # ごま いり
+    - { foodId: "17007", grams: 1.5 } # こいくちしょうゆ
+    - { foodId: "03003", grams: 1 } # 上白糖
+
+- id: daikon-salad
+  name: 大根サラダ
+  kana: だいこんさらだ
+  category: side
+  suggestedSlots: [lunch, dinner]
+  # 一般的な家庭・外食の1人前（小鉢〜中鉢 約90g）。
+  ingredients:
+    - { foodId: "06134", grams: 60, role: だいこん } # だいこん 根 皮なし 生
+    - { foodId: "06072", grams: 10 } # みずな 葉 生
+    - { foodId: "06128", grams: 5 } # かいわれだいこん 芽ばえ 生
+    - { foodId: "10091", grams: 0.5 } # かつお節
+    - { foodId: "17116", grams: 12, role: ドレッシング, alternatives: ["17039", "17117", "17042"] } # 和風ドレッシング 分離液状
+
+- id: kyuri-wakame-sunomono
+  name: きゅうりとわかめの酢の物
+  kana: きゅうりとわかめのすのもの すのもの きゅうりもみ
+  category: side
+  suggestedSlots: [lunch, dinner]
+  # 一般的な家庭の1人前（小鉢 約80g）。きゅうりの塩もみの塩は全量を数えた。
+  ingredients:
+    - { foodId: "06065", grams: 50, role: きゅうり } # きゅうり 果実 生
+    - { foodId: "09045", grams: 15, role: わかめ, alternatives: ["10376", "10281"] } # 湯通し塩蔵わかめ 塩抜き 生
+    - { foodId: "17015", grams: 8 } # 穀物酢
+    - { foodId: "03003", grams: 3 } # 上白糖
+    - { foodId: "17008", grams: 2 } # うすくちしょうゆ
+    - { foodId: "17012", grams: 0.3 } # 食塩
+    - { foodId: "05018", grams: 0.5 } # ごま いり
+
+- id: moyashi-itame
+  name: もやし炒め
+  kana: もやしいため
+  category: side
+  suggestedSlots: [lunch, dinner]
+  # 一般的な家庭の1人前（もやし1/2袋 100g）。
+  ingredients:
+    - { foodId: "06291", grams: 100, role: もやし } # りょくとうもやし 生
+    - { foodId: "06207", grams: 10 } # にら 葉 生
+    - { foodId: "14006", grams: 4 } # 調合油
+    - { foodId: "17012", grams: 0.6 } # 食塩
+    - { foodId: "17007", grams: 2 } # こいくちしょうゆ
+    - { foodId: "17065", grams: 0.02 } # こしょう 混合 粉
+
+- id: asazuke
+  name: 浅漬け（きゅうり・白菜）
+  kana: あさづけ きゅうりのあさづけ はくさいのあさづけ いちやづけ
+  category: side
+  suggestedSlots: [breakfast, lunch, dinner]
+  # 一般的な1人前（小皿 40g）。成分表の塩漬（きゅうり・はくさい）を半量ずつ。
+  ingredients:
+    - { foodId: "06066", grams: 20, role: きゅうり, alternatives: ["06195"] } # きゅうり 漬物 塩漬
+    - { foodId: "06235", grams: 20, role: はくさい } # はくさい 漬物 塩漬
+
+- id: yaki-nasu
+  name: 焼きなす
+  kana: やきなす
+  category: side
+  suggestedSlots: [lunch, dinner]
+  # 一般的な家庭の1人前（なす1本 正味80g）。焼きなすの成分値はないため生のなすで書いた。
+  ingredients:
+    - { foodId: "06191", grams: 80, role: なす } # なす 果実 生
+    - { foodId: "06103", grams: 2 } # しょうが 根茎 皮なし 生
+    - { foodId: "10091", grams: 0.5 } # かつお節
+    - { foodId: "17007", grams: 4 } # こいくちしょうゆ
+
+- id: nasu-agebitashi
+  name: なすの揚げびたし
+  kana: なすのあげびたし あげびたし
+  category: side
+  suggestedSlots: [lunch, dinner]
+  # 一般的な家庭の1人前（なす1本 正味80g）。なすの吸油量は重量の約1割として揚げ油 8g を数えた。漬け汁は半分ほど食べる前提。
+  ingredients:
+    - { foodId: "06191", grams: 80, role: なす } # なす 果実 生
+    - { foodId: "14006", grams: 8 } # 調合油（揚げ油の吸油分）
+    - { foodId: "17021", grams: 30 } # かつお・昆布だし
+    - { foodId: "17007", grams: 5 } # こいくちしょうゆ
+    - { foodId: "16025", grams: 5 } # 本みりん
+    - { foodId: "06103", grams: 2 } # しょうが 根茎 皮なし 生
+
+- id: onyasai
+  name: 温野菜（ブロッコリー・にんじん）
+  kana: おんやさい おんやさいさらだ ゆでやさい
+  category: side
+  suggestedSlots: [breakfast, lunch, dinner]
+  # 一般的な家庭の1人前（野菜 80g）。
+  ingredients:
+    - { foodId: "06264", grams: 50, role: ブロッコリー } # ブロッコリー 花序 ゆで
+    - { foodId: "06215", grams: 30, role: にんじん, alternatives: ["02019"] } # にんじん 根 皮なし ゆで
+    - { foodId: "17117", grams: 10, role: ドレッシング, alternatives: ["17042", "17116", "17039"] } # ごまドレッシング
+
+- id: nimame
+  name: 煮豆（うずら豆・金時豆）
+  kana: にまめ うずらまめ きんときまめ
+  category: side
+  suggestedSlots: [breakfast, lunch, dinner]
+  # 一般的な1人前（小皿 40g）。成分表「いんげんまめ うずら豆」（煮豆）をそのまま使った。金時豆の煮豆も同じいんげんまめの煮豆として扱う。
+  ingredients:
+    - { foodId: "04009", grams: 40, role: 煮豆 } # いんげんまめ うずら豆
+
+- id: sumashijiru
+  name: すまし汁
+  kana: すましじる おすまし おすいもの
+  category: soup
+  suggestedSlots: [breakfast, lunch, dinner]
+  # 一般的な家庭の1人前（汁椀1杯 だし150mL）。
+  ingredients:
+    - { foodId: "17021", grams: 150 } # かつお・昆布だし
+    - { foodId: "04033", grams: 30, role: 豆腐, alternatives: ["01066", "10379"] } # 絹ごし豆腐
+    - { foodId: "09044", grams: 0.5 } # カットわかめ 乾
+    - { foodId: "06278", grams: 3 } # 糸みつば 葉 生
+    - { foodId: "17008", grams: 3 } # うすくちしょうゆ
+    - { foodId: "17012", grams: 0.5 } # 食塩
+
+- id: hamaguri-suimono
+  name: はまぐりのお吸い物
+  kana: はまぐりのおすいもの はまぐりのすましじる うしおじる
+  category: soup
+  suggestedSlots: [lunch, dinner]
+  # 一般的な家庭の1人前（はまぐり2個 正味30g、昆布だし150mL）。はまぐり自体の塩分があるため塩は控えめ。
+  ingredients:
+    - { foodId: "17020", grams: 150 } # 昆布だし 水出し
+    - { foodId: "10306", grams: 30, role: はまぐり, alternatives: ["10281"] } # はまぐり 生
+    - { foodId: "16001", grams: 3 } # 清酒 普通酒
+    - { foodId: "17008", grams: 2 } # うすくちしょうゆ
+    - { foodId: "17012", grams: 0.4 } # 食塩
+    - { foodId: "06278", grams: 3 } # 糸みつば 葉 生
+
+- id: kakitama-jiru
+  name: かきたま汁
+  kana: かきたまじる かきたま たまごじる
+  category: soup
+  suggestedSlots: [breakfast, lunch, dinner]
+  # 一般的な家庭の1人前（汁椀1杯 だし150mL、卵1/2個）。
+  ingredients:
+    - { foodId: "17021", grams: 150 } # かつお・昆布だし
+    - { foodId: "12004", grams: 25, role: 卵 } # 鶏卵 全卵 生
+    - { foodId: "02034", grams: 2 } # じゃがいもでん粉（片栗粉）
+    - { foodId: "17008", grams: 3 } # うすくちしょうゆ
+    - { foodId: "17012", grams: 0.5 } # 食塩
+    - { foodId: "06227", grams: 3 } # 葉ねぎ 葉 生
+
+- id: consomme-soup
+  name: コンソメスープ
+  kana: こんそめすーぷ やさいすーぷ
+  category: soup
+  suggestedSlots: [breakfast, lunch, dinner]
+  # 一般的な家庭の1人前（スープカップ1杯 150mL）。固形ブイヨンを溶いたスープを成分表「洋風だし」で代用した。
+  ingredients:
+    - { foodId: "17026", grams: 150 } # 洋風だし
+    - { foodId: "06153", grams: 20 } # たまねぎ りん茎 生
+    - { foodId: "06061", grams: 15 } # キャベツ 結球葉 生
+    - { foodId: "06214", grams: 10 } # にんじん 根 皮なし 生
+    - { foodId: "11183", grams: 5, role: ベーコン, alternatives: ["11176"] } # ばらベーコン
+    - { foodId: "17012", grams: 0.5 } # 食塩
+    - { foodId: "17065", grams: 0.02 } # こしょう 混合 粉
+
+- id: minestrone
+  name: ミネストローネ
+  kana: みねすとろーね とまとすーぷ
+  category: soup
+  suggestedSlots: [breakfast, lunch, dinner]
+  # 一般的な家庭の1人前（スープ皿1杯 約250g）。
+  ingredients:
+    - { foodId: "17026", grams: 130 } # 洋風だし
+    - { foodId: "06184", grams: 50, role: トマト } # トマト 加工品 ホール 食塩無添加
+    - { foodId: "06153", grams: 20 } # たまねぎ りん茎 生
+    - { foodId: "06061", grams: 20 } # キャベツ 結球葉 生
+    - { foodId: "02017", grams: 20 } # じゃがいも 塊茎 皮なし 生
+    - { foodId: "06214", grams: 10 } # にんじん 根 皮なし 生
+    - { foodId: "06119", grams: 10 } # セロリ 葉柄 生
+    - { foodId: "11183", grams: 10, role: ベーコン } # ばらベーコン
+    - { foodId: "14001", grams: 3 } # オリーブ油
+    - { foodId: "17012", grams: 0.5 } # 食塩
+    - { foodId: "17065", grams: 0.02 } # こしょう 混合 粉
+
+- id: clam-chowder
+  name: クラムチャウダー
+  kana: くらむちゃうだー
+  category: soup
+  suggestedSlots: [breakfast, lunch, dinner]
+  # 一般的な家庭の1人前（スープ皿1杯 約230g）。あさりは水煮缶を使うニューイングランド風（牛乳仕立て）。
+  ingredients:
+    - { foodId: "13003", grams: 100 } # 普通牛乳
+    - { foodId: "17026", grams: 50 } # 洋風だし
+    - { foodId: "10283", grams: 15, role: あさり, alternatives: ["10281"] } # あさり 缶詰 水煮
+    - { foodId: "02017", grams: 30 } # じゃがいも 塊茎 皮なし 生
+    - { foodId: "06153", grams: 20 } # たまねぎ りん茎 生
+    - { foodId: "06214", grams: 10 } # にんじん 根 皮なし 生
+    - { foodId: "11183", grams: 8, role: ベーコン } # ばらベーコン
+    - { foodId: "14017", grams: 4 } # 有塩バター
+    - { foodId: "01015", grams: 4 } # 薄力粉 1等
+    - { foodId: "17012", grams: 0.5 } # 食塩
+    - { foodId: "17065", grams: 0.02 } # こしょう 混合 粉
+
+- id: wakame-soup
+  name: わかめスープ
+  kana: わかめすーぷ
+  category: soup
+  suggestedSlots: [breakfast, lunch, dinner]
+  # 一般的な家庭の1人前（スープカップ1杯 150mL）。顆粒の中華だしを溶いたスープを成分表「中華だし」と食塩で書いた。
+  ingredients:
+    - { foodId: "17025", grams: 150 } # 中華だし
+    - { foodId: "09044", grams: 1.5, role: わかめ } # カットわかめ 乾
+    - { foodId: "06226", grams: 5 } # 根深ねぎ 葉 軟白 生
+    - { foodId: "05018", grams: 1 } # ごま いり
+    - { foodId: "14002", grams: 1 } # ごま油
+    - { foodId: "17007", grams: 2 } # こいくちしょうゆ
+    - { foodId: "17012", grams: 0.6 } # 食塩
+
+- id: chuka-tamago-soup
+  name: 中華風卵スープ
+  kana: ちゅうかふうたまごすーぷ たまごすーぷ ちゅうかすーぷ
+  category: soup
+  suggestedSlots: [breakfast, lunch, dinner]
+  # 一般的な家庭の1人前（スープカップ1杯 150mL、卵1/2個）。
+  ingredients:
+    - { foodId: "17024", grams: 150 } # 鶏がらだし
+    - { foodId: "12004", grams: 25, role: 卵 } # 鶏卵 全卵 生
+    - { foodId: "02034", grams: 2 } # じゃがいもでん粉（片栗粉）
+    - { foodId: "06226", grams: 5 } # 根深ねぎ 葉 軟白 生
+    - { foodId: "14002", grams: 1 } # ごま油
+    - { foodId: "17007", grams: 1 } # こいくちしょうゆ
+    - { foodId: "17012", grams: 0.7 } # 食塩
+    - { foodId: "17065", grams: 0.02 } # こしょう 混合 粉
+
+- id: zoni-kanto
+  name: 雑煮（関東風すまし）
+  kana: ぞうに おぞうに かんとうふうぞうに すましぞうに
+  category: staple
+  suggestedSlots: [breakfast, lunch, dinner]
+  # 一般的な家庭の1人前（角もち2個 100g、だし150mL）。もちが主食になるため category は staple にした。
+  ingredients:
+    - { foodId: "01117", grams: 100, role: もち } # もち
+    - { foodId: "17021", grams: 150 } # かつお・昆布だし
+    - { foodId: "11221", grams: 20, role: 鶏肉, alternatives: ["11227"] } # 若どり もも 皮つき 生
+    - { foodId: "06087", grams: 20, role: 青菜, alternatives: ["06268"] } # こまつな 葉 ゆで
+    - { foodId: "10379", grams: 10 } # 蒸しかまぼこ
+    - { foodId: "06278", grams: 2 } # 糸みつば 葉 生
+    - { foodId: "17008", grams: 5 } # うすくちしょうゆ
+    - { foodId: "16001", grams: 2 } # 清酒 普通酒
+    - { foodId: "17012", grams: 0.5 } # 食塩
+
+- id: kenchin-jiru
+  name: けんちん汁
+  kana: けんちんじる
+  category: soup
+  suggestedSlots: [breakfast, lunch, dinner]
+  # 一般的な家庭の1人前（汁椀大1杯 だし160mL）。ごま油で炒めてから煮るしょうゆ仕立て。
+  ingredients:
+    - { foodId: "17021", grams: 160 } # かつお・昆布だし
+    - { foodId: "04032", grams: 30, role: 豆腐 } # 木綿豆腐
+    - { foodId: "06134", grams: 25 } # だいこん 根 皮なし 生
+    - { foodId: "02010", grams: 20 } # さといも 球茎 生
+    - { foodId: "02003", grams: 15 } # 板こんにゃく 精粉こんにゃく
+    - { foodId: "06214", grams: 10 } # にんじん 根 皮なし 生
+    - { foodId: "06084", grams: 10 } # ごぼう 根 生
+    - { foodId: "06226", grams: 5 } # 根深ねぎ 葉 軟白 生
+    - { foodId: "14002", grams: 2 } # ごま油
+    - { foodId: "17007", grams: 5 } # こいくちしょうゆ
+    - { foodId: "17012", grams: 0.5 } # 食塩
+
+# ---- おやつ・飲み物・お酒
+
+# エクレア1本（約70g）。成分表にエクレアはないため、生地とクリームが同じシュークリームにチョコがけを足した
+- id: sweets-eclair
+  name: エクレア
+  kana: えくれあ
+  category: snack
+  suggestedSlots: [other]
+  ingredients:
+    - { foodId: "15073", grams: 65, role: シュー生地とクリーム } # シュークリーム
+    - { foodId: "15116", grams: 8, role: チョコ, alternatives: ["15186"] } # ミルクチョコレート
+
+# ロールケーキ1切れ（約80g）。成分表「スポンジケーキ」＋ホイップクリーム
+- id: sweets-roll-cake
+  name: ロールケーキ（1切れ）
+  kana: ろーるけーき
+  category: snack
+  suggestedSlots: [other]
+  ingredients:
+    - { foodId: "15074", grams: 55, role: スポンジ } # スポンジケーキ
+    - { foodId: "13017", grams: 25, role: クリーム, alternatives: ["13019"] } # ホイップクリーム 乳脂肪
+
+# 柿の種（ピーナッツ入り）小袋1つ約30g。柿の種7：ピーナッツ3。柿の種は成分表「米菓 あられ」で代用
+- id: sweets-kakinotane
+  name: 柿の種（ピーナッツ入り・小袋）
+  kana: かきのたね かきぴー
+  category: snack
+  suggestedSlots: [other]
+  ingredients:
+    - { foodId: "15059", grams: 21, role: 柿の種 } # 米菓 あられ
+    - { foodId: "05036", grams: 9, role: ピーナッツ } # バターピーナッツ
+
+# たい焼き1尾（約100g）。生地とあんが同じ成分表「今川焼 つぶしあん入り」を使用
+- id: sweets-taiyaki
+  name: たい焼き
+  kana: たいやき
+  category: snack
+  suggestedSlots: [other]
+  ingredients:
+    - { foodId: "15145", grams: 100, role: たい焼き, alternatives: ["15005", "15146"] } # 今川焼 つぶしあん入り
+
+# わらび餅1皿（約120g）＋きな粉・黒蜜。成分表にわらび餅はないため、同じでん粉の餅「くずもち 関西風」で代用
+- id: sweets-warabimochi
+  name: わらび餅
+  kana: わらびもち
+  category: snack
+  suggestedSlots: [other]
+  ingredients:
+    - { foodId: "15121", grams: 120, role: 餅 } # くずもち 関西風 くずでん粉製品
+    - { foodId: "04029", grams: 5 } # きな粉 黄大豆 全粒大豆
+    - { foodId: "03029", grams: 15 } # 黒蜜
+
+# ぜんざい（おしるこ）1杯：汁150g＋焼き餅1個50g。成分表「しるこ つぶしあん」
+- id: sweets-zenzai
+  name: ぜんざい
+  kana: ぜんざい おしるこ しるこ
+  category: snack
+  suggestedSlots: [other]
+  ingredients:
+    - { foodId: "15140", grams: 150, role: しるこ, alternatives: ["15139"] } # しるこ つぶしあん
+    - { foodId: "01117", grams: 50, role: 餅 } # もち
+
+# あんみつ1杯（約215g）。寒天・赤えんどう・あん・果物缶・ぎゅうひ・黒蜜
+- id: sweets-anmitsu
+  name: あんみつ
+  kana: あんみつ みつまめ
+  category: snack
+  suggestedSlots: [other]
+  ingredients:
+    - { foodId: "09028", grams: 80 } # 寒天
+    - { foodId: "04075", grams: 10 } # 赤えんどう ゆで
+    - { foodId: "04101", grams: 40, role: あん, alternatives: ["04006"] } # こし練りあん
+    - { foodId: "07035", grams: 20 } # うんしゅうみかん 缶詰 果肉
+    - { foodId: "07138", grams: 20 } # もも 缶詰 白肉種 果肉
+    - { foodId: "15013", grams: 15 } # ぎゅうひ
+    - { foodId: "03029", grams: 20 } # 黒蜜
+
+# かき氷1杯。氷は栄養なし。シロップ約40mL（糖分約20g）を砂糖で換算
+- id: sweets-kakigori
+  name: かき氷
+  kana: かきごおり
+  category: snack
+  suggestedSlots: [other]
+  ingredients:
+    - { foodId: "03003", grams: 20, role: シロップ, alternatives: ["03029"] } # 砂糖（上白糖）シロップ40mL分
+
+# マカロン2個（約24g）。アーモンドプードル・粉砂糖・卵白の生地＋バタークリーム
+- id: sweets-macaron
+  name: マカロン（2個）
+  kana: まかろん
+  category: snack
+  suggestedSlots: [other]
+  ingredients:
+    - { foodId: "05001", grams: 7 } # アーモンド 乾（アーモンドプードル）
+    - { foodId: "03003", grams: 10 } # 砂糖（上白糖）
+    - { foodId: "12014", grams: 4 } # 鶏卵 卵白 生
+    - { foodId: "14018", grams: 3 } # 食塩不使用バター
+
+# 干し芋 小袋1/2程度（約50g）
+- id: sweets-hoshiimo
+  name: 干し芋
+  kana: ほしいも
+  category: snack
+  suggestedSlots: [other]
+  ingredients:
+    - { foodId: "02009", grams: 50 } # さつまいも 蒸し切干
+
+# 焼き芋 中1本（約200g、可食部150g）
+- id: sweets-yakiimo
+  name: 焼き芋（中1本）
+  kana: やきいも
+  category: snack
+  suggestedSlots: [other]
+  ingredients:
+    - { foodId: "02008", grams: 150 } # さつまいも 皮なし 焼き
+
+# 肉まん1個（コンビニ標準 約100g）。成分表「中華まんじゅう 肉まん」
+- id: sweets-nikuman
+  name: 肉まん
+  kana: にくまん ちゅうかまん
+  category: snack
+  suggestedSlots: [other]
+  ingredients:
+    - { foodId: "15035", grams: 100 } # 中華まんじゅう 肉まん
+
+# あんまん1個（約90g）。成分表「中華まんじゅう あんまん」
+- id: sweets-anman
+  name: あんまん
+  kana: あんまん ちゅうかまん
+  category: snack
+  suggestedSlots: [other]
+  ingredients:
+    - { foodId: "15034", grams: 90, alternatives: ["15166"] } # 中華まんじゅう あんまん こしあん入り
+
+# おはぎ1個（約90g）。もち米ごはん50g＋つぶあん40g
+- id: sweets-ohagi
+  name: おはぎ（1個）
+  kana: おはぎ ぼたもち
+  category: snack
+  suggestedSlots: [other]
+  ingredients:
+    - { foodId: "01154", grams: 50 } # もち米ごはん
+    - { foodId: "04006", grams: 40, role: あん, alternatives: ["04101", "04029"] } # あずき つぶし練りあん（きな粉に替えても）
+
+# ミックスナッツ ひとつかみ（約25g）
+- id: sweets-mixed-nuts
+  name: ミックスナッツ（ひとつかみ）
+  kana: みっくすなっつ なっつ
+  category: snack
+  suggestedSlots: [other]
+  ingredients:
+    - { foodId: "05040", grams: 10 } # アーモンド いり 無塩
+    - { foodId: "05005", grams: 8 } # カシューナッツ フライ 味付け
+    - { foodId: "05014", grams: 4 } # くるみ いり
+    - { foodId: "05031", grams: 3 } # マカダミアナッツ いり 味付け
+
+# 湯のみ・グラス1杯200mL
+- id: drink-hojicha
+  name: ほうじ茶
+  kana: ほうじちゃ
+  category: drink
+  suggestedSlots: [other]
+  ingredients:
+    - { foodId: "16040", grams: 200 } # ほうじ茶 浸出液 200mL
+
+# 甘酒 グラス1杯200mL（約200g）
+- id: drink-amazake
+  name: 甘酒
+  kana: あまざけ
+  category: drink
+  suggestedSlots: [breakfast, other]
+  ingredients:
+    - { foodId: "16050", grams: 200 } # 甘酒 200mL
+
+# 発泡酒 350mL缶
+- id: alcohol-happoshu
+  name: 発泡酒（350mL缶）
+  kana: はっぽうしゅ
+  category: alcohol
+  suggestedSlots: [dinner, other]
+  ingredients:
+    - { foodId: "16009", grams: 353 } # 発泡酒 350mL
+
+# ウイスキー水割り1杯：ウイスキー シングル30mL（水は栄養なし）
+- id: alcohol-whisky-mizuwari
+  name: ウイスキー（水割り）
+  kana: うぃすきー みずわり
+  category: alcohol
+  suggestedSlots: [dinner, other]
+  ingredients:
+    - { foodId: "16016", grams: 30 } # ウイスキー 30mL
+
+# 焼酎お湯割り1杯：本格焼酎60mL＋お湯40mL（6:4）
+- id: alcohol-shochu-oyuwari
+  name: 焼酎（お湯割り）
+  kana: しょうちゅう おゆわり いもじょうちゅう
+  category: alcohol
+  suggestedSlots: [dinner, other]
+  ingredients:
+    - { foodId: "16015", grams: 58, alternatives: ["16014"] } # 焼酎（乙類）60mL（比重約0.97）
+
+# ---- チェックリストで郷土料理の地域版しかなかったもの（ふつうの家庭・外食の1人前）
+
+# 一般的な1人前。中華めん（ゆで）230g、具は豚肉・えび・いか・かまぼこ・野菜、スープは飲み干す前提で300g
+- id: champon
+  name: ちゃんぽん
+  kana: ちゃんぽん
+  category: noodle
+  suggestedSlots: [lunch, dinner]
+  ingredients:
+    - { foodId: "01048", grams: 230, role: 麺 } # 中華めん（ゆで）
+    - { foodId: "11129", grams: 40, role: 肉 } # 豚ばら肉
+    - { foodId: "10329", grams: 20 } # えび（ブラックタイガー）
+    - { foodId: "10345", grams: 20 } # いか（するめいか）
+    - { foodId: "10379", grams: 10 } # かまぼこ
+    - { foodId: "06061", grams: 60 } # キャベツ
+    - { foodId: "06291", grams: 40 } # もやし
+    - { foodId: "06153", grams: 20 } # たまねぎ
+    - { foodId: "06214", grams: 10 } # にんじん
+    - { foodId: "14016", grams: 4 } # ラード
+    - { foodId: "17025", grams: 200 } # 中華だし
+    - { foodId: "13003", grams: 100 } # 牛乳
+    - { foodId: "17012", grams: 2.5 } # 食塩
+    - { foodId: "17007", grams: 3 } # しょうゆ（濃口）
+
+# 一般的な1人前。揚げ麺（即席中華めん 油揚げ 乾で代用）60gに、ちゃんぽんと同じ具のあんをかける
+- id: sara-udon
+  name: 皿うどん
+  kana: さらうどん
+  category: noodle
+  suggestedSlots: [lunch, dinner]
+  ingredients:
+    - { foodId: "01144", grams: 60, role: 麺 } # 即席中華めん 油揚げ 乾（揚げ麺の代用）
+    - { foodId: "11129", grams: 40, role: 肉 } # 豚ばら肉
+    - { foodId: "10329", grams: 20 } # えび（ブラックタイガー）
+    - { foodId: "10345", grams: 20 } # いか（するめいか）
+    - { foodId: "10379", grams: 10 } # かまぼこ
+    - { foodId: "06061", grams: 60 } # キャベツ
+    - { foodId: "06291", grams: 40 } # もやし
+    - { foodId: "06214", grams: 10 } # にんじん
+    - { foodId: "14006", grams: 5 } # 調合油
+    - { foodId: "17025", grams: 150 } # 中華だし
+    - { foodId: "02034", grams: 8 } # 片栗粉
+    - { foodId: "17012", grams: 1.5 } # 食塩
+    - { foodId: "17007", grams: 4 } # しょうゆ（濃口）
+
+# 一般的な1人前。かつお（刺身用）80gに薬味とぽん酢
+- id: katsuo-tataki
+  name: かつおのたたき
+  kana: かつおのたたき かつお
+  category: main
+  suggestedSlots: [lunch, dinner]
+  ingredients:
+    - { foodId: "10086", grams: 80, role: 魚 } # かつお（生）
+    - { foodId: "06153", grams: 20 } # たまねぎ
+    - { foodId: "06226", grams: 5 } # 長ねぎ
+    - { foodId: "06223", grams: 2 } # にんにく
+    - { foodId: "17110", grams: 15 } # ぽん酢しょうゆ
+
+# 一般的な1人前。鶏もも100gを揚げて甘酢にくぐらせ、タルタルソース（マヨネーズ・ゆで卵・たまねぎ）をかける
+- id: chicken-nanban
+  name: チキン南蛮
+  kana: ちきんなんばん
+  category: main
+  suggestedSlots: [lunch, dinner]
+  ingredients:
+    - { foodId: "11221", grams: 100, role: 肉 } # 鶏もも肉（皮つき）
+    - { foodId: "01015", grams: 8 } # 薄力粉
+    - { foodId: "12004", grams: 40 } # 鶏卵 全卵 生（衣25g・タルタルのゆで卵15g）
+    - { foodId: "14006", grams: 8 } # 調合油（吸油）
+    - { foodId: "17015", grams: 10 } # 酢（穀物酢）
+    - { foodId: "03003", grams: 6 } # 砂糖（上白糖）
+    - { foodId: "17007", grams: 6 } # しょうゆ（濃口）
+    - { foodId: "17042", grams: 15 } # マヨネーズ（タルタル）
+    - { foodId: "06153", grams: 8 } # たまねぎ（タルタル）
+    - { foodId: "06061", grams: 30 } # キャベツ（付け合わせ）
+
+# 一般的な1人前の具とつゆ200g（鶏がらしょうゆ味）。鍋は主菜として扱う
+- id: chanko-nabe
+  name: ちゃんこ鍋
+  kana: ちゃんこなべ ちゃんこ
+  category: main
+  suggestedSlots: [dinner]
+  ingredients:
+    - { foodId: "11221", grams: 60, role: 肉 } # 鶏もも肉（皮つき）
+    - { foodId: "11129", grams: 20 } # 豚ばら肉
+    - { foodId: "04032", grams: 60 } # 木綿豆腐
+    - { foodId: "06233", grams: 80 } # はくさい
+    - { foodId: "06226", grams: 30 } # 長ねぎ
+    - { foodId: "06214", grams: 15 } # にんじん
+    - { foodId: "08039", grams: 15 } # しいたけ
+    - { foodId: "06099", grams: 20 } # しゅんぎく
+    - { foodId: "10381", grams: 20 } # ちくわ
+    - { foodId: "17025", grams: 200 } # 中華だし（鶏がらスープの代用）
+    - { foodId: "17007", grams: 10 } # しょうゆ（濃口）
+    - { foodId: "16025", grams: 5 } # みりん
+
+# 一般的な1人前の具とつゆ200g（みそ仕立て）。鍋は主菜として扱う
+- id: ishikari-nabe
+  name: 石狩鍋
+  kana: いしかりなべ
+  category: main
+  suggestedSlots: [dinner]
+  ingredients:
+    - { foodId: "10134", grams: 80, role: 魚 } # 鮭（生）
+    - { foodId: "04032", grams: 50 } # 木綿豆腐
+    - { foodId: "06233", grams: 60 } # はくさい
+    - { foodId: "06153", grams: 30 } # たまねぎ
+    - { foodId: "06134", grams: 40 } # だいこん
+    - { foodId: "06214", grams: 15 } # にんじん
+    - { foodId: "06226", grams: 20 } # 長ねぎ
+    - { foodId: "02005", grams: 30 } # しらたき
+    - { foodId: "17021", grams: 200 } # だし（かつお・昆布）
+    - { foodId: "17045", grams: 18 } # みそ（淡色辛みそ）
+    - { foodId: "16001", grams: 5 } # 日本酒
