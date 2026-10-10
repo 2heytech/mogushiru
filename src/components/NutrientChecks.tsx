@@ -39,6 +39,7 @@ function statusText(c: NutrientCheck): string {
   const unit = NUTRIENT_INFO[c.key].unit
   if (c.target.kind === 'none') return '基準なし'
   if (c.status === 'info') return '—'
+  if (c.target.kind === 'max' && c.target.basis === '耐容上限量') return c.status === 'over' ? '上限こえ' : c.status === 'near' ? '上限ちかい' : 'OK'
   if (c.target.kind === 'max') return c.status === 'over' ? '目安こえ' : c.status === 'near' ? '上限ちかい' : 'OK'
   if (c.status === 'over') return '上限こえ'
   if (c.status === 'ok') return '達成'
@@ -52,6 +53,7 @@ function goalText(c: NutrientCheck, perSlot: boolean): string {
   const unit = NUTRIENT_INFO[c.key].unit
   if (c.target.kind === 'none' || c.goal === null) return ''
   const value = `${fmt(c.key, c.goal)}${unit}`
+  if (c.target.kind === 'max' && c.target.basis === '耐容上限量') return `上限 ${value}`
   if (c.target.kind === 'max') return `${perSlot && c.key !== 'alcohol' ? '目安' : c.target.basis === '飲酒ガイドライン' ? '1日' : c.target.basis} ${value}${LIMIT_WORD[c.key] ?? ''}`
   return `${perSlot ? '目安' : c.target.basis} ${value}`
 }
@@ -161,7 +163,7 @@ export function NutrientChecks({ checks, perSlot = false }: { checks: NutrientCh
             <p>目安は「日本人の食事摂取基準（2025年版）」の推奨量・目安量・目標量、アルコールは「健康に配慮した飲酒に関するガイドライン」の値です。</p>
           )}
           <p>一価・多価不飽和脂肪酸は食事摂取基準に値がないため、量だけを表示しています。</p>
-          <p>カルシウムとビタミンDは耐容上限量をこえると「上限こえ」になります。ビタミンAの上限はβ-カロテン由来の分を含まない値のため比べていません。</p>
+          <p>カルシウムとビタミンDは耐容上限量（とりすぎで健康をそこなうおそれがある量）をこえると「上限こえ」になります。ビタミンAの耐容上限量はβ-カロテン由来の分を含まない値のため、レチノールの量と比べます。</p>
           {partial && <p>※ 成分が未収録の食品（市販品など）を含むため、実際より少なく出ている可能性があります。</p>}
         </div>
       </div>

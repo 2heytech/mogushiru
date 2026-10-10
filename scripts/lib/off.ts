@@ -128,6 +128,7 @@ export function toProduct(p: OffProduct, fetchedAt: string): Product | null {
     iron: mgFromG(g('iron')),
     potassium: mgFromG(g('potassium')),
     vitaminC: mgFromG(g('vitamin-c')),
+    // OFF の vitamin-a はレチノールとカロテンを区別しないので、レチノールは未収録（null）のまま
   })
   for (const k of NUTRIENT_KEYS) nutrients[k] = round(nutrients[k])
 

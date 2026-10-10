@@ -1,15 +1,18 @@
+import { CHECKED_NUTRIENTS, tolerableUpper } from './nutrientChecks'
 import { pfcRatio } from './nutrition'
 import type { MenuTotals } from './nutrition'
-import type { Targets } from './targets'
+import type { CheckedNutrient, Targets } from './targets'
 import type { NutrientKey, Slot } from './types'
 
 export type AlertLevel = 'warn' | 'over'
 
 export type Alert = {
-  key: 'salt' | 'alcohol' | 'satFat' | 'energy'
+  key: CheckedNutrient | 'energy'
   level: AlertLevel
   amount: number
   limit: number
+  // limit が何の値か。target: 目標量・飲酒ガイドラインなどの目安／upper: 耐容上限量
+  limitKind: 'target' | 'upper'
   unit: string
   // いちばん多く寄与している区分
   topSlot: Slot | null
@@ -41,15 +44,35 @@ function check(
   totals: MenuTotals,
   // 原典が「〜未満」「〜以上でリスク」の値は、ちょうど上限でも超過として扱う
   overAtLimit = false,
+  limitKind: Alert['limitKind'] = 'target',
 ): Alert | null {
-  if (overAtLimit ? amount >= limit : amount > limit) return { key, level: 'over', amount, limit, unit, topSlot: topSlot(totals, nutrient) }
-  if (amount > limit * WARN_FACTOR) return { key, level: 'warn', amount, limit, unit, topSlot: topSlot(totals, nutrient) }
+  const base = { key, amount, limit, limitKind, unit, topSlot: topSlot(totals, nutrient) }
+  if (overAtLimit ? amount >= limit : amount > limit) return { ...base, level: 'over' }
+  if (amount > limit * WARN_FACTOR) return { ...base, level: 'warn' }
   return null
+}
+
+// 耐容上限量のある栄養素（カルシウム・ビタミンD・レチノールなど）。サプリを含む1日の合計で判定する
+function upperLimitAlerts(totals: MenuTotals, targets: Targets): (Alert | null)[] {
+  return CHECKED_NUTRIENTS.map((key) => {
+    const upper = tolerableUpper(targets.nutrients[key])
+    if (upper === null) return null
+    return check(key, key, totals.day.values[key], upper, UNIT[key], totals, false, 'upper')
+  })
+}
+
+// アラートの単位（表示名・桁は components/labels.ts）
+const UNIT: Record<CheckedNutrient, string> = {
+  salt: 'g', satFat: 'g', alcohol: 'g', fiber: 'g', potassium: 'mg', calcium: 'mg', iron: 'mg',
+  vitaminA: 'µg', retinol: 'µg', vitaminD: 'µg', vitaminB1: 'mg', vitaminB2: 'mg', vitaminC: 'mg',
+  n3Fat: 'g', n6Fat: 'g', monoUnsatFat: 'g', polyUnsatFat: 'g',
 }
 
 export function computeAlerts(totals: MenuTotals, targets: Targets): Alert[] {
   const v = totals.day.values
   return [
+    // 耐容上限量こえは健康障害のおそれがあるので先に出す
+    ...upperLimitAlerts(totals, targets),
     check('salt', 'salt', v.salt, targets.saltMax, 'g', totals, true),
     check('alcohol', 'alcohol', v.alcohol, targets.alcoholRiskG, 'g', totals, true),
     check('satFat', 'satFat', v.satFat, targets.satFatMaxG, 'g', totals),
@@ -59,6 +82,7 @@ export function computeAlerts(totals: MenuTotals, targets: Targets): Alert[] {
           level: 'over' as const,
           amount: v.energyKcal,
           limit: targets.energyKcal,
+          limitKind: 'target' as const,
           unit: 'kcal',
           topSlot: topSlot(totals, 'energyKcal'),
         }

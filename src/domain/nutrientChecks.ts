@@ -3,7 +3,7 @@ import type { CheckedNutrient, NutrientTarget, Targets } from './targets'
 import type { NutrientTotals, Slot } from './types'
 
 // 表示する順番。上限に気をつけたいもの → しっかりとりたいもの → 基準がないもの
-export const LIMIT_NUTRIENTS = ['salt', 'satFat', 'alcohol'] as const satisfies CheckedNutrient[]
+export const LIMIT_NUTRIENTS = ['salt', 'satFat', 'alcohol', 'retinol'] as const satisfies CheckedNutrient[]
 export const WANT_NUTRIENTS = [
   'fiber',
   'potassium',
@@ -56,11 +56,13 @@ export function judge(amount: number, target: NutrientTarget, goal: number | nul
 
 // slot を渡すと区分の目安（1日の目安 × 区分の割合）と比べる。
 // アルコールは1回でまとめて飲むことが多く、区分に分ける意味が薄いので1日の値のまま比べる。
+// 耐容上限量も1日の値のまま比べる（1食でこえれば1日でもこえる）。
 // その他（間食・飲み物）は少なくても問題にしないので、とりたい栄養素の不足は判定しない
 export function nutrientChecks(totals: NutrientTotals, targets: Targets, slot?: Slot): NutrientCheck[] {
   return CHECKED_NUTRIENTS.map((key) => {
     const target = targets.nutrients[key]
-    const share = slot && key !== 'alcohol' ? SLOT_ENERGY_SHARE[slot] : 1
+    const daily = key === 'alcohol' || (target.kind === 'max' && target.basis === '耐容上限量')
+    const share = slot && !daily ? SLOT_ENERGY_SHARE[slot] : 1
     const goal = target.kind === 'none' ? null : target.value * share
     const upper = target.kind === 'min' && target.upper !== undefined ? target.upper : null
     const amount = totals.values[key]
@@ -90,4 +92,11 @@ export function notableChecks(checks: NutrientCheck[], limit: number): NutrientC
   const over = checks.filter((c) => c.status === 'over').sort((a, b) => (b.percent ?? 0) - (a.percent ?? 0))
   const low = checks.filter((c) => c.status === 'low').sort((a, b) => (a.percent ?? 0) - (b.percent ?? 0))
   return [...over, ...low].slice(0, limit)
+}
+
+// 耐容上限量（とりすぎで健康障害のおそれが出る量）。とりたい栄養素の upper と、上限だけがあるもの（レチノール）
+export function tolerableUpper(target: NutrientTarget): number | null {
+  if (target.kind === 'min') return target.upper ?? null
+  if (target.kind === 'max' && target.basis === '耐容上限量') return target.value
+  return null
 }
