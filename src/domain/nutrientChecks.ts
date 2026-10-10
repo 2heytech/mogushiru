@@ -33,6 +33,8 @@ export type NutrientCheck = {
   // 耐容上限量（1日の値。区分でもこの値と比べる）
   upper: number | null
   status: CheckStatus
+  // 目安に対する割合（％）。上限のある栄養素は上限に対する割合。基準がなければ null
+  percent: number | null
   // 未収録の食品があり、実際より少なく出ている可能性がある
   partial: boolean
 }
@@ -69,6 +71,7 @@ export function nutrientChecks(totals: NutrientTotals, targets: Targets, slot?: 
       goal,
       upper,
       status: judge(amount, target, goal, upper, slot !== 'other'),
+      percent: goal ? (amount / goal) * 100 : null,
       partial: totals.missing.has(key),
     }
   })
@@ -80,4 +83,11 @@ export function summarizeChecks(checks: NutrientCheck[]): CheckSummary {
   const s: CheckSummary = { ok: 0, near: 0, low: 0, over: 0 }
   for (const c of checks) if (c.status !== 'info') s[c.status]++
   return s
+}
+
+// 畳んだ状態で見せる「気になる栄養素」。こえているもの → 割合の低い不足の順に limit 件
+export function notableChecks(checks: NutrientCheck[], limit: number): NutrientCheck[] {
+  const over = checks.filter((c) => c.status === 'over').sort((a, b) => (b.percent ?? 0) - (a.percent ?? 0))
+  const low = checks.filter((c) => c.status === 'low').sort((a, b) => (a.percent ?? 0) - (b.percent ?? 0))
+  return [...over, ...low].slice(0, limit)
 }
