@@ -197,7 +197,7 @@ export function Customizer({
                 onClick={() => onApply(result)}
                 className="min-h-11 flex-1 rounded-full bg-white text-sm font-bold text-coral disabled:opacity-50"
               >
-                この献立に反映
+                この1日の食事に反映
               </button>
             )}
             <button

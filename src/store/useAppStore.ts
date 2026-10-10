@@ -43,7 +43,8 @@ type State = {
   deleteMyProduct: (jan: string) => void
   toggleFavoriteProduct: (jan: string) => void
   saveMenu: (name: string) => void
-  loadMenu: (id: string) => void
+  // 呼び出すと今の1日の食事を置き換える。prepare でなくなった料理を外すなどしてから入れる
+  loadMenu: (id: string, prepare?: (menu: DayMenu) => DayMenu) => void
   deleteMenu: (id: string) => void
 }
 
@@ -140,13 +141,18 @@ export const useAppStore = create<State>()(
         set((s) => ({
           favoriteProductIds: s.favoriteProductIds.includes(jan) ? s.favoriteProductIds.filter((id) => id !== jan) : [...s.favoriteProductIds, jan],
         })),
+      // 同じ名前があれば上書きする（呼び出して直して、同じ名前で取っておけるように）
       saveMenu: (name) =>
-        set((s) => ({
-          savedMenus: [...s.savedMenus, { id: uid(), name, menu: structuredClone(s.menu), savedAt: new Date().toISOString() }],
-        })),
-      loadMenu: (id) => {
+        set((s) => {
+          const saved = { name, menu: structuredClone(s.menu), savedAt: new Date().toISOString() }
+          const same = s.savedMenus.find((m) => m.name === name)
+          return {
+            savedMenus: same ? s.savedMenus.map((m) => (m.id === same.id ? { ...m, ...saved } : m)) : [...s.savedMenus, { id: uid(), ...saved }],
+          }
+        }),
+      loadMenu: (id, prepare = (menu) => menu) => {
         const m = get().savedMenus.find((x) => x.id === id)
-        if (m) set({ menu: structuredClone(m.menu) })
+        if (m) set({ menu: prepare(structuredClone(m.menu)) })
       },
       deleteMenu: (id) => set((s) => ({ savedMenus: s.savedMenus.filter((m) => m.id !== id) })),
     }),

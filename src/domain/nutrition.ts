@@ -92,6 +92,13 @@ export type MenuTotals = {
   day: NutrientTotals
 }
 
+// データの更新でなくなった料理・市販品を外す（保存した1日の食事を呼び出すときに使う）
+export function knownItemsOnly(menu: DayMenu, catalog: Catalog): DayMenu {
+  const known = (i: MenuItem) =>
+    i.kind === 'dish' ? catalog.dishes.has(i.refId) : i.kind === 'myDish' ? catalog.myDishes.has(i.refId) : catalog.products.has(i.refId)
+  return Object.fromEntries(Object.entries(menu).map(([slot, items]) => [slot, items.filter(known)])) as DayMenu
+}
+
 export function menuTotals(menu: DayMenu, catalog: Catalog): MenuTotals {
   const day = emptyTotals()
   const bySlot = {} as Record<Slot, NutrientTotals>
@@ -110,6 +117,11 @@ export function sodiumMgToSaltG(sodiumMg: number): number {
 }
 
 export const KCAL_PER_G = { protein: 4, fat: 9, carb: 4, alcohol: 7 } as const
+
+// P・F・C それぞれのカロリー（g × 4 / 9 / 4 kcal）
+export function pfcKcal(values: Record<NutrientKey, number>): { p: number; f: number; c: number } {
+  return { p: values.protein * KCAL_PER_G.protein, f: values.fat * KCAL_PER_G.fat, c: values.carb * KCAL_PER_G.carb }
+}
 
 // PFCのエネルギー比（％）。係数ベースで計算し、P+F+C=100 になるよう正規化する
 export function pfcRatio(values: Record<NutrientKey, number>): { p: number; f: number; c: number } | null {

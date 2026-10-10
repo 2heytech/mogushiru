@@ -76,7 +76,7 @@ const MOOD_MESSAGE: Record<Mood, string> = {
 const PFC_NAME = { p: 'たんぱく質', f: '脂質', c: '炭水化物' } as const
 
 function moguMessage(energy: number, mood: Mood, moods: DangoMoods, alerts: Alert[]): string {
-  if (energy === 0) return '料理をえらんで、1日の献立をつくってみよう！'
+  if (energy === 0) return '料理をえらんで、1日の食事をつくってみよう！'
   const over = alerts.find((a) => a.level === 'over')
   if (over) return `${ALERT_LABEL[over.key]}が目安をこえてるよ！`
   const off = (['p', 'f', 'c'] as const).filter((k) => moods[k] === 'worried')

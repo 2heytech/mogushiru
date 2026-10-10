@@ -1,6 +1,7 @@
 import type { Alert } from '../domain/alerts'
 import { slotMoods, type MascotMood } from '../domain/mascotMood'
 import { nutrientChecks } from '../domain/nutrientChecks'
+import { pfcKcal } from '../domain/nutrition'
 import { gapText, idealPfc } from '../domain/pfcGap'
 import { slotBalance, type EnergyLevel } from '../domain/slotBalance'
 import type { Targets } from '../domain/targets'
@@ -33,6 +34,7 @@ export function SlotBalanceView({ totals, slot, targets, alerts }: { totals: Nut
   const moods = slotMoods(totals, slot, targets, alerts)
   if (b.energy === 'empty' || !moods) return null
   const v = totals.values
+  const kcal = pfcKcal(v)
   const max = b.targetKcal * 2
   const checks = nutrientChecks(totals, targets, slot)
   const saltGoal = checks.find((c) => c.key === 'salt')!.goal!
@@ -57,9 +59,9 @@ export function SlotBalanceView({ totals, slot, targets, alerts }: { totals: Nut
         <Metric slot={slot} mood={moods.pfc} what="PFCバランス">
           <PfcBars ideal={idealPfc(targets)} actual={b.ratio} thin />
           <p className="mt-1 flex flex-wrap gap-x-3 tabular-nums text-ink-soft">
-            <span>P {v.protein.toFixed(1)}g</span>
-            <span>F {v.fat.toFixed(1)}g</span>
-            <span>C {v.carb.toFixed(1)}g</span>
+            <span>P {v.protein.toFixed(1)}g・{Math.round(kcal.p)}kcal</span>
+            <span>F {v.fat.toFixed(1)}g・{Math.round(kcal.f)}kcal</span>
+            <span>C {v.carb.toFixed(1)}g・{Math.round(kcal.c)}kcal</span>
           </p>
           {slot !== 'other' && (
             <p className="mt-1 font-bold">

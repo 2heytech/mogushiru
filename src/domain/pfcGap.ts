@@ -1,4 +1,4 @@
-import { pfcRatio } from './nutrition'
+import { KCAL_PER_G, pfcRatio } from './nutrition'
 import type { PfcKey } from './slotBalance'
 import type { Range, Targets } from './targets'
 import type { NutrientKey } from './types'
@@ -10,9 +10,10 @@ export type PfcGap = {
   // 目標範囲からのずれ（％ポイント）。範囲内は 0、少なければマイナス、多ければプラス
   gap: number
   grams: number
+  kcal: number // grams × 4（P・C）または 9（F）
 }
 
-const NUTRIENT: Record<PfcKey, NutrientKey> = { p: 'protein', f: 'fat', c: 'carb' }
+const NUTRIENT: Record<PfcKey, 'protein' | 'fat' | 'carb'> = { p: 'protein', f: 'fat', c: 'carb' }
 
 export function pfcGaps(values: Record<NutrientKey, number>, targets: Targets): PfcGap[] | null {
   const ratio = pfcRatio(values)
@@ -21,7 +22,8 @@ export function pfcGaps(values: Record<NutrientKey, number>, targets: Targets): 
     const range = targets.pfcRatio[key]
     const r = ratio[key]
     const gap = r < range.lo ? r - range.lo : r > range.hi ? r - range.hi : 0
-    return { key, ratio: r, range, gap, grams: values[NUTRIENT[key]] }
+    const grams = values[NUTRIENT[key]]
+    return { key, ratio: r, range, gap, grams, kcal: grams * KCAL_PER_G[NUTRIENT[key]] }
   })
 }
 

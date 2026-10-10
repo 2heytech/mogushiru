@@ -75,3 +75,55 @@ describe('お気に入り', () => {
     expect(useAppStore.getState().menu.dinner).toEqual([])
   })
 })
+
+describe('1日の食事の保存・呼び出し・リセット', () => {
+  beforeEach(() => useAppStore.setState({ menu: emptyMenu(), savedMenus: [] }))
+
+  it('名前を付けて保存し、呼び出すと今の内容を置き換える', () => {
+    useAppStore.getState().addItem('breakfast', { kind: 'dish', refId: 'd1', portion: 1 })
+    useAppStore.getState().saveMenu('平日')
+    useAppStore.getState().clearMenu()
+    useAppStore.getState().addItem('dinner', { kind: 'dish', refId: 'd2', portion: 1 })
+    useAppStore.getState().loadMenu(useAppStore.getState().savedMenus[0].id)
+    const s = useAppStore.getState()
+    expect(s.menu.breakfast.map((i) => i.refId)).toEqual(['d1'])
+    expect(s.menu.dinner).toEqual([])
+  })
+
+  it('同じ名前で保存すると上書きし、別の名前なら増える', () => {
+    useAppStore.getState().addItem('lunch', { kind: 'dish', refId: 'd1', portion: 1 })
+    useAppStore.getState().saveMenu('平日')
+    const id = useAppStore.getState().savedMenus[0].id
+    useAppStore.getState().addItem('lunch', { kind: 'dish', refId: 'd2', portion: 1 })
+    useAppStore.getState().saveMenu('平日')
+    useAppStore.getState().saveMenu('休日')
+    const { savedMenus } = useAppStore.getState()
+    expect(savedMenus.map((m) => m.name)).toEqual(['平日', '休日'])
+    expect(savedMenus[0].id).toBe(id)
+    expect(savedMenus[0].menu.lunch.map((i) => i.refId)).toEqual(['d1', 'd2'])
+  })
+
+  it('保存したあとで今の内容を変えても、保存した内容は変わらない', () => {
+    useAppStore.getState().addItem('lunch', { kind: 'dish', refId: 'd1', portion: 1 })
+    useAppStore.getState().saveMenu('平日')
+    useAppStore.getState().updatePortion('lunch', useAppStore.getState().menu.lunch[0].uid, 2)
+    expect(useAppStore.getState().savedMenus[0].menu.lunch[0].portion).toBe(1)
+  })
+
+  it('呼び出すときに prepare で項目を外せる', () => {
+    useAppStore.getState().addItem('lunch', { kind: 'dish', refId: 'd1', portion: 1 })
+    useAppStore.getState().addItem('lunch', { kind: 'dish', refId: 'gone', portion: 1 })
+    useAppStore.getState().saveMenu('平日')
+    useAppStore.getState().loadMenu(useAppStore.getState().savedMenus[0].id, (m) => ({ ...m, lunch: m.lunch.filter((i) => i.refId !== 'gone') }))
+    expect(useAppStore.getState().menu.lunch.map((i) => i.refId)).toEqual(['d1'])
+  })
+
+  it('削除とリセット', () => {
+    useAppStore.getState().addItem('other', { kind: 'dish', refId: 'd1', portion: 1 })
+    useAppStore.getState().saveMenu('平日')
+    useAppStore.getState().deleteMenu(useAppStore.getState().savedMenus[0].id)
+    expect(useAppStore.getState().savedMenus).toEqual([])
+    useAppStore.getState().clearMenu()
+    expect(useAppStore.getState().menu).toEqual(emptyMenu())
+  })
+})

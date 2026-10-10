@@ -53,7 +53,10 @@ export function PfcGapList({ gaps, gramRanges }: { gaps: PfcGap[]; gramRanges: R
       {gaps.map((g) => (
         <li key={g.key} className="flex items-center gap-2 text-sm">
           <span className="h-3 w-3 shrink-0 rounded-full" style={{ background: PFC_COLOR[g.key] }} aria-hidden />
-          <span className="w-[4.5rem] shrink-0 whitespace-nowrap">{PFC_LABEL[g.key]}</span>
+          <span className="w-[4.5rem] shrink-0 whitespace-nowrap leading-tight">
+            {PFC_LABEL[g.key]}
+            <span className="block text-xs font-bold tabular-nums">{Math.round(g.kcal)} kcal</span>
+          </span>
           <span className="min-w-0 flex-1 tabular-nums">
             <strong>{Math.round(g.ratio)}%</strong>
             <span className="text-xs text-ink-soft"> 目標 {g.range.lo}〜{g.range.hi}%</span>

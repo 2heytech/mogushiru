@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { computeAlerts, balanceMood } from './alerts'
 import { swapIngredient } from './customize'
-import { ingredientsTotals, itemTotals, menuTotals, pfcRatio, sodiumMgToSaltG, type Catalog } from './nutrition'
+import { ingredientsTotals, itemTotals, knownItemsOnly, menuTotals, pfcKcal, pfcRatio, sodiumMgToSaltG, type Catalog } from './nutrition'
 import { DRI_VERIFIED } from './dri'
 import { computeTargets, estimatedEnergy } from './targets'
 import { NUTRIENT_KEYS, type DayMenu, type Food, type Nutrients } from './types'
@@ -94,6 +94,17 @@ describe('栄養計算', () => {
     const r = pfcRatio(n({ protein: 25, fat: 20, carb: 100 }) as Record<string, number> as never)!
     expect(r.p + r.f + r.c).toBeCloseTo(100)
     expect(r.f).toBeCloseTo((180 / (100 + 180 + 400)) * 100)
+  })
+
+  it('P・F・C のカロリーは 4・9・4 kcal/g', () => {
+    expect(pfcKcal(n({ protein: 25, fat: 20, carb: 100 }) as Record<string, number> as never)).toEqual({ p: 100, f: 180, c: 400 })
+  })
+
+  it('保存した1日の食事から、データにない料理を外す', () => {
+    const menu = { breakfast: [{ uid: '1', kind: 'dish' as const, refId: 'd1', portion: 1 }, { uid: '2', kind: 'dish' as const, refId: 'gone', portion: 1 }], lunch: [], dinner: [{ uid: '3', kind: 'product' as const, refId: 'none', portion: 1 }], other: [] }
+    const kept = knownItemsOnly(menu, catalog)
+    expect(kept.breakfast.map((i) => i.uid)).toEqual(['1'])
+    expect(kept.dinner).toEqual([])
   })
 })
 
