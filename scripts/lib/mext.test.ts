@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { cellText, findColumns, parseCell, rowToFood } from './mext'
+import { applySaturatedFat, cellText, findColumns, parseCell, readSaturatedFat, rowToFood } from './mext'
 
 describe('成分値の表記', () => {
   it.each([
@@ -71,5 +71,40 @@ describe('Excel の列の特定と行の変換', () => {
     const f = rowToFood(r[2], findColumns(r))!
     expect(f.per100g.alcohol).toBe(0)
     expect(f.per100g.salt).toBeNull()
+  })
+})
+
+describe('脂肪酸成分表の飽和脂肪酸', () => {
+  // 値は架空
+  const rows: unknown[][] = [
+    ['食品群', '食品番号', '索引番号', '食品名', '脂質', '飽和脂肪酸'],
+    [null, null, null, '成分識別子', 'FAT-', 'FASAT'],
+    ['01', '01001', '1', 'テスト穀物', '6.0', '1.18'],
+    ['01', '01002', '2', 'テスト穀物2', '1.3', '(0.22)'],
+  ]
+  const base = (id: string, fat: number | null, traceFat = false) => {
+    const cols = findColumns([
+      ['食品群', '食品番号', '食品名', 'エネルギー', '脂質'],
+      [null, null, null, 'ENERC_KCAL', 'FAT-'],
+    ])
+    return rowToFood(['01', id, 'x', 100, traceFat ? 'Tr' : fat === null ? '-' : fat], cols)!
+  }
+
+  it('食品番号ごとに読み、推定値の印を引き継ぐ', () => {
+    const sat = readSaturatedFat(rows)
+    expect(sat.get('01001')?.value).toBe(1.18)
+    const f = applySaturatedFat(base('01002', 1.3), sat)
+    expect(f.per100g.satFat).toBe(0.22)
+    expect(f.estimatedFlags).toContain('satFat')
+  })
+
+  it('脂肪酸成分表にない食品は、脂質が 0・Tr なら 0、それ以外は欠損', () => {
+    const sat = readSaturatedFat(rows)
+    expect(applySaturatedFat(base('03003', 0), sat).per100g.satFat).toBe(0)
+    const tr = applySaturatedFat(base('03004', 0, true), sat)
+    expect(tr.per100g.satFat).toBe(0)
+    expect(tr.traceFlags).toContain('satFat')
+    expect(applySaturatedFat(base('06001', 0.5), sat).per100g.satFat).toBeNull()
+    expect(applySaturatedFat(base('06002', null), sat).per100g.satFat).toBeNull()
   })
 })
