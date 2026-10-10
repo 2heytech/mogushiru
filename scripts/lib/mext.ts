@@ -69,13 +69,17 @@ export type ColumnMap = {
   nutrients: Partial<Record<NutrientKey, number>>
 }
 
-// rows: シートを二次元配列にしたもの
-export function findColumns(rows: unknown[][]): ColumnMap {
-  const headerRow = rows.findIndex((r) => r.some((c) => cellText(c).trim() === 'ENERC_KCAL'))
-  if (headerRow < 0) throw new Error('成分識別子（ENERC_KCAL）の行が見つかりません')
+// rows: シートを二次元配列にしたもの。anchor は成分識別子の行を見つける目印（本表は ENERC_KCAL、脂肪酸成分表は FASAT）
+export function findColumns(
+  rows: unknown[][],
+  anchor = 'ENERC_KCAL',
+  componentIds: Partial<Record<NutrientKey, string[]>> = COMPONENT_IDS,
+): ColumnMap {
+  const headerRow = rows.findIndex((r) => r.some((c) => cellText(c).trim() === anchor))
+  if (headerRow < 0) throw new Error(`成分識別子（${anchor}）の行が見つかりません`)
   const ids = rows[headerRow].map((c) => cellText(c).trim())
   const nutrients: Partial<Record<NutrientKey, number>> = {}
-  for (const [key, candidates] of Object.entries(COMPONENT_IDS) as [NutrientKey, string[]][]) {
+  for (const [key, candidates] of Object.entries(componentIds) as [NutrientKey, string[]][]) {
     for (const id of candidates) {
       const idx = ids.indexOf(id)
       if (idx >= 0) {
@@ -136,4 +140,33 @@ export function rowToFood(row: unknown[], cols: ColumnMap): MextFood | null {
     estimatedFlags,
     raw,
   }
+}
+
+// 脂肪酸成分表（第1表 可食部100g当たり）から飽和脂肪酸（FASAT, g）を食品番号ごとに読む
+export function readSaturatedFat(rows: unknown[][]): Map<string, ParsedCell> {
+  const cols = findColumns(rows, 'FASAT', { satFat: ['FASAT'] })
+  const idx = cols.nutrients.satFat!
+  const out = new Map<string, ParsedCell>()
+  for (const row of rows.slice(cols.headerRow + 1)) {
+    const id = cellText(row[cols.foodId]).trim()
+    if (/^\d{1,5}$/.test(id)) out.set(id.padStart(5, '0'), parseCell(row[idx]))
+  }
+  return out
+}
+
+// 本表の食品に飽和脂肪酸を足す。脂肪酸成分表にない食品は、脂質が 0・Tr なら 0、それ以外は欠損のまま
+export function applySaturatedFat(food: MextFood, satFat: Map<string, ParsedCell>): MextFood {
+  const cell = satFat.get(food.id)
+  const per100g = { ...food.per100g }
+  const traceFlags = [...food.traceFlags]
+  const estimatedFlags = [...food.estimatedFlags]
+  if (cell) {
+    per100g.satFat = cell.value
+    if (cell.trace) traceFlags.push('satFat')
+    if (cell.estimated) estimatedFlags.push('satFat')
+  } else if (per100g.fat === 0) {
+    per100g.satFat = 0
+    if (traceFlags.includes('fat')) traceFlags.push('satFat')
+  }
+  return { ...food, per100g, traceFlags, estimatedFlags }
 }
