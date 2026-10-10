@@ -63,3 +63,83 @@
   suggestedSlots: [dinner, other]
   ingredients:
     - { foodId: "16059", grams: 350 } # レモン風味 350mL
+
+- id: mikan
+  name: みかん
+  kana: みかん うんしゅうみかん
+  category: snack
+  suggestedSlots: [breakfast, other]
+  ingredients:
+    - { foodId: "07027", grams: 80 } # Mサイズ1個（約100g、可食部80%）
+
+- id: apple
+  name: りんご
+  kana: りんご
+  category: snack
+  suggestedSlots: [breakfast, other]
+  ingredients:
+    - { foodId: "07148", grams: 125 } # 1/2個（1個約300g、可食部85%）
+
+- id: shortcake
+  name: いちごのショートケーキ
+  kana: しょーとけーき けーき
+  category: snack
+  suggestedSlots: [other]
+  ingredients:
+    - { foodId: "15170", grams: 100, role: ケーキ } # 成分表 ショートケーキ いちご（1切れ）
+
+- id: pudding
+  name: プリン
+  kana: ぷりん かすたーどぷりん
+  category: snack
+  suggestedSlots: [other]
+  ingredients:
+    - { foodId: "15086", grams: 100, role: プリン } # 成分表 カスタードプリン（1個）
+
+- id: daifuku
+  name: 大福
+  kana: だいふく だいふくもち
+  category: snack
+  suggestedSlots: [other]
+  ingredients:
+    - { foodId: "15155", grams: 80, role: 大福, alternatives: ["15023"] } # 成分表 大福もち つぶしあん（1個）
+
+- id: potato-chips
+  name: ポテトチップス（1袋）
+  kana: ぽてとちっぷす ぽてち
+  category: snack
+  suggestedSlots: [other]
+  ingredients:
+    - { foodId: "15103", grams: 60 } # 成分表 ポテトチップス（1袋60g）
+
+- id: chocolate
+  name: ミルクチョコレート（1/2枚）
+  kana: ちょこれーと ちょこ
+  category: snack
+  suggestedSlots: [other]
+  ingredients:
+    - { foodId: "15116", grams: 25 } # 成分表 ミルクチョコレート（板チョコ1枚50gの半分）
+
+- id: ice-cream
+  name: アイスクリーム
+  kana: あいすくりーむ あいす
+  category: snack
+  suggestedSlots: [other]
+  ingredients:
+    - { foodId: "13043", grams: 100, alternatives: ["13042", "13045"] } # アイスクリーム 普通脂肪（カップ1個 約120mL）
+
+- id: orange-juice
+  name: オレンジジュース
+  kana: おれんじじゅーす じゅーす
+  category: drink
+  suggestedSlots: [breakfast, other]
+  ingredients:
+    - { foodId: "07042", grams: 210 } # ストレート果汁 200mL（比重約1.04）
+
+- id: cola
+  name: コーラ（350mL）
+  kana: こーら たんさん
+  category: drink
+  suggestedSlots: [other]
+  ingredients:
+    - { foodId: "16053", grams: 364 } # 350mL（比重約1.04）
