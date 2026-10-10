@@ -1,9 +1,10 @@
-import { balanceMood, computeAlerts, type Alert } from '../domain/alerts'
+import { balanceMood, computeAlerts, type Alert, type Mood } from '../domain/alerts'
 import { pfcRatio, type MenuTotals } from '../domain/nutrition'
 import type { Range, Targets } from '../domain/targets'
 import { SLOTS } from '../domain/types'
-import { SLOT_LABEL } from './labels'
-import { Mascot } from './Mascot'
+import { MOOD_LABEL, SLOT_LABEL } from './labels'
+import { dangoMoods, type DangoMoods } from '../domain/mascotMood'
+import { DangoMogu } from './Mascot'
 
 
 const ALERT_LABEL: Record<Alert['key'], string> = {
@@ -80,14 +81,39 @@ function PfcBar({ label, color, ratio, range, grams }: { label: string; color: s
   )
 }
 
+const MOOD_MESSAGE: Record<Mood, string> = {
+  happy: '3人そろって、いいバランス！',
+  okay: 'いい感じ。もうひと工夫してみる？',
+  worried: 'ちょっと偏ってるかも…',
+}
+const PFC_NAME = { p: 'たんぱく質', f: '脂質', c: '炭水化物' } as const
+
+function moguMessage(energy: number, mood: Mood, moods: DangoMoods, alerts: Alert[]): string {
+  if (energy === 0) return '料理をえらんで、1日の献立をつくってみよう！'
+  const over = alerts.find((a) => a.level === 'over')
+  if (over) return `${ALERT_LABEL[over.key]}が目安をこえてるよ！`
+  const off = (['p', 'f', 'c'] as const).filter((k) => moods[k] === 'worried')
+  if (off.length > 0) return `${off.map((k) => PFC_NAME[k]).join('と')}のだんごがこまってるよ`
+  return MOOD_MESSAGE[mood]
+}
+
 export function SummaryPanel({ totals, targets }: { totals: MenuTotals; targets: Targets }) {
   const v = totals.day.values
   const ratio = pfcRatio(v)
   const alerts = computeAlerts(totals, targets)
   const mood = balanceMood(totals, targets, alerts)
+  const moods = dangoMoods(totals, targets, alerts, mood)
+  const message = moguMessage(v.energyKcal, mood, moods, alerts)
   return (
     <section className="space-y-4 rounded-[var(--radius-card)] bg-[#fff1df] p-5 shadow-sm">
-      <Mascot mood={mood} message={v.energyKcal === 0 ? "料理をえらんで、1日の献立をつくってみよう！" : undefined} />
+      <div className="flex items-center gap-3">
+        <DangoMogu
+          moods={moods}
+          className="h-20 w-20 shrink-0 transition-transform hover:scale-105"
+          label={`モグ：たんぱく質${MOOD_LABEL[moods.p]}、脂質${MOOD_LABEL[moods.f]}、炭水化物${MOOD_LABEL[moods.c]}`}
+        />
+        <p className="rounded-2xl bg-white px-4 py-2 text-sm shadow-sm">{message}</p>
+      </div>
       <EnergyGauge value={v.energyKcal} target={targets.energyKcal} />
       <SlotShare totals={totals} />
       <div className="space-y-2">

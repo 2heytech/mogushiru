@@ -1,3 +1,4 @@
+import type { MascotMood } from '../domain/mascotMood'
 import type { DishCategory, Slot } from '../domain/types'
 
 export const SLOT_LABEL: Record<Slot, string> = { breakfast: '朝', lunch: '昼', dinner: '晩', other: 'その他' }
@@ -35,3 +36,5 @@ export const PRODUCT_CATEGORY_EMOJI: Record<string, string> = {
 
 // 絞り込みで後ろに回すカテゴリ（献立づくりで選ぶことが少ないもの）
 export const PRODUCT_CATEGORY_LAST = ['seasoning', 'ingredient', 'other']
+
+export const MOOD_LABEL: Record<MascotMood, string> = { happy: 'ごきげん', okay: 'ふつう', worried: 'こまり顔', alert: 'あせり顔' }
