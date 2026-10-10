@@ -7,10 +7,11 @@ import { Picker } from './components/Picker'
 import { ProfileDialog } from './components/ProfileDialog'
 import { SlotBoard } from './components/SlotBoard'
 import { RankingView } from './components/RankingView'
+import { MenuActions, SavedMenusDialog } from './components/SavedMenus'
 import { SummaryPanel } from './components/SummaryPanel'
 import { useCatalog, withMyData } from './data/catalog'
 import { usePrices } from './data/prices'
-import { menuTotals, type Catalog } from './domain/nutrition'
+import { knownItemsOnly, menuTotals, type Catalog } from './domain/nutrition'
 import { computeTargets } from './domain/targets'
 import type { Ingredient, Slot } from './domain/types'
 import { MY_PRODUCT_PREFIX, useAppStore } from './store/useAppStore'
@@ -27,7 +28,7 @@ type View = 'menu' | 'ranking'
 
 // アプリの2つの機能。いつも上に並べて、いまどちらを見ているかと、もう一方があることが分かるようにする
 const FEATURES: { view: View; emoji: string; title: string; lead: string }[] = [
-  { view: 'menu', emoji: '🍱', title: '献立をつくる', lead: '料理を選んで1日の栄養バランスを見る' },
+  { view: 'menu', emoji: '🍱', title: '1日の食事をつくる', lead: '料理を選んで1日の栄養バランスを見る' },
   { view: 'ranking', emoji: '🏆', title: '食品の栄養ランキング', lead: '栄養素の多い食品をさがす' },
 ]
 
@@ -101,7 +102,13 @@ export default function App() {
     updateMyProduct,
     deleteMyProduct,
     toggleFavoriteProduct,
+    savedMenus,
+    saveMenu,
+    loadMenu,
+    deleteMenu,
+    clearMenu,
   } = useAppStore()
+  const [savedOpen, setSavedOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
   const [pickerSlot, setPickerSlot] = useState<Slot | null>(null)
   const [editing, setEditing] = useState<{ slot: Slot; uid: string } | null>(null)
@@ -200,7 +207,7 @@ export default function App() {
         onDelete={
           initial
             ? () => {
-                if (!window.confirm(`「${initial.name}」を削除しますか？献立からも外れます。`)) return
+                if (!window.confirm(`「${initial.name}」を削除しますか？1日の食事からも外れます。`)) return
                 setEditing(null)
                 deleteMyProduct(initial.jan)
                 close()
@@ -244,6 +251,7 @@ export default function App() {
       ) : catalog && totals ? (
         <main className="grid gap-6 lg:grid-cols-[1fr_360px]">
           <div className="order-2 lg:order-1">
+            <MenuActions menu={menu} savedCount={savedMenus.length} onOpenSaved={() => setSavedOpen(true)} onReset={clearMenu} />
             <SlotBoard
               menu={menu}
               totals={totals}
@@ -280,6 +288,25 @@ export default function App() {
       )}
 
       {catalog && editing && renderEditor(catalog, editing)}
+
+      {catalog && savedOpen && (
+        <SavedMenusDialog
+          menu={menu}
+          saved={savedMenus}
+          catalog={catalog}
+          onSave={(name) => {
+            saveMenu(name)
+            setSavedOpen(false)
+          }}
+          onLoad={(m) => {
+            // データの更新でなくなった料理があっても止まらないように外してから入れる
+            loadMenu(m.id, (x) => knownItemsOnly(x, catalog))
+            setSavedOpen(false)
+          }}
+          onDelete={(m) => deleteMenu(m.id)}
+          onClose={() => setSavedOpen(false)}
+        />
+      )}
 
       {productForm && renderProductForm(productForm)}
 
