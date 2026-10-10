@@ -106,6 +106,7 @@ export default function App() {
             <SlotBoard
               menu={menu}
               totals={totals}
+              targets={targets}
               catalog={catalog}
               onAdd={setPickerSlot}
               onRemove={removeItem}
