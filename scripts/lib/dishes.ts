@@ -19,8 +19,8 @@ const SALT_MAX = 10
 
 export type BuildResult = { dishes: Dish[]; errors: string[]; warnings: string[] }
 
-// イラストのファイル形式（優先順）
-const ILLUSTRATION_EXTS = ['webp', 'png']
+// イラストのファイル形式。先にあるほど優先（AIで作った webp・png を置けば、手描きの svg より優先される）
+const ILLUSTRATION_EXTS = ['webp', 'png', 'svg']
 
 const round = (v: number) => Math.round(v * 100) / 100
 
