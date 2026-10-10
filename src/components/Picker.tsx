@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Catalog } from '../domain/nutrition'
+import { FOOD_PORTION, isPopular, NOT_POPULAR, popularRank } from '../domain/popular'
 import { rankAcross, rankAndFilter } from '../domain/search'
 import type { DishCategory, MenuItem, Slot } from '../domain/types'
 import { MY_PRODUCT_PREFIX } from '../store/useAppStore'
@@ -52,9 +53,11 @@ function entries(kind: Kind, { catalog, slot, query, category, showAlcohol, favo
       return [...catalog.dishes.values()]
         .filter((d) => showAlcohol || d.category !== 'alcohol')
         .filter((d) => category === 'all' || (category === KYODO ? Boolean(d.source) : d.category === category))
-        // 選んでいる区分に合う料理を先に、郷土料理は数が多いので基本の料理の後に（検索中は一致の度合いが優先）
+        // その区分でよく食べられる料理 → 区分に合う料理 → その他 の順。郷土料理は数が多いので基本の料理の後に
+        // （検索中は一致の度合いが優先で、同じ度合いならこの順）
         .sort(
           (a, b) =>
+            popularRank(slot, `dish:${a.id}`) - popularRank(slot, `dish:${b.id}`) ||
             Number(b.suggestedSlots.includes(slot)) - Number(a.suggestedSlots.includes(slot)) ||
             Number(Boolean(a.source)) - Number(Boolean(b.source)),
         )
@@ -98,20 +101,27 @@ function entries(kind: Kind, { catalog, slot, query, category, showAlcohol, favo
           }
         })
     case 'food':
-      // 食材は数が多いので、検索したときだけ出す
-      if (!query) return []
-      return [...catalog.foods.values()].map((f) => ({
-        fields: [f.displayName, f.kana, f.name],
-        card: {
-          key: `food:${f.id}`,
-          kind,
-          name: f.displayName,
-          sub: '100g',
-          kcal: f.per100g.energyKcal,
-          emoji: FOOD_GROUP_EMOJI[f.group],
-          item: { kind: 'food', refId: f.id, portion: 100 },
-        },
-      }))
+      // 食材は数が多いので、検索前はその区分でよく食べられるものだけ出す。
+      // 検索中は、どれかの区分でよく食べられる食材を同じ一致度の中で前に
+      return [...catalog.foods.values()]
+        .filter((f) => query || popularRank(slot, `food:${f.id}`) < NOT_POPULAR)
+        .sort((a, b) => (query ? Number(isPopular(`food:${b.id}`)) - Number(isPopular(`food:${a.id}`)) : popularRank(slot, `food:${a.id}`) - popularRank(slot, `food:${b.id}`)))
+        .map((f) => {
+          const portion = FOOD_PORTION[f.id]
+          const grams = portion?.grams ?? 100
+          return {
+            fields: [f.displayName, f.kana, f.name],
+            card: {
+              key: `food:${f.id}`,
+              kind,
+              name: f.displayName,
+              sub: portion ? `${portion.label}（${grams}g）` : '100g',
+              kcal: f.per100g.energyKcal === null ? null : (f.per100g.energyKcal * grams) / 100,
+              emoji: portion?.emoji ?? FOOD_GROUP_EMOJI[f.group],
+              item: { kind: 'food', refId: f.id, portion: grams },
+            },
+          }
+        })
     case 'myDish':
       return [...catalog.myDishes.values()].map((d) => {
         const item = { kind: 'myDish', refId: d.id, portion: 1 } as const
@@ -131,10 +141,13 @@ function favoriteEntries(filter: Filter): Entry[] {
 function buildCards(tab: Tab, filter: Filter): Card[] {
   if (tab === 'myDish') return rankAndFilter(favoriteEntries(filter), filter.query, (e) => e.fields).map((e) => e.card)
   if (tab === 'all') {
-    // 検索前は料理（お気に入りの料理を含む）だけを並べ、検索したら市販品・食材もまとめて出す
-    const kinds: Kind[] = filter.query ? KIND_ORDER : ['myDish', 'dish']
+    // 検索前は料理（お気に入りの料理を含む）と、その区分でよく食べられる食材を、よく食べられる順に並べる。
+    // 検索したら市販品・食材もまとめて出す
+    const kinds: Kind[] = filter.query ? KIND_ORDER : ['myDish', 'dish', 'food']
     const groups = kinds.map((k) => ({ items: entries(k, { ...filter, category: 'all' }), fields: (e: Entry) => e.fields }))
-    return rankAcross(groups, filter.query).map((e) => e.card)
+    const ranked = rankAcross(groups, filter.query)
+    if (!filter.query) ranked.sort((a, b) => popularRank(filter.slot, a.card.key) - popularRank(filter.slot, b.card.key))
+    return ranked.map((e) => e.card)
   }
   return rankAndFilter(entries(tab, filter), filter.query, (e) => e.fields).map((e) => e.card)
 }
@@ -195,6 +208,15 @@ export function Picker({
   useEffect(() => {
     listRef.current?.scrollTo({ top: 0 })
   }, [tab, category])
+  // 選んでも画面は閉じず、続けて選べる。追加した数をカードに、最後に追加したものを下の帯に出す
+  const [added, setAdded] = useState<Record<string, number>>({})
+  const [lastAdded, setLastAdded] = useState<string | null>(null)
+  const totalAdded = Object.values(added).reduce((a, b) => a + b, 0)
+  const pick = (c: Card) => {
+    onPick(c.item)
+    setAdded((a) => ({ ...a, [c.key]: (a[c.key] ?? 0) + 1 }))
+    setLastAdded(c.name)
+  }
   const switchTab = (t: Tab) => {
     setTab(t)
     setCategory('all')
@@ -282,12 +304,17 @@ export function Picker({
                   <li key={c.key} className="relative">
                     <button
                       type="button"
-                      onClick={() => onPick(c.item)}
+                      onClick={() => pick(c)}
                       className="group relative flex h-full w-full flex-col items-center rounded-2xl bg-white p-3 text-center shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
                     >
                       {tab === 'all' && query && (
                         <span className={`absolute top-2 left-2 rounded-full px-2 py-0.5 text-[11px] font-bold ${KIND_BADGE[c.kind].className}`}>
                           {KIND_BADGE[c.kind].label}
+                        </span>
+                      )}
+                      {added[c.key] && (
+                        <span className={`absolute right-2 rounded-full bg-ok px-2 py-0.5 text-[11px] font-bold text-white ${c.kind === 'product' ? 'top-11' : 'top-2'}`}>
+                          ✓ {added[c.key] > 1 ? `${added[c.key]}つ` : '追加'}
                         </span>
                       )}
                       {c.image ? (
@@ -321,6 +348,14 @@ export function Picker({
           )}
           {cards.length > MAX_CARDS && <p className="py-3 text-center text-xs text-ink-soft">ほか {cards.length - MAX_CARDS} 件。検索でしぼりこめます</p>}
         </div>
+        <footer className="mt-3 flex shrink-0 items-center gap-3">
+          <p className="min-w-0 flex-1 truncate text-sm text-ink-soft" aria-live="polite">
+            {lastAdded ? `「${lastAdded}」を追加（${totalAdded}品）` : 'タップで追加。続けて選べます'}
+          </p>
+          <button type="button" onClick={onClose} className="min-h-11 shrink-0 rounded-full bg-coral px-6 text-sm font-bold text-white hover:bg-coral-dark">
+            {totalAdded > 0 ? 'できた' : '閉じる'}
+          </button>
+        </footer>
       </div>
     </div>
   )
