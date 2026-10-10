@@ -1,0 +1,60 @@
+# 料理の型（副菜・汁物）。書き方は templates-main.yaml と同じ。
+
+# おひたし（しょうゆ・だし・かつお節）
+- template: ohitashi
+  name: "{name}のおひたし"
+  kana: "{kana}のおひたし"
+  category: side
+  suggestedSlots: [breakfast, lunch, dinner]
+  ingredients:
+    - { foodId: "{food}", grams: "{grams}", role: 青菜 }
+    - { foodId: "17007", grams: 4 } # こいくちしょうゆ
+    - { foodId: "17021", grams: 5 } # だし
+    - { foodId: "10091", grams: 0.5 } # かつお節
+  variants:
+    - { id: komatsuna, name: 小松菜, kana: こまつな, food: "06087", grams: 70 }
+    - { id: shungiku, name: 春菊, kana: しゅんぎく, food: "06100", grams: 70 }
+    - { id: chingensai, name: チンゲン菜, kana: ちんげんさい, food: "06161", grams: 70 }
+    - { id: okura, name: オクラ, kana: おくら, food: "06033", grams: 50 }
+    - { id: moyashi, name: もやし, kana: もやし, food: "06292", grams: 70 }
+
+# ゆで野菜・そのまま食べる野菜（調味料を変える）
+- template: yasai
+  name: "{name}"
+  kana: "{kana}"
+  category: side
+  suggestedSlots: [breakfast, lunch, dinner]
+  ingredients:
+    - { foodId: "{food}", grams: "{grams}", role: 野菜 }
+  variants:
+    - { id: broccoli, name: ゆでブロッコリー（マヨネーズ）, kana: ぶろっこりー, food: "06264", grams: 60, extra: [{ foodId: "17042", grams: 8 }] }
+    - { id: edamame, name: 枝豆, kana: えだまめ, food: "06016", grams: 50, extra: [{ foodId: "17012", grams: 0.5 }] } # ゆで、さやを除いた重さ
+    - { id: corn, name: ゆでとうもろこし, kana: とうもろこし こーん, food: "06176", grams: 100 } # 1/2本の可食部
+    - { id: tomato, name: 冷やしトマト, kana: ひやしとまと とまと, food: "06182", grams: 100 }
+    - { id: kabocha-ni, name: かぼちゃの煮物, kana: かぼちゃのにもの, food: "06049", grams: 80, extra: [{ foodId: "03003", grams: 4 }, { foodId: "17007", grams: 4 }, { foodId: "16025", grams: 3 }] }
+    - { id: kimchi, name: キムチ, kana: きむち はくさいきむち, food: "06236", grams: 40 }
+    - { id: takuan, name: たくあん, kana: たくあん, food: "06138", grams: 20 }
+    - { id: hakusai-zuke, name: 白菜の漬物, kana: はくさいのつけもの はくさいづけ, food: "06235", grams: 30 }
+    - { id: kyuri-nuka, name: きゅうりのぬか漬け, kana: きゅうりのぬかづけ ぬかづけ, food: "06068", grams: 30 }
+    - { id: umeboshi, name: 梅干し（1粒）, kana: うめぼし, food: "07023", grams: 8 }
+
+# みそ汁（だし150g＋みそ12g＋具）
+- template: misoshiru
+  name: "{name}のみそ汁"
+  kana: "{kana}のみそしる おみそしる"
+  category: soup
+  suggestedSlots: [breakfast, lunch, dinner]
+  ingredients:
+    - { foodId: "17021", grams: 150 } # だし
+    - { foodId: "17045", grams: 12, role: みそ, alternatives: ["17044", "17046"] } # 淡色辛みそ
+    - { foodId: "{food}", grams: "{grams}", role: 具 }
+  variants:
+    - { id: nameko, name: なめこ, kana: なめこ, food: "08021", grams: 30, extra: [{ foodId: "06226", grams: 3 }] }
+    - { id: daikon, name: 大根, kana: だいこん, food: "06135", grams: 40, extra: [{ foodId: "04040", grams: 5 }] } # 大根と油揚げ
+    - { id: jagaimo, name: じゃがいもと玉ねぎ, kana: じゃがいもとたまねぎ, food: "02019", grams: 40, extra: [{ foodId: "06155", grams: 20 }] }
+    - { id: asari, name: あさり, kana: あさり, food: "10281", grams: 30 } # 殻を除いた重さ
+    - { id: shijimi, name: しじみ, kana: しじみ, food: "10297", grams: 15 } # 殻を除いた重さ
+    - { id: cabbage, name: キャベツ, kana: きゃべつ, food: "06062", grams: 30 }
+    - { id: nasu, name: なす, kana: なす, food: "06192", grams: 40 }
+    - { id: spinach, name: ほうれん草, kana: ほうれんそう, food: "06268", grams: 30 }
+    - { id: wakame, name: わかめとねぎ, kana: わかめとねぎ, food: "09045", grams: 15, extra: [{ foodId: "06226", grams: 5 }] }

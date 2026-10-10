@@ -1,0 +1,118 @@
+# 料理の型（主菜）。型の {name}・{kana} と、材料の {food}・{grams} を variants の値で置き換えて料理にする。
+# 料理IDは「型の名前-variantのid」。量は可食部（骨・皮・殻を除いた重さ）の一般的な1人前の目安で、このリポジトリ独自の設定。
+# 成分表の「焼き」「ゆで」の食品は味付けなしの値なので、塩やしょうゆは材料として足している。
+
+# 焼き魚（塩焼き）。塩は焼く前の生の重さの約1%
+- template: shioyaki
+  name: "{name}の塩焼き"
+  kana: "{kana}のしおやき やきざかな"
+  category: main
+  suggestedSlots: [breakfast, lunch, dinner]
+  ingredients:
+    - { foodId: "{food}", grams: "{grams}", role: 魚 }
+    - { foodId: "17012", grams: 0.8 } # 食塩
+  variants:
+    - { id: aji, name: あじ, kana: あじ, food: "10005", grams: 70 } # まあじ 焼き 中1尾の可食部
+    - { id: sanma, name: さんま, kana: さんま, food: "10174", grams: 90 } # さんま 焼き 1尾の可食部
+    - { id: iwashi, name: いわし, kana: いわし, food: "10049", grams: 60 } # まいわし 焼き 2尾の可食部
+    - { id: sawara, name: さわら, kana: さわら, food: "10172", grams: 70 } # さわら 焼き 1切れ
+    - { id: tai, name: たい, kana: たい まだい, food: "10195", grams: 70 } # まだい 養殖 焼き 1切れ
+    - { id: tara, name: たら, kana: たら まだら, food: "10206", grams: 70 } # まだら 焼き 1切れ
+    - { id: karei, name: かれい, kana: かれい, food: "10102", grams: 80 } # まがれい 焼き 1切れ
+    - { id: kamasu, name: かます, kana: かます, food: "10099", grams: 60 } # かます 焼き 1尾の可食部
+    - { id: ayu, name: あゆ, kana: あゆ, food: "10026", grams: 50 } # あゆ 養殖 焼き 1尾の可食部
+    - { id: salmon, name: サーモン, kana: さーもん, food: "10145", grams: 70 } # たいせいようさけ 養殖 焼き 1切れ
+    - { id: beniza, name: 紅ざけ, kana: べにざけ, food: "10150", grams: 70 } # べにざけ 焼き 1切れ
+    - { id: kajiki, name: めかじき, kana: めかじき かじき, food: "10398", grams: 80 } # めかじき 焼き 1切れ
+
+# 塩味がついている干物などは塩を足さない
+- template: himono
+  name: "{name}"
+  kana: "{kana} ひもの やきざかな"
+  category: main
+  suggestedSlots: [breakfast, lunch, dinner]
+  ingredients:
+    - { foodId: "{food}", grams: "{grams}", role: 魚 }
+  variants:
+    - { id: aji, name: あじの開き, kana: あじのひらき, food: "10007", grams: 65 } # まあじ 開き干し 焼き 1枚の可食部
+    - { id: hokke, name: ほっけの開き, kana: ほっけのひらき, food: "10412", grams: 120 } # ほっけ 開き干し 焼き 1/2枚の可食部
+    - { id: shishamo, name: ししゃも, kana: ししゃも, food: "10183", grams: 60 } # からふとししゃも 生干し 焼き 3尾
+    - { id: mezashi, name: めざし, kana: めざし, food: "10054", grams: 40 } # めざし 焼き 4尾
+    - { id: tarako, name: 焼きたらこ, kana: やきたらこ たらこ, food: "10203", grams: 30 } # たらこ 焼き 1/2腹
+
+# 照り焼き（しょうゆ・みりん・砂糖のたれ）
+- template: teriyaki
+  name: "{name}の照り焼き"
+  kana: "{kana}のてりやき"
+  category: main
+  suggestedSlots: [lunch, dinner]
+  ingredients:
+    - { foodId: "{food}", grams: "{grams}", role: 主材料 }
+    - { foodId: "17007", grams: 9 } # こいくちしょうゆ 大さじ1/2
+    - { foodId: "16025", grams: 9 } # 本みりん 大さじ1/2
+    - { foodId: "03003", grams: 2 } # 上白糖
+    - { foodId: "14006", grams: 3 } # 調合油
+  variants:
+    - { id: buri, name: ぶり, kana: ぶり, food: "10242", grams: 80 } # ぶり 焼き 1切れ
+    - { id: chicken, name: 鶏, kana: とり とりもも, food: "11222", grams: 100 } # 若どり もも 皮つき 焼き
+
+# 刺身（つけじょうゆ・わさび付き）
+- template: sashimi
+  name: "{name}の刺身"
+  kana: "{kana}のさしみ おさしみ"
+  category: main
+  suggestedSlots: [lunch, dinner]
+  ingredients:
+    - { foodId: "{food}", grams: "{grams}", role: 魚 }
+    - { foodId: "17007", grams: 5 } # こいくちしょうゆ
+    - { foodId: "17081", grams: 1 } # 練りわさび
+  variants:
+    - { id: salmon, name: サーモン, kana: さーもん, food: "10144", grams: 60 } # たいせいようさけ 養殖 生
+    - { id: hamachi, name: はまち, kana: はまち, food: "10243", grams: 60 } # ぶり はまち 養殖 生
+    - { id: tai, name: たい, kana: たい まだい, food: "10193", grams: 60 } # まだい 養殖 生
+    - { id: katsuo, name: かつお, kana: かつお, food: "10086", grams: 70 } # かつお 春獲り 生
+    - { id: ika, name: いか, kana: いか, food: "10345", grams: 50 } # するめいか 生
+    - { id: tako, name: たこ, kana: たこ, food: "10362", grams: 50 } # まだこ ゆで
+    - { id: hotate, name: ほたて, kana: ほたて ほたてがい, food: "10313", grams: 50 } # ほたてがい 貝柱 生
+    - { id: amaebi, name: 甘えび, kana: あまえび, food: "10319", grams: 40 } # あまえび 生
+
+# 肉の焼き物（塩・こしょう）
+- template: grill
+  name: "{name}"
+  kana: "{kana}"
+  category: main
+  suggestedSlots: [lunch, dinner]
+  ingredients:
+    - { foodId: "{food}", grams: "{grams}", role: 肉 }
+    - { foodId: "17012", grams: 0.8 } # 食塩
+    - { foodId: "17065", grams: 0.1 } # こしょう
+  variants:
+    - { id: steak, name: ビーフステーキ, kana: すてーき びーふすてーき, food: "11043", grams: 150, alternatives: ["11015", "11045"], extra: [{ foodId: "14006", grams: 3 }] } # 乳用肥育牛 サーロイン 脂身つき 生。和牛は 11015
+    - { id: chicken-saute, name: チキンソテー, kana: ちきんそてー, food: "11222", grams: 100, extra: [{ foodId: "14006", grams: 3 }] } # 若どり もも 皮つき 焼き
+    - { id: chicken-breast, name: 鶏むね肉のソテー, kana: とりむねにくのそてー, food: "11287", grams: 100, extra: [{ foodId: "14006", grams: 3 }] } # 若どり むね 皮つき 焼き
+
+# 加工肉・練り物など、そのまま食べるもの
+- template: ready
+  name: "{name}"
+  kana: "{kana}"
+  category: main
+  suggestedSlots: [breakfast, lunch, dinner]
+  ingredients:
+    - { foodId: "{food}", grams: "{grams}" }
+  variants:
+    - { id: sausage, name: ウインナー（3本）, kana: ういんなー そーせーじ, food: "11186", grams: 60 }
+    - { id: ham, name: ハム（2枚）, kana: はむ ろーすはむ, food: "11176", grams: 20 }
+    - { id: bacon, name: ベーコン（2枚）, kana: べーこん, food: "11183", grams: 30 }
+    - { id: roast-beef, name: ローストビーフ, kana: ろーすとびーふ, food: "11104", grams: 60 }
+    - { id: chikuwa, name: ちくわ（1本）, kana: ちくわ, food: "10381", grams: 30 }
+    - { id: satsumaage, name: さつま揚げ, kana: さつまあげ, food: "10386", grams: 50 }
+    - { id: natto, name: 納豆（1パック）, kana: なっとう, food: "04046", grams: 45, extra: [{ foodId: "17007", grams: 3 }] } # たれの代わりにしょうゆ
+    - { id: atsuage, name: 厚揚げ焼き, kana: あつあげ なまあげ, food: "04039", grams: 100, extra: [{ foodId: "17007", grams: 5 }] }
+    - { id: ganmodoki, name: がんもどき, kana: がんもどき, food: "04041", grams: 60 }
+    - { id: ebi-tempura, name: えびの天ぷら（2本）, kana: えびのてんぷら てんぷら, food: "10416", grams: 60, extra: [{ foodId: "17029", grams: 30 }] } # バナメイえび 天ぷら。天つゆ代わりにめんつゆ
+    - { id: imo-tempura, name: さつまいもの天ぷら, kana: さつまいものてんぷら てんぷら, food: "02047", grams: 60 }
+    - { id: nasu-tempura, name: なすの天ぷら, kana: なすのてんぷら てんぷら, food: "06343", grams: 50 }
+    - { id: aji-fry, name: あじフライ, kana: あじふらい, food: "10390", grams: 80, extra: [{ foodId: "17002", grams: 10 }] }
+    - { id: kaki-fry, name: かきフライ, kana: かきふらい, food: "18055", grams: 100, extra: [{ foodId: "17002", grams: 10 }] } # 調理済み流通食品 かきフライ
+    - { id: hire-katsu, name: ヒレカツ, kana: ひれかつ, food: "11279", grams: 100, extra: [{ foodId: "17003", grams: 15 }, { foodId: "06061", grams: 40 }] }
+    - { id: fries, name: フライドポテト, kana: ふらいどぽてと ぽてと, food: "02020", grams: 100 }

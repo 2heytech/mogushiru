@@ -13,7 +13,7 @@ export type RecipeInput = {
 
 const CATEGORIES: DishCategory[] = ['staple', 'main', 'side', 'soup', 'noodle', 'bowl', 'bread', 'snack', 'drink', 'alcohol']
 
-// 1人前としてありえない値の目安（警告のみ）
+// 1人前としてありえない値の目安（警告のみ）。お茶などはほぼ0kcalなので下限を見ない
 const KCAL_RANGE = { min: 5, max: 1500 }
 const SALT_MAX = 10
 
@@ -52,7 +52,7 @@ export function buildDishes(recipes: RecipeInput[], foods: Map<string, Food>, il
     const nutrients = {} as Nutrients
     for (const k of NUTRIENT_KEYS) nutrients[k] = round(totals.values[k])
     const kcal = nutrients.energyKcal ?? 0
-    if (kcal < KCAL_RANGE.min || kcal > KCAL_RANGE.max) warnings.push(`${where}: 1人前 ${kcal} kcal は範囲外の可能性`)
+    if ((r.category !== 'drink' && kcal < KCAL_RANGE.min) || kcal > KCAL_RANGE.max) warnings.push(`${where}: 1人前 ${kcal} kcal は範囲外の可能性`)
     if ((nutrients.salt ?? 0) > SALT_MAX) warnings.push(`${where}: 食塩 ${nutrients.salt} g は多すぎる可能性`)
 
     const illustration = ILLUSTRATION_EXTS.map((ext) => `${r.id}.${ext}`).find((f) => illustrations.has(f)) ?? ''

@@ -4,17 +4,27 @@ import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { parse } from 'yaml'
 import type { Food } from '../src/domain/types'
 import { buildDishes, type RecipeInput } from './lib/dishes'
+import { expandTemplate, isTemplate, type TemplateInput } from './lib/templates'
 
 const foods = new Map(
   (JSON.parse(readFileSync('public/data/foods.json', 'utf8')) as { foods: Food[] }).foods.map((f) => [f.id, f]),
 )
+const templateErrors: string[] = []
 const recipes = readdirSync('data/recipes')
   .filter((f) => f.endsWith('.yaml'))
   .sort()
-  .flatMap((f) => parse(readFileSync(`data/recipes/${f}`, 'utf8')) as RecipeInput[])
+  .flatMap((f) => parse(readFileSync(`data/recipes/${f}`, 'utf8')) as (RecipeInput | TemplateInput)[])
+  .flatMap((r) => {
+    if (!isTemplate(r)) return [r]
+    const { recipes, errors } = expandTemplate(r)
+    templateErrors.push(...errors)
+    return recipes
+  })
 const illustrations = new Set(existsSync('public/illustrations') ? readdirSync('public/illustrations') : [])
 
-const { dishes, errors, warnings } = buildDishes(recipes, foods, illustrations)
+const built = buildDishes(recipes, foods, illustrations)
+const { dishes, warnings } = built
+const errors = [...templateErrors, ...built.errors]
 for (const w of warnings) console.warn(`注意: ${w}`)
 if (errors.length) {
   for (const e of errors) console.error(`エラー: ${e}`)

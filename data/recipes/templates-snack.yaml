@@ -1,0 +1,96 @@
+# 料理の型（おやつ・飲み物・お酒）。成分表の菓子・果物・飲料をそのまま1人前の量で出す。
+# 飲料は100g当たりの値なので mL から重さに換算（比重はおよそ1、牛乳類は1.03）。
+
+- template: fruit
+  name: "{name}"
+  kana: "{kana} くだもの"
+  category: snack
+  suggestedSlots: [breakfast, other]
+  ingredients:
+    - { foodId: "{food}", grams: "{grams}" }
+  variants:
+    - { id: strawberry, name: いちご（5粒）, kana: いちご, food: "07012", grams: 75 }
+    - { id: grape, name: ぶどう, kana: ぶどう, food: "07116", grams: 100 }
+    - { id: kiwi, name: キウイ（1個）, kana: きうい きういふるーつ, food: "07054", grams: 85 }
+    - { id: pear, name: 梨（1/2個）, kana: なし, food: "07088", grams: 125 }
+    - { id: peach, name: もも（1/2個）, kana: もも, food: "07136", grams: 100 }
+    - { id: persimmon, name: 柿（1/2個）, kana: かき, food: "07049", grams: 90 }
+    - { id: melon, name: メロン（1/8個）, kana: めろん, food: "07135", grams: 100 }
+    - { id: watermelon, name: すいか（1切れ）, kana: すいか, food: "07077", grams: 150 }
+    - { id: pineapple, name: パイナップル, kana: ぱいなっぷる, food: "07097", grams: 100 }
+    - { id: grapefruit, name: グレープフルーツ（1/2個）, kana: ぐれーぷふるーつ, food: "07062", grams: 105 }
+    - { id: cherry, name: さくらんぼ（10粒）, kana: さくらんぼ, food: "07070", grams: 60 }
+    - { id: blueberry, name: ブルーベリー, kana: ぶるーべりー, food: "07124", grams: 50 }
+    - { id: orange, name: オレンジ（1/2個）, kana: おれんじ, food: "07040", grams: 100 }
+    - { id: avocado, name: アボカド（1/2個）, kana: あぼかど, food: "07006", grams: 70 }
+
+- template: sweets
+  name: "{name}"
+  kana: "{kana} おかし"
+  category: snack
+  suggestedSlots: [other]
+  ingredients:
+    - { foodId: "{food}", grams: "{grams}" }
+  variants:
+    - { id: dorayaki, name: どら焼き, kana: どらやき, food: "15027", grams: 80 }
+    - { id: imagawayaki, name: 今川焼, kana: いまがわやき おおばんやき たいやき, food: "15145", grams: 90 }
+    - { id: manju, name: まんじゅう, kana: まんじゅう, food: "15029", grams: 50 }
+    - { id: dango, name: みたらし団子（1本）, kana: みたらしだんご だんご, food: "15019", grams: 60 }
+    - { id: kashiwamochi, name: かしわもち, kana: かしわもち, food: "15149", grams: 70 }
+    - { id: sakuramochi, name: 桜もち, kana: さくらもち, food: "15022", grams: 50 }
+    - { id: yokan, name: ようかん（1切れ）, kana: ようかん, food: "15038", grams: 50 }
+    - { id: castella, name: カステラ（1切れ）, kana: かすてら, food: "15009", grams: 50 }
+    - { id: senbei, name: せんべい（2枚）, kana: せんべい, food: "15058", grams: 30 }
+    - { id: arare, name: あられ, kana: あられ, food: "15059", grams: 20 }
+    - { id: karinto, name: かりんとう, kana: かりんとう, food: "15045", grams: 30 }
+    - { id: cream-puff, name: シュークリーム, kana: しゅーくりーむ, food: "15073", grams: 70 }
+    - { id: cheesecake, name: チーズケーキ, kana: ちーずけーき べいくどちーずけーき, food: "15134", grams: 80 }
+    - { id: apple-pie, name: アップルパイ, kana: あっぷるぱい, food: "15080", grams: 100 }
+    - { id: pound-cake, name: パウンドケーキ（1切れ）, kana: ぱうんどけーき ばたーけーき, food: "15082", grams: 40 }
+    - { id: donut, name: ドーナツ, kana: どーなつ, food: "15077", grams: 60 }
+    - { id: hotcake, name: ホットケーキ（2枚）, kana: ほっとけーき ぱんけーき, food: "15083", grams: 150, extra: [{ foodId: "14017", grams: 5 }, { foodId: "03022", grams: 10 }] }
+    - { id: waffle, name: ワッフル, kana: わっふる, food: "15084", grams: 40 }
+    - { id: biscuit, name: クッキー（3枚）, kana: くっきー びすけっと, food: "15098", grams: 30 }
+    - { id: cracker, name: クラッカー（5枚）, kana: くらっかー, food: "15093", grams: 15 }
+    - { id: popcorn, name: ポップコーン, kana: ぽっぷこーん, food: "01136", grams: 30 }
+    - { id: jelly, name: フルーツゼリー, kana: ぜりー, food: "15087", grams: 100 }
+    - { id: caramel, name: キャラメル（3粒）, kana: きゃらめる, food: "15105", grams: 15 }
+    - { id: cheese, name: チーズ（1個）, kana: ちーず ぷろせすちーず, food: "13040", grams: 20, suggestedSlots: [breakfast, other] }
+    - { id: peanuts, name: ピーナッツ, kana: ぴーなっつ, food: "05036", grams: 20 }
+    - { id: yogurt-sweet, name: ヨーグルト（加糖）, kana: よーぐると, food: "13026", grams: 100, suggestedSlots: [breakfast, other] }
+
+- template: drink
+  name: "{name}"
+  kana: "{kana} のみもの"
+  category: drink
+  suggestedSlots: [breakfast, lunch, dinner, other]
+  ingredients:
+    - { foodId: "{food}", grams: "{grams}" }
+  variants:
+    - { id: green-tea, name: 緑茶, kana: りょくちゃ おちゃ せんちゃ, food: "16037", grams: 150 } # 150mL
+    - { id: barley-tea, name: 麦茶, kana: むぎちゃ, food: "16055", grams: 200 } # 200mL
+    - { id: oolong, name: ウーロン茶, kana: うーろんちゃ, food: "16042", grams: 200 } # 200mL
+    - { id: black-tea, name: 紅茶, kana: こうちゃ, food: "16044", grams: 150 } # 150mL
+    - { id: coffee, name: コーヒー（ブラック）, kana: こーひー ぶらっく, food: "16045", grams: 150 } # 150mL
+    - { id: cafe-au-lait, name: カフェオレ, kana: かふぇおれ かふぇらて, food: "16045", grams: 100, extra: [{ foodId: "13003", grams: 103 }] } # コーヒー100mL＋牛乳100mL
+    - { id: cocoa, name: ココア, kana: ここあ, food: "16049", grams: 20, extra: [{ foodId: "13003", grams: 154 }] } # ミルクココア20g＋牛乳150mL
+    - { id: soy-milk, name: 豆乳, kana: とうにゅう, food: "04053", grams: 206 } # 調製豆乳 200mL
+    - { id: drink-yogurt, name: 飲むヨーグルト, kana: のむよーぐると, food: "13027", grams: 206 } # 200mL
+    - { id: lactic, name: 乳酸菌飲料（小1本）, kana: にゅうさんきんいんりょう, food: "13028", grams: 67 } # 65mL
+    - { id: vegetable-juice, name: 野菜ジュース, kana: やさいじゅーす, food: "06399", grams: 200 } # 200mL
+    - { id: tomato-juice, name: トマトジュース, kana: とまとじゅーす, food: "06185", grams: 200 } # 食塩添加 200mL
+    - { id: apple-juice, name: りんごジュース, kana: りんごじゅーす, food: "07149", grams: 200 } # 200mL
+    - { id: sports-drink, name: スポーツドリンク（500mL）, kana: すぽーつどりんく, food: "16057", grams: 500 }
+
+- template: alcohol
+  name: "{name}"
+  kana: "{kana} おさけ"
+  category: alcohol
+  suggestedSlots: [dinner, other]
+  ingredients:
+    - { foodId: "{food}", grams: "{grams}" }
+  variants:
+    - { id: white-wine, name: 白ワイン（グラス1杯）, kana: しろわいん わいん, food: "16010", grams: 120 } # 120mL
+    - { id: shochu, name: 焼酎（ロック1杯）, kana: しょうちゅう, food: "16015", grams: 60 } # 本格焼酎 60mL（比重約0.97で換算せず）
+    - { id: umeshu, name: 梅酒（ロック1杯）, kana: うめしゅ, food: "16022", grams: 60 }
+    - { id: shaoxing, name: 紹興酒（グラス1杯）, kana: しょうこうしゅ, food: "16013", grams: 60 }
