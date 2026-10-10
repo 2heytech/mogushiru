@@ -1,0 +1,103 @@
+# 料理の型（主食・麺・丼・パン）。書き方は templates-main.yaml と同じ。
+
+# おにぎり（ごはん110g＋のり＋塩＋具）
+- template: onigiri
+  name: "{name}おにぎり"
+  kana: "{kana}おにぎり"
+  category: staple
+  suggestedSlots: [breakfast, lunch, other]
+  ingredients:
+    - { foodId: "01088", grams: 110, role: ごはん }
+    - { foodId: "09004", grams: 1 } # 焼きのり
+    - { foodId: "17012", grams: 0.3 } # 食塩
+    - { foodId: "{food}", grams: "{grams}", role: 具 }
+  variants:
+    - { id: tuna-mayo, name: ツナマヨ, kana: つなまよ, food: "10263", grams: 15, extra: [{ foodId: "17042", grams: 5 }] }
+    - { id: konbu, name: 昆布, kana: こんぶ, food: "09023", grams: 8 } # こんぶ つくだ煮
+    - { id: okaka, name: おかか, kana: おかか, food: "10091", grams: 2, extra: [{ foodId: "17007", grams: 2 }] }
+    - { id: tarako, name: たらこ, kana: たらこ, food: "10203", grams: 10 } # たらこ 焼き
+    - { id: mentaiko, name: 明太子, kana: めんたいこ, food: "10204", grams: 10 }
+    - { id: takana, name: 高菜, kana: たかな, food: "06148", grams: 10 }
+
+# 温かいうどん（ゆでうどん1玉＋つゆ＋具）。つゆはかけうどんと同じで、飲み干す前提
+- template: udon
+  name: "{name}うどん"
+  kana: "{kana}うどん"
+  category: noodle
+  suggestedSlots: [lunch, dinner]
+  ingredients:
+    - { foodId: "01039", grams: 230, role: めん } # ゆでうどん1玉
+    - { foodId: "17021", grams: 300 } # かつお・昆布だし
+    - { foodId: "17008", grams: 18 } # うすくちしょうゆ
+    - { foodId: "16025", grams: 10 } # 本みりん
+    - { foodId: "17012", grams: 1 } # 食塩
+    - { foodId: "06226", grams: 5 } # ねぎ
+    - { foodId: "{food}", grams: "{grams}", role: 具 }
+  variants:
+    - { id: kitsune, name: きつね, kana: きつね, food: "04040", grams: 20, extra: [{ foodId: "03003", grams: 4 }, { foodId: "17007", grams: 4 }] } # 油揚げの甘煮
+    - { id: tanuki, name: たぬき, kana: たぬき, food: "01172", grams: 10 } # 天かす（天ぷら用バッター 揚げ）
+    - { id: tsukimi, name: 月見, kana: つきみ, food: "12004", grams: 50 }
+    - { id: tempura, name: 天ぷら, kana: てんぷら えびてん, food: "10416", grams: 60 } # えびの天ぷら2本
+    - { id: niku, name: 肉, kana: にく, food: "11046", grams: 50, extra: [{ foodId: "03003", grams: 4 }, { foodId: "17007", grams: 6 }] } # 牛ばらの甘辛煮
+    - { id: wakame, name: わかめ, kana: わかめ, food: "09045", grams: 20 }
+
+# 温かいそば（ゆでそば＋つゆ＋具）
+- template: soba
+  name: "{name}そば"
+  kana: "{kana}そば"
+  category: noodle
+  suggestedSlots: [lunch, dinner]
+  ingredients:
+    - { foodId: "01128", grams: 200, role: めん } # ゆでそば1人前
+    - { foodId: "17021", grams: 300 } # かつお・昆布だし
+    - { foodId: "17007", grams: 18 } # こいくちしょうゆ
+    - { foodId: "16025", grams: 12 } # 本みりん
+    - { foodId: "06226", grams: 5 } # ねぎ
+    - { foodId: "{food}", grams: "{grams}", role: 具 }
+  variants:
+    - { id: kake, name: かけ, kana: かけ, food: "06226", grams: 5 } # ねぎを増やすだけ
+    - { id: kitsune, name: きつね, kana: きつね, food: "04040", grams: 20, extra: [{ foodId: "03003", grams: 4 }, { foodId: "17007", grams: 4 }] }
+    - { id: tanuki, name: たぬき, kana: たぬき, food: "01172", grams: 10 }
+    - { id: tsukimi, name: 月見, kana: つきみ, food: "12004", grams: 50 }
+    - { id: tempura, name: 天ぷら, kana: てんぷら えびてん, food: "10416", grams: 60 }
+
+# 丼もの（ごはん230g＋具）
+- template: don
+  name: "{name}"
+  kana: "{kana}"
+  category: bowl
+  suggestedSlots: [lunch, dinner]
+  ingredients:
+    - { foodId: "01088", grams: 230, role: ごはん }
+    - { foodId: "{food}", grams: "{grams}", role: 具 }
+  variants:
+    - { id: katsudon, name: かつ丼, kana: かつどん, food: "11276", grams: 100, extra: [{ foodId: "12004", grams: 50 }, { foodId: "06153", grams: 40 }, { foodId: "17021", grams: 50 }, { foodId: "17007", grams: 12 }, { foodId: "16025", grams: 10 }, { foodId: "03003", grams: 4 }] } # とんかつを卵でとじる
+    - { id: tendon, name: 天丼, kana: てんどん, food: "10416", grams: 60, extra: [{ foodId: "02047", grams: 30 }, { foodId: "06343", grams: 30 }, { foodId: "17030", grams: 15 }] } # えび・さつまいも・なすの天ぷら、たれは三倍濃縮めんつゆ
+    - { id: tekka, name: 鉄火丼, kana: てっかどん まぐろどん, food: "10253", grams: 80, extra: [{ foodId: "17007", grams: 8 }, { foodId: "09004", grams: 1 }, { foodId: "17081", grams: 1 }] }
+    - { id: salmon, name: サーモン丼, kana: さーもんどん, food: "10144", grams: 80, extra: [{ foodId: "17007", grams: 8 }, { foodId: "17081", grams: 1 }] }
+    - { id: butadon, name: 豚丼, kana: ぶたどん, food: "11129", grams: 80, extra: [{ foodId: "06153", grams: 40 }, { foodId: "17007", grams: 12 }, { foodId: "16025", grams: 10 }, { foodId: "03003", grams: 5 }, { foodId: "14006", grams: 3 }] }
+    - { id: chukadon, name: 中華丼, kana: ちゅうかどん, food: "18048", grams: 200 } # 八宝菜（調理済み流通食品）をかける
+    - { id: mabodon, name: 麻婆丼, kana: まーぼーどん, food: "18049", grams: 150 } # 麻婆豆腐（調理済み流通食品）をかける
+    - { id: tamago-kake, name: 卵かけごはん, kana: たまごかけごはん, food: "12004", grams: 50, extra: [{ foodId: "17007", grams: 4 }], suggestedSlots: [breakfast] }
+
+# パン（トースト＋ぬるもの、そのまま食べるパン）
+- template: bread
+  name: "{name}"
+  kana: "{kana}"
+  category: bread
+  suggestedSlots: [breakfast, other]
+  ingredients:
+    - { foodId: "{food}", grams: "{grams}", role: パン }
+  variants:
+    - { id: jam-toast, name: ジャムトースト, kana: じゃむとーすと, food: "01026", grams: 60, extra: [{ foodId: "07013", grams: 15 }] } # 6枚切り1枚＋いちごジャム
+    - { id: honey-toast, name: はちみつトースト, kana: はちみつとーすと, food: "01026", grams: 60, extra: [{ foodId: "14017", grams: 5 }, { foodId: "03022", grams: 10 }] }
+    - { id: cheese-toast, name: チーズトースト, kana: ちーずとーすと, food: "01026", grams: 60, extra: [{ foodId: "13040", grams: 18 }] } # スライスチーズ1枚
+    - { id: plain-toast, name: トースト（何もぬらない）, kana: とーすと しょくぱん, food: "01026", grams: 60 }
+    - { id: france, name: フランスパン, kana: ふらんすぱん ばげっと, food: "01031", grams: 60 }
+    - { id: bagel, name: ベーグル, kana: べーぐる, food: "01148", grams: 90 }
+    - { id: naan, name: ナン, kana: なん, food: "01037", grams: 80 }
+    - { id: anpan, name: あんパン, kana: あんぱん, food: "15168", grams: 90 }
+    - { id: cream-pan, name: クリームパン, kana: くりーむぱん, food: "15070", grams: 90 }
+    - { id: melon-pan, name: メロンパン, kana: めろんぱん, food: "15132", grams: 100 }
+    - { id: curry-pan, name: カレーパン, kana: かれーぱん, food: "15127", grams: 100 }
+    - { id: jam-pan, name: ジャムパン, kana: じゃむぱん, food: "15071", grams: 90 }
