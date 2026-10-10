@@ -23,12 +23,24 @@ export function dangoMoods(totals: MenuTotals, targets: Targets, alerts: Alert[]
   return { p: mood('p'), f: mood('f'), c: mood('c') }
 }
 
-// 朝・昼・晩・その他のカードの「ちゃわんモグ」
-export function bowlMood(slotTotals: MenuTotals['day'], slot: Slot, targets: Targets, alerts: Alert[]): MascotMood {
+// 朝・昼・晩・その他のカードの「ちゃわんモグ」。カロリーとPFCそれぞれの横に、その指標の表情を出す。
+// 区分が空なら null。その他（間食）はPFCを判定しないので、上限こえのとき以外は pfc も null
+export type SlotMoods = { energy: MascotMood; pfc: MascotMood | null }
+
+export function slotMoods(slotTotals: MenuTotals['day'], slot: Slot, targets: Targets, alerts: Alert[]): SlotMoods | null {
   const b = slotBalance(slotTotals, slot, targets)
-  if (b.energy === 'empty') return 'okay'
-  if (alerts.some((a) => a.level === 'over' && a.topSlot === slot)) return 'alert'
-  const issues = b.hints.length + (b.energy === 'ok' ? 0 : 1)
-  if (issues === 0) return 'happy'
-  return issues === 1 ? 'okay' : 'worried'
+  if (b.energy === 'empty') return null
+  const overHere = (pred: (a: Alert) => boolean) => alerts.some((a) => a.level === 'over' && a.topSlot === slot && pred(a))
+  const energy: MascotMood = overHere((a) => a.key === 'energy')
+    ? 'alert'
+    : b.energy === 'ok'
+      ? 'happy'
+      : b.energy === 'low'
+        ? 'okay'
+        : 'worried'
+  let pfc: MascotMood | null
+  if (overHere((a) => a.key !== 'energy')) pfc = 'alert'
+  else if (slot === 'other' || !b.ratio) pfc = null
+  else pfc = b.hints.length === 0 ? 'happy' : b.hints.length === 1 ? 'okay' : 'worried'
+  return { energy, pfc }
 }
