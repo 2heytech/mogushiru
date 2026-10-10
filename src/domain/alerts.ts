@@ -39,8 +39,10 @@ function check(
   limit: number,
   unit: string,
   totals: MenuTotals,
+  // 原典が「〜未満」「〜以上でリスク」の値は、ちょうど上限でも超過として扱う
+  overAtLimit = false,
 ): Alert | null {
-  if (amount > limit) return { key, level: 'over', amount, limit, unit, topSlot: topSlot(totals, nutrient) }
+  if (overAtLimit ? amount >= limit : amount > limit) return { key, level: 'over', amount, limit, unit, topSlot: topSlot(totals, nutrient) }
   if (amount > limit * WARN_FACTOR) return { key, level: 'warn', amount, limit, unit, topSlot: topSlot(totals, nutrient) }
   return null
 }
@@ -48,8 +50,8 @@ function check(
 export function computeAlerts(totals: MenuTotals, targets: Targets): Alert[] {
   const v = totals.day.values
   return [
-    check('salt', 'salt', v.salt, targets.saltMax, 'g', totals),
-    check('alcohol', 'alcohol', v.alcohol, targets.alcoholRiskG, 'g', totals),
+    check('salt', 'salt', v.salt, targets.saltMax, 'g', totals, true),
+    check('alcohol', 'alcohol', v.alcohol, targets.alcoholRiskG, 'g', totals, true),
     check('satFat', 'satFat', v.satFat, targets.satFatMaxG, 'g', totals),
     v.energyKcal > targets.energyKcal * ENERGY_OVER_FACTOR
       ? {

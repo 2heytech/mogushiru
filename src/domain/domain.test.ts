@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { computeAlerts, balanceMood } from './alerts'
 import { swapIngredient } from './customize'
 import { ingredientsTotals, itemTotals, menuTotals, pfcRatio, sodiumMgToSaltG, type Catalog } from './nutrition'
+import { DRI_VERIFIED } from './dri'
 import { computeTargets, estimatedEnergy } from './targets'
 import { NUTRIENT_KEYS, type DayMenu, type Food, type Nutrients } from './types'
 
@@ -111,6 +112,22 @@ describe('目標値', () => {
     expect(computeTargets({ sex: 'male', age: 30, activity: 'normal' }).pfcRatio.p.lo).toBe(13)
     expect(computeTargets({ sex: 'male', age: 70, activity: 'normal' }).pfcRatio.p.lo).toBe(15)
   })
+
+  it('食物繊維の目標量は原典の年齢区分どおり', () => {
+    const fiber = (sex: 'male' | 'female', age: number) => computeTargets({ sex, age, activity: 'normal' }).fiberMin
+    expect([25, 40, 60, 70, 80].map((a) => fiber('male', a))).toEqual([20, 22, 22, 21, 20])
+    expect([25, 40, 60, 70, 80].map((a) => fiber('female', a))).toEqual([18, 18, 18, 18, 17])
+  })
+
+  it('75歳以上は身体活動レベル「高い」がないので「ふつう」と同じ値を使う', () => {
+    const kcal = (activity: 'normal' | 'high') => estimatedEnergy({ sex: 'female', age: 80, weightKg: 50, activity }).kcal
+    expect(kcal('normal')).toBe(Math.round((20.7 * 50 * 1.7) / 10) * 10)
+    expect(kcal('high')).toBe(kcal('normal'))
+  })
+
+  it('目標値は原典と照合済み', () => {
+    expect(DRI_VERIFIED).toBe(true)
+  })
 })
 
 describe('アラートとマスコット', () => {
@@ -128,6 +145,13 @@ describe('アラートとマスコット', () => {
     expect(salt.level).toBe('over')
     expect(salt.topSlot).toBe('lunch')
     expect(alerts.find((a) => a.key === 'alcohol')!.level).toBe('over')
+  })
+
+  it('アルコールはリスクを高める量ちょうどでも超過にする', () => {
+    const menu: DayMenu = { breakfast: [], lunch: [], dinner: [], other: [{ uid: '1', kind: 'product', refId: '4900000000001', portion: 500 }] }
+    const alcohol = computeAlerts(menuTotals(menu, catalog), targets).find((a) => a.key === 'alcohol')!
+    expect(alcohol.amount).toBeCloseTo(20)
+    expect(alcohol.level).toBe('over')
   })
 
   it('空の献立では普通の表情', () => {
