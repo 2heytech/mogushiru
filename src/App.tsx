@@ -1,22 +1,85 @@
 import { useMemo, useState } from 'react'
+import { Customizer } from './components/Customizer'
 import { Picker } from './components/Picker'
 import { ProfileDialog } from './components/ProfileDialog'
 import { SlotBoard } from './components/SlotBoard'
 import { SummaryPanel } from './components/SummaryPanel'
 import { useCatalog, withMyDishes } from './data/catalog'
-import { menuTotals } from './domain/nutrition'
+import { menuTotals, type Catalog } from './domain/nutrition'
 import { computeTargets } from './domain/targets'
 import type { Slot } from './domain/types'
 import { useAppStore } from './store/useAppStore'
 
 export default function App() {
   const catalogState = useCatalog()
-  const { menu, myDishes, profile, profileSet, setProfile, removeItem, addItem, updatePortion } = useAppStore()
+  const {
+    menu,
+    myDishes,
+    profile,
+    profileSet,
+    setProfile,
+    removeItem,
+    addItem,
+    updatePortion,
+    customizeItem,
+    replaceWithMyDish,
+    saveMyDish,
+    updateMyDish,
+  } = useAppStore()
   const [profileOpen, setProfileOpen] = useState(false)
   const [pickerSlot, setPickerSlot] = useState<Slot | null>(null)
+  const [customizing, setCustomizing] = useState<{ slot: Slot; uid: string } | null>(null)
   const targets = useMemo(() => computeTargets(profile), [profile])
   const catalog = catalogState.status === 'ready' ? withMyDishes(catalogState.catalog, myDishes) : null
   const totals = useMemo(() => (catalog ? menuTotals(menu, catalog) : null), [catalog, menu])
+
+  function renderCustomizer(catalog: Catalog, { slot, uid }: { slot: Slot; uid: string }) {
+    const item = menu[slot].find((i) => i.uid === uid)
+    const close = () => setCustomizing(null)
+    if (item?.kind === 'dish') {
+      const dish = catalog.dishes.get(item.refId)
+      if (!dish) return null
+      return (
+        <Customizer
+          title={dish.name}
+          original={dish.ingredients}
+          initial={item.customIngredients ?? dish.ingredients}
+          foods={catalog.foods}
+          saveLabel="マイ料理に保存"
+          onApply={(ingredients) => {
+            customizeItem(slot, uid, ingredients)
+            close()
+          }}
+          onSave={(name, ingredients) => {
+            const my = saveMyDish({ baseDishId: dish.id, name, ingredients })
+            replaceWithMyDish(slot, uid, my.id)
+            close()
+          }}
+          onClose={close}
+        />
+      )
+    }
+    if (item?.kind === 'myDish') {
+      const my = catalog.myDishes.get(item.refId)
+      if (!my) return null
+      const base = my.baseDishId ? catalog.dishes.get(my.baseDishId) : undefined
+      return (
+        <Customizer
+          title={my.name}
+          original={base?.ingredients ?? my.ingredients}
+          initial={my.ingredients}
+          foods={catalog.foods}
+          saveLabel="マイ料理を上書き保存"
+          onSave={(name, ingredients) => {
+            updateMyDish(my.id, { name, ingredients })
+            close()
+          }}
+          onClose={close}
+        />
+      )
+    }
+    return null
+  }
 
   return (
     <div className="mx-auto max-w-6xl px-4 pb-16">
@@ -40,7 +103,15 @@ export default function App() {
       {catalog && totals ? (
         <main className="grid gap-6 lg:grid-cols-[1fr_360px]">
           <div className="order-2 lg:order-1">
-            <SlotBoard menu={menu} totals={totals} catalog={catalog} onAdd={setPickerSlot} onRemove={removeItem} onPortion={updatePortion} />
+            <SlotBoard
+              menu={menu}
+              totals={totals}
+              catalog={catalog}
+              onAdd={setPickerSlot}
+              onRemove={removeItem}
+              onPortion={updatePortion}
+              onCustomize={(slot, uid) => setCustomizing({ slot, uid })}
+            />
           </div>
           <aside className="order-1 lg:order-2 lg:sticky lg:top-4 lg:self-start">
             <SummaryPanel totals={totals} targets={targets} />
@@ -63,6 +134,8 @@ export default function App() {
           onClose={() => setPickerSlot(null)}
         />
       )}
+
+      {catalog && customizing && renderCustomizer(catalog, customizing)}
 
       {profileOpen && (
         <ProfileDialog

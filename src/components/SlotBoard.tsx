@@ -61,8 +61,10 @@ function PortionEditor({ item, catalog, onPortion }: { item: MenuItem; catalog: 
 
 function itemName(item: MenuItem, catalog: Catalog): string {
   switch (item.kind) {
-    case 'dish':
-      return catalog.dishes.get(item.refId)?.name ?? '（不明な料理）'
+    case 'dish': {
+      const name = catalog.dishes.get(item.refId)?.name ?? '（不明な料理）'
+      return item.customIngredients ? `${name}（アレンジ）` : name
+    }
     case 'myDish':
       return catalog.myDishes.get(item.refId)?.name ?? '（削除されたマイ料理）'
     case 'product':
@@ -79,6 +81,7 @@ export function SlotBoard({
   onAdd,
   onRemove,
   onPortion,
+  onCustomize,
 }: {
   menu: DayMenu
   totals: MenuTotals
@@ -86,6 +89,7 @@ export function SlotBoard({
   onAdd: (slot: Slot) => void
   onRemove: (slot: Slot, uid: string) => void
   onPortion: (slot: Slot, uid: string, portion: number) => void
+  onCustomize: (slot: Slot, uid: string) => void
 }) {
   const [editing, setEditing] = useState<string | null>(null)
   return (
@@ -139,6 +143,15 @@ export function SlotBoard({
                   <div key={i.uid} className="flex flex-wrap items-center gap-2">
                     <span className="text-sm font-bold">{itemName(i, catalog)}</span>
                     <PortionEditor item={i} catalog={catalog} onPortion={(p) => onPortion(slot, i.uid, p)} />
+                    {(i.kind === 'dish' || i.kind === 'myDish') && (
+                      <button
+                        type="button"
+                        onClick={() => onCustomize(slot, i.uid)}
+                        className="min-h-10 rounded-full bg-ok/20 px-4 text-sm font-bold"
+                      >
+                        🥄 材料をアレンジ
+                      </button>
+                    )}
                   </div>
                 ))}
             </div>
