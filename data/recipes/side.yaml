@@ -1,0 +1,76 @@
+# 副菜・汁物
+- id: ohitashi
+  name: ほうれん草のおひたし
+  kana: ほうれんそうのおひたし
+  category: side
+  suggestedSlots: [breakfast, lunch, dinner]
+  ingredients:
+    - { foodId: "06268", grams: 70, role: 青菜 } # ほうれんそう ゆで
+    - { foodId: "17007", grams: 4 } # こいくちしょうゆ
+    - { foodId: "17021", grams: 5 } # だし
+    - { foodId: "10091", grams: 0.5 } # かつお節
+
+- id: green-salad
+  name: グリーンサラダ
+  kana: ぐりーんさらだ やさいさらだ
+  category: side
+  suggestedSlots: [breakfast, lunch, dinner]
+  ingredients:
+    - { foodId: "06312", grams: 30 } # レタス
+    - { foodId: "06182", grams: 40 } # トマト
+    - { foodId: "06065", grams: 20 } # きゅうり
+    - { foodId: "17116", grams: 12, role: ドレッシング, alternatives: ["17039", "17117", "17042"] } # 和風ドレッシング
+
+- id: kinpira
+  name: きんぴらごぼう
+  kana: きんぴらごぼう
+  category: side
+  suggestedSlots: [lunch, dinner]
+  ingredients:
+    - { foodId: "06084", grams: 40 } # ごぼう
+    - { foodId: "06214", grams: 10 } # にんじん
+    - { foodId: "14002", grams: 3 } # ごま油
+    - { foodId: "17007", grams: 6 } # こいくちしょうゆ
+    - { foodId: "03003", grams: 3 } # 上白糖
+    - { foodId: "16025", grams: 3 } # 本みりん
+    - { foodId: "05018", grams: 1 } # いりごま
+
+- id: yasai-itame
+  name: 野菜炒め
+  kana: やさいいため
+  category: side
+  suggestedSlots: [lunch, dinner]
+  ingredients:
+    - { foodId: "06061", grams: 80 } # キャベツ
+    - { foodId: "06291", grams: 50 } # もやし
+    - { foodId: "06214", grams: 15 } # にんじん
+    - { foodId: "11129", grams: 30, role: 肉, alternatives: ["11221"] } # 豚ばら
+    - { foodId: "14006", grams: 5 } # 調合油
+    - { foodId: "17012", grams: 0.8 } # 食塩
+    - { foodId: "17007", grams: 3 } # こいくちしょうゆ
+
+- id: miso-soup
+  name: 豆腐とわかめのみそ汁
+  kana: みそしる おみそしる
+  category: soup
+  suggestedSlots: [breakfast, lunch, dinner]
+  ingredients:
+    - { foodId: "17021", grams: 150 } # だし
+    - { foodId: "17045", grams: 12, role: みそ, alternatives: ["17044", "17145"] } # 淡色辛みそ
+    - { foodId: "04033", grams: 30 } # 絹ごし豆腐
+    - { foodId: "09044", grams: 1 } # カットわかめ 乾
+    - { foodId: "06226", grams: 3 } # ねぎ
+
+- id: tonjiru
+  name: 豚汁
+  kana: とんじる ぶたじる
+  category: soup
+  suggestedSlots: [breakfast, lunch, dinner]
+  ingredients:
+    - { foodId: "17021", grams: 160 } # だし
+    - { foodId: "11129", grams: 20, role: 肉 } # 豚ばら
+    - { foodId: "06134", grams: 30 } # だいこん
+    - { foodId: "06214", grams: 10 } # にんじん
+    - { foodId: "06084", grams: 10 } # ごぼう
+    - { foodId: "06226", grams: 5 } # ねぎ
+    - { foodId: "17045", grams: 15, role: みそ } # 淡色辛みそ

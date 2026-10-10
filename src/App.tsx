@@ -54,6 +54,7 @@ export default function App() {
         <Picker
           slot={pickerSlot}
           catalog={catalog}
+          productCategories={catalogState.status === 'ready' ? catalogState.productCategories : {}}
           showAlcohol={profile.age >= 20}
           onPick={(item) => {
             addItem(pickerSlot, item)

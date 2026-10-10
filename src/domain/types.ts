@@ -74,6 +74,7 @@ export type Dish = {
   illustration: string
   ingredients: Ingredient[]
   nutrients: Nutrients // ビルド時に事前計算
+  missingNutrients?: NutrientKey[] // 材料に未測定の成分を含むもの
 }
 
 // 市販品マスター（Open Food Facts）

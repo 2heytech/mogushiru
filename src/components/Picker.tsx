@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react'
 import type { Catalog } from '../domain/nutrition'
-import { matches } from '../domain/search'
+import { rankAndFilter } from '../domain/search'
 import type { DishCategory, MenuItem, Slot } from '../domain/types'
-import { DISH_CATEGORY_LABEL, SLOT_LABEL } from './labels'
+import { DISH_CATEGORY_EMOJI, DISH_CATEGORY_LABEL, PRODUCT_CATEGORY_EMOJI, PRODUCT_CATEGORY_LAST, SLOT_LABEL } from './labels'
 
 type Tab = 'dish' | 'product' | 'food' | 'myDish'
 
@@ -14,32 +14,38 @@ const TABS: { id: Tab; label: string }[] = [
 ]
 
 
-type Card = { key: string; name: string; sub: string; kcal: number | null; image?: string; item: Omit<MenuItem, 'uid'> }
+type Card = { key: string; name: string; sub: string; kcal: number | null; image?: string; emoji?: string; item: Omit<MenuItem, 'uid'> }
 
 const MAX_CARDS = 60
 
 function buildCards(tab: Tab, catalog: Catalog, slot: Slot, query: string, category: string, showAlcohol: boolean): Card[] {
   switch (tab) {
     case 'dish':
-      return [...catalog.dishes.values()]
-        .filter((d) => showAlcohol || d.category !== 'alcohol')
-        .filter((d) => category === 'all' || d.category === category)
-        .filter((d) => matches(query, d.name, d.kana))
-        // 選んでいる区分に合う料理を先に
-        .sort((a, b) => Number(b.suggestedSlots.includes(slot)) - Number(a.suggestedSlots.includes(slot)))
-        .map((d) => ({
+      return rankAndFilter(
+        [...catalog.dishes.values()]
+          .filter((d) => showAlcohol || d.category !== 'alcohol')
+          .filter((d) => category === 'all' || d.category === category)
+          // 選んでいる区分に合う料理を先に（検索中は一致の度合いが優先）
+          .sort((a, b) => Number(b.suggestedSlots.includes(slot)) - Number(a.suggestedSlots.includes(slot))),
+        query,
+        (d) => [d.name, d.kana],
+      ).map((d) => ({
           key: d.id,
           name: d.name,
           sub: DISH_CATEGORY_LABEL[d.category],
           kcal: d.nutrients.energyKcal,
           image: d.illustration ? `/illustrations/${d.illustration}` : undefined,
+          emoji: DISH_CATEGORY_EMOJI[d.category],
           item: { kind: 'dish', refId: d.id, portion: 1 },
         }))
     case 'product':
-      return [...catalog.products.values()]
-        .filter((p) => showAlcohol || p.category !== 'alcohol')
-        .filter((p) => matches(query, p.name, p.brand))
-        .map((p) => {
+      return rankAndFilter(
+        [...catalog.products.values()]
+          .filter((p) => showAlcohol || p.category !== 'alcohol')
+          .filter((p) => (category === 'all' ? Boolean(query) || !PRODUCT_CATEGORY_LAST.includes(p.category) : p.category === category)),
+        query,
+        (p) => [p.name, p.brand],
+      ).map((p) => {
           // 1食量が分かれば1食分、分からなければ100g(mL)で追加する
           const grams = p.servingGrams ?? 100
           const per = p.basis === 'serving' ? 1 : grams / 100
@@ -48,14 +54,13 @@ function buildCards(tab: Tab, catalog: Catalog, slot: Slot, query: string, categ
             name: p.name,
             sub: [p.brand, p.basis === 'serving' ? '1食' : `${grams}${p.basis === '100ml' ? 'mL' : 'g'}`].filter(Boolean).join('・'),
             kcal: p.nutrients.energyKcal === null ? null : p.nutrients.energyKcal * per,
+            emoji: PRODUCT_CATEGORY_EMOJI[p.category],
             item: { kind: 'product', refId: p.jan, portion: p.basis === 'serving' ? 1 : grams },
           }
         })
     case 'food':
       if (!query) return []
-      return [...catalog.foods.values()]
-        .filter((f) => matches(query, f.displayName, f.kana, f.name))
-        .map((f) => ({
+      return rankAndFilter([...catalog.foods.values()], query, (f) => [f.displayName, f.kana, f.name]).map((f) => ({
           key: f.id,
           name: f.displayName,
           sub: '100g',
@@ -63,21 +68,21 @@ function buildCards(tab: Tab, catalog: Catalog, slot: Slot, query: string, categ
           item: { kind: 'food', refId: f.id, portion: 100 },
         }))
     case 'myDish':
-      return [...catalog.myDishes.values()]
-        .filter((d) => matches(query, d.name))
-        .map((d) => ({ key: d.id, name: d.name, sub: 'マイ料理', kcal: null, item: { kind: 'myDish', refId: d.id, portion: 1 } }))
+      return rankAndFilter([...catalog.myDishes.values()], query, (d) => [d.name]).map((d) => ({ key: d.id, name: d.name, sub: 'マイ料理', kcal: null, item: { kind: 'myDish', refId: d.id, portion: 1 } }))
   }
 }
 
 export function Picker({
   slot,
   catalog,
+  productCategories,
   showAlcohol,
   onPick,
   onClose,
 }: {
   slot: Slot
   catalog: Catalog
+  productCategories: Record<string, string>
   showAlcohol: boolean
   onPick: (item: Omit<MenuItem, 'uid'>) => void
   onClose: () => void
@@ -89,7 +94,20 @@ export function Picker({
     () => buildCards(tab, catalog, slot, query, category, showAlcohol),
     [tab, catalog, slot, query, category, showAlcohol],
   )
-  const categories = (Object.keys(DISH_CATEGORY_LABEL) as DishCategory[]).filter((c) => showAlcohol || c !== 'alcohol')
+  const dishCategories = (Object.keys(DISH_CATEGORY_LABEL) as DishCategory[]).filter((c) => showAlcohol || c !== 'alcohol')
+  const productCategoryIds = Object.keys(productCategories)
+    .filter((c) => showAlcohol || c !== 'alcohol')
+    .sort((a, b) => Number(PRODUCT_CATEGORY_LAST.includes(a)) - Number(PRODUCT_CATEGORY_LAST.includes(b)))
+  const chips: { id: string; label: string }[] =
+    tab === 'dish'
+      ? dishCategories.map((c) => ({ id: c, label: DISH_CATEGORY_LABEL[c] }))
+      : tab === 'product'
+        ? productCategoryIds.map((c) => ({ id: c, label: productCategories[c] }))
+        : []
+  const switchTab = (t: Tab) => {
+    setTab(t)
+    setCategory('all')
+  }
 
   return (
     <div className="fixed inset-0 z-20 flex items-end bg-ink/30 md:items-center md:justify-center" onClick={onClose}>
@@ -106,14 +124,14 @@ export function Picker({
             ×
           </button>
         </header>
-        <div className="mb-3 flex gap-1 rounded-full bg-white p-1" role="tablist">
+        <div className="mb-3 flex shrink-0 gap-1 rounded-full bg-white p-1" role="tablist">
           {TABS.map((t) => (
             <button
               key={t.id}
               type="button"
               role="tab"
               aria-selected={tab === t.id}
-              onClick={() => setTab(t.id)}
+              onClick={() => switchTab(t.id)}
               className={`min-h-10 flex-1 rounded-full text-sm ${tab === t.id ? 'bg-coral font-bold text-white' : 'text-ink-soft'}`}
             >
               {t.label}
@@ -125,18 +143,19 @@ export function Picker({
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={tab === 'food' ? '食材名で検索（例：たまご）' : 'さがす'}
-          className="mb-3 min-h-11 w-full rounded-full border-2 border-white bg-white px-4 text-base outline-none focus:border-coral"
+          className="mb-3 min-h-11 w-full shrink-0 rounded-full border-2 border-white bg-white px-4 text-base outline-none focus:border-coral"
         />
-        {tab === 'dish' && (
-          <div className="mb-3 flex gap-2 overflow-x-auto pb-1">
-            {['all', ...categories].map((c) => (
+        {chips.length > 0 && (
+          <div className="mb-3 flex shrink-0 gap-2 overflow-x-auto pb-1">
+            {[{ id: 'all', label: tab === 'product' ? 'おすすめ' : 'すべて' }, ...chips].map((c) => (
               <button
-                key={c}
+                key={c.id}
                 type="button"
-                onClick={() => setCategory(c)}
-                className={`shrink-0 rounded-full px-3 py-1 text-sm ${category === c ? 'bg-ink text-white' : 'bg-white'}`}
+                aria-pressed={category === c.id}
+                onClick={() => setCategory(c.id)}
+                className={`shrink-0 rounded-full px-3 py-1 text-sm ${category === c.id ? 'bg-ink text-white' : 'bg-white'}`}
               >
-                {c === 'all' ? 'すべて' : DISH_CATEGORY_LABEL[c as DishCategory]}
+                {c.label}
               </button>
             ))}
           </div>
@@ -159,7 +178,7 @@ export function Picker({
                       <img src={c.image} alt="" className="mb-2 h-20 w-20 object-contain" loading="lazy" />
                     ) : (
                       <span className="mb-2 grid h-20 w-20 place-items-center rounded-full bg-cream text-3xl" aria-hidden>
-                        🍽️
+                        {c.emoji ?? '🍽️'}
                       </span>
                     )}
                     <span className="line-clamp-2 text-sm font-bold">{c.name}</span>

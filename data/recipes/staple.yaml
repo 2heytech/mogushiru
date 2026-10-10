@@ -1,0 +1,136 @@
+# 主食・麺・丼・パン
+- id: rice
+  name: ごはん
+  kana: ごはん
+  category: staple
+  suggestedSlots: [breakfast, lunch, dinner]
+  ingredients:
+    - { foodId: "01088", grams: 150, role: ごはん, alternatives: ["01085", "01089"] } # 精白米めし（茶碗1杯）
+
+- id: onigiri-salmon
+  name: 鮭おにぎり
+  kana: しゃけおにぎり さけおにぎり
+  category: staple
+  suggestedSlots: [breakfast, lunch, other]
+  ingredients:
+    - { foodId: "01088", grams: 110, role: ごはん }
+    - { foodId: "10139", grams: 10, role: 具 } # 塩ざけ
+    - { foodId: "09004", grams: 1 } # 焼きのり
+    - { foodId: "17012", grams: 0.5 } # 食塩
+
+- id: natto-rice
+  name: 納豆ごはん
+  kana: なっとうごはん
+  category: staple
+  suggestedSlots: [breakfast]
+  ingredients:
+    - { foodId: "01088", grams: 150, role: ごはん }
+    - { foodId: "04046", grams: 45, role: 納豆 } # 1パック
+    - { foodId: "17007", grams: 3 } # こいくちしょうゆ（たれの代わり）
+    - { foodId: "06226", grams: 3 } # ねぎ
+
+- id: toast
+  name: バタートースト
+  kana: ばたーとーすと
+  category: bread
+  suggestedSlots: [breakfast]
+  ingredients:
+    - { foodId: "01026", grams: 60, role: パン } # 角形食パン 6枚切り1枚
+    - { foodId: "14017", grams: 6, role: バター } # 有塩バター
+
+- id: kake-udon
+  name: かけうどん
+  kana: かけうどん
+  category: noodle
+  suggestedSlots: [lunch, dinner]
+  ingredients:
+    - { foodId: "01039", grams: 230, role: めん } # ゆでうどん1玉
+    - { foodId: "17021", grams: 300 } # かつお・昆布だし
+    - { foodId: "17008", grams: 18 } # うすくちしょうゆ
+    - { foodId: "16025", grams: 10 } # 本みりん
+    - { foodId: "17012", grams: 1 } # 食塩
+    - { foodId: "06226", grams: 5 } # ねぎ
+
+- id: zaru-soba
+  name: ざるそば
+  kana: ざるそば
+  category: noodle
+  suggestedSlots: [lunch, dinner]
+  ingredients:
+    - { foodId: "01128", grams: 220, role: めん } # ゆでそば1人前
+    - { foodId: "17029", grams: 60 } # めんつゆ（ストレート）
+    - { foodId: "06226", grams: 5 } # ねぎ
+    - { foodId: "09004", grams: 0.5 } # 焼きのり
+
+- id: shoyu-ramen
+  name: しょうゆラーメン
+  kana: しょうゆらーめん
+  category: noodle
+  suggestedSlots: [lunch, dinner]
+  ingredients:
+    - { foodId: "01048", grams: 230, role: めん } # 中華めん ゆで
+    - { foodId: "17142", grams: 35 } # ラーメンスープ 濃縮しょうゆ味（お湯で割る）
+    - { foodId: "11195", grams: 20, role: チャーシュー } # 焼き豚
+    - { foodId: "06152", grams: 15 } # めんま
+    - { foodId: "06226", grams: 5 } # ねぎ
+    - { foodId: "09004", grams: 1 } # 焼きのり
+
+- id: meat-sauce
+  name: ミートソーススパゲッティ
+  kana: みーとそーすすぱげってぃ ぱすた
+  category: noodle
+  suggestedSlots: [lunch, dinner]
+  ingredients:
+    - { foodId: "01064", grams: 220, role: めん } # スパゲッティ ゆで（乾麺80g）
+    - { foodId: "11089", grams: 30, role: ひき肉, alternatives: ["11163", "11230"] } # 牛ひき肉
+    - { foodId: "11163", grams: 30, role: ひき肉 } # 豚ひき肉
+    - { foodId: "06153", grams: 40 } # たまねぎ
+    - { foodId: "06214", grams: 15 } # にんじん
+    - { foodId: "06184", grams: 80 } # トマト水煮缶
+    - { foodId: "17036", grams: 10 } # トマトケチャップ
+    - { foodId: "14006", grams: 4 } # 調合油
+    - { foodId: "17012", grams: 1 } # 食塩
+
+- id: curry-rice
+  name: カレーライス
+  kana: かれーらいす
+  category: bowl
+  suggestedSlots: [lunch, dinner]
+  ingredients:
+    - { foodId: "01088", grams: 200, role: ごはん }
+    - { foodId: "11119", grams: 50, role: 肉, alternatives: ["11221", "11046"] } # 豚かたロース
+    - { foodId: "02017", grams: 50 } # じゃがいも
+    - { foodId: "06214", grams: 20 } # にんじん
+    - { foodId: "06153", grams: 50 } # たまねぎ
+    - { foodId: "17051", grams: 20 } # カレールウ
+    - { foodId: "14006", grams: 3 } # 調合油
+
+- id: gyudon
+  name: 牛丼
+  kana: ぎゅうどん
+  category: bowl
+  suggestedSlots: [lunch, dinner]
+  ingredients:
+    - { foodId: "01088", grams: 250, role: ごはん }
+    - { foodId: "11046", grams: 70, role: 肉, alternatives: ["11129"] } # 牛ばら
+    - { foodId: "06153", grams: 50 } # たまねぎ
+    - { foodId: "17007", grams: 12 } # こいくちしょうゆ
+    - { foodId: "03003", grams: 5 } # 上白糖
+    - { foodId: "16025", grams: 8 } # 本みりん
+    - { foodId: "16001", grams: 5 } # 清酒
+    - { foodId: "17021", grams: 50 } # だし
+
+- id: oyakodon
+  name: 親子丼
+  kana: おやこどん
+  category: bowl
+  suggestedSlots: [lunch, dinner]
+  ingredients:
+    - { foodId: "01088", grams: 230, role: ごはん }
+    - { foodId: "11221", grams: 60, role: 肉 } # 若どり もも 皮つき
+    - { foodId: "12004", grams: 60, role: 卵 } # 鶏卵 Lサイズ1個
+    - { foodId: "06153", grams: 40 } # たまねぎ
+    - { foodId: "17007", grams: 10 } # こいくちしょうゆ
+    - { foodId: "16025", grams: 10 } # 本みりん
+    - { foodId: "03003", grams: 3 } # 上白糖
+    - { foodId: "17021", grams: 50 } # だし

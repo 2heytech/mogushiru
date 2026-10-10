@@ -1,0 +1,65 @@
+# おやつ・飲み物・お酒
+# 飲料は成分表が100g当たり。mL→gは比重を約1として換算（牛乳は1.03）
+- id: yogurt
+  name: ヨーグルト（無糖）
+  kana: よーぐると
+  category: snack
+  suggestedSlots: [breakfast, other]
+  ingredients:
+    - { foodId: "13025", grams: 100, role: ヨーグルト, alternatives: ["13053", "13026"] }
+
+- id: banana
+  name: バナナ
+  kana: ばなな
+  category: snack
+  suggestedSlots: [breakfast, other]
+  ingredients:
+    - { foodId: "07107", grams: 100 } # 1本（可食部）
+
+- id: milk
+  name: 牛乳
+  kana: ぎゅうにゅう みるく
+  category: drink
+  suggestedSlots: [breakfast, other]
+  ingredients:
+    - { foodId: "13003", grams: 206, role: 牛乳, alternatives: ["13005"] } # 200mL
+
+- id: beer
+  name: ビール（350mL缶）
+  kana: びーる
+  category: alcohol
+  suggestedSlots: [dinner, other]
+  ingredients:
+    - { foodId: "16006", grams: 353 } # 350mL
+
+- id: sake
+  name: 日本酒（1合）
+  kana: にほんしゅ さけ
+  category: alcohol
+  suggestedSlots: [dinner, other]
+  ingredients:
+    - { foodId: "16001", grams: 180 } # 180mL
+
+- id: red-wine
+  name: 赤ワイン（グラス1杯）
+  kana: あかわいん わいん
+  category: alcohol
+  suggestedSlots: [dinner, other]
+  ingredients:
+    - { foodId: "16011", grams: 120 } # 120mL
+
+- id: highball
+  name: ハイボール
+  kana: はいぼーる
+  category: alcohol
+  suggestedSlots: [dinner, other]
+  ingredients:
+    - { foodId: "16016", grams: 30 } # ウイスキー シングル30mL（炭酸水は栄養なし）
+
+- id: chuhai
+  name: 缶チューハイ（350mL）
+  kana: ちゅーはい れもんさわー
+  category: alcohol
+  suggestedSlots: [dinner, other]
+  ingredients:
+    - { foodId: "16059", grams: 350 } # レモン風味 350mL
