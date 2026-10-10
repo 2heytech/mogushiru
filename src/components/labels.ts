@@ -74,6 +74,7 @@ export const NUTRIENT_INFO: Record<CheckedNutrient, { label: string; unit: strin
   calcium: { label: 'カルシウム', unit: 'mg', digits: 0 },
   iron: { label: '鉄', unit: 'mg', digits: 1 },
   vitaminA: { label: 'ビタミンA', unit: 'µg', digits: 0 },
+  retinol: { label: 'ビタミンA（レチノール）', unit: 'µg', digits: 0 },
   vitaminD: { label: 'ビタミンD', unit: 'µg', digits: 1 },
   vitaminB1: { label: 'ビタミンB1', unit: 'mg', digits: 2 },
   vitaminB2: { label: 'ビタミンB2', unit: 'mg', digits: 2 },

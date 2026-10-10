@@ -11,6 +11,7 @@ import {
   N6_AI,
   POTASSIUM_DG,
   VITAMIN_A_RDA,
+  VITAMIN_A_UL,
   VITAMIN_B1_RDA,
   VITAMIN_B2_RDA,
   VITAMIN_C_RDA,
@@ -33,7 +34,8 @@ export type NutrientTarget =
   // これ以上とりたい（推奨量・目安量・目標量の下限）。upper は耐容上限量
   | { kind: 'min'; value: number; basis: '推奨量' | '目安量' | '目標量'; upper?: number }
   // これより少なくしたい。overAtLimit は「〜未満」「〜以上でリスク」のように、ちょうどでも超過とするもの
-  | { kind: 'max'; value: number; basis: '目標量' | '飲酒ガイドライン'; overAtLimit: boolean }
+  // 耐容上限量だけがある（ビタミンAのうちレチノール）ものも basis: '耐容上限量' でここに入る
+  | { kind: 'max'; value: number; basis: '目標量' | '飲酒ガイドライン' | '耐容上限量'; overAtLimit: boolean }
   // 食事摂取基準に指標がない
   | { kind: 'none' }
 
@@ -94,6 +96,7 @@ function nutrientTargets(profile: Profile, age: number, kcal: number): Record<Ch
     calcium: { kind: 'min', value: pick(CALCIUM_RDA, age)[sex], basis: '推奨量', upper: CALCIUM_UL },
     iron: { kind: 'min', value: ironRda(profile, age), basis: '推奨量' },
     vitaminA: { kind: 'min', value: pick(VITAMIN_A_RDA, age)[sex], basis: '推奨量' },
+    retinol: { kind: 'max', value: VITAMIN_A_UL, basis: '耐容上限量', overAtLimit: false },
     vitaminD: { kind: 'min', value: VITAMIN_D_AI, basis: '目安量', upper: VITAMIN_D_UL },
     vitaminB1: { kind: 'min', value: pick(VITAMIN_B1_RDA, age)[sex], basis: '推奨量' },
     vitaminB2: { kind: 'min', value: pick(VITAMIN_B2_RDA, age)[sex], basis: '推奨量' },

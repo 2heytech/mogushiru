@@ -116,7 +116,8 @@ export const N3_AI: Row<number>[] = [
 // ビタミンAの推奨量（µgRAE/日）
 // 出典：報告書「1-6 ビタミン」ビタミンAの食事摂取基準（µgRAE/日）の表（p.181）
 // 耐容上限量 2,700 µgRAE/日は「プロビタミンAカロテノイドを含まない」（同表 脚注3）。
-// 成分表のレチノール活性当量はβ-カロテン由来の分を含むので、アプリでは上限と比べない
+// 成分表のレチノール活性当量はβ-カロテン由来の分を含むので、上限はレチノール（RETOL）と比べる
+export const VITAMIN_A_UL = 2700
 export const VITAMIN_A_RDA: Row<number>[] = [
   { min: 18, max: 29, male: 850, female: 650 },
   { min: 30, max: 49, male: 900, female: 700 },

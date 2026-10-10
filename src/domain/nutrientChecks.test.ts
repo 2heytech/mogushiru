@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { judge, notableChecks, nutrientChecks, summarizeChecks } from './nutrientChecks'
+import { computeAlerts } from './alerts'
+import { judge, notableChecks, nutrientChecks, summarizeChecks, tolerableUpper } from './nutrientChecks'
 import { idealPfc, pfcGaps } from './pfcGap'
 import { computeTargets } from './targets'
 import { NUTRIENT_KEYS, type NutrientKey, type NutrientTotals } from './types'
@@ -111,5 +112,47 @@ describe('達成の割合と、畳んだときに見せる栄養素', () => {
   it('こえているもの、割合の低い不足の順に返す', () => {
     const checks = nutrientChecks(totals({ salt: 13, vitaminC: 50, calcium: 100, iron: 10 }), targets)
     expect(notableChecks(checks, 3).map((c) => c.key)).toEqual(['salt', 'fiber', 'potassium'])
+  })
+})
+
+describe('とりすぎ（耐容上限量）のアラート', () => {
+  const targets = computeTargets({ sex: 'female', age: 35, activity: 'normal' })
+  // 区分ごとの合計も持つ MenuTotals（テスト用の架空の値）
+  const menuOf = (dinner: Partial<Record<NutrientKey, number>>) => {
+    const day = totals(dinner)
+    return { day, bySlot: { breakfast: totals({}), lunch: totals({}), dinner: day, other: totals({}) } }
+  }
+
+  it('カルシウム・ビタミンD・レチノールが耐容上限量をこえるとアラートを出し、先頭に並べる', () => {
+    const alerts = computeAlerts(menuOf({ salt: 7, calcium: 2600, vitaminD: 120, retinol: 3000 }), targets)
+    expect(alerts.slice(0, 3).map((a) => [a.key, a.level, a.limitKind])).toEqual([
+      ['retinol', 'over', 'upper'],
+      ['calcium', 'over', 'upper'],
+      ['vitaminD', 'over', 'upper'],
+    ])
+    expect(alerts.find((a) => a.key === 'calcium')!.limit).toBe(2500)
+    expect(alerts.find((a) => a.key === 'calcium')!.topSlot).toBe('dinner')
+    expect(alerts.find((a) => a.key === 'salt')!.limitKind).toBe('target')
+  })
+
+  it('上限の8割をこえたら注意、推奨量を満たすだけではアラートにしない', () => {
+    const alerts = computeAlerts(menuOf({ calcium: 2100, vitaminD: 9, retinol: 500 }), targets)
+    expect(alerts.find((a) => a.key === 'calcium')!.level).toBe('warn')
+    expect(alerts.find((a) => a.key === 'vitaminD')).toBeUndefined()
+    expect(alerts.find((a) => a.key === 'retinol')).toBeUndefined()
+  })
+
+  it('上限のない栄養素（鉄・ビタミンCなど）はどれだけ多くてもアラートにしない', () => {
+    const alerts = computeAlerts(menuOf({ iron: 100, vitaminC: 5000 }), targets)
+    expect(alerts.map((a) => a.key)).not.toContain('iron')
+    expect(alerts.map((a) => a.key)).not.toContain('vitaminC')
+  })
+
+  it('区分のチェックでも、耐容上限量は1日の値のまま比べる', () => {
+    const lunch = Object.fromEntries(nutrientChecks(totals({ retinol: 1000 }), targets, 'lunch').map((c) => [c.key, c]))
+    expect(lunch.retinol.goal).toBe(2700)
+    expect(lunch.retinol.status).toBe('ok')
+    expect(tolerableUpper(targets.nutrients.calcium)).toBe(2500)
+    expect(tolerableUpper(targets.nutrients.salt)).toBeNull()
   })
 })

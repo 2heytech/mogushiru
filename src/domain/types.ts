@@ -16,6 +16,7 @@ export const NUTRIENT_KEYS = [
   'iron', // mg
   'potassium', // mg
   'vitaminA', // µg（レチノール活性当量）
+  'retinol', // µg（レチノール。ビタミンAの耐容上限量の判定に使う）
   'vitaminD', // µg
   'vitaminB1', // mg
   'vitaminB2', // mg
