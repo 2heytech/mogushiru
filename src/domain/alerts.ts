@@ -1,4 +1,4 @@
-import { CHECKED_NUTRIENTS, tolerableUpper } from './nutrientChecks'
+import { CHECKED_NUTRIENTS, tolerableUpper, upperScopeOf } from './nutrientChecks'
 import { pfcRatio } from './nutrition'
 import type { MenuTotals } from './nutrition'
 import type { CheckedNutrient, Targets } from './targets'
@@ -13,6 +13,8 @@ export type Alert = {
   limit: number
   // limit が何の値か。target: 目標量・飲酒ガイドラインなどの目安／upper: 耐容上限量
   limitKind: 'target' | 'upper'
+  // amount がサプリの分だけの量（上限がサプリなど通常の食品以外の分だけにかかる栄養素）
+  supplementOnly?: boolean
   unit: string
   // いちばん多く寄与している区分
   topSlot: Slot | null
@@ -52,11 +54,17 @@ function check(
   return null
 }
 
-// 耐容上限量のある栄養素（カルシウム・ビタミンD・レチノールなど）。サプリを含む1日の合計で判定する
+// 耐容上限量のある栄養素（カルシウム・ビタミンD・レチノールなど）。サプリを含む1日の合計で判定する。
+// マグネシウム・ナイアシン・葉酸の上限はサプリなど通常の食品以外の分だけにかかるので、サプリの分だけで判定する
 function upperLimitAlerts(totals: MenuTotals, targets: Targets): (Alert | null)[] {
   return CHECKED_NUTRIENTS.map((key) => {
-    const upper = tolerableUpper(targets.nutrients[key])
+    const target = targets.nutrients[key]
+    const upper = tolerableUpper(target)
     if (upper === null) return null
+    if (upperScopeOf(target) === 'supplement') {
+      const a = check(key, key, totals.supplement.values[key], upper, UNIT[key], totals, false, 'upper')
+      return a && { ...a, supplementOnly: true }
+    }
     return check(key, key, totals.day.values[key], upper, UNIT[key], totals, false, 'upper')
   })
 }
@@ -64,7 +72,8 @@ function upperLimitAlerts(totals: MenuTotals, targets: Targets): (Alert | null)[
 // アラートの単位（表示名・桁は components/labels.ts）
 const UNIT: Record<CheckedNutrient, string> = {
   salt: 'g', satFat: 'g', alcohol: 'g', fiber: 'g', potassium: 'mg', calcium: 'mg', iron: 'mg',
-  vitaminA: 'µg', retinol: 'µg', vitaminD: 'µg', vitaminB1: 'mg', vitaminB2: 'mg', vitaminC: 'mg',
+  magnesium: 'mg', zinc: 'mg', vitaminA: 'µg', retinol: 'µg', vitaminD: 'µg', vitaminE: 'mg',
+  vitaminB1: 'mg', vitaminB2: 'mg', niacin: 'mg', vitaminB6: 'mg', folate: 'µg', vitaminC: 'mg',
   n3Fat: 'g', n6Fat: 'g', monoUnsatFat: 'g', polyUnsatFat: 'g',
 }
 

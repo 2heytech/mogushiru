@@ -95,7 +95,14 @@ export function itemTotals(item: MenuItem, catalog: Catalog): NutrientTotals {
 export type MenuTotals = {
   bySlot: Record<Slot, NutrientTotals>
   day: NutrientTotals
+  // サプリメントなど通常の食品以外からとった分だけの1日の合計。
+  // マグネシウム・ナイアシン・葉酸の耐容上限量はこの量と比べる
+  supplement: NutrientTotals
 }
+
+// 通常の食品以外（サプリメント）として扱う項目の種類
+export const SUPPLEMENT_KINDS: readonly MenuItem['kind'][] = ['supplement']
+export const isSupplementItem = (item: MenuItem): boolean => SUPPLEMENT_KINDS.includes(item.kind)
 
 // データの更新でなくなった料理・市販品を外す（保存した1日の食事を呼び出すときに使う）
 export function knownItemsOnly(menu: DayMenu, catalog: Catalog): DayMenu {
@@ -112,14 +119,19 @@ export function knownItemsOnly(menu: DayMenu, catalog: Catalog): DayMenu {
 
 export function menuTotals(menu: DayMenu, catalog: Catalog): MenuTotals {
   const day = emptyTotals()
+  const supplement = emptyTotals()
   const bySlot = {} as Record<Slot, NutrientTotals>
   for (const slot of Object.keys(menu) as Slot[]) {
     const slotTotals = emptyTotals()
-    for (const item of menu[slot]) mergeTotals(slotTotals, itemTotals(item, catalog))
+    for (const item of menu[slot]) {
+      const t = itemTotals(item, catalog)
+      mergeTotals(slotTotals, t)
+      if (isSupplementItem(item)) mergeTotals(supplement, t)
+    }
     bySlot[slot] = slotTotals
     mergeTotals(day, slotTotals)
   }
-  return { bySlot, day }
+  return { bySlot, day, supplement }
 }
 
 // 食塩相当量[g] = ナトリウム[mg] × 2.54 ÷ 1000
