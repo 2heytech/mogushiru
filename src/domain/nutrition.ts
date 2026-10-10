@@ -1,0 +1,116 @@
+import {
+  NUTRIENT_KEYS,
+  type DayMenu,
+  type Dish,
+  type Food,
+  type Ingredient,
+  type MenuItem,
+  type MyDish,
+  type NutrientKey,
+  type NutrientTotals,
+  type Nutrients,
+  type Product,
+  type Slot,
+} from './types'
+
+export function emptyTotals(): NutrientTotals {
+  const values = {} as Record<NutrientKey, number>
+  for (const k of NUTRIENT_KEYS) values[k] = 0
+  return { values, missing: new Set() }
+}
+
+// nutrients × factor を totals に足す。null は 0 として足さず、欠損として記録する
+export function addScaled(totals: NutrientTotals, nutrients: Nutrients, factor: number): NutrientTotals {
+  for (const k of NUTRIENT_KEYS) {
+    const v = nutrients[k]
+    if (v === null) totals.missing.add(k)
+    else totals.values[k] += v * factor
+  }
+  return totals
+}
+
+export function mergeTotals(into: NutrientTotals, from: NutrientTotals): NutrientTotals {
+  for (const k of NUTRIENT_KEYS) into.values[k] += from.values[k]
+  for (const k of from.missing) into.missing.add(k)
+  return into
+}
+
+// 材料（食品番号＋グラム）から栄養を計算する。料理のビルド時計算とカスタマイズで共通
+export function ingredientsTotals(ingredients: Ingredient[], foods: Map<string, Food>): NutrientTotals {
+  const totals = emptyTotals()
+  for (const ing of ingredients) {
+    const food = foods.get(ing.foodId)
+    if (!food) throw new Error(`未知の食品番号: ${ing.foodId}`)
+    addScaled(totals, food.per100g, ing.grams / 100)
+  }
+  return totals
+}
+
+export type Catalog = {
+  dishes: Map<string, Dish>
+  myDishes: Map<string, MyDish>
+  products: Map<string, Product>
+  foods: Map<string, Food>
+}
+
+export function itemTotals(item: MenuItem, catalog: Catalog): NutrientTotals {
+  switch (item.kind) {
+    case 'dish': {
+      const dish = catalog.dishes.get(item.refId)
+      if (!dish) throw new Error(`未知の料理: ${item.refId}`)
+      return addScaled(emptyTotals(), dish.nutrients, item.portion)
+    }
+    case 'myDish': {
+      const my = catalog.myDishes.get(item.refId)
+      if (!my) throw new Error(`未知のマイ料理: ${item.refId}`)
+      const t = ingredientsTotals(my.ingredients, catalog.foods)
+      for (const k of NUTRIENT_KEYS) t.values[k] *= item.portion
+      return t
+    }
+    case 'product': {
+      const p = catalog.products.get(item.refId)
+      if (!p) throw new Error(`未知の市販品: ${item.refId}`)
+      const factor = p.basis === 'serving' ? item.portion : item.portion / 100
+      return addScaled(emptyTotals(), p.nutrients, factor)
+    }
+    case 'food': {
+      const f = catalog.foods.get(item.refId)
+      if (!f) throw new Error(`未知の食品: ${item.refId}`)
+      return addScaled(emptyTotals(), f.per100g, item.portion / 100)
+    }
+  }
+}
+
+export type MenuTotals = {
+  bySlot: Record<Slot, NutrientTotals>
+  day: NutrientTotals
+}
+
+export function menuTotals(menu: DayMenu, catalog: Catalog): MenuTotals {
+  const day = emptyTotals()
+  const bySlot = {} as Record<Slot, NutrientTotals>
+  for (const slot of Object.keys(menu) as Slot[]) {
+    const slotTotals = emptyTotals()
+    for (const item of menu[slot]) mergeTotals(slotTotals, itemTotals(item, catalog))
+    bySlot[slot] = slotTotals
+    mergeTotals(day, slotTotals)
+  }
+  return { bySlot, day }
+}
+
+// 食塩相当量[g] = ナトリウム[mg] × 2.54 ÷ 1000
+export function sodiumMgToSaltG(sodiumMg: number): number {
+  return (sodiumMg * 2.54) / 1000
+}
+
+export const KCAL_PER_G = { protein: 4, fat: 9, carb: 4, alcohol: 7 } as const
+
+// PFCのエネルギー比（％）。係数ベースで計算し、P+F+C=100 になるよう正規化する
+export function pfcRatio(values: Record<NutrientKey, number>): { p: number; f: number; c: number } | null {
+  const p = values.protein * KCAL_PER_G.protein
+  const f = values.fat * KCAL_PER_G.fat
+  const c = values.carb * KCAL_PER_G.carb
+  const sum = p + f + c
+  if (sum <= 0) return null
+  return { p: (p / sum) * 100, f: (f / sum) * 100, c: (c / sum) * 100 }
+}

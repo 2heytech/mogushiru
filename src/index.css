@@ -1,0 +1,22 @@
+@import 'tailwindcss';
+
+/* デザイントークン（docs/design.md 8.1） */
+@theme {
+  --font-sans: 'Zen Maru Gothic', 'Hiragino Maru Gothic ProN', system-ui, sans-serif;
+  --color-cream: #fff8ee;
+  --color-ink: #5b4636;
+  --color-ink-soft: #8a7563;
+  --color-coral: #ff8a65;
+  --color-coral-dark: #e8704b;
+  --color-protein: #f47c7c;
+  --color-fat: #ffc94d;
+  --color-carb: #7cc98a;
+  --color-ok: #6cc4a1;
+  --color-caution: #f2b84b;
+  --color-alert: #e8705f;
+  --radius-card: 20px;
+}
+
+body {
+  @apply bg-cream text-ink font-sans antialiased;
+}
