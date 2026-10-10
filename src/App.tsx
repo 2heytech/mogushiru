@@ -1,14 +1,17 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
+import { Picker } from './components/Picker'
 import { SlotBoard } from './components/SlotBoard'
 import { SummaryPanel } from './components/SummaryPanel'
 import { useCatalog, withMyDishes } from './data/catalog'
 import { menuTotals } from './domain/nutrition'
 import { computeTargets } from './domain/targets'
+import type { Slot } from './domain/types'
 import { useAppStore } from './store/useAppStore'
 
 export default function App() {
   const catalogState = useCatalog()
-  const { menu, myDishes, profile, removeItem } = useAppStore()
+  const { menu, myDishes, profile, removeItem, addItem } = useAppStore()
+  const [pickerSlot, setPickerSlot] = useState<Slot | null>(null)
   const targets = useMemo(() => computeTargets(profile), [profile])
   const catalog = catalogState.status === 'ready' ? withMyDishes(catalogState.catalog, myDishes) : null
   const totals = useMemo(() => (catalog ? menuTotals(menu, catalog) : null), [catalog, menu])
@@ -29,7 +32,7 @@ export default function App() {
       {catalog && totals ? (
         <main className="grid gap-6 lg:grid-cols-[1fr_360px]">
           <div className="order-2 lg:order-1">
-            <SlotBoard menu={menu} totals={totals} catalog={catalog} onAdd={() => {}} onRemove={removeItem} />
+            <SlotBoard menu={menu} totals={totals} catalog={catalog} onAdd={setPickerSlot} onRemove={removeItem} />
           </div>
           <aside className="order-1 lg:order-2 lg:sticky lg:top-4 lg:self-start">
             <SummaryPanel totals={totals} targets={targets} />
@@ -37,6 +40,19 @@ export default function App() {
         </main>
       ) : (
         <p className="py-20 text-center text-ink-soft">読み込み中…</p>
+      )}
+
+      {catalog && pickerSlot && (
+        <Picker
+          slot={pickerSlot}
+          catalog={catalog}
+          showAlcohol={profile.age >= 20}
+          onPick={(item) => {
+            addItem(pickerSlot, item)
+            setPickerSlot(null)
+          }}
+          onClose={() => setPickerSlot(null)}
+        />
       )}
 
       <footer className="mt-12 text-xs leading-relaxed text-ink-soft">
