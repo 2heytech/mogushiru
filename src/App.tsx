@@ -7,7 +7,9 @@ import { Picker } from './components/Picker'
 import { ProfileDialog } from './components/ProfileDialog'
 import { SlotBoard } from './components/SlotBoard'
 import { RankingView } from './components/RankingView'
-import { MenuActions, SavedMenusDialog } from './components/SavedMenus'
+import { confirmDialog } from './components/confirm'
+import { ConfirmHost } from './components/ConfirmDialog'
+import { LoadMenuDialog, MenuActions, SaveMenuDialog } from './components/SavedMenus'
 import { SummaryPanel } from './components/SummaryPanel'
 import { useCatalog, withMyData } from './data/catalog'
 import { usePrices } from './data/prices'
@@ -108,7 +110,7 @@ export default function App() {
     deleteMenu,
     clearMenu,
   } = useAppStore()
-  const [savedOpen, setSavedOpen] = useState(false)
+  const [savedDialog, setSavedDialog] = useState<'save' | 'load' | null>(null)
   const [profileOpen, setProfileOpen] = useState(false)
   const [pickerSlot, setPickerSlot] = useState<Slot | null>(null)
   const [editing, setEditing] = useState<{ slot: Slot; uid: string } | null>(null)
@@ -206,8 +208,8 @@ export default function App() {
         }}
         onDelete={
           initial
-            ? () => {
-                if (!window.confirm(`「${initial.name}」を削除しますか？1日の食事からも外れます。`)) return
+            ? async () => {
+                if (!(await confirmDialog(`「${initial.name}」を削除しますか？1日の食事からも外れます。`, { okLabel: '削除する', danger: true }))) return
                 setEditing(null)
                 deleteMyProduct(initial.jan)
                 close()
@@ -251,7 +253,13 @@ export default function App() {
       ) : catalog && totals ? (
         <main className="grid gap-6 lg:grid-cols-[1fr_360px]">
           <div className="order-2 lg:order-1">
-            <MenuActions menu={menu} savedCount={savedMenus.length} onOpenSaved={() => setSavedOpen(true)} onReset={clearMenu} />
+            <MenuActions
+              menu={menu}
+              savedCount={savedMenus.length}
+              onOpenSave={() => setSavedDialog('save')}
+              onOpenLoad={() => setSavedDialog('load')}
+              onReset={clearMenu}
+            />
             <SlotBoard
               menu={menu}
               totals={totals}
@@ -287,22 +295,29 @@ export default function App() {
 
       {catalog && editing && renderEditor(catalog, editing)}
 
-      {catalog && savedOpen && (
-        <SavedMenusDialog
+      {savedDialog === 'save' && (
+        <SaveMenuDialog
+          saved={savedMenus}
+          onSave={(name) => {
+            saveMenu(name)
+            setSavedDialog(null)
+          }}
+          onClose={() => setSavedDialog(null)}
+        />
+      )}
+
+      {catalog && savedDialog === 'load' && (
+        <LoadMenuDialog
           menu={menu}
           saved={savedMenus}
           catalog={catalog}
-          onSave={(name) => {
-            saveMenu(name)
-            setSavedOpen(false)
-          }}
           onLoad={(m) => {
             // データの更新でなくなった料理があっても止まらないように外してから入れる
             loadMenu(m.id, (x) => knownItemsOnly(x, catalog))
-            setSavedOpen(false)
+            setSavedDialog(null)
           }}
           onDelete={(m) => deleteMenu(m.id)}
-          onClose={() => setSavedOpen(false)}
+          onClose={() => setSavedDialog(null)}
         />
       )}
 
@@ -318,6 +333,8 @@ export default function App() {
           onClose={() => setProfileOpen(false)}
         />
       )}
+
+      <ConfirmHost />
 
       <footer className="mt-12 text-xs leading-relaxed text-ink-soft">
         <p>表示される値は目安です。医療・栄養指導の代わりにはなりません。</p>
