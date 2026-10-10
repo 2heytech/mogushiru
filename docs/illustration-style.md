@@ -1,17 +1,18 @@
 # 料理イラストのスタイル指定
 
-料理イラストは「シンプルでポップ」なフラットイラストに揃える。今は手描きのSVG（`scripts/draw-illustrations.py` で生成）を使っていて、あとから画像生成AIの絵に差し替えられる。
+料理イラストは「シンプルでポップ、かわいい」フラットイラストに揃える。今は手描きのSVG（`scripts/draw-illustrations.py` で生成）を使っていて、あとから画像生成AIの絵に差し替えられる。
 
 ## いまの絵（SVG）
 
 - 正方形 128×128 の SVG。背景はカテゴリ色の丸、料理は太めの丸い茶色の輪郭線（`#5b4636`・3px）と明るいベタ塗りだけで描く。グラデーション・細かい影・文字は使わない。
+- かわいさの決まりごと: 器（器がない料理は料理そのもの）に、点の目・小さなにっこり口・ピンクのほっぺの顔を付ける。器の色は明るいパステル。背景の丸には白い小さなきらきらを同じ位置に入れる。
 - 正面から少しのぞきこむ角度で、器（お茶わん・お皿・グラス）＋上にのる具を2〜4個のかたちで表す。
 - 背景の丸の色: 主食・パン `#ffeeb0`／主菜・丼 `#ffd9cc`／副菜 `#d6f2dc`／汁物・麺 `#ffe3c2`／飲み物 `#d7ecff`／おやつ・お酒 `#e6defa`
 - ファイルは `public/illustrations/<料理ID>.svg`。絵がまだない料理には、カテゴリ色のふた付きのお皿（`public/illustrations/category/<カテゴリ>.svg`）が自動で出る。
 
 ### 料理を足すとき
 
-1. `scripts/draw-illustrations.py` の `D['<料理ID>'] = (カテゴリ, 中身)` を1行足す。器は `plate()`・`bowl()`・`can()` などの共通パーツを使い、具は近い料理を写して色とかたちを変える
+1. `scripts/draw-illustrations.py` の `D['<料理ID>'] = (カテゴリ, 中身)` と、顔の位置 `FACE['<料理ID>']` を足す。器は `plate()`・`bowl()`・`can()` などの共通パーツを使い、具は近い料理を写して色とかたちを変える
 2. `python3 scripts/draw-illustrations.py` で SVG を書き出す
 3. `npm run data:dishes` を実行する（絵のある料理に自動でファイル名が入る）
 4. 画面で他の絵と並べて、浮いていないか確認する
@@ -27,7 +28,7 @@
 | サイズ | 正方形 1024×1024 で生成し、配信用は 512×512 に縮小 |
 | 背景 | 透過（透過できないサービスでは白背景で生成し、後で切り抜く） |
 | 構図 | 料理だけを中央に、正面から少しのぞきこむ角度で。人物・手・文字・ロゴは入れない |
-| タッチ | シンプルでポップなフラットイラスト、太めの丸い輪郭線、明るいベタ塗り、影なし |
+| タッチ | シンプルでポップ、かわいいフラットイラスト。太めの丸い輪郭線、明るいベタ塗り、影なし、器に小さな顔とほっぺ |
 | 器 | 和食は和食器、洋食は白い洋皿など。器の色はアプリの配色（クリーム・コーラル系）になじむもの |
 | ファイル | `public/illustrations/<料理ID>.webp`（または `.png`）。1枚 50KB 以下が目安 |
 
@@ -42,7 +43,7 @@
 ```
 A simple, pop flat icon illustration of {dish}, viewed from the front slightly above,
 centered, single item, thick rounded dark brown outlines, bright solid flat colors
-(coral, sunny yellow, mint green, sky blue), no gradients, no shadows, minimal details, cute and cheerful,
+(coral, sunny yellow, mint green, sky blue), no gradients, no shadows, minimal details, kawaii and cheerful, a tiny cute face with dot eyes, small smile and pink blush cheeks on the bowl or plate,
 Japanese home cooking style, inside a pastel circle, no text, no people, no hands, no logo
 ```
 

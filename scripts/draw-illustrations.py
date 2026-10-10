@@ -1,9 +1,10 @@
-"""料理イラスト（シンプル・ポップなフラットSVG）を描き出す。
+"""料理イラスト（シンプル・ポップでかわいいフラットSVG）を描き出す。
 
 使い方: python3 scripts/draw-illustrations.py public/illustrations
 
 - 料理ごとに public/illustrations/<料理ID>.svg を書く。料理を足すときは D['<料理ID>'] = (カテゴリ, 中身) を追加する。
 - 共通パーツ（plate / bowl / can など）と配色を使い、背景の丸はカテゴリ色にする。
+- 器か料理に顔（face）を付け、背景にきらきらを入れる。顔の位置は FACE に書く。
 - 絵がまだない料理には category/<カテゴリ>.svg（ふた付きのお皿）が出る。
 - 同じ名前の .webp / .png を置くと、そちらが優先される（docs/illustration-style.md）。
 """
@@ -16,9 +17,24 @@ BG = {
     'noodle': '#ffe3c2', 'bowl': '#ffd9cc', 'snack': '#e6defa', 'drink': '#d7ecff', 'alcohol': '#e6defa',
 }
 
+# 背景の小さなきらきら（どの絵にも同じ位置に入れる）
+def star(x, y, r):
+    return f'<path d="M{x} {y-r} Q{x} {y} {x+r} {y} Q{x} {y} {x} {y+r} Q{x} {y} {x-r} {y} Q{x} {y} {x} {y-r}Z" fill="#fff"/>'
+
+SPARKLE = star(20, 34, 6) + star(108, 26, 5) + '<circle cx="110" cy="44" r="2" fill="#fff"/>'
+
+# かわいい顔（点の目・にっこり口・ほっぺ）。light=True は濃い色の上に置くとき
+def face(x, y, s=1.0, light=False):
+    c = '#fff' if light else INK
+    e, r = 7 * s, 2.4 * s
+    return (f'<g stroke="none"><ellipse cx="{x-12*s:.1f}" cy="{y+3*s:.1f}" rx="{3.6*s:.1f}" ry="{2.3*s:.1f}" fill="#ff9a9a" opacity=".75"/>'
+            f'<ellipse cx="{x+12*s:.1f}" cy="{y+3*s:.1f}" rx="{3.6*s:.1f}" ry="{2.3*s:.1f}" fill="#ff9a9a" opacity=".75"/>'
+            f'<circle cx="{x-e:.1f}" cy="{y-2*s:.1f}" r="{r:.1f}" fill="{c}"/><circle cx="{x+e:.1f}" cy="{y-2*s:.1f}" r="{r:.1f}" fill="{c}"/></g>'
+            f'<path d="M{x-3*s:.1f} {y+1.5*s:.1f} q{3*s:.1f} {3.2*s:.1f} {6*s:.1f} 0" fill="none" stroke="{c}" stroke-width="{max(2, 2.4*s):.1f}"/>')
+
 def svg(cat, body):
     return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">'
-            f'<circle cx="64" cy="64" r="62" fill="{BG[cat]}"/>'
+            f'<circle cx="64" cy="64" r="62" fill="{BG[cat]}"/>{SPARKLE}'
             f'<g stroke="{INK}" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">{body}</g></svg>\n')
 
 # ---- 共通パーツ ----
@@ -51,7 +67,7 @@ D['rice'] = ('staple', bowl('#ff8a65', '#fff', mound=34) + dots([(52, 52), (66, 
 D['onigiri-salmon'] = ('staple',
     '<path d="M64 22 Q72 22 98 72 Q108 96 88 98 H40 Q20 96 30 72 Q56 22 64 22Z" fill="#fff"/>'
     '<rect x="44" y="74" width="40" height="26" rx="4" fill="#3d5a4a"/>'
-    '<ellipse cx="64" cy="54" rx="9" ry="7" fill="#ff9a76"/>')
+    '<ellipse cx="64" cy="44" rx="7" ry="5.5" fill="#ff9a76"/>')
 
 D['natto-rice'] = ('staple', bowl('#7cc98a', '#fff', mound=36,
     top=dots([(54, 50), (62, 46), (70, 48), (76, 54), (58, 56), (68, 56)], 4.5, '#c08a4a') + negi([(48, 58), (82, 58), (64, 40)])))
@@ -78,11 +94,11 @@ D['shogayaki'] = ('main', plate() + cabbage(40, 76)
     + '<path d="M58 76 q10 -6 20 0 t20 0 l2 12 q-10 6 -20 0 t-20 0Z" fill="#d98c58"/>')
 
 D['hamburg'] = ('main', plate()
-    + '<ellipse cx="60" cy="72" rx="30" ry="18" fill="#8a4a2e"/>'
+    + '<ellipse cx="60" cy="72" rx="30" ry="18" fill="#b0643c"/>'
     + '<path d="M36 66 Q60 50 84 66 Q86 74 80 76 Q76 70 72 78 Q66 72 60 78 Q54 70 48 76 Q40 74 36 66Z" fill="#5e2a18"/>'
     + '<circle cx="98" cy="72" r="8" fill="#6cbf5a"/><path d="M90 86 l16 -4 l-4 10Z" fill="#ff9a3c"/>')
 
-D['nikujaga'] = ('main', bowl('#6b8fd6', '#d9a45a',
+D['nikujaga'] = ('main', bowl('#8fb0ee', '#d9a45a',
     top='<rect x="42" y="50" width="18" height="16" rx="6" fill="#ffd75e"/><rect x="62" y="48" width="18" height="16" rx="6" fill="#ffe07a"/>'
         '<path d="M80 58 l14 -4 l-4 12Z" fill="#ff9a3c"/><path d="M30 60 q8 -8 14 0" fill="#a0623a"/>' + dots([(56, 68), (72, 68)], 3, '#7cc98a')))
 
@@ -97,11 +113,11 @@ def gyoza(x, y):
 D['gyoza'] = ('main', plate(cy=86) + ''.join(gyoza(36 + i * 14, 80 - (i % 2) * 4) for i in range(5))
     + '<ellipse cx="100" cy="52" rx="13" ry="6" fill="#fff"/><ellipse cx="100" cy="52" rx="8" ry="3" fill="#8a4a2e" stroke="none"/>')
 
-def tamago(x):
-    return (f'<rect x="{x}" y="58" width="24" height="30" rx="7" fill="#ffd94d"/>'
-            f'<path d="M{x+12} 73 m-4 0 a4 4 0 1 1 4 4 a7 7 0 1 1 7 -7" fill="none" stroke="#e8b52e" stroke-width="2.5"/>')
+def tamago(x, spiral=True):
+    sp = f'<path d="M{x+12} 73 m-4 0 a4 4 0 1 1 4 4 a7 7 0 1 1 7 -7" fill="none" stroke="#e8b52e" stroke-width="2.5"/>' if spiral else ''
+    return f'<rect x="{x}" y="58" width="24" height="30" rx="7" fill="#ffd94d"/>{sp}'
 
-D['dashimaki'] = ('main', '<rect x="18" y="76" width="92" height="24" rx="8" fill="#fff"/>' + tamago(28) + tamago(52) + tamago(76))
+D['dashimaki'] = ('main', '<rect x="18" y="76" width="92" height="24" rx="8" fill="#fff"/>' + tamago(28) + tamago(52, False) + tamago(76))
 
 D['fried-egg'] = ('main', plate()
     + '<path d="M30 76 Q28 54 50 56 Q60 44 78 52 Q100 52 98 72 Q100 90 76 90 Q60 96 46 90 Q30 90 30 76Z" fill="#fff"/>'
@@ -135,17 +151,17 @@ D['yasai-itame'] = ('side', plate()
     + '<path d="M60 64 q8 -6 14 2 q-6 6 -14 -2Z M80 76 q8 -6 14 2 q-6 6 -14 -2Z M36 78 q8 -6 14 2 q-6 6 -14 -2Z" fill="#e8a888" stroke-width="2.5"/>'
     + '<path d="M48 60 q4 6 10 4 M86 66 q-2 6 4 8" fill="none" stroke="#fffbe6" stroke-width="3"/>')
 
-D['miso-soup'] = ('soup', bowl('#c0503a', '#e6ad5c', rx=46,
+D['miso-soup'] = ('soup', bowl('#f08a6e', '#e6ad5c', rx=46,
     top='<rect x="40" y="56" width="12" height="12" rx="2" fill="#fff"/><rect x="74" y="54" width="12" height="12" rx="2" fill="#fff"/>'
         '<path d="M54 56 q6 -6 12 0 q-2 8 -12 0Z" fill="#3d7a4a" stroke-width="2.5"/><path d="M60 66 q6 -4 12 2 q-6 4 -12 -2Z" fill="#3d7a4a" stroke-width="2.5"/>'
         + negi([(36, 64), (88, 64), (64, 50)])))
 
-D['tonjiru'] = ('soup', bowl('#c0503a', '#dd9a4e', rx=46,
+D['tonjiru'] = ('soup', bowl('#f08a6e', '#dd9a4e', rx=46,
     top='<circle cx="44" cy="60" r="7" fill="#fff4dc"/><circle cx="82" cy="62" r="7" fill="#fff4dc"/>'
         '<path d="M56 54 l10 -2 l-2 10Z" fill="#ff9a3c"/><path d="M62 62 q8 -6 16 0 q-8 6 -16 0Z" fill="#e8a888" stroke-width="2.5"/>'
         + negi([(52, 66), (74, 52), (90, 56)])))
 
-D['kake-udon'] = ('noodle', bowl('#3f6fb8', '#f5d99a', rx=46,
+D['kake-udon'] = ('noodle', bowl('#7fa8e8', '#f5d99a', rx=46,
     top='<path d="M28 60 q12 6 24 0 t24 0 t24 0 M36 67 q12 6 24 0 t24 0" fill="none" stroke-width="8"/>'
         '<path d="M28 60 q12 6 24 0 t24 0 t24 0 M36 67 q12 6 24 0 t24 0" fill="none" stroke="#fffaf0" stroke-width="4"/>'
         '<path d="M66 50 q8 -6 16 0 v4 h-16Z" fill="#ff9fb0" stroke-width="2.5"/>' + negi([(46, 52), (56, 50), (50, 56)])))
@@ -156,15 +172,15 @@ D['zaru-soba'] = ('noodle',
     '<path d="M24 86 Q22 54 52 54 Q82 54 80 86Z" fill="#a89580"/>'
     '<path d="M32 70 q6 -8 12 0 t12 0 t12 0 M30 80 q6 -8 12 0 t12 0 t12 0 t10 0" fill="none" stroke="#7d6a58" stroke-width="2.5"/>'
     '<rect x="40" y="48" width="24" height="9" rx="2" fill="#2f4a3a" stroke-width="2.5"/>'
-    '<path d="M84 78 L88 102 H106 L110 78Z" fill="#3f6fb8"/><ellipse cx="97" cy="78" rx="13" ry="4" fill="#6b3a24"/>')
+    '<path d="M84 78 L88 102 H106 L110 78Z" fill="#7fa8e8"/><ellipse cx="97" cy="78" rx="13" ry="4" fill="#6b3a24"/>')
 
-D['shoyu-ramen'] = ('noodle', bowl('#e8573f', '#d39348', rx=48,
+D['shoyu-ramen'] = ('noodle', bowl('#ff8a73', '#d39348', rx=48,
     top='<path d="M30 62 q10 5 20 0 t20 0 t20 0" fill="none" stroke="#ffe48a" stroke-width="4"/>'
         '<circle cx="46" cy="56" r="10" fill="#f2c6a0"/><circle cx="46" cy="56" r="4" fill="#e8a888" stroke="none"/>'
         '<rect x="70" y="44" width="16" height="18" rx="2" fill="#2f4a3a" transform="rotate(-10 78 53)"/>'
         '<ellipse cx="84" cy="64" rx="9" ry="6" fill="#fff"/><ellipse cx="84" cy="64" rx="4" ry="3" fill="#ffb02e" stroke="none"/>'
         '<path d="M58 64 l8 2 M60 58 l8 2" stroke="#d9a85a" stroke-width="4"/>' + negi([(62, 50), (66, 54)]))
-    + '<path d="M36 86 h8 v6 h8 M76 92 h8 v-6 h8" fill="none" stroke="#fff" stroke-width="2.5"/>')
+)
 
 D['meat-sauce'] = ('noodle', plate()
     + '<path d="M28 84 Q28 58 64 56 Q100 58 100 84Z" fill="#ffd977"/>'
@@ -178,12 +194,12 @@ D['curry-rice'] = ('bowl', plate(rx=52, ry=18)
     + '<rect x="70" y="66" width="12" height="11" rx="3" fill="#ffe07a"/><path d="M86 72 l12 -2 l-4 10Z" fill="#ff9a3c"/>'
     + '<rect x="62" y="80" width="12" height="10" rx="3" fill="#ffe07a"/>')
 
-D['gyudon'] = ('bowl', bowl('#3f6fb8', '#fff', mound=40,
+D['gyudon'] = ('bowl', bowl('#7fa8e8', '#fff', mound=40,
     top='<path d="M30 58 q10 -14 22 -8 q8 -10 20 -4 q12 -8 24 6 q4 6 -2 10 Q64 68 32 64Z" fill="#a8603a"/>'
         '<path d="M44 56 q8 -4 14 2 M68 52 q8 -2 12 4" fill="none" stroke="#fff4dc" stroke-width="3"/>'
         '<path d="M82 46 l8 -3 l1 6Z" fill="#ff5a6a" stroke-width="2"/>'))
 
-D['oyakodon'] = ('bowl', bowl('#7a4a8a', '#fff', mound=40,
+D['oyakodon'] = ('bowl', bowl('#b48ad0', '#fff', mound=40,
     top='<path d="M28 60 q4 -16 20 -14 q10 -12 26 -6 q16 -4 22 10 q8 6 2 12 Q64 70 30 64Z" fill="#ffd94d"/>'
         '<path d="M40 54 q10 -4 16 4 M66 50 q8 0 12 6" fill="none" stroke="#fff6c8" stroke-width="3"/>'
         '<rect x="50" y="50" width="12" height="10" rx="3" fill="#f2c6a0"/><rect x="72" y="54" width="12" height="10" rx="3" fill="#f2c6a0"/>'
@@ -214,9 +230,9 @@ D['beer'] = ('alcohol', can(20, '#ffd84d', '<rect x="20" y="58" width="32" heigh
 
 D['sake'] = ('alcohol',
     '<path d="M42 22 H62 L60 34 Q82 54 80 82 Q78 104 52 104 Q26 104 24 82 Q22 54 44 34Z" fill="#fbf6ec"/>'
-    '<path d="M28 62 Q52 70 76 62" fill="none" stroke="#3f6fb8" stroke-width="5"/>'
+    '<path d="M28 62 Q52 70 76 62" fill="none" stroke="#7fa8e8" stroke-width="5"/>'
     '<path d="M84 80 L88 104 H108 L112 80Z" fill="#fff"/><ellipse cx="98" cy="80" rx="14" ry="4" fill="#fff8d8"/>'
-    '<circle cx="98" cy="92" r="4" fill="#3f6fb8" stroke="none"/>')
+    '<circle cx="98" cy="92" r="4" fill="#7fa8e8" stroke="none"/>')
 
 D['red-wine'] = ('alcohol',
     '<path d="M41.5 48 Q42 76 64 78 Q86 76 86.5 48Z" fill="#b5304a" stroke="none"/>'
@@ -240,6 +256,27 @@ D['chuhai'] = ('alcohol', can(18, '#c9f08a', '<circle cx="34" cy="70" r="10" fil
 CLOCHE = ('<ellipse cx="64" cy="88" rx="46" ry="12" fill="#fff"/>'
           '<path d="M26 84 Q26 44 64 44 Q102 44 102 84Z" fill="#fff4dc"/>'
           '<circle cx="64" cy="38" r="6" fill="#ff8a65"/><path d="M40 70 Q42 56 56 52" fill="none" stroke="#fff" stroke-width="4"/>')
+# 料理ごとの顔の位置 (x, y, 大きさ, 濃い色の上か)。器のある料理は器に、ないものは料理そのものに付ける
+BOWL = (64, 88, 0.85)
+FACE = {
+    'rice': BOWL, 'natto-rice': BOWL, 'nikujaga': BOWL, 'mapo-tofu': BOWL, 'green-salad': BOWL,
+    'miso-soup': BOWL, 'tonjiru': BOWL, 'kake-udon': BOWL, 'shoyu-ramen': BOWL, 'gyudon': BOWL, 'oyakodon': BOWL,
+    'ohitashi': (64, 92, 0.8), 'kinpira': (64, 92, 0.8),
+    'onigiri-salmon': (64, 60, 0.85), 'toast': (64, 86, 0.75),
+    'karaage': (62, 85, 0.6), 'grilled-salmon': (66, 74, 0.7), 'shogayaki': (64, 93, 0.55),
+    'hamburg': (60, 82, 0.7, True), 'gyoza': (66, 76, 0.55), 'dashimaki': (64, 75, 0.6),
+    'fried-egg': (62, 71, 0.65), 'hiyayakko': (77, 76, 0.5), 'yasai-itame': (64, 91, 0.55),
+    'zaru-soba': (97, 92, 0.5), 'meat-sauce': (64, 92, 0.55), 'curry-rice': (40, 78, 0.6),
+    'yogurt': (64, 80, 0.75), 'banana': (60, 80, 0.7), 'milk': (64, 80, 0.8),
+    'beer': (84, 78, 0.7), 'sake': (52, 86, 0.75), 'red-wine': (64, 62, 0.6, True),
+    'highball': (64, 92, 0.7), 'chuhai': (81, 84, 0.65),
+}
+for k, f in FACE.items():
+    cat, body = D[k]
+    x, y, sc, *light = f
+    D[k] = (cat, body + face(x, y, sc * 1.2, *light))
+
+CLOCHE += face(64, 70, 0.8)
 FALLBACK = {f'category/{c}': (c, CLOCHE) for c in BG}
 
 os.makedirs(os.path.join(OUT, 'category'), exist_ok=True)
