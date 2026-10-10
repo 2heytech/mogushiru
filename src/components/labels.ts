@@ -38,3 +38,25 @@ export const PRODUCT_CATEGORY_EMOJI: Record<string, string> = {
 export const PRODUCT_CATEGORY_LAST = ['seasoning', 'ingredient', 'other']
 
 export const MOOD_LABEL: Record<MascotMood, string> = { happy: 'ごきげん', okay: 'ふつう', worried: 'こまり顔', alert: 'あせり顔' }
+
+// 食品成分表の食品群（foods.json の group）の表示用
+export const FOOD_GROUP_EMOJI: Record<string, string> = {
+  '01': '🌾',
+  '02': '🥔',
+  '03': '🍯',
+  '04': '🫘',
+  '05': '🌰',
+  '06': '🥕',
+  '07': '🍎',
+  '08': '🍄',
+  '09': '🌿',
+  '10': '🐟',
+  '11': '🍖',
+  '12': '🥚',
+  '13': '🥛',
+  '14': '🧈',
+  '15': '🍪',
+  '16': '🍵',
+  '17': '🧂',
+  '18': '🍳',
+}

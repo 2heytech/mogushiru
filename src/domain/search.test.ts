@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { matchRank, matches, normalizeForSearch, rankAndFilter } from './search'
+import { matchRank, matches, normalizeForSearch, rankAcross, rankAndFilter } from './search'
 
 describe('検索の正規化', () => {
   it('カタカナ・半角・空白の揺れを吸収する', () => {
@@ -44,5 +44,31 @@ describe('並べ替えと絞り込み', () => {
   })
   it('先頭一致がなければ短い語でも途中一致を出す', () => {
     expect(rankAndFilter(items, 'まつ', fields).map((x) => x.name)).toEqual(['こまつな'])
+  })
+})
+
+describe('横断検索', () => {
+  const dishes = [{ name: 'たまご焼き', kana: 'たまごやき' }, { name: 'オムライス', kana: 'おむらいす/たまご' }]
+  const foods = [{ name: 'たまご', kana: 'たまご/卵/鶏卵' }, { name: 'うずら卵', kana: 'うずらたまご' }]
+  const products = [{ name: 'たまごサンド', kana: '' }]
+  const fields = (x: { name: string; kana: string }) => [x.name, x.kana]
+  const groups = [
+    { items: dishes, fields },
+    { items: products, fields },
+    { items: foods, fields },
+  ]
+
+  it('よく一致したものの中では先のグループ（料理）を前に、途中一致は最後に並べる', () => {
+    expect(rankAcross(groups, 'たまご').map((x) => x.name)).toEqual(['オムライス', 'たまご焼き', 'たまごサンド', 'たまご', 'うずら卵'])
+  })
+  it('短い検索語では、どのグループかに先頭一致があれば途中一致を出さない', () => {
+    const g = [
+      { items: [{ name: 'こまつなのおひたし', kana: '' }], fields },
+      { items: [{ name: 'ツナ缶', kana: 'つなかん' }], fields },
+    ]
+    expect(rankAcross(g, 'ツナ').map((x) => x.name)).toEqual(['ツナ缶'])
+  })
+  it('検索語が空ならグループの順にそのまま並べる', () => {
+    expect(rankAcross(groups, '').length).toBe(5)
   })
 })
