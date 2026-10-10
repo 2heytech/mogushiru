@@ -106,6 +106,11 @@ describe('栄養計算', () => {
     expect(kept.breakfast.map((i) => i.uid)).toEqual(['1'])
     expect(kept.dinner).toEqual([])
   })
+
+  it('保存した1日の食事の食材は、食材のデータにあれば残す', () => {
+    const menu = { breakfast: [{ uid: '1', kind: 'food' as const, refId: '00001', portion: 100 }, { uid: '2', kind: 'food' as const, refId: 'gone', portion: 100 }], lunch: [], dinner: [], other: [] }
+    expect(knownItemsOnly(menu, catalog).breakfast.map((i) => i.uid)).toEqual(['1'])
+  })
 })
 
 describe('目標値', () => {

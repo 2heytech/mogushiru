@@ -51,6 +51,11 @@ export function SlotBoard({
                   className="flex min-h-7 items-center"
                 >
                   {menuItemImage(item, catalog) && <img src={menuItemImage(item, catalog)} alt="" className="mr-1.5 -ml-2 h-7 w-7" />}
+                  {item.kind === 'supplement' && (
+                    <span aria-hidden className="mr-1">
+                      💊
+                    </span>
+                  )}
                   {itemName(item, catalog)}
                   <span className="ml-1 text-ink-soft">{portionLabel(item, catalog)}</span>
                   <span aria-hidden className="ml-1.5 text-xs text-coral">✎</span>

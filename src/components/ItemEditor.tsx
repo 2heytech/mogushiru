@@ -1,5 +1,6 @@
 import type { Catalog } from '../domain/nutrition'
 import { itemTotals } from '../domain/nutrition'
+import { supplementLines } from './labels'
 import type { MenuItem } from '../domain/types'
 import { itemName } from './itemName'
 import { PortionEditor } from './PortionEditor'
@@ -27,6 +28,9 @@ export function ItemEditor({
 }) {
   const v = itemTotals(item, catalog).values
   const name = itemName(item, catalog)
+  const product = item.kind === 'product' || item.kind === 'supplement' ? catalog.products.get(item.refId) : undefined
+  // サプリは入っている成分を並べる
+  const lines = item.kind === 'supplement' ? supplementLines(v) : null
   return (
     <div className="fixed inset-0 z-30 flex items-end bg-ink/30 md:items-center md:justify-center" onClick={onClose}>
       <div
@@ -44,12 +48,19 @@ export function ItemEditor({
         </header>
         <div className="space-y-3">
           <PortionEditor item={item} catalog={catalog} onPortion={onPortion} />
-          <p className="rounded-2xl bg-white px-3 py-2 text-sm tabular-nums">
-            <strong>{Math.round(v.energyKcal)} kcal</strong>
-            <span className="ml-2 text-xs text-ink-soft">
-              P {v.protein.toFixed(1)} ・ F {v.fat.toFixed(1)} ・ C {v.carb.toFixed(1)} ・ 食塩 {v.salt.toFixed(1)}g
-            </span>
-          </p>
+          {lines ? (
+            <p className="rounded-2xl bg-white px-3 py-2 text-sm tabular-nums">
+              {product?.servingLabel && <span className="mr-2 text-xs text-ink-soft">1回分 {product.servingLabel}</span>}
+              {lines.join(' ・ ')}
+            </p>
+          ) : (
+            <p className="rounded-2xl bg-white px-3 py-2 text-sm tabular-nums">
+              <strong>{Math.round(v.energyKcal)} kcal</strong>
+              <span className="ml-2 text-xs text-ink-soft">
+                P {v.protein.toFixed(1)} ・ F {v.fat.toFixed(1)} ・ C {v.carb.toFixed(1)} ・ 食塩 {v.salt.toFixed(1)}g
+              </span>
+            </p>
+          )}
           <div className="flex flex-wrap gap-2">
             {onToggleFavorite && (
               <button type="button" aria-pressed={favorite} onClick={onToggleFavorite} className="min-h-11 rounded-full bg-white px-4 text-sm font-bold">
@@ -58,7 +69,7 @@ export function ItemEditor({
             )}
             {onEditProduct && (
               <button type="button" onClick={onEditProduct} className="min-h-11 rounded-full bg-white px-4 text-sm">
-                栄養成分を直す
+                {lines ? '成分を直す' : '栄養成分を直す'}
               </button>
             )}
             <button type="button" onClick={onRemove} className="min-h-11 rounded-full bg-white px-4 text-sm text-alert">
