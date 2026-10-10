@@ -1,8 +1,63 @@
+import { useState } from 'react'
 import type { Catalog, MenuTotals } from '../domain/nutrition'
 import { SLOTS, type DayMenu, type MenuItem, type Slot } from '../domain/types'
 import { SLOT_LABEL } from './labels'
 
 const SLOT_ICON: Record<Slot, string> = { breakfast: '🌅', lunch: '☀️', dinner: '🌙', other: '🍪' }
+
+const SERVING_STEPS = [0.5, 1, 1.5, 2]
+
+// 人前で数えるもの（料理・マイ料理・1食基準の市販品）と、グラムで数えるもの
+function usesGrams(item: MenuItem, catalog: Catalog): boolean {
+  if (item.kind === 'food') return true
+  if (item.kind === 'product') return catalog.products.get(item.refId)?.basis !== 'serving'
+  return false
+}
+
+function portionLabel(item: MenuItem, catalog: Catalog): string {
+  if (usesGrams(item, catalog)) {
+    const ml = item.kind === 'product' && catalog.products.get(item.refId)?.basis === '100ml'
+    return `${Math.round(item.portion)}${ml ? 'mL' : 'g'}`
+  }
+  return item.portion === 1 ? '' : `×${item.portion}`
+}
+
+function PortionEditor({ item, catalog, onPortion }: { item: MenuItem; catalog: Catalog; onPortion: (p: number) => void }) {
+  if (usesGrams(item, catalog)) {
+    return (
+      <label className="flex items-center gap-2 text-sm">
+        量
+        <input
+          type="number"
+          min={1}
+          step={10}
+          defaultValue={Math.round(item.portion)}
+          onChange={(e) => {
+            const v = Number(e.target.value)
+            if (v > 0) onPortion(v)
+          }}
+          className="min-h-10 w-24 rounded-full bg-cream px-3 text-base"
+        />
+        {item.kind === 'product' && catalog.products.get(item.refId)?.basis === '100ml' ? 'mL' : 'g'}
+      </label>
+    )
+  }
+  return (
+    <div className="flex gap-1">
+      {SERVING_STEPS.map((step) => (
+        <button
+          key={step}
+          type="button"
+          aria-pressed={item.portion === step}
+          onClick={() => onPortion(step)}
+          className={`min-h-10 min-w-12 rounded-full px-3 text-sm ${item.portion === step ? 'bg-coral font-bold text-white' : 'bg-cream'}`}
+        >
+          {step === 0.5 ? '½' : step}人前
+        </button>
+      ))}
+    </div>
+  )
+}
 
 function itemName(item: MenuItem, catalog: Catalog): string {
   switch (item.kind) {
@@ -23,13 +78,16 @@ export function SlotBoard({
   catalog,
   onAdd,
   onRemove,
+  onPortion,
 }: {
   menu: DayMenu
   totals: MenuTotals
   catalog: Catalog
   onAdd: (slot: Slot) => void
   onRemove: (slot: Slot, uid: string) => void
+  onPortion: (slot: Slot, uid: string, portion: number) => void
 }) {
+  const [editing, setEditing] = useState<string | null>(null)
   return (
     <div className="grid gap-4 md:grid-cols-2">
       {SLOTS.map((slot) => (
@@ -44,7 +102,15 @@ export function SlotBoard({
           <ul className="flex flex-wrap gap-2">
             {menu[slot].map((item) => (
               <li key={item.uid} className="flex items-center gap-1 rounded-full bg-cream py-1 pr-1 pl-3 text-sm">
-                {itemName(item, catalog)}
+                <button
+                  type="button"
+                  onClick={() => setEditing(editing === item.uid ? null : item.uid)}
+                  aria-expanded={editing === item.uid}
+                  className="min-h-7"
+                >
+                  {itemName(item, catalog)}
+                  <span className="ml-1 text-ink-soft">{portionLabel(item, catalog)}</span>
+                </button>
                 <button
                   type="button"
                   onClick={() => onRemove(slot, item.uid)}
@@ -65,6 +131,18 @@ export function SlotBoard({
               </button>
             </li>
           </ul>
+          {menu[slot].some((i) => i.uid === editing) && (
+            <div className="mt-3 rounded-2xl border-2 border-cream p-3">
+              {menu[slot]
+                .filter((i) => i.uid === editing)
+                .map((i) => (
+                  <div key={i.uid} className="flex flex-wrap items-center gap-2">
+                    <span className="text-sm font-bold">{itemName(i, catalog)}</span>
+                    <PortionEditor item={i} catalog={catalog} onPortion={(p) => onPortion(slot, i.uid, p)} />
+                  </div>
+                ))}
+            </div>
+          )}
         </section>
       ))}
     </div>
