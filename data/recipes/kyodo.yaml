@@ -1808,7 +1808,7 @@
 
 # 分量が「適量」の春菊は数えていない
 - id: kyodo-34-17-tokyo
-  name: "すき焼き"
+  name: "すき焼き（東京都）"
   kana: "すきやき 東京 東京都"
   category: main
   suggestedSlots: [lunch, dinner]
@@ -1908,7 +1908,7 @@
 
 # 分量が「適量」の水菜は数えていない
 - id: kyodo-34-28-tokyo
-  name: "ちゃんこ鍋"
+  name: "ちゃんこ鍋（東京都）"
   kana: "ちゃんこなべ 東京 東京都"
   category: soup
   suggestedSlots: [breakfast, lunch, dinner]
@@ -1988,7 +1988,7 @@
 
 # 分量が「適量」の【だし汁】かつお節は数えていない
 - id: kyodo-34-5-tokyo
-  name: "おでん"
+  name: "おでん（東京都）"
   kana: "東京 東京都"
   category: main
   suggestedSlots: [lunch, dinner]
@@ -3314,7 +3314,7 @@
     - { foodId: "07142", grams: 1 } # かんきつ ゆず 果皮 生
 
 - id: kyodo-39-17-osaka
-  name: "きつねうどん"
+  name: "きつねうどん（大阪府）"
   kana: "大阪 大阪府"
   category: noodle
   suggestedSlots: [lunch, dinner]
@@ -6017,7 +6017,7 @@
     - { foodId: "17007", grams: 0.5 } # しょうゆ（濃口）
 
 - id: kyodo-46-7-nagasaki
-  name: "皿うどん"
+  name: "皿うどん（長崎県）"
   kana: "さらうどん 長崎 長崎県"
   category: noodle
   suggestedSlots: [lunch, dinner]
@@ -6037,7 +6037,7 @@
     - { foodId: "02034", grams: 9 } # 片栗粉
 
 - id: kyodo-46-8-nagasaki
-  name: "ちゃんぽん"
+  name: "ちゃんぽん（長崎県）"
   kana: "長崎 長崎県"
   category: noodle
   suggestedSlots: [lunch, dinner]
@@ -6090,7 +6090,7 @@
     - { foodId: "17012", grams: 1.5 } # 食塩
 
 - id: kyodo-47-11-okinawa
-  name: "ゴーヤーチャンプルー"
+  name: "ゴーヤーチャンプルー（沖縄県）"
   kana: "沖縄 沖縄県"
   category: main
   suggestedSlots: [lunch, dinner]
@@ -7167,7 +7167,7 @@
     - { foodId: "17012", grams: 1.5 } # 食塩
 
 - id: kyodo-chikin-nanban-miyazaki
-  name: "チキン南蛮"
+  name: "チキン南蛮（宮崎県）"
   kana: "ちきんなんばん 宮崎 宮崎県"
   category: main
   suggestedSlots: [lunch, dinner]
@@ -9012,7 +9012,7 @@
     - { foodId: "17084", grams: 1.7 } # ベーキングパウダー
 
 - id: kyodo-ishikarinabe-hokkaido
-  name: "石狩鍋"
+  name: "石狩鍋（北海道）"
   kana: "いしかりなべ 北海道 北海道"
   category: soup
   suggestedSlots: [breakfast, lunch, dinner]
@@ -9835,7 +9835,7 @@
     - { foodId: "17008", grams: 4.5 } # うすくちしょうゆ
 
 - id: kyodo-katsudon-yama-nashi
-  name: "かつ丼"
+  name: "かつ丼（山梨県）"
   kana: "かつどん 山梨 山梨県"
   category: bowl
   suggestedSlots: [lunch, dinner]
@@ -9850,7 +9850,7 @@
     - { foodId: "01015", grams: 9 } # 薄力粉
 
 - id: kyodo-katuonotataki-kochi
-  name: "かつおのたたき"
+  name: "かつおのたたき（高知県）"
   kana: "高知 高知県"
   category: main
   suggestedSlots: [lunch, dinner]
