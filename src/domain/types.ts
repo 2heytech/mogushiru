@@ -79,6 +79,14 @@ export type Dish = {
   ingredients: Ingredient[]
   nutrients: Nutrients // ビルド時に事前計算
   missingNutrients?: NutrientKey[] // 材料に未測定の成分を含むもの
+  source?: DishSource // 外部のレシピをもとにした料理の出典
+}
+
+// 料理のレシピの出典（郷土料理など）
+export type DishSource = {
+  label: string // 例: 農林水産省「うちの郷土料理」
+  url: string
+  region?: string // 都道府県
 }
 
 // 市販品マスター（Open Food Facts）

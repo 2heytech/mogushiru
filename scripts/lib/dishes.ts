@@ -1,6 +1,6 @@
 // 料理レシピ（YAML）→ 配信用の料理データ（純粋関数）
 import { ingredientsTotals } from '../../src/domain/nutrition'
-import { NUTRIENT_KEYS, SLOTS, type Dish, type DishCategory, type Food, type Ingredient, type Nutrients } from '../../src/domain/types'
+import { NUTRIENT_KEYS, SLOTS, type Dish, type DishCategory, type DishSource, type Food, type Ingredient, type Nutrients } from '../../src/domain/types'
 
 export type RecipeInput = {
   id: string
@@ -9,6 +9,7 @@ export type RecipeInput = {
   category: DishCategory
   suggestedSlots: Dish['suggestedSlots']
   ingredients: Ingredient[]
+  source?: DishSource
 }
 
 const CATEGORIES: DishCategory[] = ['staple', 'main', 'side', 'soup', 'noodle', 'bowl', 'bread', 'snack', 'drink', 'alcohol']
@@ -66,6 +67,7 @@ export function buildDishes(recipes: RecipeInput[], foods: Map<string, Food>, il
       ingredients: r.ingredients,
       nutrients,
       ...(totals.missing.size ? { missingNutrients: [...totals.missing] } : {}),
+      ...(r.source ? { source: r.source } : {}),
     })
   }
   return { dishes, errors, warnings }
