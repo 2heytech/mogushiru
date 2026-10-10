@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import type { Catalog } from '../domain/nutrition'
-import { matches } from '../domain/search'
+import { rankAndFilter } from '../domain/search'
 import type { DishCategory, MenuItem, Slot } from '../domain/types'
 import { DISH_CATEGORY_EMOJI, DISH_CATEGORY_LABEL, PRODUCT_CATEGORY_EMOJI, PRODUCT_CATEGORY_LAST, SLOT_LABEL } from './labels'
 
@@ -21,13 +21,15 @@ const MAX_CARDS = 60
 function buildCards(tab: Tab, catalog: Catalog, slot: Slot, query: string, category: string, showAlcohol: boolean): Card[] {
   switch (tab) {
     case 'dish':
-      return [...catalog.dishes.values()]
-        .filter((d) => showAlcohol || d.category !== 'alcohol')
-        .filter((d) => category === 'all' || d.category === category)
-        .filter((d) => matches(query, d.name, d.kana))
-        // 選んでいる区分に合う料理を先に
-        .sort((a, b) => Number(b.suggestedSlots.includes(slot)) - Number(a.suggestedSlots.includes(slot)))
-        .map((d) => ({
+      return rankAndFilter(
+        [...catalog.dishes.values()]
+          .filter((d) => showAlcohol || d.category !== 'alcohol')
+          .filter((d) => category === 'all' || d.category === category)
+          // 選んでいる区分に合う料理を先に（検索中は一致の度合いが優先）
+          .sort((a, b) => Number(b.suggestedSlots.includes(slot)) - Number(a.suggestedSlots.includes(slot))),
+        query,
+        (d) => [d.name, d.kana],
+      ).map((d) => ({
           key: d.id,
           name: d.name,
           sub: DISH_CATEGORY_LABEL[d.category],
@@ -37,11 +39,13 @@ function buildCards(tab: Tab, catalog: Catalog, slot: Slot, query: string, categ
           item: { kind: 'dish', refId: d.id, portion: 1 },
         }))
     case 'product':
-      return [...catalog.products.values()]
-        .filter((p) => showAlcohol || p.category !== 'alcohol')
-        .filter((p) => (category === 'all' ? !PRODUCT_CATEGORY_LAST.includes(p.category) || query : p.category === category))
-        .filter((p) => matches(query, p.name, p.brand))
-        .map((p) => {
+      return rankAndFilter(
+        [...catalog.products.values()]
+          .filter((p) => showAlcohol || p.category !== 'alcohol')
+          .filter((p) => (category === 'all' ? Boolean(query) || !PRODUCT_CATEGORY_LAST.includes(p.category) : p.category === category)),
+        query,
+        (p) => [p.name, p.brand],
+      ).map((p) => {
           // 1食量が分かれば1食分、分からなければ100g(mL)で追加する
           const grams = p.servingGrams ?? 100
           const per = p.basis === 'serving' ? 1 : grams / 100
@@ -56,9 +60,7 @@ function buildCards(tab: Tab, catalog: Catalog, slot: Slot, query: string, categ
         })
     case 'food':
       if (!query) return []
-      return [...catalog.foods.values()]
-        .filter((f) => matches(query, f.displayName, f.kana, f.name))
-        .map((f) => ({
+      return rankAndFilter([...catalog.foods.values()], query, (f) => [f.displayName, f.kana, f.name]).map((f) => ({
           key: f.id,
           name: f.displayName,
           sub: '100g',
@@ -66,9 +68,7 @@ function buildCards(tab: Tab, catalog: Catalog, slot: Slot, query: string, categ
           item: { kind: 'food', refId: f.id, portion: 100 },
         }))
     case 'myDish':
-      return [...catalog.myDishes.values()]
-        .filter((d) => matches(query, d.name))
-        .map((d) => ({ key: d.id, name: d.name, sub: 'マイ料理', kcal: null, item: { kind: 'myDish', refId: d.id, portion: 1 } }))
+      return rankAndFilter([...catalog.myDishes.values()], query, (d) => [d.name]).map((d) => ({ key: d.id, name: d.name, sub: 'マイ料理', kcal: null, item: { kind: 'myDish', refId: d.id, portion: 1 } }))
   }
 }
 
