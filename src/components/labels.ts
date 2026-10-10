@@ -15,20 +15,6 @@ export const DISH_CATEGORY_LABEL: Record<DishCategory, string> = {
   alcohol: 'お酒',
 }
 
-// イラストがまだない料理のカード用
-export const DISH_CATEGORY_EMOJI: Record<DishCategory, string> = {
-  staple: '🍚',
-  main: '🍖',
-  side: '🥗',
-  soup: '🥣',
-  noodle: '🍜',
-  bowl: '🍛',
-  bread: '🍞',
-  snack: '🍌',
-  drink: '🥛',
-  alcohol: '🍺',
-}
-
 // 市販品カテゴリ（products.json の categories のキー）の表示用
 export const PRODUCT_CATEGORY_EMOJI: Record<string, string> = {
   onigiri: '🍙',

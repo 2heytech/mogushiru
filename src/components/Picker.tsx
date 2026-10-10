@@ -2,7 +2,8 @@ import { useMemo, useState } from 'react'
 import type { Catalog } from '../domain/nutrition'
 import { rankAndFilter } from '../domain/search'
 import type { DishCategory, MenuItem, Slot } from '../domain/types'
-import { DISH_CATEGORY_EMOJI, DISH_CATEGORY_LABEL, PRODUCT_CATEGORY_EMOJI, PRODUCT_CATEGORY_LAST, SLOT_LABEL } from './labels'
+import { dishImage, menuItemImage } from './illustration'
+import { DISH_CATEGORY_LABEL, PRODUCT_CATEGORY_EMOJI, PRODUCT_CATEGORY_LAST, SLOT_LABEL } from './labels'
 
 type Tab = 'dish' | 'product' | 'food' | 'myDish'
 
@@ -34,8 +35,7 @@ function buildCards(tab: Tab, catalog: Catalog, slot: Slot, query: string, categ
           name: d.name,
           sub: DISH_CATEGORY_LABEL[d.category],
           kcal: d.nutrients.energyKcal,
-          image: d.illustration ? `/illustrations/${d.illustration}` : undefined,
-          emoji: DISH_CATEGORY_EMOJI[d.category],
+          image: dishImage(d),
           item: { kind: 'dish', refId: d.id, portion: 1 },
         }))
     case 'product':
@@ -68,7 +68,10 @@ function buildCards(tab: Tab, catalog: Catalog, slot: Slot, query: string, categ
           item: { kind: 'food', refId: f.id, portion: 100 },
         }))
     case 'myDish':
-      return rankAndFilter([...catalog.myDishes.values()], query, (d) => [d.name]).map((d) => ({ key: d.id, name: d.name, sub: 'マイ料理', kcal: null, item: { kind: 'myDish', refId: d.id, portion: 1 } }))
+      return rankAndFilter([...catalog.myDishes.values()], query, (d) => [d.name]).map((d) => {
+        const item = { kind: 'myDish', refId: d.id, portion: 1 } as const
+        return { key: d.id, name: d.name, sub: 'マイ料理', kcal: null, image: menuItemImage({ uid: '', ...item }, catalog), item }
+      })
   }
 }
 
@@ -172,10 +175,10 @@ export function Picker({
                   <button
                     type="button"
                     onClick={() => onPick(c.item)}
-                    className="flex h-full w-full flex-col items-center rounded-2xl bg-white p-3 text-center shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+                    className="group flex h-full w-full flex-col items-center rounded-2xl bg-white p-3 text-center shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
                   >
                     {c.image ? (
-                      <img src={c.image} alt="" className="mb-2 h-20 w-20 object-contain" loading="lazy" />
+                      <img src={c.image} alt="" className="mb-2 h-20 w-20 object-contain transition-transform group-hover:scale-110 group-hover:-rotate-3" loading="lazy" />
                     ) : (
                       <span className="mb-2 grid h-20 w-20 place-items-center rounded-full bg-cream text-3xl" aria-hidden>
                         {c.emoji ?? '🍽️'}
