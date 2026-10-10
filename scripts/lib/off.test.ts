@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { categorize, toProduct } from './off'
+import { categorize, csvRowToOffProduct, isVolume, toProduct } from './off'
 
 // 値は架空
 const base = {
@@ -47,5 +47,53 @@ describe('Open Food Facts の変換', () => {
 
   it('カテゴリが分からなければ other', () => {
     expect(categorize(['en:something'])).toBe('other')
+  })
+
+  it('タグがなければ商品名でカテゴリを判定する', () => {
+    expect(categorize([], '大きなおにぎり 鮭')).toBe('onigiri')
+    expect(categorize(['en:dairies'], 'おにぎり風チーズ')).toBe('dairy')
+  })
+
+  it('日本語名のない商品は採用しない', () => {
+    expect(toProduct({ ...base, product_name: 'Test biscuits' }, '2026-10-10')).toBeNull()
+  })
+
+  it('お酒以外でアルコールの記載がなければ 0、値は丸める', () => {
+    const p = toProduct({ ...base, nutriments: { ...base.nutriments, 'energy-kcal_100g': 122.2222222 } }, '2026-10-10')!
+    expect(p.nutrients.alcohol).toBe(0)
+    expect(p.nutrients.energyKcal).toBe(122.2)
+    const beer = toProduct({ ...base, categories_tags: ['en:beers'] }, '2026-10-10')!
+    expect(beer.nutrients.alcohol).toBeNull()
+  })
+})
+
+describe('一括データ（CSV）の行の変換', () => {
+  it('検索APIと同じ形にして、内容量の表記から mL を判定する', () => {
+    const p = csvRowToOffProduct({
+      code: '0000000000017',
+      product_name: 'テスト飲料',
+      brands: 'テスト社,別名',
+      categories_tags: 'en:beverages,en:teas',
+      quantity: '500ｍｌ',
+      serving_quantity: '',
+      'energy-kcal_100g': '20',
+      proteins_100g: '0',
+      fat_100g: '',
+    })
+    expect(p.categories_tags).toEqual(['en:beverages', 'en:teas'])
+    expect(p.product_quantity_unit).toBe('ml')
+    expect(p.nutriments).toEqual({ 'energy-kcal_100g': '20', 'proteins_100g': '0' })
+    expect(p.serving_quantity).toBeUndefined()
+  })
+
+  it.each([
+    ['500 ml', true],
+    ['1.5L', true],
+    ['350mℓ', true],
+    ['1 lb', false],
+    ['200 g', false],
+    ['', false],
+  ])('%s → 体積 %s', (q, expected) => {
+    expect(isVolume(q)).toBe(expected)
   })
 })
