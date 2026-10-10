@@ -3,6 +3,7 @@ import { knownItemsOnly, menuTotals, type Catalog } from '../domain/nutrition'
 import { SLOTS, type DayMenu } from '../domain/types'
 import type { SavedMenu } from '../store/useAppStore'
 import { confirmDialog } from './confirm'
+import { defaultMenuName } from './menuName'
 
 const itemCount = (menu: DayMenu) => SLOTS.reduce((n, s) => n + menu[s].length, 0)
 
@@ -73,9 +74,7 @@ function Sheet({ title, onClose, children }: { title: string; onClose: () => voi
 
 // 1日の食事に名前を付けて取っておく（日付つきの記録ではなく、よく使う組み合わせのセット）
 export function SaveMenuDialog({ saved, onSave, onClose }: { saved: SavedMenu[]; onSave: (name: string) => void; onClose: () => void }) {
-  const [name, setName] = useState(() => {
-    for (let n = saved.length + 1; ; n++) if (!saved.some((m) => m.name === `1日の食事 ${n}`)) return `1日の食事 ${n}`
-  })
+  const [name, setName] = useState(() => defaultMenuName(saved.map((m) => m.name), new Date()))
   const trimmed = name.trim()
   const overwrite = saved.some((m) => m.name === trimmed)
   // form の submit は埋め込み表示（allow-forms のない sandbox）で止められるため、ボタンと Enter キーで保存する
