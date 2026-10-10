@@ -36,6 +36,13 @@ describe('料理データの生成', () => {
     expect(buildDishes([recipe({})], foods, new Set(['rice.svg', 'rice.png'])).dishes[0].illustration).toBe('rice.png')
   })
 
+  it('1品ずつの絵がなければ料理名からジャンル別の共通の絵を当てる', () => {
+    const udon = recipe({ id: 'x-udon', name: '味噌煮込みうどん', category: 'noodle' })
+    expect(buildDishes([udon], foods, new Set(['genre/udon.svg'])).dishes[0].illustration).toBe('genre/udon.svg')
+    expect(buildDishes([udon], foods, new Set(['genre/udon.svg', 'x-udon.svg'])).dishes[0].illustration).toBe('x-udon.svg')
+    expect(buildDishes([udon], foods, new Set()).dishes[0].illustration).toBe('')
+  })
+
   it('未知の食品番号・重複ID・不正なカテゴリはエラー', () => {
     const { errors } = buildDishes(
       [
