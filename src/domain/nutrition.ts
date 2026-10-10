@@ -29,6 +29,11 @@ export function addScaled(totals: NutrientTotals, nutrients: Nutrients, factor: 
   return totals
 }
 
+export function scaleTotals(totals: NutrientTotals, factor: number): NutrientTotals {
+  for (const k of NUTRIENT_KEYS) totals.values[k] *= factor
+  return totals
+}
+
 export function mergeTotals(into: NutrientTotals, from: NutrientTotals): NutrientTotals {
   for (const k of NUTRIENT_KEYS) into.values[k] += from.values[k]
   for (const k of from.missing) into.missing.add(k)
@@ -58,6 +63,7 @@ export function itemTotals(item: MenuItem, catalog: Catalog): NutrientTotals {
     case 'dish': {
       const dish = catalog.dishes.get(item.refId)
       if (!dish) throw new Error(`未知の料理: ${item.refId}`)
+      if (item.customIngredients) return scaleTotals(ingredientsTotals(item.customIngredients, catalog.foods), item.portion)
       const t = addScaled(emptyTotals(), dish.nutrients, item.portion)
       for (const k of dish.missingNutrients ?? []) t.missing.add(k)
       return t
@@ -65,9 +71,7 @@ export function itemTotals(item: MenuItem, catalog: Catalog): NutrientTotals {
     case 'myDish': {
       const my = catalog.myDishes.get(item.refId)
       if (!my) throw new Error(`未知のマイ料理: ${item.refId}`)
-      const t = ingredientsTotals(my.ingredients, catalog.foods)
-      for (const k of NUTRIENT_KEYS) t.values[k] *= item.portion
-      return t
+      return scaleTotals(ingredientsTotals(my.ingredients, catalog.foods), item.portion)
     }
     case 'product': {
       const p = catalog.products.get(item.refId)

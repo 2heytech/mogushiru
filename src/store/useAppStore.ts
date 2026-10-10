@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
 import { DEFAULT_PROFILE } from '../domain/targets'
-import type { DayMenu, MenuItem, MyDish, Profile, Slot } from '../domain/types'
+import type { DayMenu, Ingredient, MenuItem, MyDish, Profile, Slot } from '../domain/types'
 
 export const emptyMenu = (): DayMenu => ({ breakfast: [], lunch: [], dinner: [], other: [] })
 
@@ -16,10 +16,15 @@ type State = {
   setProfile: (p: Profile) => void
   addItem: (slot: Slot, item: Omit<MenuItem, 'uid'>) => void
   updatePortion: (slot: Slot, uid: string, portion: number) => void
+  // 献立の料理をアレンジした材料で置き換える（null で元のレシピに戻す）
+  customizeItem: (slot: Slot, uid: string, ingredients: Ingredient[] | null) => void
+  // 献立の料理をマイ料理に置き換える
+  replaceWithMyDish: (slot: Slot, uid: string, myDishId: string) => void
   removeItem: (slot: Slot, uid: string) => void
   moveItem: (from: Slot, to: Slot, uid: string) => void
   clearMenu: () => void
   saveMyDish: (d: Omit<MyDish, 'id' | 'createdAt'>) => MyDish
+  updateMyDish: (id: string, patch: Partial<Pick<MyDish, 'name' | 'ingredients'>>) => void
   deleteMyDish: (id: string) => void
   saveMenu: (name: string) => void
   loadMenu: (id: string) => void
@@ -61,6 +66,24 @@ export const useAppStore = create<State>()(
         set((s) => ({ menu: { ...s.menu, [slot]: [...s.menu[slot], { ...item, uid: uid() }] } })),
       updatePortion: (slot, id, portion) =>
         set((s) => ({ menu: { ...s.menu, [slot]: s.menu[slot].map((i) => (i.uid === id ? { ...i, portion } : i)) } })),
+      customizeItem: (slot, id, ingredients) =>
+        set((s) => ({
+          menu: {
+            ...s.menu,
+            [slot]: s.menu[slot].map((i) => {
+              if (i.uid !== id) return i
+              const { customIngredients: _, ...rest } = i
+              return ingredients ? { ...rest, customIngredients: ingredients } : rest
+            }),
+          },
+        })),
+      replaceWithMyDish: (slot, id, myDishId) =>
+        set((s) => ({
+          menu: {
+            ...s.menu,
+            [slot]: s.menu[slot].map((i) => (i.uid === id ? { uid: i.uid, kind: 'myDish', refId: myDishId, portion: i.portion } : i)),
+          },
+        })),
       removeItem: (slot, id) => set((s) => ({ menu: { ...s.menu, [slot]: s.menu[slot].filter((i) => i.uid !== id) } })),
       moveItem: (from, to, id) =>
         set((s) => {
@@ -74,6 +97,7 @@ export const useAppStore = create<State>()(
         set((s) => ({ myDishes: [...s.myDishes, dish] }))
         return dish
       },
+      updateMyDish: (id, patch) => set((s) => ({ myDishes: s.myDishes.map((d) => (d.id === id ? { ...d, ...patch } : d)) })),
       deleteMyDish: (id) => set((s) => ({ myDishes: s.myDishes.filter((d) => d.id !== id) })),
       saveMenu: (name) =>
         set((s) => ({

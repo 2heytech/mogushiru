@@ -104,6 +104,8 @@ export type MenuItem = {
   kind: 'dish' | 'myDish' | 'product' | 'food'
   refId: string
   portion: number
+  // 料理を献立の中だけでアレンジした材料（kind: 'dish' のとき）
+  customIngredients?: Ingredient[]
 }
 
 export type DayMenu = Record<Slot, MenuItem[]>

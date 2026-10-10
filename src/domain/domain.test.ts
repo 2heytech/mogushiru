@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { computeAlerts, balanceMood } from './alerts'
-import { ingredientsTotals, menuTotals, pfcRatio, sodiumMgToSaltG, type Catalog } from './nutrition'
+import { swapIngredient } from './customize'
+import { ingredientsTotals, itemTotals, menuTotals, pfcRatio, sodiumMgToSaltG, type Catalog } from './nutrition'
 import { computeTargets, estimatedEnergy } from './targets'
 import { NUTRIENT_KEYS, type DayMenu, type Food, type Nutrients } from './types'
 
@@ -65,6 +66,23 @@ describe('栄養計算', () => {
     expect(t.bySlot.other.values.energyKcal).toBeCloseTo(140 + 50)
     expect(t.bySlot.other.values.alcohol).toBeCloseTo(14)
     expect(t.day.values.energyKcal).toBeCloseTo(360 + 100 + 750 + 190)
+  })
+
+  it('献立の中でアレンジした料理は、アレンジ後の材料から計算する', () => {
+    const t = itemTotals(
+      { uid: '1', kind: 'dish', refId: 'd1', portion: 2, customIngredients: [{ foodId: '00001', grams: 100 }] },
+      catalog,
+    )
+    expect(t.values.energyKcal).toBeCloseTo(200)
+    expect(t.values.salt).toBeCloseTo(2)
+  })
+
+  it('材料の入れ替えは候補の中だけで、元の食材は候補に回る', () => {
+    const ing = { foodId: 'a', grams: 50, alternatives: ['b', 'c'] }
+    const swapped = swapIngredient(ing, 'b')
+    expect(swapped).toEqual({ foodId: 'b', grams: 50, alternatives: ['a', 'c'] })
+    expect(swapIngredient(swapped, 'a')).toEqual({ foodId: 'a', grams: 50, alternatives: ['b', 'c'] })
+    expect(swapIngredient(ing, 'z')).toBe(ing)
   })
 
   it('ナトリウムから食塩相当量に換算する', () => {
