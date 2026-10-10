@@ -1,6 +1,7 @@
 import { balanceMood, computeAlerts, type Alert } from '../domain/alerts'
 import { pfcRatio, type MenuTotals } from '../domain/nutrition'
 import type { Range, Targets } from '../domain/targets'
+import { SLOTS } from '../domain/types'
 import { SLOT_LABEL } from './labels'
 import { Mascot } from './Mascot'
 
@@ -38,6 +39,30 @@ function EnergyGauge({ value, target }: { value: number; target: number }) {
   )
 }
 
+const SLOT_SHADE = ['bg-[#ffd8a8]', 'bg-[#ffb07c]', 'bg-coral', 'bg-[#d9c2ad]']
+
+// 1日のカロリーを朝・昼・晩・その他がどれだけ占めているか
+function SlotShare({ totals }: { totals: MenuTotals }) {
+  const day = totals.day.values.energyKcal
+  if (day <= 0) return null
+  return (
+    <div>
+      <p className="mb-1 text-sm text-ink-soft">カロリーの配分</p>
+      <div className="flex h-6 overflow-hidden rounded-full bg-white text-[11px] font-bold">
+        {SLOTS.map((slot, i) => {
+          const share = (totals.bySlot[slot].values.energyKcal / day) * 100
+          if (share <= 0) return null
+          return (
+            <div key={slot} className={`grid place-items-center overflow-hidden whitespace-nowrap ${SLOT_SHADE[i]}`} style={{ width: `${share}%` }} title={`${SLOT_LABEL[slot]} ${Math.round(share)}%`}>
+              {share >= 12 && `${SLOT_LABEL[slot]} ${Math.round(share)}%`}
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 function PfcBar({ label, color, ratio, range, grams }: { label: string; color: string; ratio: number | null; range: Range; grams: number }) {
   const inRange = ratio !== null && ratio >= range.lo && ratio <= range.hi
   return (
@@ -64,6 +89,7 @@ export function SummaryPanel({ totals, targets }: { totals: MenuTotals; targets:
     <section className="space-y-4 rounded-[var(--radius-card)] bg-[#fff1df] p-5 shadow-sm">
       <Mascot mood={mood} message={v.energyKcal === 0 ? "料理をえらんで、1日の献立をつくってみよう！" : undefined} />
       <EnergyGauge value={v.energyKcal} target={targets.energyKcal} />
+      <SlotShare totals={totals} />
       <div className="space-y-2">
         <PfcBar label="たんぱく質" color="var(--color-protein)" ratio={ratio?.p ?? null} range={targets.pfcRatio.p} grams={v.protein} />
         <PfcBar label="脂質" color="var(--color-fat)" ratio={ratio?.f ?? null} range={targets.pfcRatio.f} grams={v.fat} />

@@ -2,7 +2,9 @@ import { useState } from 'react'
 import type { Catalog, MenuTotals } from '../domain/nutrition'
 import { SLOTS, type DayMenu, type MenuItem, type Slot } from '../domain/types'
 import { menuItemImage } from './illustration'
+import type { Targets } from '../domain/targets'
 import { SLOT_LABEL } from './labels'
+import { SlotBalanceView } from './SlotBalanceView'
 
 const SLOT_ICON: Record<Slot, string> = { breakfast: '🌅', lunch: '☀️', dinner: '🌙', other: '🍪' }
 
@@ -78,6 +80,7 @@ function itemName(item: MenuItem, catalog: Catalog): string {
 export function SlotBoard({
   menu,
   totals,
+  targets,
   catalog,
   onAdd,
   onRemove,
@@ -86,6 +89,7 @@ export function SlotBoard({
 }: {
   menu: DayMenu
   totals: MenuTotals
+  targets: Targets
   catalog: Catalog
   onAdd: (slot: Slot) => void
   onRemove: (slot: Slot, uid: string) => void
@@ -137,6 +141,7 @@ export function SlotBoard({
               </button>
             </li>
           </ul>
+          <SlotBalanceView totals={totals.bySlot[slot]} slot={slot} targets={targets} />
           {menu[slot].some((i) => i.uid === editing) && (
             <div className="mt-3 rounded-2xl border-2 border-cream p-3">
               {menu[slot]
