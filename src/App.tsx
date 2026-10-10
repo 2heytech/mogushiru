@@ -3,6 +3,8 @@ import { Customizer } from './components/Customizer'
 import { ItemEditor } from './components/ItemEditor'
 import { PortionEditor } from './components/PortionEditor'
 import { ProductForm } from './components/ProductForm'
+import { SupplementForm } from './components/SupplementForm'
+import { isSupplement } from './domain/supplement'
 import { Picker } from './components/Picker'
 import { ProfileDialog } from './components/ProfileDialog'
 import { SlotBoard } from './components/SlotBoard'
@@ -114,7 +116,7 @@ export default function App() {
   const [pickerSlot, setPickerSlot] = useState<Slot | null>(null)
   const [editing, setEditing] = useState<{ slot: Slot; uid: string } | null>(null)
   // 市販品の登録（slot があれば登録後その区分に追加）・編集
-  const [productForm, setProductForm] = useState<{ jan?: string; slot?: Slot } | null>(null)
+  const [productForm, setProductForm] = useState<{ jan?: string; slot?: Slot; supplement?: boolean } | null>(null)
   const targets = useMemo(() => computeTargets(profile), [profile])
   const catalog = catalogState.status === 'ready' ? withMyData(catalogState.catalog, myDishes, myProducts) : null
   const totals = useMemo(() => (catalog ? menuTotals(menu, catalog) : null), [catalog, menu])
@@ -170,7 +172,7 @@ export default function App() {
         />
       )
     }
-    const isMine = item.kind === 'product' && item.refId.startsWith(MY_PRODUCT_PREFIX)
+    const isMine = (item.kind === 'product' || item.kind === 'supplement') && item.refId.startsWith(MY_PRODUCT_PREFIX)
     return (
       <ItemEditor
         item={item}
@@ -188,18 +190,22 @@ export default function App() {
     )
   }
 
-  function renderProductForm({ jan, slot }: { jan?: string; slot?: Slot }) {
+  function renderProductForm({ jan, slot, supplement }: { jan?: string; slot?: Slot; supplement?: boolean }) {
     const initial = jan ? myProducts.find((p) => p.jan === jan) : undefined
     const close = () => setProductForm(null)
+    const Form = supplement || isSupplement(initial) ? SupplementForm : ProductForm
     return (
-      <ProductForm
+      <Form
         initial={initial}
         onSave={(input) => {
           if (initial) updateMyProduct(initial.jan, input)
           else {
             const p = saveMyProduct(input)
             if (slot) {
-              addItem(slot, { kind: 'product', refId: p.jan, portion: p.basis === 'serving' ? 1 : (p.servingGrams ?? 100) })
+              addItem(
+                slot,
+                isSupplement(p) ? { kind: 'supplement', refId: p.jan, portion: 1 } : { kind: 'product', refId: p.jan, portion: p.basis === 'serving' ? 1 : (p.servingGrams ?? 100) },
+              )
               setPickerSlot(null)
             }
           }
@@ -286,6 +292,7 @@ export default function App() {
           favoriteProductIds={favoriteProductIds}
           onToggleFavorite={toggleFavoriteProduct}
           onRegisterProduct={() => setProductForm({ slot: pickerSlot })}
+          onRegisterSupplement={() => setProductForm({ slot: pickerSlot, supplement: true })}
           // 選んでも閉じずに続けて選べるようにする（閉じるのは「できた」か×）
           onPick={(item) => addItem(pickerSlot, item)}
           onUnpick={(uid) => removeItem(pickerSlot, uid)}

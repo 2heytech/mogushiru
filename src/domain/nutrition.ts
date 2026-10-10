@@ -79,6 +79,11 @@ export function itemTotals(item: MenuItem, catalog: Catalog): NutrientTotals {
       const factor = p.basis === 'serving' ? item.portion : item.portion / 100
       return addScaled(emptyTotals(), p.nutrients, factor)
     }
+    case 'supplement': {
+      const p = catalog.products.get(item.refId)
+      if (!p) throw new Error(`未知のサプリ: ${item.refId}`)
+      return addScaled(emptyTotals(), p.nutrients, item.portion)
+    }
     case 'food': {
       const f = catalog.foods.get(item.refId)
       if (!f) throw new Error(`未知の食品: ${item.refId}`)
@@ -95,7 +100,13 @@ export type MenuTotals = {
 // データの更新でなくなった料理・市販品を外す（保存した1日の食事を呼び出すときに使う）
 export function knownItemsOnly(menu: DayMenu, catalog: Catalog): DayMenu {
   const known = (i: MenuItem) =>
-    i.kind === 'dish' ? catalog.dishes.has(i.refId) : i.kind === 'myDish' ? catalog.myDishes.has(i.refId) : catalog.products.has(i.refId)
+    i.kind === 'dish'
+      ? catalog.dishes.has(i.refId)
+      : i.kind === 'myDish'
+        ? catalog.myDishes.has(i.refId)
+        : i.kind === 'food'
+          ? catalog.foods.has(i.refId)
+          : catalog.products.has(i.refId)
   return Object.fromEntries(Object.entries(menu).map(([slot, items]) => [slot, items.filter(known)])) as DayMenu
 }
 

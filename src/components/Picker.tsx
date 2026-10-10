@@ -2,12 +2,13 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Catalog } from '../domain/nutrition'
 import { FOOD_PORTION, isPopular, NOT_POPULAR, popularRank } from '../domain/popular'
 import { rankAcross, rankAndFilter } from '../domain/search'
-import type { DishCategory, MenuItem, Slot } from '../domain/types'
+import { isSupplement, SUPPLEMENT_MAIN_KEYS } from '../domain/supplement'
+import type { DishCategory, MenuItem, Product, Slot } from '../domain/types'
 import { MY_PRODUCT_PREFIX } from '../store/useAppStore'
 import { dishImage, menuItemImage } from './illustration'
-import { DISH_CATEGORY_LABEL, FOOD_GROUP_EMOJI, PRODUCT_CATEGORY_EMOJI, PRODUCT_CATEGORY_LAST, SLOT_LABEL } from './labels'
+import { DISH_CATEGORY_LABEL, FOOD_GROUP_EMOJI, PRODUCT_CATEGORY_EMOJI, PRODUCT_CATEGORY_LAST, shortNutrientLabel, SLOT_LABEL } from './labels'
 
-type Kind = 'dish' | 'product' | 'food' | 'myDish'
+type Kind = 'dish' | 'product' | 'food' | 'myDish' | 'supplement'
 type Tab = 'all' | Kind
 
 const TABS: { id: Tab; label: string }[] = [
@@ -16,16 +17,18 @@ const TABS: { id: Tab; label: string }[] = [
   { id: 'product', label: '市販品' },
   { id: 'food', label: '食材' },
   { id: 'myDish', label: 'お気に入り' },
+  { id: 'supplement', label: 'サプリ' },
 ]
 
 // 横断検索での種類の並び（料理を優先。市販品は数が多いので食材の後）
-const KIND_ORDER: Kind[] = ['myDish', 'dish', 'food', 'product']
+const KIND_ORDER: Kind[] = ['myDish', 'dish', 'food', 'product', 'supplement']
 
 const KIND_BADGE: Record<Kind, { label: string; className: string }> = {
   dish: { label: '料理', className: 'bg-coral text-white' },
   myDish: { label: 'お気に入り', className: 'bg-coral-dark text-white' },
   product: { label: '市販品', className: 'bg-fat/70 text-ink' },
   food: { label: '食材', className: 'bg-carb/70 text-ink' },
+  supplement: { label: 'サプリ', className: 'bg-protein/70 text-ink' },
 }
 
 type Card = { key: string; kind: Kind; name: string; sub: string; kcal: number | null; image?: string; emoji?: string; item: Omit<MenuItem, 'uid'> }
@@ -42,6 +45,7 @@ const PLACEHOLDER: Record<Tab, string> = {
   product: '商品名・メーカーでさがす',
   food: '食材名で検索（例：たまご）',
   myDish: 'お気に入りをさがす',
+  supplement: '登録したサプリをさがす',
 }
 
 type Filter = { catalog: Catalog; slot: Slot; query: string; category: string; showAlcohol: boolean; favorites: Set<string> }
@@ -75,6 +79,7 @@ function entries(kind: Kind, { catalog, slot, query, category, showAlcohol, favo
         }))
     case 'product':
       return [...catalog.products.values()]
+        .filter((p) => !isSupplement(p))
         .filter((p) => showAlcohol || p.category !== 'alcohol')
         .filter((p) =>
           category === 'favorite'
@@ -122,6 +127,19 @@ function entries(kind: Kind, { catalog, slot, query, category, showAlcohol, favo
             },
           }
         })
+    case 'supplement':
+      return [...catalog.products.values()].filter(isSupplement).map((p) => ({
+        fields: [p.name, p.brand],
+        card: {
+          key: `supplement:${p.jan}`,
+          kind,
+          name: p.name,
+          sub: supplementSub(p),
+          kcal: null,
+          emoji: '💊',
+          item: { kind: 'supplement', refId: p.jan, portion: 1 },
+        },
+      }))
     case 'myDish':
       return [...catalog.myDishes.values()].map((d) => {
         const item = { kind: 'myDish', refId: d.id, portion: 1 } as const
@@ -131,6 +149,13 @@ function entries(kind: Kind, { catalog, slot, query, category, showAlcohol, favo
         }
       })
   }
+}
+
+// サプリのカードの説明：1回分の量と、入っている主な成分
+function supplementSub(p: Product): string {
+  const has = SUPPLEMENT_MAIN_KEYS.filter((k) => (p.nutrients[k] ?? 0) > 0).map((k) => shortNutrientLabel(k))
+  const parts = has.length > 3 ? [...has.slice(0, 3), 'など'] : has
+  return [p.servingLabel, parts.join('・')].filter(Boolean).join('・')
 }
 
 // お気に入りタブ：アレンジして保存した料理と、お気に入りの市販品（登録したものを含む）
@@ -160,6 +185,7 @@ export function Picker({
   favoriteProductIds,
   onToggleFavorite,
   onRegisterProduct,
+  onRegisterSupplement,
   onPick,
   onUnpick,
   onClose,
@@ -172,6 +198,8 @@ export function Picker({
   onToggleFavorite: (jan: string) => void
   // データにない市販品を栄養成分表示から登録する
   onRegisterProduct: () => void
+  // サプリをラベルの値から登録する
+  onRegisterSupplement: () => void
   // 追加して、献立に入った項目の uid を返す
   onPick: (item: Omit<MenuItem, 'uid'>) => string
   // この画面で追加したものを外す（もう一度押したとき）
@@ -191,7 +219,7 @@ export function Picker({
     if (!query) return null
     const filter = { catalog, slot, query, category: 'all', showAlcohol, favorites }
     const all = buildCards('all', filter)
-    const n: Record<Tab, number> = { all: all.length, dish: 0, product: 0, food: 0, myDish: 0 }
+    const n: Record<Tab, number> = { all: all.length, dish: 0, product: 0, food: 0, myDish: 0, supplement: 0 }
     for (const c of all) n[c.kind]++
     n.myDish = buildCards('myDish', filter).length
     return n
@@ -303,6 +331,15 @@ export function Picker({
             ＋ リストにない市販品を登録する
           </button>
         )}
+        {tab === 'supplement' && (
+          <button
+            type="button"
+            onClick={onRegisterSupplement}
+            className="mb-3 min-h-10 w-full shrink-0 rounded-full border-2 border-dashed border-coral/60 px-4 text-sm font-bold text-coral hover:bg-coral/10"
+          >
+            ＋ サプリを登録する
+          </button>
+        )}
         <div ref={listRef} className="-mx-1 min-h-0 flex-1 overflow-y-auto px-1">
           {cards.length === 0 ? (
             <p className="py-10 text-center text-sm text-ink-soft">
@@ -310,7 +347,9 @@ export function Picker({
                 ? '食材名を入力してください'
                 : tab === 'myDish' && !query
                   ? 'まだお気に入りはありません。料理の材料をアレンジして保存するか、市販品に☆を付けると、ここに並びます'
-                  : '見つかりませんでした'}
+                  : tab === 'supplement' && !query
+                    ? 'まだサプリはありません。ふだん飲んでいるサプリを、ラベルの成分表示を見て登録すると、ここに並びます'
+                    : '見つかりませんでした'}
             </p>
           ) : (
             <>
