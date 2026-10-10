@@ -22,12 +22,33 @@ export const COMPONENT_IDS: Partial<Record<NutrientKey, string[]>> = {
   vitaminC: ['VITC'],
 }
 
+// Excel のセル値を文字列にする。食品名は書式つき文字列（richText）、計算セルは result を持つ
+export function cellText(input: unknown): string {
+  if (input === null || input === undefined) return ''
+  if (typeof input === 'object') {
+    const o = input as { richText?: { text: string }[]; result?: unknown; text?: unknown }
+    if (Array.isArray(o.richText)) return o.richText.map((t) => t.text).join('')
+    if ('result' in o) return cellText(o.result)
+    if (typeof o.text === 'string') return o.text
+  }
+  return String(input)
+}
+
+// 食品群（食品番号の上2桁）
+export const FOOD_GROUPS: Record<string, string> = {
+  '01': '穀類', '02': 'いも及びでん粉類', '03': '砂糖及び甘味類', '04': '豆類', '05': '種実類',
+  '06': '野菜類', '07': '果実類', '08': 'きのこ類', '09': '藻類', '10': '魚介類', '11': '肉類',
+  '12': '卵類', '13': '乳類', '14': '油脂類', '15': '菓子類', '16': 'し好飲料類',
+  '17': '調味料及び香辛料類', '18': '調理済み流通食品類',
+}
+
 export type ParsedCell = { value: number | null; trace: boolean; estimated: boolean; raw: string }
 
-// 成分値の表記：数値、Tr（微量）、(数値)・(Tr)（推定値）、-（未測定）、*（未算出）、空欄
+// 成分値の表記：数値、Tr（微量）、(数値)・(Tr)（推定値）、-（未測定）、*（未算出）、空欄、末尾の†（注記）
 export function parseCell(input: unknown): ParsedCell {
-  const raw = input === null || input === undefined ? '' : String(input).trim()
-  let s = raw
+  const raw = cellText(input).trim()
+  // 値に付く注記記号（† など）は数値の読み取りから外す。原表記は raw に残る
+  let s = raw.replace(/[†‡＊]+$/u, '').trim()
   let estimated = false
   if (/^\(.*\)$/.test(s)) {
     estimated = true
@@ -50,9 +71,9 @@ export type ColumnMap = {
 
 // rows: シートを二次元配列にしたもの
 export function findColumns(rows: unknown[][]): ColumnMap {
-  const headerRow = rows.findIndex((r) => r.some((c) => String(c ?? '').trim() === 'ENERC_KCAL'))
+  const headerRow = rows.findIndex((r) => r.some((c) => cellText(c).trim() === 'ENERC_KCAL'))
   if (headerRow < 0) throw new Error('成分識別子（ENERC_KCAL）の行が見つかりません')
-  const ids = rows[headerRow].map((c) => String(c ?? '').trim())
+  const ids = rows[headerRow].map((c) => cellText(c).trim())
   const nutrients: Partial<Record<NutrientKey, number>> = {}
   for (const [key, candidates] of Object.entries(COMPONENT_IDS) as [NutrientKey, string[]][]) {
     for (const id of candidates) {
@@ -66,7 +87,7 @@ export function findColumns(rows: unknown[][]): ColumnMap {
   // 食品番号・食品名・食品群は見出しの文字で探す（識別子行より上の行も含める）
   const findLabel = (label: string): number => {
     for (let r = 0; r <= headerRow; r++) {
-      const idx = rows[r].findIndex((c) => String(c ?? '').replace(/\s/g, '') === label)
+      const idx = rows[r].findIndex((c) => cellText(c).replace(/\s/g, '') === label)
       if (idx >= 0) return idx
     }
     throw new Error(`見出し「${label}」が見つかりません`)
@@ -85,7 +106,7 @@ export type MextFood = {
 }
 
 export function rowToFood(row: unknown[], cols: ColumnMap): MextFood | null {
-  const idRaw = String(row[cols.foodId] ?? '').trim()
+  const idRaw = cellText(row[cols.foodId]).trim()
   if (!/^\d{1,5}$/.test(idRaw)) return null
   const per100g = {} as Nutrients
   const traceFlags: NutrientKey[] = []
@@ -99,14 +120,17 @@ export function rowToFood(row: unknown[], cols: ColumnMap): MextFood | null {
     }
     const cell = parseCell(row[idx])
     per100g[key] = cell.value
+    // アルコールは含まない食品も「-」で載っている（飲料・調味料・菓子など一部の食品だけに数値がある）。
+    // そのため「-」を 0 として扱い、欠損表示が全料理に出るのを避ける
+    if (key === 'alcohol' && cell.raw === '-') per100g[key] = 0
     raw[key] = cell.raw
     if (cell.trace) traceFlags.push(key)
     if (cell.estimated) estimatedFlags.push(key)
   }
   return {
     id: idRaw.padStart(5, '0'),
-    name: String(row[cols.name] ?? '').trim(),
-    group: String(row[cols.group] ?? '').trim(),
+    name: cellText(row[cols.name]).trim(),
+    group: cellText(row[cols.group]).trim(),
     per100g,
     traceFlags,
     estimatedFlags,
