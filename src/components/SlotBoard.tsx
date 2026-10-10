@@ -3,12 +3,10 @@ import type { Catalog, MenuTotals } from '../domain/nutrition'
 import { SLOTS, type DayMenu, type MenuItem, type Slot } from '../domain/types'
 import { menuItemImage } from './illustration'
 import type { Targets } from '../domain/targets'
-import { MOOD_LABEL, SLOT_LABEL } from './labels'
+import { SLOT_LABEL } from './labels'
 import { SlotBalanceView } from './SlotBalanceView'
 import { computeAlerts } from '../domain/alerts'
-import { bowlMood } from '../domain/mascotMood'
-import { BowlMogu, SlotIcon } from './Mascot'
-
+import { SlotIcon } from './Mascot'
 
 const SERVING_STEPS = [0.5, 1, 1.5, 2]
 
@@ -112,15 +110,7 @@ export function SlotBoard({
                 {slot !== 'other' && 'ごはん'}
               </span>
             </h2>
-            <div className="flex items-center gap-1">
-              <span className="text-sm text-ink-soft tabular-nums">{Math.round(totals.bySlot[slot].values.energyKcal)} kcal</span>
-              <BowlMogu
-                slot={slot}
-                mood={bowlMood(totals.bySlot[slot], slot, targets, alerts)}
-                className={`h-11 w-11 shrink-0 transition-opacity ${menu[slot].length === 0 ? 'opacity-60' : ''}`}
-                label={`モグ（${MOOD_LABEL[bowlMood(totals.bySlot[slot], slot, targets, alerts)]}）`}
-              />
-            </div>
+            <span className="text-sm text-ink-soft tabular-nums">{Math.round(totals.bySlot[slot].values.energyKcal)} kcal</span>
           </header>
           <ul className="flex flex-wrap gap-2">
             {menu[slot].map((item) => (
@@ -155,7 +145,7 @@ export function SlotBoard({
               </button>
             </li>
           </ul>
-          <SlotBalanceView totals={totals.bySlot[slot]} slot={slot} targets={targets} />
+          <SlotBalanceView totals={totals.bySlot[slot]} slot={slot} targets={targets} alerts={alerts} />
           {menu[slot].some((i) => i.uid === editing) && (
             <div className="mt-3 rounded-2xl border-2 border-cream p-3">
               {menu[slot]
