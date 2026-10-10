@@ -289,6 +289,7 @@ export default function App() {
           onRegisterProduct={() => setProductForm({ slot: pickerSlot })}
           // 選んでも閉じずに続けて選べるようにする（閉じるのは「できた」か×）
           onPick={(item) => addItem(pickerSlot, item)}
+          onUnpick={(uid) => removeItem(pickerSlot, uid)}
           onClose={() => setPickerSlot(null)}
         />
       )}
