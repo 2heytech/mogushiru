@@ -10,7 +10,7 @@ export const RANKING_METRICS: { key: RankingMetric; label: string; hint: string 
   { key: 'serving', label: '1回の量で', hint: 'ふだん1回に食べる量でくらべます。乾物や調味料のように一度にたくさん食べないものは下がります' },
   { key: 'per100g', label: '100gあたり', hint: '成分表の100gあたりの量でくらべます' },
   { key: 'per100kcal', label: '100kcalあたり', hint: 'カロリーをとりすぎずにとれる食材が上に来ます（100gあたり10kcal未満の食材は除きます）' },
-  { key: 'per100yen', label: '100円あたり', hint: '店頭価格で、100円分に含まれる量でくらべます' },
+  { key: 'per100yen', label: '100円あたり', hint: '店頭価格（全国の市の2025年平均）で、100円分に含まれる量でくらべます。価格が分かる食材だけ並びます（調味料は除きます）' },
 ]
 
 export type RankingNutrient = { key: NutrientKey; label: string; unit: string; caution?: boolean }
@@ -71,6 +71,7 @@ export type RankingRow = {
 }
 
 export const MIN_KCAL_FOR_DENSITY = 10
+const SEASONING_GROUP = '17'
 
 export type RankingQuery = {
   nutrient: NutrientKey
@@ -93,6 +94,8 @@ export function metricValue(food: Food, q: RankingQuery): number | null {
       return (v / kcal) * 100
     }
     case 'per100yen': {
+      // 調味料は一度にたくさん使わないので、安くても「とりやすい」とは言えない
+      if (food.group === SEASONING_GROUP) return null
       const price = q.prices?.get(food.id)
       if (!price || price.yenPer100g <= 0) return null
       return (v / price.yenPer100g) * 100
