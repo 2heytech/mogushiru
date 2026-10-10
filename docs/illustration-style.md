@@ -93,6 +93,48 @@ people, hands, cluttered background, dark colors
 | `curry-rice` | カレーライス | Japanese curry rice on a plate |
 | `gyudon` | 牛丼 | a beef bowl (gyudon) with sliced beef and onion over rice |
 | `oyakodon` | 親子丼 | oyakodon, chicken and soft egg over rice in a bowl |
+| `shumai` | しゅうまい | four steamed shumai dumplings on a small plate |
+| `subuta` | 酢豚 | sweet and sour pork with bell peppers, onion and pineapple on a plate |
+| `happosai` | 八宝菜 | happosai, stir-fried napa cabbage, shrimp, squid, pork and quail eggs in thick sauce on a plate |
+| `aji-nanban` | アジの南蛮漬け | fried horse mackerel marinated in sweet vinegar with sliced onion and carrot in a shallow dish |
+| `croquette` | コロッケ | two golden potato croquettes with shredded cabbage |
+| `cream-stew` | クリームシチュー | a bowl of Japanese white cream stew with chicken, potato, carrot and broccoli |
+| `beef-stew` | ビーフシチュー | a bowl of brown beef stew with potato and carrot |
+| `tofu-hamburg` | 豆腐ハンバーグ | a tofu hamburg steak with grated daikon and soy-based sauce |
+| `ebi-fry` | えびフライ | three fried breaded shrimp with a lemon wedge and shredded cabbage |
+| `menchi` | メンチカツ | a breaded fried minced meat cutlet (menchi katsu) cut in half |
+| `gratin` | えびグラタン | shrimp macaroni gratin with golden cheese crust in an oval baking dish |
+| `tonkatsu` | とんかつ | sliced pork cutlet (tonkatsu) with tonkatsu sauce and shredded cabbage |
+| `grilled-mackerel` | さばの塩焼き | a grilled salted mackerel fillet on a small rectangular plate |
+| `sashimi` | まぐろの刺身 | five slices of red tuna sashimi with wasabi and shiso leaf |
+| `boiled-egg` | ゆで卵 | a boiled egg cut in half showing the yellow yolk |
+| `okonomiyaki` | お好み焼き | okonomiyaki pancake with brown sauce, aonori and bonito flakes |
+| `harumaki` | 春巻き | two crispy fried spring rolls (harumaki) |
+| `shiraae` | 青菜の白和え | shira-ae, spinach and carrot dressed with mashed tofu in a small bowl |
+| `goma-ae` | いんげんのごま和え | green beans dressed with sesame sauce in a small bowl |
+| `namasu` | 紅白なます | kohaku namasu, thin strips of daikon and carrot in sweet vinegar in a small bowl |
+| `unohana` | 卯の花 | unohana, simmered okara with carrot and green onion in a small bowl |
+| `chikuzenni` | 筑前煮 | chikuzen-ni, simmered chicken, lotus root, carrot, burdock and taro in a bowl |
+| `namul` | もやしのナムル | bean sprout namul with sesame in a small dish |
+| `pumpkin-soup` | かぼちゃのスープ | a cup of creamy pumpkin soup |
+| `corn-soup` | コーンスープ | a cup of creamy corn potage soup |
+| `chimaki` | 中華ちまき | a Chinese sticky rice dumpling (zongzi) partly unwrapped from bamboo leaf |
+| `pilaf` | えびピラフ | shrimp pilaf with peas, corn and carrot on a plate |
+| `onigiri-ume` | 梅おにぎり | a triangle rice ball with nori seaweed and a red umeboshi plum on top |
+| `fried-rice` | チャーハン | a dome of Chinese fried rice with egg and green onion on a plate |
+| `yakisoba` | ソース焼きそば | sauce yakisoba noodles with pork and cabbage, topped with aonori |
+| `roll-bread` | ロールパン（2個） | two soft butter rolls |
+| `croissant` | クロワッサン | a croissant |
+| `mikan` | みかん | a mandarin orange (mikan) with a leaf |
+| `apple` | りんご | half an apple cut into wedges |
+| `shortcake` | いちごのショートケーキ | a slice of strawberry shortcake |
+| `pudding` | プリン | a custard pudding with caramel sauce |
+| `daifuku` | 大福 | a white daifuku mochi with red bean paste visible inside |
+| `potato-chips` | ポテトチップス（1袋） | a pile of potato chips in a small bowl (no package, no logo) |
+| `chocolate` | ミルクチョコレート（1/2枚） | a few pieces of a milk chocolate bar (no wrapper, no logo) |
+| `ice-cream` | アイスクリーム | a cup of vanilla ice cream with a small wooden spoon |
+| `orange-juice` | オレンジジュース | a glass of orange juice |
+| `cola` | コーラ（350mL） | a glass of cola with ice (no can, no logo) |
 
 ## マスコット「モグ」
 
