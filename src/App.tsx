@@ -1,18 +1,46 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Customizer } from './components/Customizer'
 import { Picker } from './components/Picker'
 import { ProfileDialog } from './components/ProfileDialog'
 import { SlotBoard } from './components/SlotBoard'
+import { RankingView } from './components/RankingView'
 import { SummaryPanel } from './components/SummaryPanel'
 import { useCatalog, withMyDishes } from './data/catalog'
+import { usePrices } from './data/prices'
 import { menuTotals, type Catalog } from './domain/nutrition'
 import { computeTargets } from './domain/targets'
 import type { Slot } from './domain/types'
 import { useAppStore } from './store/useAppStore'
 import { BowlMogu } from './components/Mascot'
 
+// スマホでは絵文字の下に小さく名前、広い画面では横並び
+const NAV_BUTTON =
+  'flex min-h-11 min-w-14 flex-col items-center justify-center whitespace-nowrap rounded-2xl bg-white px-2 text-[11px] leading-tight shadow-sm sm:flex-row sm:gap-1 sm:rounded-full sm:px-4 sm:text-sm'
+
+type View = 'menu' | 'ranking'
+
+const viewFromHash = (): View => (window.location.hash === '#ranking' ? 'ranking' : 'menu')
+
+// 画面の切り替えは URL の # で持つ（ブラウザの戻るで献立に戻れるように）
+function useView(): [View, (v: View) => void] {
+  const [view, setView] = useState<View>(viewFromHash)
+  useEffect(() => {
+    const onHash = () => setView(viewFromHash())
+    window.addEventListener('hashchange', onHash)
+    return () => window.removeEventListener('hashchange', onHash)
+  }, [])
+  const go = (v: View) => {
+    window.location.hash = v === 'ranking' ? 'ranking' : ''
+    setView(v)
+    window.scrollTo({ top: 0 })
+  }
+  return [view, go]
+}
+
 export default function App() {
   const catalogState = useCatalog()
+  const prices = usePrices()
+  const [view, setView] = useView()
   const {
     menu,
     myDishes,
@@ -85,13 +113,24 @@ export default function App() {
   return (
     <div className="mx-auto max-w-6xl px-4 pb-16">
       <header className="flex items-center justify-between py-4">
-        <h1 className="flex items-center gap-1.5">
+        <h1 className="flex shrink-0 items-center gap-1.5">
           <BowlMogu slot="dinner" mood="happy" color="#ff8a65" className="h-11 w-11" label="ちゃわんモグ" />
           <span className="font-logo text-[28px] leading-none tracking-wide text-ink">モグシル</span>
         </h1>
-        <button type="button" onClick={() => setProfileOpen(true)} className="min-h-11 rounded-full bg-white px-4 text-sm shadow-sm">
-          👤 プロフィール
-        </button>
+        <nav className="flex shrink-0 gap-2">
+          <button
+            type="button"
+            onClick={() => setView(view === 'ranking' ? 'menu' : 'ranking')}
+            className={NAV_BUTTON}
+          >
+            <span aria-hidden="true">{view === 'ranking' ? '🍚' : '🏆'}</span>
+            <span>{view === 'ranking' ? '献立' : 'ランキング'}</span>
+          </button>
+          <button type="button" onClick={() => setProfileOpen(true)} className={NAV_BUTTON}>
+            <span aria-hidden="true">👤</span>
+            <span>プロフィール</span>
+          </button>
+        </nav>
       </header>
 
       {!profileSet && (
@@ -104,7 +143,11 @@ export default function App() {
         <p className="mb-4 rounded-xl bg-caution/20 px-4 py-2 text-sm">データ準備中：{catalogState.missing.join('・')}のデータはまだ読み込めません</p>
       )}
 
-      {catalog && totals ? (
+      {catalog && view === 'ranking' ? (
+        <main>
+          <RankingView catalog={catalog} targets={targets} prices={prices} />
+        </main>
+      ) : catalog && totals ? (
         <main className="grid gap-6 lg:grid-cols-[1fr_360px]">
           <div className="order-2 lg:order-1">
             <SlotBoard
