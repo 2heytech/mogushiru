@@ -12,6 +12,8 @@
 
 ### 料理を足すとき
 
+料理の型（塩焼き・刺身・みそ汁・おにぎり・うどん/そば・丼・トーストなど）で増やした料理は、型ごとの共通パーツ（`whole_fish()`・`fillet()`・`sashimi_set()`・`miso()`・`onigiri()`・`noodle_bowl()`・`donburi()`・`toast()` など）を使い、器と盛り付けを揃えて中身の色やかたちだけ変える。
+
 1. `scripts/draw-illustrations.py` の `D['<料理ID>'] = (カテゴリ, 中身)` を足す。器は `plate()`・`bowl()`・`can()` などの共通パーツを使い、具は近い料理を写して色とかたちを変える
 2. `python3 scripts/draw-illustrations.py` で SVG を書き出す
 3. `npm run data:dishes` を実行する（絵のある料理に自動でファイル名が入る）

@@ -8,7 +8,7 @@
 - 絵がまだない料理には category/<カテゴリ>.svg（ふた付きのお皿）が出る。
 - 同じ名前の .webp / .png を置くと、そちらが優先される（docs/illustration-style.md）。
 """
-import os, sys
+import math, os, sys
 
 OUT = sys.argv[1] if len(sys.argv) > 1 else 'public/illustrations'
 INK = '#5b4636'
@@ -465,6 +465,344 @@ D['cola'] = ('drink', glass('#7a3a1e', '<rect x="52" y="48" width="14" height="1
     '<rect x="64" y="58" width="14" height="14" rx="3" fill="#fff" fill-opacity=".6" stroke-width="2.5" transform="rotate(-12 71 65)"/>'
     + dots([(56, 90), (70, 96), (62, 98), (74, 84)], 2, '#c98a5a', False)))
 
+
+# ---- 料理の型ごとの絵（同じ型は器と盛り付けを揃えて、中身の色やかたちだけ変える） ----
+def long_plate():
+    return '<rect x="14" y="70" width="100" height="32" rx="10" fill="#fff"/>'
+
+def oroshi(x=96, y=90):
+    return f'<path d="M{x-8} {y+2} q2 -10 10 -8 q8 2 6 10Z" fill="#fff"/><path d="M{x-14} {y-2} l8 -10 q4 8 -8 10Z" fill="#fff07a" stroke-width="2.5"/>'
+
+def whole_fish(body, belly, length=76, height=22, cx=58, cy=80):
+    x0, x1 = cx - length / 2, cx + length / 2
+    return (f'<path d="M{x0} {cy} Q{x0+length*0.35} {cy-height} {x1-12} {cy-3} L{x1+6} {cy-12} L{x1+2} {cy} L{x1+6} {cy+12} L{x1-12} {cy+3} Q{x0+length*0.35} {cy+height*0.8} {x0} {cy}Z" fill="{body}"/>'
+            f'<path d="M{x0+10} {cy+4} Q{x0+length*0.4} {cy+height*0.55} {x1-14} {cy+2}" fill="none" stroke="{belly}" stroke-width="4"/>'
+            f'<circle cx="{x0+9}" cy="{cy-3}" r="2.6" fill="{INK}" stroke="none"/><path d="M{x0+18} {cy-8} q-4 8 0 14" fill="none" stroke-width="2.5"/>'
+            f'<path d="M{x0+30} {cy-6} l4 4 m8 -6 l4 4 m8 -4 l4 4" stroke="#fff" stroke-opacity=".8" stroke-width="2.5"/>')
+
+def flat_fish(body):
+    return (f'<path d="M24 82 Q40 56 72 60 Q90 62 94 78 L108 70 L106 84 L108 96 L94 88 Q86 100 60 100 Q32 98 24 82Z" fill="{body}"/>'
+            f'<circle cx="38" cy="76" r="2.6" fill="{INK}" stroke="none"/><circle cx="46" cy="72" r="2.6" fill="{INK}" stroke="none"/>'
+            '<path d="M60 70 l4 4 m8 -6 l4 4 m-14 10 l4 4" stroke="#fff" stroke-opacity=".8" stroke-width="2.5"/>')
+
+def fillet(flesh, skin, stripe):
+    return (f'<path d="M26 84 Q34 58 64 58 Q94 58 100 78 Q96 92 64 92 Q30 94 26 84Z" fill="{flesh}"/>'
+            f'<path d="M32 86 Q66 96 98 82" fill="none" stroke="{skin}" stroke-width="4"/>'
+            f'<path d="M50 64 q4 10 2 22 M66 60 q4 12 2 28 M82 62 q4 10 2 22" fill="none" stroke="{stripe}" stroke-width="3"/>')
+
+for k, art in {
+    'shioyaki-aji': whole_fish('#a9bccc', '#e8eef4'),
+    'shioyaki-sanma': whole_fish('#8fa4b8', '#e8eef4', length=92, height=14),
+    'shioyaki-iwashi': whole_fish('#7f97ad', '#eef2f6', length=66, height=16),
+    'shioyaki-kamasu': whole_fish('#c9b48a', '#f6efe0', length=88, height=14),
+    'shioyaki-ayu': whole_fish('#b7b98a', '#f4f2dc', length=80, height=18),
+    'shioyaki-tai': whole_fish('#ff9a9a', '#ffe0e0'),
+    'shioyaki-karei': flat_fish('#c9a77a'),
+    'shioyaki-sawara': fillet('#f4ece0', '#8fa4b8', '#fff'),
+    'shioyaki-tara': fillet('#fbf6ee', '#b8a890', '#fff'),
+    'shioyaki-salmon': fillet('#ff9a76', '#c96b4a', '#ffd0bd'),
+    'shioyaki-beniza': fillet('#f0644a', '#a8462e', '#ffb09a'),
+    'shioyaki-kajiki': fillet('#f7e4d8', '#8fa4b8', '#fff'),
+}.items():
+    D[k] = ('main', long_plate() + art + oroshi())
+
+def opened(body, inner):
+    return (f'<path d="M22 80 Q30 54 64 52 Q96 54 98 72 L110 64 L108 80 L110 96 L98 88 Q94 104 64 104 Q30 104 22 80Z" fill="{body}"/>'
+            f'<path d="M30 80 Q38 62 64 60 Q90 62 92 80 Q90 96 64 98 Q38 96 30 80Z" fill="{inner}"/>'
+            '<path d="M36 80 H90" stroke="#e8c8a8" stroke-width="3"/>')
+
+def small_fish(n, body, length=60):
+    return ''.join(whole_fish(body, '#f4f2ea', length=length, height=10, cx=56, cy=66 + i * 12) for i in range(n))
+
+D['himono-aji'] = ('main', long_plate() + opened('#a9bccc', '#f2c89a') + oroshi(100, 94))
+D['himono-hokke'] = ('main', long_plate() + opened('#c9b48a', '#f6d6a8') + oroshi(100, 94))
+D['himono-shishamo'] = ('main', long_plate() + small_fish(3, '#d9b88a', 58))
+D['himono-mezashi'] = ('main', long_plate() + small_fish(4, '#8fa4b8', 64))
+D['himono-tarako'] = ('main', long_plate() + '<path d="M28 84 Q30 64 52 66 Q74 70 72 86 Q60 96 40 94 Q28 92 28 84Z" fill="#f2786a"/>'
+                      '<path d="M60 82 Q64 62 86 64 Q104 68 102 84 Q92 96 74 94 Q60 92 60 82Z" fill="#ff8a7a"/>'
+                      + dots([(40, 80), (50, 76), (78, 76), (88, 82)], 2, '#c9563e', False) + oroshi(102, 96))
+
+def glossy(fill):
+    return f'<path d="M26 84 Q34 58 64 58 Q94 58 100 78 Q96 92 64 92 Q30 94 26 84Z" fill="{fill}"/><path d="M40 70 q12 -8 28 -6" fill="none" stroke="#fff" stroke-opacity=".7" stroke-width="4"/>'
+
+D['teriyaki-buri'] = ('main', long_plate() + glossy('#a8582e') + '<path d="M32 86 Q66 96 98 82" fill="none" stroke="#6b3a24" stroke-width="4"/>' + oroshi())
+D['teriyaki-chicken'] = ('main', plate() + cabbage(36, 76)
+    + ''.join(f'<rect x="{50 + i * 11}" y="{58 + i * 2}" width="12" height="26" rx="4" fill="#c9783a"/>' for i in range(5))
+    + '<path d="M54 62 q10 -4 18 -2" fill="none" stroke="#fff" stroke-opacity=".7" stroke-width="3"/>')
+
+def sashimi_set(slices):
+    return (plate() + '<path d="M26 82 Q30 54 58 52 Q54 72 26 82Z" fill="#6cbf5a"/><path d="M30 78 L54 56" stroke="#3d8a4a" stroke-width="2"/>'
+            + slices + '<path d="M92 84 q6 -10 12 0Z" fill="#a8d86a"/>')
+
+def slices(fill, line=None, n=5):
+    out = ''
+    for i in range(n):
+        x, y = 40 + i * 11, 58 - i
+        out += f'<rect x="{x}" y="{y}" width="16" height="24" rx="4" fill="{fill}" transform="rotate(14 {x+8} {y+12})"/>'
+        if line:
+            out += f'<path d="M{x+4} {y+6} q4 6 2 14" fill="none" stroke="{line}" stroke-width="2.5" transform="rotate(14 {x+8} {y+12})"/>'
+    return out
+
+D['sashimi-salmon'] = ('main', sashimi_set(slices('#ff8a5c', '#ffd0bd')))
+D['sashimi-hamachi'] = ('main', sashimi_set(slices('#ffd8c8', '#f2a08a')))
+D['sashimi-tai'] = ('main', sashimi_set(slices('#fff4f0', '#ffb3b3')))
+D['sashimi-katsuo'] = ('main', sashimi_set(slices('#c43a4a', '#8a6a5a')))
+D['sashimi-ika'] = ('main', sashimi_set(slices('#fbfbf6', '#e8e8e0')))
+D['sashimi-tako'] = ('main', sashimi_set(''.join(f'<circle cx="{44 + i * 12}" cy="{70 - (i % 2) * 6}" r="9" fill="#fff"/><path d="M{44 + i * 12} {61 - (i % 2) * 6} a9 9 0 0 1 9 9" fill="none" stroke="#e8455a" stroke-width="4"/>' for i in range(4))))
+D['sashimi-hotate'] = ('main', sashimi_set(''.join(f'<ellipse cx="{46 + i * 14}" cy="{70 - (i % 2) * 6}" rx="10" ry="8" fill="#fffaf0"/><ellipse cx="{46 + i * 14}" cy="{68 - (i % 2) * 6}" rx="6" ry="3" fill="#fff" stroke="none"/>' for i in range(4))))
+D['sashimi-amaebi'] = ('main', sashimi_set(''.join(f'<path d="M{42 + i * 12} 60 q10 2 10 14 q-2 10 -10 12" fill="none" stroke="#ff8a7a" stroke-width="7"/><path d="M{52 + i * 12} 86 l4 4 l-6 2Z" fill="#ff5a5a" stroke-width="2"/>' for i in range(4))))
+
+def garnish():
+    return '<circle cx="92" cy="74" r="7" fill="#4fae5c"/><circle cx="98" cy="80" r="6" fill="#4fae5c"/><path d="M84 88 l14 -2 l-4 8Z" fill="#ff9a3c"/>'
+
+D['grill-steak'] = ('main', plate() + '<path d="M28 76 Q30 56 56 58 Q80 54 82 72 Q84 90 56 90 Q30 92 28 76Z" fill="#8a4a2e"/>'
+                    + '<path d="M38 66 l20 -4 M40 76 l24 -4" stroke="#5e2a18" stroke-width="3"/>' + garnish())
+D['grill-chicken-saute'] = ('main', plate() + '<path d="M28 76 Q30 56 56 58 Q80 54 82 72 Q84 90 56 90 Q30 92 28 76Z" fill="#e3a256"/>'
+                            + '<path d="M38 66 l20 -4 M40 76 l24 -4" stroke="#c9822e" stroke-width="3"/>' + garnish())
+D['grill-chicken-breast'] = ('main', plate() + ''.join(f'<rect x="{30 + i * 12}" y="{60 + i}" width="13" height="26" rx="4" fill="#f6dcb8"/>' for i in range(4))
+                             + '<path d="M32 62 h40" stroke="#e3a256" stroke-width="3"/>' + garnish())
+
+D['ready-sausage'] = ('main', plate() + ''.join(f'<rect x="30" y="{58 + i * 10}" width="58" height="13" rx="6.5" fill="#d9663a" transform="rotate(-6 59 {64 + i * 10})"/><path d="M40 {62 + i * 10} l4 4 m6 -4 l4 4" stroke="#fff" stroke-opacity=".7" stroke-width="2"/>' for i in range(3)) + '<circle cx="98" cy="80" r="6" fill="#4fae5c"/>')
+D['ready-ham'] = ('main', plate() + '<circle cx="54" cy="72" r="20" fill="#ffb3b8"/><circle cx="74" cy="76" r="20" fill="#ffc4c8"/><path d="M62 70 q8 -4 14 0" fill="none" stroke="#fff" stroke-width="3"/>')
+D['ready-bacon'] = ('main', plate() + ''.join(f'<path d="M26 {66 + i * 14} q10 -8 20 0 t20 0 t20 0 t16 0 v10 q-8 -8 -16 0 t-20 0 t-20 0 t-20 0Z" fill="#e8786a"/><path d="M30 {70 + i * 14} q10 -8 20 0 t20 0 t20 0" fill="none" stroke="#fff4e8" stroke-width="2.5"/>' for i in range(2)))
+D['ready-roast-beef'] = ('main', plate() + ''.join(f'<path d="M{30 + i * 16} 82 Q{28 + i * 16} 58 {48 + i * 16} 56 Q{60 + i * 16} 64 {54 + i * 16} 84Z" fill="#e88a8a"/><path d="M{34 + i * 16} 80 Q{32 + i * 16} 62 {46 + i * 16} 60" fill="none" stroke="#a8462e" stroke-width="3"/>' for i in range(4)))
+D['ready-chikuwa'] = ('main', plate() + '<rect x="26" y="62" width="70" height="22" rx="11" fill="#fff6e4"/><path d="M34 62 v22 M46 62 v22 M58 62 v22 M70 62 v22 M82 62 v22" stroke="#d9984a" stroke-width="5"/><ellipse cx="96" cy="73" rx="6" ry="11" fill="#fff"/><ellipse cx="96" cy="73" rx="2.5" ry="5" fill="#f6eee2" stroke="none"/>')
+D['ready-satsumaage'] = ('main', plate() + '<ellipse cx="54" cy="72" rx="24" ry="14" fill="#c9862e"/><ellipse cx="78" cy="78" rx="22" ry="13" fill="#d9984a"/>' + dots([(46, 68), (60, 74), (76, 76), (86, 80)], 2, '#ff9a3c', False))
+D['ready-natto'] = ('main', '<rect x="26" y="50" width="76" height="52" rx="6" fill="#fff"/><rect x="32" y="56" width="64" height="40" rx="4" fill="#f6eee2" stroke="none"/>'
+                    + dots([(44, 66), (54, 62), (64, 68), (74, 62), (84, 68), (48, 78), (60, 80), (72, 78), (84, 82), (66, 88), (52, 88)], 5, '#c08a4a')
+                    + '<path d="M26 50 L40 30 H88 L102 50" fill="#fff" fill-opacity=".8"/>')
+D['ready-atsuage'] = ('main', plate() + ''.join(f'<rect x="{30 + i * 22}" y="{58 + (i % 2) * 6}" width="22" height="22" rx="4" fill="#d9984a"/><rect x="{34 + i * 22}" y="{62 + (i % 2) * 6}" width="14" height="14" rx="2" fill="#fff6e0" stroke="none"/>' for i in range(3)) + negi([(46, 56), (74, 58)]))
+D['ready-ganmodoki'] = ('main', bowl('#fff', '#f2c66a', rx=44, top='<circle cx="64" cy="54" r="16" fill="#d9984a"/>' + dots([(58, 50), (68, 54), (62, 60)], 2, '#ff9a3c', False) + dots([(70, 48)], 2, '#4fae5c', False)))
+
+def tempura_paper():
+    return plate() + '<path d="M30 80 L64 50 L100 78 L66 96Z" fill="#fffdf6" stroke-width="2.5"/>'
+
+def batter(x, y, w, h, rot, inner=''):
+    return (f'<g transform="rotate({rot} {x} {y})"><path d="M{x-w/2} {y} q0 -{h/2} 8 -{h/2} h{w-16} q8 0 8 {h/2} q0 {h/2} -8 {h/2} h-{w-16} q-8 0 -8 -{h/2}Z" fill="#ffd77a"/>{inner}'
+            + dots([(x - w / 4, y - 2), (x + w / 6, y + 3)], 1.6, '#e8b52e', False) + '</g>')
+
+D['ready-ebi-tempura'] = ('main', tempura_paper() + batter(60, 64, 50, 16, -24, '') + '<path d="M80 52 l10 -8 l0 10Z" fill="#ff5a5a" stroke-width="2.5"/>'
+                          + batter(66, 80, 50, 16, -18) + '<path d="M86 70 l10 -8 l0 10Z" fill="#ff5a5a" stroke-width="2.5"/>')
+D['ready-imo-tempura'] = ('main', tempura_paper() + ''.join(f'<ellipse cx="{50 + i * 16}" cy="{70 + (i % 2) * 6}" rx="12" ry="9" fill="#ffd77a"/><ellipse cx="{50 + i * 16}" cy="{70 + (i % 2) * 6}" rx="7" ry="5" fill="#ffc22e" stroke="none"/><ellipse cx="{50 + i * 16}" cy="{70 + (i % 2) * 6}" rx="12" ry="9" fill="none" stroke="#b05a8a" stroke-width="2"/>' for i in range(3)))
+D['ready-nasu-tempura'] = ('main', tempura_paper() + ''.join(f'<path d="M{44 + i * 18} 60 q10 -2 12 10 q2 12 -6 16 q-10 -2 -10 -14Z" fill="#ffd77a"/><path d="M{48 + i * 18} 64 q6 0 6 8 q0 8 -4 10" fill="none" stroke="#7a4a8a" stroke-width="3"/>' for i in range(3)))
+
+D['ready-aji-fry'] = ('main', plate() + cabbage(36, 76) + '<path d="M50 84 Q52 58 76 60 L92 52 L90 66 L98 76 L82 78 Q74 92 50 84Z" fill="#e8a24a"/>'
+                      + dots([(60, 72), (70, 66), (74, 78)], 1.6, '#c97a2e', False) + '<path d="M92 86 l12 -2 q-2 10 -12 2Z" fill="#fff07a"/>')
+D['ready-kaki-fry'] = ('main', plate() + cabbage(36, 76) + ''.join(f'<path d="M{56 + i * 14} {66 + (i % 2) * 10} q-2 -12 10 -12 q10 2 6 14 q-4 8 -12 6 q-6 -2 -4 -8Z" fill="#e8a24a"/>' for i in range(3))
+                       + '<path d="M90 88 l12 -2 q-2 10 -12 2Z" fill="#fff07a"/>')
+D['ready-hire-katsu'] = ('main', plate() + cabbage(36, 76) + ''.join(cutlet(54 + i * 16, 60 + (i % 2) * 8, 18, 22) for i in range(3))
+                         + '<path d="M58 64 q16 -4 30 2" fill="none" stroke="#6b2e1a" stroke-width="3.5"/>')
+D['ready-fries'] = ('main', ''.join(f'<rect x="{40 + i * 8}" y="{30 + (i % 3) * 6}" width="8" height="44" rx="2" fill="#ffd25e" transform="rotate({(i - 3) * 5} {44 + i * 8} 70)"/>' for i in range(7))
+                    + '<path d="M34 58 L94 58 L86 108 H42Z" fill="#ff6b5a"/><path d="M38 70 H90" stroke="#fff" stroke-width="3"/>')
+
+def green_mound(leaf, vein, extra=''):
+    return bowl('#fff', '#fff', rx=40, y=66,
+                top=f'<path d="M38 66 Q40 44 64 44 Q88 44 90 66Z" fill="{leaf}"/><path d="M48 60 q8 -10 16 -12 M64 62 q8 -10 14 -10" fill="none" stroke="{vein}" stroke-width="2.5"/>{extra}'
+                    '<path d="M56 42 l6 -5 l3 6Z M68 40 l6 1 l-3 5Z" fill="#f2c6a0" stroke-width="2"/>')
+
+D['ohitashi-komatsuna'] = ('side', green_mound('#3f9a50', '#2a7038'))
+D['ohitashi-shungiku'] = ('side', green_mound('#5fae4a', '#3d8a34', '<path d="M44 54 l4 -4 l4 4 l4 -4 M70 52 l4 -4 l4 4" fill="none" stroke="#3d8a34" stroke-width="2.5"/>'))
+D['ohitashi-chingensai'] = ('side', green_mound('#8fd36a', '#e8f7c8', '<path d="M52 64 q4 -12 12 -16 M68 64 q2 -10 8 -14" fill="none" stroke="#fffbe6" stroke-width="5"/>'))
+D['ohitashi-okura'] = ('side', bowl('#fff', '#fff', rx=40, y=66, top=''.join(
+    f'<circle cx="{x}" cy="{y}" r="8" fill="#6cbf5a"/><path d="M{x} {y-5} l1.5 3.5 l3.5 1.5 l-3.5 1.5 l-1.5 3.5 l-1.5 -3.5 l-3.5 -1.5 l3.5 -1.5Z" fill="#e8f7c8" stroke-width="1.5"/>'
+    for x, y in [(48, 60), (64, 54), (80, 60), (56, 66), (72, 66)])))
+D['ohitashi-moyashi'] = ('side', bowl('#fff', '#fff', rx=40, y=66, top=''.join(
+    f'<path d="M{x} {y} q6 -12 14 -14" fill="none" stroke-width="5"/><path d="M{x} {y} q6 -12 14 -14" fill="none" stroke="#fffbe6" stroke-width="2.5"/>'
+    for x, y in [(38, 66), (48, 64), (58, 66), (68, 62), (78, 66), (52, 56), (66, 52)]) + '<path d="M56 42 l6 -5 l3 6Z" fill="#f2c6a0" stroke-width="2"/>'))
+
+def small_dish(top, color='#cfe6fa'):
+    return f'<ellipse cx="64" cy="84" rx="44" ry="16" fill="{color}"/><ellipse cx="64" cy="82" rx="32" ry="10" fill="#fff" fill-opacity=".5" stroke="none"/>{top}'
+
+D['yasai-broccoli'] = ('side', small_dish(''.join(f'<path d="M{x} {y+8} v12" stroke="#8cc46a" stroke-width="6"/><circle cx="{x-6}" cy="{y}" r="8" fill="#3f9a50"/><circle cx="{x+6}" cy="{y}" r="8" fill="#3f9a50"/><circle cx="{x}" cy="{y-6}" r="8" fill="#4fae5c"/>' for x, y in [(46, 66), (74, 62), (62, 76)])
+                                     + '<path d="M84 76 q6 -10 12 0 q-6 6 -12 0Z" fill="#fff8d8"/>'))
+D['yasai-edamame'] = ('side', small_dish(''.join(f'<g transform="rotate({r} {x} {y})"><rect x="{x-18}" y="{y-7}" width="36" height="14" rx="7" fill="#8fd36a"/><path d="M{x-8} {y-6} v12 M{x+4} {y-6} v12" stroke="#5fae4a" stroke-width="2"/></g>' for x, y, r in [(48, 70, -20), (76, 68, 15), (62, 82, -5), (86, 84, 30)])))
+D['yasai-corn'] = ('side', small_dish('<rect x="28" y="62" width="72" height="24" rx="12" fill="#ffd84d" transform="rotate(-10 64 74)"/>'
+                                      + ''.join(f'<path d="M{38 + i * 9} 64 v22" stroke="#e8b52e" stroke-width="2" transform="rotate(-10 64 74)"/>' for i in range(7))))
+D['yasai-tomato'] = ('side', small_dish(''.join(f'<path d="M{x} {y} a14 14 0 0 1 28 0Z" fill="#ff5a5a"/><path d="M{x+6} {y} a8 8 0 0 1 16 0" fill="#ffb0a0" stroke="none"/>' for x, y in [(30, 80), (50, 74), (70, 80)]) + '<path d="M60 58 l4 -6 l4 6" fill="#6cbf5a" stroke-width="2.5"/>'))
+D['yasai-kabocha-ni'] = ('side', bowl('#b48ad0', '#e8b06a', rx=44, top=''.join(f'<path d="M{x} {y} l18 -2 l2 12 l-18 4Z" fill="#ffb02e"/><path d="M{x} {y} l18 -2" stroke="#3f7a3a" stroke-width="5"/>' for x, y in [(36, 58), (56, 54), (74, 60)])))
+D['yasai-kimchi'] = ('side', small_dish('<path d="M36 82 Q38 56 64 56 Q90 56 92 82Z" fill="#e8553a"/><path d="M44 74 q8 -10 18 -8 M64 70 q10 -8 18 -2" fill="none" stroke="#ffd0b0" stroke-width="4"/>' + dots([(52, 64), (74, 64)], 2, '#ffd0b0', False), '#fff'))
+D['yasai-takuan'] = ('side', small_dish(''.join(f'<path d="M{x} 84 a13 13 0 0 1 26 0Z" fill="#ffe94d"/>' for x in (30, 48, 66)), '#fff'))
+D['yasai-hakusai-zuke'] = ('side', small_dish('<path d="M34 82 Q36 58 64 58 Q92 58 94 82Z" fill="#f2f8d8"/><path d="M42 76 q8 -12 20 -12 M66 74 q8 -10 18 -8" fill="none" stroke="#9bd36a" stroke-width="5"/>' + dots([(56, 66), (78, 68)], 1.6, '#e8455a', False), '#fff'))
+D['yasai-kyuri-nuka'] = ('side', small_dish(''.join(f'<ellipse cx="{x}" cy="{y}" rx="10" ry="7" fill="#e8f7c8"/><ellipse cx="{x}" cy="{y}" rx="10" ry="7" fill="none" stroke="#3f9a50" stroke-width="4"/>' for x, y in [(42, 78), (58, 72), (74, 78), (88, 72)]), '#fff'))
+D['yasai-umeboshi'] = ('side', small_dish('<circle cx="64" cy="72" r="14" fill="#e8455a"/><path d="M58 66 q4 -4 8 -2" fill="none" stroke="#fff" stroke-width="3"/><path d="M76 60 q8 -6 14 -2 q-6 8 -14 2Z" fill="#b05a8a" stroke-width="2.5"/>', '#fff'))
+
+def miso(top, surface='#e6ad5c'):
+    return bowl('#f08a6e', surface, rx=46, top=top + negi([(36, 64), (88, 64)]))
+
+D['misoshiru-nameko'] = ('soup', miso(dots([(46, 58), (56, 54), (66, 58), (76, 54), (60, 64), (72, 64)], 4.5, '#d9843a')))
+D['misoshiru-daikon'] = ('soup', miso(''.join(f'<rect x="{x}" y="{y}" width="16" height="7" rx="2" fill="#fff" transform="rotate({r} {x+8} {y+3})"/>' for x, y, r in [(42, 54, -10), (62, 50, 10), (66, 62, -5), (48, 64, 15)])))
+D['misoshiru-jagaimo'] = ('soup', miso('<rect x="42" y="52" width="14" height="12" rx="4" fill="#ffe07a"/><rect x="66" y="56" width="14" height="12" rx="4" fill="#ffe07a"/><path d="M56 60 q6 -8 12 0" fill="none" stroke="#fff4dc" stroke-width="4"/>'))
+D['misoshiru-asari'] = ('soup', miso(''.join(f'<path d="M{x-9} {y} a9 7 0 0 1 18 0Z" fill="#e8dcc8"/><path d="M{x} {y-6} v6 M{x-5} {y-4} l2 4 M{x+5} {y-4} l-2 4" stroke="#b8a890" stroke-width="1.5"/>' for x, y in [(46, 62), (64, 56), (80, 62), (58, 68)])))
+D['misoshiru-shijimi'] = ('soup', miso(''.join(f'<path d="M{x-6} {y} a6 5 0 0 1 12 0Z" fill="#5a4a3a"/>' for x, y in [(44, 60), (56, 56), (68, 58), (80, 60), (52, 66), (64, 66), (76, 66)]), '#e3b878'))
+D['misoshiru-cabbage'] = ('soup', miso('<path d="M42 60 q8 -10 18 -6 l-4 10Z M64 54 q10 -6 18 2 l-6 8Z" fill="#d9f0b0" stroke-width="2.5"/>'))
+D['misoshiru-nasu'] = ('soup', miso(''.join(f'<ellipse cx="{x}" cy="{y}" rx="9" ry="6" fill="#f6eee2"/><ellipse cx="{x}" cy="{y}" rx="9" ry="6" fill="none" stroke="#7a4a8a" stroke-width="3.5"/>' for x, y in [(48, 58), (66, 54), (78, 62)])))
+D['misoshiru-spinach'] = ('soup', miso('<path d="M44 62 q6 -12 16 -10 q-2 10 -16 10Z M64 58 q8 -12 18 -8 q-4 10 -18 8Z" fill="#3f9a50" stroke-width="2.5"/>'))
+D['misoshiru-wakame'] = ('soup', miso('<path d="M44 58 q6 -6 12 0 q-2 8 -12 0Z M64 52 q6 -6 12 0 q-2 8 -12 0Z M70 64 q6 -4 12 2 q-6 4 -12 -2Z" fill="#3d7a4a" stroke-width="2.5"/>' + negi([(56, 64), (60, 52)])))
+
+FRUIT = {
+    'fruit-strawberry': ''.join(f'<path d="M{x} {y-12} Q{x+14} {y-12} {x+10} {y+4} Q{x} {y+14} {x-10} {y+4} Q{x-14} {y-12} {x} {y-12}Z" fill="#ff4d5e"/><path d="M{x-6} {y-14} l6 4 l6 -4" fill="#6cbf5a" stroke-width="2.5"/>' + dots([(x - 4, y - 4), (x + 4, y - 2), (x, y + 4)], 1.2, '#ffe0a0', False)
+                                for x, y in [(42, 64), (64, 58), (86, 64), (52, 88), (76, 88)]),
+    'fruit-grape': '<path d="M64 26 v10" fill="none" stroke-width="4"/><path d="M66 30 q12 -8 22 -2 q-10 10 -22 2Z" fill="#6cbf5a"/>'
+                   + ''.join(f'<circle cx="{x}" cy="{y}" r="10" fill="#9a5ac8"/>' for x, y in [(50, 46), (64, 44), (78, 46), (44, 62), (58, 62), (72, 62), (86, 62), (52, 78), (66, 78), (80, 78), (58, 94), (72, 94)])
+                   + dots([(47, 43), (61, 41), (55, 59), (69, 59)], 2, '#fff', False),
+    'fruit-kiwi': '<ellipse cx="44" cy="68" rx="22" ry="26" fill="#a8783a"/><circle cx="80" cy="74" r="24" fill="#8fd36a"/><circle cx="80" cy="74" r="8" fill="#f4f8d8" stroke="none"/>'
+                  + dots([(80 + 14 * math.cos(a / 4), 74 + 14 * math.sin(a / 4)) for a in range(0, 25, 3)], 1.6, INK, False),
+    'fruit-pear': '<path d="M26 80 A38 30 0 0 1 102 80Z" fill="#f4e9b8"/><path d="M26 80 A38 30 0 0 1 102 80" fill="none" stroke="#d9b85a" stroke-width="5"/><ellipse cx="64" cy="72" rx="10" ry="6" fill="#e8dca0" stroke="none"/>' + dots([(60, 72), (68, 72)], 2, '#8a5a34', False),
+    'fruit-peach': '<path d="M26 82 A38 32 0 0 1 102 82Z" fill="#fff0e0"/><path d="M26 82 A38 32 0 0 1 102 82" fill="none" stroke="#ff9aa8" stroke-width="5"/><ellipse cx="64" cy="72" rx="11" ry="8" fill="#e8a888"/>',
+    'fruit-persimmon': ''.join(f'<path d="M{x} 86 Q{x+2} 58 {x+16} 54 Q{x+30} 58 {x+32} 86Z" fill="#ff9a2e"/><path d="M{x+6} 84 Q{x+8} 64 {x+16} 62" fill="none" stroke="#ffd08a" stroke-width="3"/>' for x in (24, 48, 72)),
+    'fruit-melon': '<path d="M22 84 Q64 30 106 84Z" fill="#b8e88a"/><path d="M22 84 Q64 30 106 84" fill="none" stroke="#5fae4a" stroke-width="6"/><path d="M34 84 Q64 50 94 84" fill="none" stroke="#e8f7c8" stroke-width="3"/>' + dots([(56, 74), (64, 70), (72, 74)], 1.6, '#e8d8a0', False),
+    'fruit-watermelon': '<path d="M20 60 L108 60 L64 108Z" fill="#ff4d5e"/><path d="M20 60 L108 60" stroke="#4fae5c" stroke-width="10"/><path d="M24 64 L104 64" stroke="#e8f7c8" stroke-width="3"/>' + dots([(50, 74), (64, 80), (78, 74), (60, 92), (70, 92)], 2.4, INK, False),
+    'fruit-pineapple': ''.join(f'<path d="M{x} 98 L{x+12} 52 L{x+24} 98Z" fill="#ffd84d"/><path d="M{x+4} 90 L{x+20} 90 M{x+7} 78 L{x+17} 78" stroke="#e8b52e" stroke-width="2"/>' for x in (26, 52, 78)) + '<path d="M60 46 l4 -14 l4 14Z" fill="#6cbf5a" stroke-width="2.5"/>',
+    'fruit-grapefruit': '<circle cx="64" cy="70" r="32" fill="#ffd84d"/><circle cx="64" cy="70" r="26" fill="#ff8a7a"/>' + ''.join(f'<path d="M64 70 L{64 + 26 * math.cos(a * 3.1416 / 4):.1f} {70 + 26 * math.sin(a * 3.1416 / 4):.1f}" stroke="#fff4e0" stroke-width="2.5"/>' for a in range(8)),
+    'fruit-cherry': ''.join(f'<path d="M{x} {y} Q{x+10} 40 64 30" fill="none" stroke="#5fae4a" stroke-width="3"/><circle cx="{x}" cy="{y}" r="11" fill="#e8253a"/><circle cx="{x-4}" cy="{y-4}" r="3" fill="#fff" stroke="none"/>' for x, y in [(44, 84), (64, 90), (84, 84)]) + '<path d="M64 30 q10 -10 20 -4 q-8 8 -20 4Z" fill="#6cbf5a" stroke-width="2.5"/>',
+    'fruit-blueberry': '<path d="M26 66 Q28 104 64 104 Q100 104 102 66Z" fill="#fff"/>' + ''.join(f'<circle cx="{x}" cy="{y}" r="8" fill="#5a6ac8"/>' for x, y in [(40, 62), (54, 58), (68, 56), (82, 60), (48, 70), (62, 68), (76, 70), (88, 68)]) + dots([(54, 55), (68, 53)], 1.8, '#fff', False),
+    'fruit-orange': '<circle cx="64" cy="70" r="32" fill="#ffa53c"/><circle cx="64" cy="70" r="26" fill="#ffc44d"/>' + ''.join(f'<path d="M64 70 L{64 + 26 * math.cos(a * 3.1416 / 4):.1f} {70 + 26 * math.sin(a * 3.1416 / 4):.1f}" stroke="#fff4e0" stroke-width="2.5"/>' for a in range(8)),
+    'fruit-avocado': '<path d="M64 26 Q90 30 94 70 Q96 104 64 104 Q32 104 34 70 Q38 30 64 26Z" fill="#3d7a3a"/><path d="M64 34 Q84 38 86 70 Q88 96 64 96 Q40 96 42 70 Q44 38 64 34Z" fill="#d8ec9a" stroke="none"/><circle cx="64" cy="74" r="13" fill="#a8603a"/>',
+}
+for k, art in FRUIT.items():
+    D[k] = ('snack', art)
+
+SWEETS = {
+    'sweets-dorayaki': '<ellipse cx="64" cy="84" rx="38" ry="12" fill="#c9862e"/><rect x="28" y="70" width="72" height="12" fill="#6b2e3a"/><ellipse cx="64" cy="66" rx="38" ry="14" fill="#d9984a"/><path d="M40 62 q10 -6 22 -6" fill="none" stroke="#f2c47a" stroke-width="3"/>',
+    'sweets-imagawayaki': '<rect x="30" y="54" width="68" height="40" rx="10" fill="#f2c47a"/><ellipse cx="64" cy="56" rx="34" ry="10" fill="#e3a256"/><path d="M38 72 h52" stroke="#d9984a" stroke-width="3"/>',
+    'sweets-manju': '<path d="M28 90 Q26 50 64 48 Q102 50 100 90Z" fill="#f2d4a0"/><path d="M28 90 H100" stroke-width="3"/><circle cx="64" cy="64" r="6" fill="#c9862e" stroke="none"/><path d="M40 70 q4 -10 12 -14" fill="none" stroke="#fff4dc" stroke-width="3"/>',
+    'sweets-dango': '<path d="M30 102 L98 30" stroke="#d9b880" stroke-width="5"/>' + ''.join(f'<circle cx="{x}" cy="{y}" r="13" fill="#f6e8c8"/><path d="M{x-12} {y-4} a13 13 0 0 1 24 0Z" fill="#c9783a" stroke-width="2.5"/>' for x, y in [(46, 84), (64, 66), (82, 48)]),
+    'sweets-kashiwamochi': '<path d="M24 92 Q20 50 64 44 Q108 50 104 92Z" fill="#6cbf5a"/><path d="M64 46 V92" stroke="#3d8a4a" stroke-width="2.5"/><path d="M36 92 Q36 64 64 62 Q92 64 92 92Z" fill="#fffdf6"/>',
+    'sweets-sakuramochi': '<ellipse cx="64" cy="74" rx="34" ry="24" fill="#ffc4d6"/><path d="M30 74 Q40 40 82 48 Q98 60 96 82 Q70 66 30 74Z" fill="#8fbf6a"/><path d="M36 72 Q60 56 90 74" fill="none" stroke="#5f8f4a" stroke-width="2"/>',
+    'sweets-yokan': '<path d="M32 60 L72 50 L98 62 L58 72Z" fill="#8a3a4a"/><path d="M32 60 V92 L58 104 V72Z" fill="#6b2e3a"/><path d="M58 72 V104 L98 94 V62Z" fill="#7a3242"/>',
+    'sweets-castella': '<rect x="24" y="52" width="80" height="42" rx="4" fill="#ffd84d"/><rect x="24" y="52" width="80" height="10" rx="4" fill="#a8582e"/><rect x="24" y="86" width="80" height="8" rx="3" fill="#c9783a"/><path d="M36 72 h20" stroke="#fff4b0" stroke-width="3"/>',
+    'sweets-senbei': ''.join(f'<circle cx="{x}" cy="{y}" r="22" fill="#d9984a"/><rect x="{x-14}" y="{y-6}" width="28" height="12" rx="2" fill="#2f4a3a"/>' for x, y in [(48, 62), (78, 82)]),
+    'sweets-arare': '<path d="M26 66 Q28 104 64 104 Q100 104 102 66Z" fill="#fff"/>' + ''.join(f'<ellipse cx="{x}" cy="{y}" rx="7" ry="5" fill="{c}" transform="rotate({r} {x} {y})"/>' for x, y, c, r in [(40, 62, '#e3a256', 20), (52, 56, '#ffb3c6', -10), (64, 60, '#e3a256', 40), (76, 56, '#9bd36a', 0), (88, 62, '#e3a256', -30), (48, 68, '#fff', 10), (70, 68, '#ffb3c6', -20)]),
+    'sweets-karinto': '<path d="M26 66 Q28 104 64 104 Q100 104 102 66Z" fill="#fff"/>' + ''.join(f'<rect x="{x}" y="{y}" width="24" height="9" rx="4.5" fill="#6b3a24" transform="rotate({r} {x+12} {y+4})"/>' for x, y, r in [(30, 56, 20), (50, 50, -15), (72, 54, 30), (40, 64, -5), (64, 62, 10)]),
+    'sweets-cream-puff': '<path d="M26 86 Q24 58 48 54 Q56 40 72 46 Q96 46 100 70 Q104 90 80 92 H40 Q26 92 26 86Z" fill="#f2c47a"/><path d="M30 76 Q64 66 98 76 Q90 84 64 82 Q38 84 30 76Z" fill="#fff8d8"/>' + dots([(46, 60), (66, 52), (84, 60)], 1.6, '#d9984a', False),
+    'sweets-cheesecake': '<path d="M24 62 L96 50 L104 66 V94 L32 104 L24 92Z" fill="#fff2c0"/><path d="M24 62 L104 66 V94 L24 90Z" fill="#ffe9a0"/><path d="M24 90 L104 94 V100 L24 98Z" fill="#c9862e"/><path d="M24 62 L104 66" fill="none" stroke="#e8b06a" stroke-width="5"/>',
+    'sweets-apple-pie': '<path d="M24 62 L96 50 L104 66 V94 L24 92Z" fill="#e8a24a"/><path d="M24 70 L104 74 V88 L24 84Z" fill="#ffe07a"/><path d="M32 60 L88 52 M40 64 L96 56" stroke="#c9822e" stroke-width="3"/>',
+    'sweets-pound-cake': '<rect x="30" y="44" width="68" height="56" rx="6" fill="#ffd77a"/><path d="M30 52 Q64 40 98 52 V58 H30Z" fill="#c9783a"/>' + dots([(46, 70), (66, 80), (82, 66), (54, 88)], 3, '#e8455a', False),
+    'sweets-donut': '<circle cx="64" cy="70" r="32" fill="#e3a256"/><path d="M34 64 Q36 38 64 38 Q92 38 94 64 Q86 72 78 66 Q70 74 62 66 Q52 74 44 66 Q38 72 34 64Z" fill="#ff9fc0"/><circle cx="64" cy="70" r="10" fill="' + BG['snack'] + '"/>' + dots([(46, 52), (60, 46), (76, 50), (84, 58)], 1.8, '#fff', False),
+    'sweets-hotcake': plate(cy=92, rx=46, ry=12) + '<ellipse cx="64" cy="82" rx="38" ry="11" fill="#c9783a"/><ellipse cx="64" cy="70" rx="38" ry="11" fill="#d9984a"/><ellipse cx="64" cy="66" rx="34" ry="8" fill="#e8b06a" stroke="none"/><rect x="56" y="58" width="16" height="10" rx="2" fill="#fff3a8"/><path d="M72 66 q8 4 6 14" fill="none" stroke="#c9783a" stroke-width="4"/>',
+    'sweets-waffle': '<rect x="28" y="40" width="72" height="56" rx="12" fill="#f2b45a"/>' + ''.join(f'<path d="M{40 + i * 16} 44 V92 M32 {54 + i * 14} H96" stroke="#c9822e" stroke-width="3"/>' for i in range(3)),
+    'sweets-biscuit': ''.join(f'<circle cx="{x}" cy="{y}" r="17" fill="#e8b06a"/>' + dots([(x - 6, y - 4), (x + 5, y - 6), (x, y + 6)], 2.6, '#6b3a24', False) for x, y in [(44, 70), (68, 60), (84, 82)]),
+    'sweets-cracker': ''.join(f'<rect x="{30 + i * 10}" y="{44 + i * 8}" width="40" height="34" rx="4" fill="#f2c47a"/>' + dots([(40 + i * 10, 54 + i * 8), (60 + i * 10, 54 + i * 8), (50 + i * 10, 66 + i * 8)], 1.6, '#c9822e', False) for i in range(3)),
+    'sweets-popcorn': ''.join(f'<circle cx="{x}" cy="{y}" r="10" fill="#fff8e0"/>' for x, y in [(44, 46), (58, 38), (72, 40), (86, 48), (52, 54), (68, 52), (80, 58)]) + '<path d="M34 58 L94 58 L86 108 H42Z" fill="#fff"/><path d="M44 58 L48 108 M64 58 V108 M84 58 L80 108" stroke="#ff6b5a" stroke-width="6"/>',
+    'sweets-jelly': '<path d="M36 46 L44 104 H84 L92 46Z" fill="#fff" fill-opacity=".7"/><path d="M38 58 L44 104 H84 L90 58Z" fill="#ffb3c6" stroke="none"/><circle cx="56" cy="80" r="7" fill="#ffd84d"/><circle cx="72" cy="88" r="6" fill="#ff8a65"/><path d="M36 46 L44 104 H84 L92 46" fill="none"/>',
+    'sweets-caramel': ''.join(f'<rect x="{x}" y="{y}" width="24" height="20" rx="4" fill="#e3a256"/><path d="M{x+4} {y+4} h8" stroke="#ffd08a" stroke-width="3"/>' for x, y in [(30, 64), (54, 56), (76, 70)]),
+    'sweets-cheese': '<path d="M28 82 L96 54 L100 82Z" fill="#ffe07a"/><path d="M28 82 L100 82 V98 L28 98Z" fill="#ffd04d"/><circle cx="52" cy="90" r="4" fill="#f2b82e"/><circle cx="80" cy="88" r="3" fill="#f2b82e"/>',
+    'sweets-peanuts': small_dish(''.join(f'<path d="M{x} {y} q-8 -10 2 -16 q10 -4 12 6 q4 10 -4 14 q-6 2 -10 -4Z" fill="#e8c08a" transform="rotate({r} {x} {y})"/>' for x, y, r in [(44, 82, 10), (60, 76, -20), (76, 82, 30), (86, 70, -10), (52, 66, 40)]), '#fff'),
+    'sweets-yogurt-sweet': '<path d="M36 50 L44 104 H84 L92 50Z" fill="#fff"/><path d="M39 70 L42 86 H86 L89 70Z" fill="#ffb3c6" stroke="none"/><ellipse cx="64" cy="50" rx="28" ry="8" fill="#fffdf6"/><circle cx="58" cy="48" r="4" fill="#e8455a"/><circle cx="70" cy="49" r="3.5" fill="#5a6ac8"/>',
+}
+for k, art in SWEETS.items():
+    D[k] = ('snack', art)
+
+def yunomi(tea):
+    return f'<path d="M38 46 L42 104 H86 L90 46Z" fill="#fff"/><path d="M40 70 L42 96 H86 L88 70Z" fill="#e8f0f8" stroke="none"/><ellipse cx="64" cy="46" rx="26" ry="7" fill="{tea}"/><path d="M38 46 L42 104 H86 L90 46" fill="none"/>'
+
+def teacup(liquid, top=''):
+    return ('<ellipse cx="64" cy="98" rx="44" ry="10" fill="#fff"/><path d="M92 66 Q110 66 108 78 Q106 88 90 86" fill="none" stroke-width="5"/>'
+            f'<path d="M30 60 Q32 96 64 96 Q96 96 98 60Z" fill="#fff"/><ellipse cx="64" cy="60" rx="34" ry="9" fill="{liquid}"/>{top}')
+
+def tall(fill, top=''):
+    return glass(fill, top)
+
+DRINKS = {
+    'drink-green-tea': yunomi('#a8d86a'),
+    'drink-barley-tea': tall('#d9984a', '<rect x="54" y="52" width="14" height="14" rx="3" fill="#fff" fill-opacity=".6" stroke-width="2.5"/>'),
+    'drink-oolong': tall('#b8742e', '<rect x="60" y="56" width="14" height="14" rx="3" fill="#fff" fill-opacity=".6" stroke-width="2.5" transform="rotate(10 67 63)"/>'),
+    'drink-black-tea': teacup('#c9562e', '<circle cx="74" cy="58" r="6" fill="#fff07a" stroke-width="2.5"/>'),
+    'drink-coffee': teacup('#5e3020'),
+    'drink-cafe-au-lait': teacup('#c9925a', '<path d="M54 58 q10 -6 20 0" fill="none" stroke="#fff4e0" stroke-width="3"/>'),
+    'drink-cocoa': teacup('#8a4e2e', '<circle cx="56" cy="56" r="6" fill="#fff"/><circle cx="70" cy="58" r="5" fill="#ffd6e0"/>'),
+    'drink-soy-milk': tall('#fbf3dc'),
+    'drink-drink-yogurt': tall('#fff', '<path d="M44 44 H84" stroke="#ffb3c6" stroke-width="4"/>'),
+    'drink-vegetable-juice': tall('#ff8a3c', '<rect x="60" y="14" width="6" height="40" rx="3" fill="#6cbf5a" transform="rotate(12 63 34)"/>'),
+    'drink-tomato-juice': tall('#e8453a'),
+    'drink-apple-juice': tall('#ffd04d', '<path d="M82 22 q8 -8 16 0 q4 12 -8 16 q-12 -4 -8 -16Z" fill="#ff5a5a"/>'),
+    'drink-lactic': '<path d="M50 40 Q50 32 58 32 H70 Q78 32 78 40 V46 Q90 56 88 76 V96 Q88 104 80 104 H48 Q40 104 40 96 V76 Q38 56 50 46Z" fill="#fff4e8"/><rect x="48" y="26" width="32" height="8" rx="3" fill="#ff6b5a"/><rect x="42" y="64" width="44" height="18" fill="#ff9a8a" stroke="none"/>',
+    'drink-sports-drink': '<rect x="40" y="36" width="48" height="70" rx="12" fill="#e8f4ff"/><rect x="52" y="22" width="24" height="14" rx="3" fill="#7fa8e8"/><rect x="40" y="58" width="48" height="24" fill="#7fa8e8" stroke="none"/><path d="M40 58 H88 M40 82 H88" stroke-width="2.5"/><path d="M50 46 v6" stroke="#fff" stroke-width="4"/>',
+}
+for k, art in DRINKS.items():
+    D[k] = ('drink', art)
+
+def rock(liquid, top=''):
+    return (f'<path d="M34 54 L38 102 H90 L94 54Z" fill="{liquid}" stroke="none"/>'
+            '<rect x="48" y="58" width="18" height="18" rx="3" fill="#fff" fill-opacity=".7" stroke-width="2.5" transform="rotate(10 57 67)"/>'
+            '<rect x="64" y="66" width="18" height="18" rx="3" fill="#fff" fill-opacity=".7" stroke-width="2.5" transform="rotate(-12 73 75)"/>'
+            f'{top}<path d="M32 40 L38 104 H90 L96 40Z" fill="none"/><path d="M36 100 H92" stroke-width="5"/>')
+
+D['alcohol-white-wine'] = ('alcohol', D['red-wine'][1].replace('#b5304a', '#f7e48a').replace('#e0697f', '#fff8c8'))
+D['alcohol-shochu'] = ('alcohol', rock('#f4f8fc'))
+D['alcohol-umeshu'] = ('alcohol', rock('#f2c46a', '<circle cx="60" cy="90" r="8" fill="#b8c84a"/>'))
+D['alcohol-shaoxing'] = ('alcohol', '<path d="M42 52 L46 104 H82 L86 52Z" fill="#c9782e" stroke="none"/><path d="M40 36 L46 104 H82 L88 36Z" fill="none"/><path d="M52 60 V92" stroke="#e8a85a" stroke-width="4"/>')
+
+for k, top in {
+    'onigiri-tuna-mayo': '<ellipse cx="64" cy="44" rx="9" ry="6" fill="#f2dcb0"/><path d="M58 42 q6 -4 12 0" fill="none" stroke="#fff" stroke-width="2.5"/>',
+    'onigiri-konbu': '<path d="M56 46 q8 -10 16 0 q-8 6 -16 0Z" fill="#3a2a1e"/>',
+    'onigiri-okaka': '<path d="M56 44 l6 -5 l3 6Z M66 42 l6 1 l-3 5Z M60 48 l6 -1 l-2 5Z" fill="#c98a5a" stroke-width="2"/>',
+    'onigiri-tarako': '<ellipse cx="64" cy="44" rx="10" ry="5" fill="#ff8a7a"/>',
+    'onigiri-mentaiko': '<ellipse cx="64" cy="44" rx="10" ry="5" fill="#e8453a"/>' + dots([(60, 44), (66, 43)], 1.2, '#ffd0c0', False),
+    'onigiri-takana': '<path d="M56 46 q8 -12 16 0 q-8 6 -16 0Z" fill="#7a9a3a"/>',
+}.items():
+    D[k] = ('staple', onigiri(top))
+
+def noodle_bowl(kind, top):
+    if kind == 'udon':
+        nd = ('<path d="M28 60 q12 6 24 0 t24 0 t24 0 M36 67 q12 6 24 0 t24 0" fill="none" stroke-width="8"/>'
+              '<path d="M28 60 q12 6 24 0 t24 0 t24 0 M36 67 q12 6 24 0 t24 0" fill="none" stroke="#fffaf0" stroke-width="4"/>')
+        color = '#7fa8e8'
+    else:
+        nd = ('<path d="M28 60 q12 6 24 0 t24 0 t24 0 M36 67 q12 6 24 0 t24 0" fill="none" stroke="#7d6a58" stroke-width="4"/>')
+        color = '#b48ad0'
+    return bowl(color, '#f5d99a' if kind == 'udon' else '#d9b070', rx=46, top=nd + top + negi([(46, 52), (40, 58)]))
+
+NOODLE_TOP = {
+    'kake': '<path d="M66 50 q8 -6 16 0 v4 h-16Z" fill="#ff9fb0" stroke-width="2.5"/>',
+    'kitsune': '<path d="M58 44 L84 48 L80 66 L54 62Z" fill="#e8a24a"/><path d="M62 50 l16 3" stroke="#c9822e" stroke-width="2"/>',
+    'tanuki': dots([(56, 50), (64, 46), (72, 52), (80, 48), (66, 56), (76, 58)], 3.5, '#f2c46a'),
+    'tsukimi': '<ellipse cx="72" cy="54" rx="14" ry="8" fill="#fff"/><circle cx="72" cy="54" r="6" fill="#ffc22e"/>',
+    'tempura': '<g transform="rotate(-20 72 52)"><rect x="52" y="46" width="40" height="13" rx="6.5" fill="#ffd77a"/><path d="M92 49 l8 -5 v12Z" fill="#ff5a5a" stroke-width="2.5"/></g>',
+    'niku': '<path d="M56 50 q8 -8 16 -2 q8 -8 16 2 l-2 10 q-14 4 -30 0Z" fill="#a8603a"/>',
+    'wakame': '<path d="M58 50 q6 -6 12 0 q-2 8 -12 0Z M72 46 q6 -6 12 0 q-2 8 -12 0Z M66 58 q6 -4 12 2 q-6 4 -12 -2Z" fill="#3d7a4a" stroke-width="2.5"/>',
+}
+for k in ['kitsune', 'tanuki', 'tsukimi', 'tempura', 'niku', 'wakame']:
+    D[f'udon-{k}'] = ('noodle', noodle_bowl('udon', NOODLE_TOP[k]))
+for k in ['kake', 'kitsune', 'tanuki', 'tsukimi', 'tempura']:
+    D[f'soba-{k}'] = ('noodle', noodle_bowl('soba', NOODLE_TOP[k]))
+
+def donburi(top, color='#7fa8e8'):
+    return bowl(color, '#fff', mound=40, top=top)
+
+DON = {
+    'don-katsudon': '<path d="M28 60 q4 -16 20 -14 q10 -12 26 -6 q16 -4 22 10 q8 6 2 12 Q64 70 30 64Z" fill="#ffd94d"/>' + ''.join(f'<rect x="{40 + i * 12}" y="{44 + (i % 2) * 2}" width="12" height="16" rx="3" fill="#e8a24a"/>' for i in range(4)) + '<path d="M60 40 q6 -8 12 -2" fill="none" stroke="#4fae5c" stroke-width="3"/>',
+    'don-tendon': '<path d="M30 60 Q64 70 98 60" fill="#8a4e2e"/>' + '<g transform="rotate(-30 56 46)"><rect x="36" y="40" width="40" height="13" rx="6.5" fill="#ffd77a"/><path d="M76 43 l8 -5 v12Z" fill="#ff5a5a" stroke-width="2.5"/></g>' + '<ellipse cx="80" cy="54" rx="11" ry="8" fill="#ffd77a"/><ellipse cx="80" cy="54" rx="6" ry="4" fill="#7a4a8a" stroke="none"/>',
+    'don-tekka': ''.join(f'<rect x="{30 + i * 11}" y="{46 + (i % 2) * 3}" width="14" height="16" rx="3" fill="#e8455a" transform="rotate(-10 {37 + i * 11} 54)"/>' for i in range(6)) + '<path d="M60 40 q6 -8 12 0Z" fill="#a8d86a"/>',
+    'don-salmon': ''.join(f'<rect x="{30 + i * 11}" y="{46 + (i % 2) * 3}" width="14" height="16" rx="3" fill="#ff8a5c" transform="rotate(-10 {37 + i * 11} 54)"/><path d="M{34 + i * 11} {50 + (i % 2) * 3} q3 4 1 10" fill="none" stroke="#ffd0bd" stroke-width="2"/>' for i in range(6)),
+    'don-butadon': '<path d="M30 58 q10 -14 22 -8 q8 -10 20 -4 q12 -8 24 6 q4 6 -2 10 Q64 68 32 64Z" fill="#c9783a"/><path d="M44 54 q8 -4 14 2 M68 50 q8 -2 12 4" fill="none" stroke="#fff" stroke-opacity=".7" stroke-width="3"/>' + negi([(60, 42), (66, 44)]),
+    'don-chukadon': '<path d="M28 62 Q30 40 64 38 Q98 40 100 62Z" fill="#f6e7b8"/><path d="M38 54 q10 -10 22 -4 l-4 10Z" fill="#9bd36a" stroke-width="2.5"/><path d="M60 52 a7 7 0 1 1 9 5" fill="none" stroke="#ff8a65" stroke-width="4.5"/><circle cx="82" cy="52" r="6" fill="#fff"/><path d="M70 44 l10 -2 l-2 6Z" fill="#ff9a3c" stroke-width="2.5"/>',
+    'don-mabodon': '<path d="M28 62 Q30 40 64 38 Q98 40 100 62Z" fill="#e0573a"/><rect x="40" y="46" width="12" height="12" rx="3" fill="#fff"/><rect x="60" y="42" width="12" height="12" rx="3" fill="#fff"/><rect x="76" y="50" width="12" height="12" rx="3" fill="#fff"/>' + negi([(54, 58), (70, 58)]),
+    'don-tamago-kake': '<path d="M40 54 Q42 40 64 40 Q86 40 88 54 Q76 62 64 60 Q52 62 40 54Z" fill="#ffd94d"/><circle cx="64" cy="50" r="8" fill="#ffb02e"/><path d="M58 46 q4 -3 8 -1" fill="none" stroke="#fff" stroke-width="2.5"/>',
+}
+for k, top in DON.items():
+    D[k] = ('bowl', donburi(top, '#b48ad0' if k in ('don-tamago-kake', 'don-tekka') else '#7fa8e8'))
+
+def toast(top=''):
+    return ('<path d="M28 100 V56 Q24 34 44 30 Q64 22 84 30 Q104 34 100 56 V100Z" fill="#e3a256"/>'
+            f'<path d="M36 94 V58 Q34 42 48 38 Q64 32 80 38 Q94 42 92 58 V94Z" fill="#ffdc8a" stroke="none"/>{top}')
+
+BREAD = {
+    'bread-jam-toast': toast('<path d="M42 60 Q44 46 64 46 Q86 46 86 62 Q88 82 64 84 Q40 84 42 60Z" fill="#e8455a" stroke="none"/><path d="M50 56 q6 -4 12 -2" fill="none" stroke="#ff9aa8" stroke-width="3"/>'),
+    'bread-honey-toast': toast('<path d="M44 58 q10 6 20 0 t20 0 M44 72 q10 6 20 0 t20 0" fill="none" stroke="#f2b82e" stroke-width="5"/><rect x="52" y="76" width="22" height="14" rx="3" fill="#fff3a8"/>'),
+    'bread-cheese-toast': toast('<path d="M38 54 Q40 40 64 40 Q88 40 90 54 V86 Q76 92 64 86 Q52 92 38 86Z" fill="#ffd04d"/>' + dots([(50, 60), (74, 64), (60, 76)], 3, '#e8a82e', False)),
+    'bread-plain-toast': toast(),
+    'bread-france': '<rect x="14" y="56" width="100" height="30" rx="15" fill="#d9984a" transform="rotate(-18 64 71)"/>' + ''.join(f'<path d="M{34 + i * 18} 70 q6 -8 14 -10" fill="none" stroke="#ffdc8a" stroke-width="4" transform="rotate(-18 64 71)"/>' for i in range(4)),
+    'bread-bagel': '<circle cx="64" cy="70" r="32" fill="#d9984a"/><circle cx="64" cy="70" r="11" fill="' + BG['bread'] + '"/><path d="M42 58 q8 -14 22 -16" fill="none" stroke="#f2c47a" stroke-width="4"/>' + dots([(78, 50), (86, 64), (50, 86)], 1.6, '#fff', False),
+    'bread-naan': '<path d="M34 100 Q20 60 44 36 Q60 24 76 38 Q106 66 94 96 Q84 110 60 108 Q42 108 34 100Z" fill="#f6dcae"/>' + dots([(50, 50), (66, 60), (56, 76), (78, 82), (70, 96), (46, 90)], 4, '#d9984a', False),
+    'bread-anpan': '<path d="M26 88 Q24 48 64 46 Q104 48 102 88Z" fill="#c9782e"/><path d="M26 88 H102" stroke-width="3"/><circle cx="64" cy="58" r="5" fill="#fff8e0" stroke="none"/>' + dots([(48, 64), (80, 66), (56, 74), (74, 76)], 1.4, '#fff8e0', False),
+    'bread-cream-pan': '<path d="M24 88 Q22 60 40 56 Q42 44 54 46 Q60 38 70 44 Q80 40 86 50 Q102 54 104 70 Q106 88 92 92 H36 Q24 92 24 88Z" fill="#e8a24a"/><path d="M48 52 V80 M64 46 V80 M80 50 V80" stroke="#c9822e" stroke-width="2.5"/>',
+    'bread-melon-pan': '<path d="M24 86 Q22 42 64 40 Q106 42 104 86Z" fill="#ffd77a"/><path d="M24 86 H104" stroke-width="3"/>' + ''.join(f'<path d="M{36 + i * 14} 48 L{56 + i * 14} 84 M{92 - i * 14} 48 L{72 - i * 14} 84" stroke="#e8b052" stroke-width="2.5"/>' for i in range(3)),
+    'bread-curry-pan': '<ellipse cx="64" cy="72" rx="40" ry="26" fill="#d9822e"/>' + dots([(40, 64), (52, 56), (66, 52), (80, 58), (88, 70), (46, 80), (62, 86), (80, 82), (64, 70)], 2.2, '#f2b45a', False),
+    'bread-jam-pan': '<path d="M26 88 Q24 48 64 46 Q104 48 102 88Z" fill="#e3a256"/><path d="M26 88 H102" stroke-width="3"/><path d="M50 68 q14 -10 28 0" fill="none" stroke="#e8455a" stroke-width="6"/>',
+}
+for k, art in BREAD.items():
+    D[k] = ('bread', art)
 
 CLOCHE = ('<ellipse cx="64" cy="88" rx="46" ry="12" fill="#fff"/>'
           '<path d="M26 84 Q26 44 64 44 Q102 44 102 84Z" fill="#fff4dc"/>'
