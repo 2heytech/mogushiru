@@ -81,7 +81,7 @@
   category: noodle
   suggestedSlots: [lunch, dinner]
   ingredients:
-    - { foodId: "01064", grams: 220, role: めん } # スパゲッティ ゆで（乾麺80g）
+    - { foodId: "01064", grams: 220, role: めん } # スパゲッティ ゆで（乾麺100g。成分表のゆでの重量変化率220%）
     - { foodId: "11089", grams: 30, role: ひき肉, alternatives: ["11163", "11230"] } # 牛ひき肉
     - { foodId: "11163", grams: 30, role: ひき肉 } # 豚ひき肉
     - { foodId: "06153", grams: 40 } # たまねぎ
@@ -134,3 +134,105 @@
     - { foodId: "16025", grams: 10 } # 本みりん
     - { foodId: "03003", grams: 3 } # 上白糖
     - { foodId: "17021", grams: 50 } # だし
+
+- id: chimaki
+  name: 中華ちまき
+  kana: ちゅうかちまき ちまき
+  category: staple
+  suggestedSlots: [lunch, other]
+  # 出典: 成分表2015年版 第3章「そう菜19 中華ちまき」の平均配合割合（0.3%未満の材料は塩分の多いものを除き省略）。
+  # 1人前 120g（1個）。成分表 18046「中華ちまき」100g当たり 174kcal に合わせて材料の総量を決めた（材料合計 98g、加えた水は含まない）。
+  ingredients:
+    - { foodId: "01154", grams: 42 } # こめ 水稲めし 精白米 もち米（配合 42.7%）
+    - { foodId: "11291", grams: 28 } # にわとり 二次品目 ひき肉 焼き（配合 28.3%）
+    - { foodId: "08040", grams: 8.5 } # しいたけ 生しいたけ 菌床栽培 ゆで（配合 8.8%）
+    - { foodId: "17007", grams: 7 } # しょうゆ（濃口）（配合 7.3%）
+    - { foodId: "03003", grams: 2 } # 砂糖（上白糖）（配合 2.2%）
+    - { foodId: "14006", grams: 2 } # サラダ油（配合 2.0%）
+    - { foodId: "03024", grams: 1.5 } # でん粉糖 水あめ 酵素糖化（配合 1.6%）
+    - { foodId: "03017", grams: 1.5 } # でん粉糖 ぶどう糖 全糖（配合 1.3%）
+    - { foodId: "14016", grams: 1 } # 動物油脂 ラード（配合 1.2%）
+    - { foodId: "06215", grams: 1 } # にんじん 根 皮なし ゆで（配合 1.0%）
+    - { foodId: "16025", grams: 0.7 } # みりん（配合 0.7%）
+    - { foodId: "02034", grams: 0.6 } # 片栗粉（配合 0.6%）
+    - { foodId: "16001", grams: 0.6 } # 日本酒（配合 0.6%）
+    - { foodId: "14002", grams: 0.5 } # ごま油（配合 0.5%）
+    - { foodId: "17028", grams: 0.5 } # 顆粒和風だし（配合 0.5%）
+    - { foodId: "17012", grams: 0.2 } # 食塩（配合 0.2%）
+    - { foodId: "17027", grams: 0.1 } # だし 固形ブイヨン（配合 0.1%）
+
+- id: pilaf
+  name: えびピラフ
+  kana: えびぴらふ ぴらふ
+  category: staple
+  suggestedSlots: [lunch, dinner]
+  # 出典: 成分表2015年版 第3章「そう菜41 えびピラフ」の平均配合割合（0.3%未満の材料は塩分の多いものを除き省略）。
+  # 1人前 250g（1皿）。成分表 18014「えびピラフ」100g当たり 146kcal に合わせて材料の総量を決めた（材料合計 264g、加えた水は含まない）。
+  ingredients:
+    - { foodId: "01088", grams: 155 } # ごはん（白米）（配合 57.9%）
+    - { foodId: "06155", grams: 32 } # たまねぎ りん茎 ゆで（配合 12.0%）
+    - { foodId: "10329", grams: 21 } # えび（ブラックタイガー）（配合 7.8%）
+    - { foodId: "06215", grams: 13 } # にんじん 根 皮なし ゆで（配合 5.0%）
+    - { foodId: "06245", grams: 10 } # ピーマン（配合 3.9%）
+    - { foodId: "14006", grams: 6.5 } # サラダ油（配合 2.4%）
+    - { foodId: "08033", grams: 5 } # マッシュルーム 水煮缶詰（配合 1.9%）
+    - { foodId: "08032", grams: 4.5 } # マッシュルーム ゆで（配合 1.7%）
+    - { foodId: "17012", grams: 1.6 } # 食塩（配合 1.5%＝4gだと食塩が成分表 18014 の約1.7倍になるため、18014 の食塩 1.4g/100g に合わせて減らした）
+    - { foodId: "06180", grams: 3 } # とうもろこし スイートコーン 缶詰 ホールカーネルスタイル（配合 1.1%）
+    - { foodId: "06011", grams: 2.5 } # いんげんまめ さやいんげん 若ざや ゆで（配合 0.9%）
+    - { foodId: "17028", grams: 2 } # 顆粒和風だし（配合 0.8%）
+    - { foodId: "17027", grams: 2 } # だし 固形ブイヨン（配合 0.7%）
+    - { foodId: "14020", grams: 1.5 } # マーガリン 家庭用 有塩（配合 0.6%）
+    - { foodId: "14017", grams: 1 } # バター（有塩）（配合 0.4%）
+    - { foodId: "11198", grams: 0.8 } # ぶた その他 ゼラチン（配合 0.3%）
+
+- id: onigiri-ume
+  name: 梅おにぎり
+  kana: うめおにぎり
+  category: staple
+  suggestedSlots: [breakfast, lunch, other]
+  ingredients:
+    - { foodId: "01088", grams: 110, role: ごはん }
+    - { foodId: "07023", grams: 8, role: 具, alternatives: ["07022"] } # 梅干し 調味漬（1粒の可食部）。塩漬は 07022
+    - { foodId: "09004", grams: 1 } # 焼きのり
+    - { foodId: "17012", grams: 0.3 } # 食塩
+
+- id: fried-rice
+  name: チャーハン
+  kana: ちゃーはん やきめし
+  category: staple
+  suggestedSlots: [lunch, dinner]
+  ingredients:
+    - { foodId: "18057", grams: 250, role: チャーハン } # 成分表 調理済み流通食品 チャーハン（1皿）
+
+- id: yakisoba
+  name: ソース焼きそば
+  kana: やきそば そーすやきそば
+  category: noodle
+  suggestedSlots: [lunch, dinner]
+  # 一般的な家庭の分量（蒸しめん1玉150g）。成分表に配合割合がないため、独自に設定。
+  ingredients:
+    - { foodId: "01049", grams: 150, role: めん } # 蒸し中華めん 1玉
+    - { foodId: "11129", grams: 40, role: 肉, alternatives: ["11163", "11221"] } # 豚ばら
+    - { foodId: "06061", grams: 60 } # キャベツ
+    - { foodId: "06291", grams: 30 } # もやし
+    - { foodId: "06214", grams: 10 } # にんじん
+    - { foodId: "14006", grams: 6 } # 調合油
+    - { foodId: "17002", grams: 25 } # 中濃ソース
+    - { foodId: "09002", grams: 0.3 } # あおのり
+
+- id: roll-bread
+  name: ロールパン（2個）
+  kana: ろーるぱん
+  category: bread
+  suggestedSlots: [breakfast]
+  ingredients:
+    - { foodId: "01034", grams: 60, role: パン } # ロールパン 1個30g×2
+
+- id: croissant
+  name: クロワッサン
+  kana: くろわっさん
+  category: bread
+  suggestedSlots: [breakfast, other]
+  ingredients:
+    - { foodId: "01209", grams: 45, role: パン } # クロワッサン レギュラータイプ 1個
