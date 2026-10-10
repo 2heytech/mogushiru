@@ -11,7 +11,8 @@ export const SLOT_ENERGY_TOLERANCE = 0.2
 
 export type EnergyLevel = 'empty' | 'low' | 'ok' | 'high'
 export type PfcKey = 'p' | 'f' | 'c'
-export type PfcHint = { key: PfcKey; direction: 'low' | 'high' }
+// gap は目標範囲からのずれ（％ポイント）。少なければマイナス、多ければプラス
+export type PfcHint = { key: PfcKey; direction: 'low' | 'high'; gap: number }
 
 export type SlotBalance = {
   kcal: number
@@ -35,14 +36,14 @@ export function slotBalance(totals: NutrientTotals, slot: Slot, targets: Targets
           : 'ok'
   const ratio = pfcRatio(totals.values)
   // その他（間食・飲み物）は1品だけのことが多く、PFCの偏りを言っても意味が薄いので判定しない
-  const hints: (PfcHint & { gap: number })[] = []
+  const hints: PfcHint[] = []
   if (ratio && slot !== 'other') {
     for (const key of ['p', 'f', 'c'] as const) {
       const r = targets.pfcRatio[key]
-      if (ratio[key] < r.lo) hints.push({ key, direction: 'low', gap: r.lo - ratio[key] })
+      if (ratio[key] < r.lo) hints.push({ key, direction: 'low', gap: ratio[key] - r.lo })
       else if (ratio[key] > r.hi) hints.push({ key, direction: 'high', gap: ratio[key] - r.hi })
     }
   }
-  hints.sort((a, b) => b.gap - a.gap)
-  return { kcal, targetKcal, energy, ratio, hints: hints.map(({ key, direction }) => ({ key, direction })) }
+  hints.sort((a, b) => Math.abs(b.gap) - Math.abs(a.gap))
+  return { kcal, targetKcal, energy, ratio, hints }
 }

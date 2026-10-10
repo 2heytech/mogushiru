@@ -1,0 +1,83 @@
+import { SLOT_ENERGY_SHARE } from './slotBalance'
+import type { CheckedNutrient, NutrientTarget, Targets } from './targets'
+import type { NutrientTotals, Slot } from './types'
+
+// 表示する順番。上限に気をつけたいもの → しっかりとりたいもの → 基準がないもの
+export const LIMIT_NUTRIENTS = ['salt', 'satFat', 'alcohol'] as const satisfies CheckedNutrient[]
+export const WANT_NUTRIENTS = [
+  'fiber',
+  'potassium',
+  'calcium',
+  'iron',
+  'vitaminA',
+  'vitaminD',
+  'vitaminB1',
+  'vitaminB2',
+  'vitaminC',
+  'n3Fat',
+  'n6Fat',
+] as const satisfies CheckedNutrient[]
+export const INFO_NUTRIENTS = ['monoUnsatFat', 'polyUnsatFat'] as const satisfies CheckedNutrient[]
+export const CHECKED_NUTRIENTS: CheckedNutrient[] = [...LIMIT_NUTRIENTS, ...WANT_NUTRIENTS, ...INFO_NUTRIENTS]
+
+// ok: 目安を満たす・上限より十分少ない／near: とりたい量の8割以上、または上限の8割こえ／
+// low: とりたい量の8割未満／over: 上限（耐容上限量を含む）こえ／info: 比べる基準がない・判定しない
+export type CheckStatus = 'ok' | 'near' | 'low' | 'over' | 'info'
+
+export type NutrientCheck = {
+  key: CheckedNutrient
+  amount: number
+  target: NutrientTarget
+  // 比べる量（区分のときは1日の目安を区分の割合で配分した量）。基準がなければ null
+  goal: number | null
+  // 耐容上限量（1日の値。区分でもこの値と比べる）
+  upper: number | null
+  status: CheckStatus
+  // 未収録の食品があり、実際より少なく出ている可能性がある
+  partial: boolean
+}
+
+// 上限の 80% を超えたら「上限ちかい」、とりたい量の 80% 以上なら「あと少し」（アプリ独自）
+const NEAR = 0.8
+
+export function judge(amount: number, target: NutrientTarget, goal: number | null, upper: number | null, judgeLow: boolean): CheckStatus {
+  if (target.kind === 'none' || goal === null) return 'info'
+  if (target.kind === 'max') {
+    if (target.overAtLimit ? amount >= goal : amount > goal) return 'over'
+    return amount > goal * NEAR ? 'near' : 'ok'
+  }
+  if (upper !== null && amount > upper) return 'over'
+  if (!judgeLow) return 'info'
+  if (amount >= goal) return 'ok'
+  return amount >= goal * NEAR ? 'near' : 'low'
+}
+
+// slot を渡すと区分の目安（1日の目安 × 区分の割合）と比べる。
+// アルコールは1回でまとめて飲むことが多く、区分に分ける意味が薄いので1日の値のまま比べる。
+// その他（間食・飲み物）は少なくても問題にしないので、とりたい栄養素の不足は判定しない
+export function nutrientChecks(totals: NutrientTotals, targets: Targets, slot?: Slot): NutrientCheck[] {
+  return CHECKED_NUTRIENTS.map((key) => {
+    const target = targets.nutrients[key]
+    const share = slot && key !== 'alcohol' ? SLOT_ENERGY_SHARE[slot] : 1
+    const goal = target.kind === 'none' ? null : target.value * share
+    const upper = target.kind === 'min' && target.upper !== undefined ? target.upper : null
+    const amount = totals.values[key]
+    return {
+      key,
+      amount,
+      target,
+      goal,
+      upper,
+      status: judge(amount, target, goal, upper, slot !== 'other'),
+      partial: totals.missing.has(key),
+    }
+  })
+}
+
+export type CheckSummary = Record<Exclude<CheckStatus, 'info'>, number>
+
+export function summarizeChecks(checks: NutrientCheck[]): CheckSummary {
+  const s: CheckSummary = { ok: 0, near: 0, low: 0, over: 0 }
+  for (const c of checks) if (c.status !== 'info') s[c.status]++
+  return s
+}

@@ -142,31 +142,49 @@ export function rowToFood(row: unknown[], cols: ColumnMap): MextFood | null {
   }
 }
 
-// 脂肪酸成分表（第1表 可食部100g当たり）から飽和脂肪酸（FASAT, g）を食品番号ごとに読む
-export function readSaturatedFat(rows: unknown[][]): Map<string, ParsedCell> {
-  const cols = findColumns(rows, 'FASAT', { satFat: ['FASAT'] })
-  const idx = cols.nutrients.satFat!
-  const out = new Map<string, ParsedCell>()
+// 脂肪酸成分表（第1表 可食部100g当たり）から読む脂肪酸（g）と成分識別子
+export const FATTY_ACID_IDS = {
+  satFat: ['FASAT'],
+  monoUnsatFat: ['FAMS'],
+  polyUnsatFat: ['FAPU'],
+  n3Fat: ['FAPUN3'],
+  n6Fat: ['FAPUN6'],
+} satisfies Partial<Record<NutrientKey, string[]>>
+export type FattyAcidKey = keyof typeof FATTY_ACID_IDS
+const FATTY_ACID_KEYS = Object.keys(FATTY_ACID_IDS) as FattyAcidKey[]
+
+// 脂肪酸成分表の値を食品番号ごとに読む
+export function readFattyAcids(rows: unknown[][]): Map<string, Record<FattyAcidKey, ParsedCell>> {
+  const cols = findColumns(rows, 'FASAT', FATTY_ACID_IDS)
+  const missing = FATTY_ACID_KEYS.filter((k) => cols.nutrients[k] === undefined)
+  if (missing.length) throw new Error(`脂肪酸成分表に列がありません: ${missing.join(', ')}`)
+  const out = new Map<string, Record<FattyAcidKey, ParsedCell>>()
   for (const row of rows.slice(cols.headerRow + 1)) {
     const id = cellText(row[cols.foodId]).trim()
-    if (/^\d{1,5}$/.test(id)) out.set(id.padStart(5, '0'), parseCell(row[idx]))
+    if (!/^\d{1,5}$/.test(id)) continue
+    const cells = {} as Record<FattyAcidKey, ParsedCell>
+    for (const k of FATTY_ACID_KEYS) cells[k] = parseCell(row[cols.nutrients[k]!])
+    out.set(id.padStart(5, '0'), cells)
   }
   return out
 }
 
-// 本表の食品に飽和脂肪酸を足す。脂肪酸成分表にない食品は、脂質が 0・Tr なら 0、それ以外は欠損のまま
-export function applySaturatedFat(food: MextFood, satFat: Map<string, ParsedCell>): MextFood {
-  const cell = satFat.get(food.id)
+// 本表の食品に脂肪酸を足す。脂肪酸成分表にない食品は、脂質が 0・Tr なら 0、それ以外は欠損のまま
+export function applyFattyAcids(food: MextFood, fattyAcids: Map<string, Record<FattyAcidKey, ParsedCell>>): MextFood {
+  const cells = fattyAcids.get(food.id)
   const per100g = { ...food.per100g }
   const traceFlags = [...food.traceFlags]
   const estimatedFlags = [...food.estimatedFlags]
-  if (cell) {
-    per100g.satFat = cell.value
-    if (cell.trace) traceFlags.push('satFat')
-    if (cell.estimated) estimatedFlags.push('satFat')
-  } else if (per100g.fat === 0) {
-    per100g.satFat = 0
-    if (traceFlags.includes('fat')) traceFlags.push('satFat')
+  for (const k of FATTY_ACID_KEYS) {
+    const cell = cells?.[k]
+    if (cell) {
+      per100g[k] = cell.value
+      if (cell.trace) traceFlags.push(k)
+      if (cell.estimated) estimatedFlags.push(k)
+    } else if (per100g.fat === 0) {
+      per100g[k] = 0
+      if (traceFlags.includes('fat')) traceFlags.push(k)
+    }
   }
   return { ...food, per100g, traceFlags, estimatedFlags }
 }

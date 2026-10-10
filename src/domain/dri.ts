@@ -88,3 +88,95 @@ export function pick<T extends AgeBand>(rows: T[], age: number): T {
   if (!row) throw new Error(`対応していない年齢: ${age}`)
   return row
 }
+
+// ---- ビタミン・ミネラル・脂肪酸（18歳以上の行のみ） ----
+// 18歳未満も MIN_SUPPORTED_AGE（18歳）の行を使うため、小児の行は持たない
+
+// n-6系脂肪酸の目安量（g/日）
+// 出典：報告書「1-3 脂質」n-6系脂肪酸の食事摂取基準（g/日）の表（p.128）
+export const N6_AI: Row<number>[] = [
+  { min: 18, max: 29, male: 12, female: 9 },
+  { min: 30, max: 49, male: 11, female: 9 },
+  { min: 50, max: 64, male: 11, female: 9 },
+  { min: 65, max: 74, male: 10, female: 9 },
+  { min: 75, max: 150, male: 9, female: 8 },
+]
+
+// n-3系脂肪酸の目安量（g/日）
+// 出典：報告書「1-3 脂質」n-3系脂肪酸の食事摂取基準（g/日）の表（p.128）
+export const N3_AI: Row<number>[] = [
+  { min: 18, max: 29, male: 2.2, female: 1.7 },
+  { min: 30, max: 49, male: 2.2, female: 1.7 },
+  { min: 50, max: 64, male: 2.3, female: 1.9 },
+  { min: 65, max: 74, male: 2.3, female: 2.0 },
+  { min: 75, max: 150, male: 2.3, female: 2.0 },
+]
+// 一価不飽和脂肪酸・多価不飽和脂肪酸（合計）には食事摂取基準の指標がない
+
+// ビタミンAの推奨量（µgRAE/日）
+// 出典：報告書「1-6 ビタミン」ビタミンAの食事摂取基準（µgRAE/日）の表（p.181）
+// 耐容上限量 2,700 µgRAE/日は「プロビタミンAカロテノイドを含まない」（同表 脚注3）。
+// 成分表のレチノール活性当量はβ-カロテン由来の分を含むので、アプリでは上限と比べない
+export const VITAMIN_A_RDA: Row<number>[] = [
+  { min: 18, max: 29, male: 850, female: 650 },
+  { min: 30, max: 49, male: 900, female: 700 },
+  { min: 50, max: 64, male: 900, female: 700 },
+  { min: 65, max: 74, male: 850, female: 700 },
+  { min: 75, max: 150, male: 800, female: 650 },
+]
+
+// ビタミンDの目安量・耐容上限量（µg/日、18歳以上は男女・年齢で同じ）
+// 出典：報告書「1-6 ビタミン」ビタミンDの食事摂取基準（µg/日）の表（p.182）
+export const VITAMIN_D_AI = 9.0
+export const VITAMIN_D_UL = 100
+
+// ビタミンB1の推奨量（mg/日、チアミン塩化物塩酸塩相当量）
+// 出典：報告書「1-6 ビタミン」ビタミンB1の食事摂取基準（mg/日）の表（p.234）。
+// 身体活動レベル「ふつう」の推定エネルギー必要量で算定された値
+export const VITAMIN_B1_RDA: Row<number>[] = [
+  { min: 18, max: 29, male: 1.1, female: 0.8 },
+  { min: 30, max: 49, male: 1.2, female: 0.9 },
+  { min: 50, max: 64, male: 1.1, female: 0.8 },
+  { min: 65, max: 74, male: 1.0, female: 0.8 },
+  { min: 75, max: 150, male: 1.0, female: 0.7 },
+]
+
+// ビタミンB2の推奨量（mg/日）
+// 出典：報告書「1-6 ビタミン」ビタミンB2の食事摂取基準（mg/日）の表（p.235）
+export const VITAMIN_B2_RDA: Row<number>[] = [
+  { min: 18, max: 29, male: 1.6, female: 1.2 },
+  { min: 30, max: 49, male: 1.7, female: 1.2 },
+  { min: 50, max: 64, male: 1.6, female: 1.2 },
+  { min: 65, max: 74, male: 1.4, female: 1.1 },
+  { min: 75, max: 150, male: 1.4, female: 1.1 },
+]
+
+// ビタミンCの推奨量（mg/日、18歳以上は男女・年齢で同じ）
+// 出典：報告書「1-6 ビタミン」ビタミンCの食事摂取基準（mg/日）の表（p.242）
+export const VITAMIN_C_RDA = 100
+
+// カリウムの目標量（mg/日以上）。生活習慣病の予防のための値で、目安量（男性2,500・女性2,000）より多い
+// 出典：報告書「1-7 ミネラル」カリウムの食事摂取基準（mg/日）の表（p.282）
+export const POTASSIUM_DG: Record<Sex, number> = { male: 3000, female: 2600 }
+
+// カルシウムの推奨量（mg/日）と耐容上限量（2,500 mg/日、18歳以上で同じ）
+// 出典：報告書「1-7 ミネラル」カルシウムの食事摂取基準（mg/日）の表（p.283）
+export const CALCIUM_RDA: Row<number>[] = [
+  { min: 18, max: 29, male: 800, female: 650 },
+  { min: 30, max: 49, male: 750, female: 650 },
+  { min: 50, max: 64, male: 750, female: 650 },
+  { min: 65, max: 74, male: 750, female: 650 },
+  { min: 75, max: 150, male: 750, female: 600 },
+]
+export const CALCIUM_UL = 2500
+
+// 鉄の推奨量（mg/日）。女性は月経の有無で分かれ、「月経あり」は64歳まで。
+// 成人の耐容上限量は設定されていない
+// 出典：報告書「1-7 ミネラル」鉄の食事摂取基準（mg/日）の表（p.345）
+export const IRON_RDA: (AgeBand & { male: number; female: number; femaleMenstruating: number | null })[] = [
+  { min: 18, max: 29, male: 7.0, female: 6.0, femaleMenstruating: 10.0 },
+  { min: 30, max: 49, male: 7.5, female: 6.0, femaleMenstruating: 10.5 },
+  { min: 50, max: 64, male: 7.0, female: 6.0, femaleMenstruating: 10.5 },
+  { min: 65, max: 74, male: 7.0, female: 6.0, femaleMenstruating: null },
+  { min: 75, max: 150, male: 6.5, female: 5.5, femaleMenstruating: null },
+]

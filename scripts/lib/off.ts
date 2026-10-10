@@ -17,7 +17,7 @@ export type OffProduct = {
 // CSV には product_quantity_unit がないため、内容量の表記（例「500 ml」）から mL かどうかを判定する
 const CSV_NUTRIMENTS = [
   'energy-kcal', 'proteins', 'fat', 'carbohydrates', 'salt', 'sodium', 'fiber', 'alcohol',
-  'saturated-fat', 'calcium', 'iron', 'potassium', 'vitamin-c',
+  'saturated-fat', 'monounsaturated-fat', 'polyunsaturated-fat', 'omega-3-fat', 'omega-6-fat', 'calcium', 'iron', 'potassium', 'vitamin-c',
 ]
 export function csvRowToOffProduct(row: Record<string, string>): OffProduct {
   const nutriments: Record<string, string> = {}
@@ -119,6 +119,10 @@ export function toProduct(p: OffProduct, fetchedAt: string): Product | null {
     // お酒以外でアルコールの記載がない商品は 0（成分表の「-」と同じ扱い）
     alcohol: alcohol !== null ? alcoholVolToG(alcohol) : category === 'alcohol' ? null : 0,
     satFat: g('saturated-fat'),
+    monoUnsatFat: g('monounsaturated-fat'),
+    polyUnsatFat: g('polyunsaturated-fat'),
+    n3Fat: g('omega-3-fat'),
+    n6Fat: g('omega-6-fat'),
     // OFF のミネラル・ビタミンは g 単位
     calcium: mgFromG(g('calcium')),
     iron: mgFromG(g('iron')),

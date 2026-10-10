@@ -42,12 +42,24 @@ export function ProfileDialog({ profile, onSave, onClose }: { profile: Profile; 
   const [weight, setWeight] = useState(profile.weightKg ? String(profile.weightKg) : '')
   const [activity, setActivity] = useState<Activity>(profile.activity)
   const [goal, setGoal] = useState<Goal>(profile.goal ?? 'keep')
+  const [menstruation, setMenstruation] = useState<boolean | undefined>(profile.menstruation)
 
   const ageNum = numOrUndef(age)
   const valid = ageNum !== undefined && ageNum >= 1 && ageNum <= 120
   const draft: Profile | null = valid
-    ? { sex, age: ageNum, heightCm: numOrUndef(height), weightKg: numOrUndef(weight), activity, goal }
+    ? {
+        sex,
+        age: ageNum,
+        heightCm: numOrUndef(height),
+        weightKg: numOrUndef(weight),
+        activity,
+        goal,
+        ...(sex === 'female' && menstruation !== undefined ? { menstruation } : {}),
+      }
     : null
+  // 鉄の推奨量は、女性の64歳までだけ月経の有無で変わる
+  const askMenstruation = sex === 'female' && ageNum !== undefined && ageNum <= 64
+  const menstruationValue = menstruation ?? Math.max(ageNum ?? 0, MIN_SUPPORTED_AGE) < 50
   const preview = draft ? computeTargets(draft) : null
 
   const field = 'min-h-11 w-full rounded-2xl border-2 border-white bg-white px-4 text-base outline-none focus:border-coral'
@@ -84,6 +96,20 @@ export function ProfileDialog({ profile, onSave, onClose }: { profile: Profile; 
           </div>
           {ageNum !== undefined && ageNum < MIN_SUPPORTED_AGE && (
             <p className="text-xs text-ink-soft">※ {MIN_SUPPORTED_AGE}歳未満の方は、成長に必要な分を含めた計算に対応していないため、{MIN_SUPPORTED_AGE}歳の目安で表示します。</p>
+          )}
+          {askMenstruation && (
+            <div>
+              <p className="mb-1 text-sm">月経</p>
+              <Choice
+                value={menstruationValue ? 'yes' : 'no'}
+                onChange={(v) => setMenstruation(v === 'yes')}
+                options={[
+                  { id: 'yes', label: 'あり' },
+                  { id: 'no', label: 'なし' },
+                ]}
+              />
+              <p className="mt-1 text-[11px] text-ink-soft">鉄の目安を選ぶために使います（月経ありのほうが多くなります）</p>
+            </div>
           )}
           <div>
             <p className="mb-1 text-sm">ふだんの活動量</p>

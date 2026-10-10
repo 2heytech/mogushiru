@@ -1,7 +1,7 @@
 // 食材の栄養素ランキング
 // 「100gあたり」だけでなく、1回に食べる量・カロリー・価格あたりでも並べられるようにする
 import { servingFor, type Serving } from './serving'
-import type { Targets } from './targets'
+import type { NutrientTarget, Targets } from './targets'
 import type { Food, NutrientKey } from './types'
 
 export type RankingMetric = 'serving' | 'per100g' | 'per100kcal' | 'per100yen'
@@ -130,7 +130,11 @@ export function dailyReference(nutrient: NutrientKey, t: Targets): { value: numb
       return { value: t.satFatMaxG, kind: 'max' }
     case 'alcohol':
       return { value: t.alcoholRiskG, kind: 'max' }
-    default:
-      return null
+    default: {
+      // ビタミン・ミネラル・脂肪酸は食事摂取基準の推奨量・目安量・目標量（targets.nutrients）を使う
+      const n = (t.nutrients as Partial<Record<NutrientKey, NutrientTarget>>)[nutrient]
+      if (!n || n.kind === 'none') return null
+      return { value: n.value, kind: n.kind === 'max' ? 'max' : 'target' }
+    }
   }
 }

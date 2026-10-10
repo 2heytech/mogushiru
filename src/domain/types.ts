@@ -8,6 +8,10 @@ export const NUTRIENT_KEYS = [
   'salt', // g（食塩相当量）
   'alcohol', // g
   'satFat', // g（飽和脂肪酸）
+  'monoUnsatFat', // g（一価不飽和脂肪酸）
+  'polyUnsatFat', // g（多価不飽和脂肪酸。n-3系・n-6系を含む）
+  'n3Fat', // g（n-3系多価不飽和脂肪酸）
+  'n6Fat', // g（n-6系多価不飽和脂肪酸）
   'calcium', // mg
   'iron', // mg
   'potassium', // mg
@@ -121,4 +125,6 @@ export type Profile = {
   weightKg?: number
   activity: Activity
   goal?: Goal
+  // 女性の鉄の推奨量を選ぶため。未設定なら50歳未満は「あり」として扱う
+  menstruation?: boolean
 }

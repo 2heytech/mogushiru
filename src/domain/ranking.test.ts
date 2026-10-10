@@ -6,6 +6,7 @@ import type { Food, Nutrients } from './types'
 
 const zero: Nutrients = {
   energyKcal: 0, protein: 0, fat: 0, carb: 0, fiber: 0, salt: 0, alcohol: 0, satFat: 0,
+  monoUnsatFat: 0, polyUnsatFat: 0, n3Fat: 0, n6Fat: 0,
   calcium: 0, iron: 0, potassium: 0, vitaminA: 0, vitaminD: 0, vitaminB1: 0, vitaminB2: 0, vitaminC: 0,
 }
 
@@ -69,6 +70,15 @@ describe('1日の目安', () => {
   it('食塩は上限、食物繊維は目標で返す', () => {
     expect(dailyReference('salt', t)).toEqual({ value: t.saltMax, kind: 'max' })
     expect(dailyReference('fiber', t)).toEqual({ value: t.fiberMin, kind: 'target' })
-    expect(dailyReference('vitaminC', t)).toBeNull()
+    expect(dailyReference('vitaminC', t)).toEqual({ value: 100, kind: 'target' })
+  })
+})
+
+describe('1日の目安（ビタミン・ミネラル）', () => {
+  it('食事摂取基準の推奨量などを返し、基準のない栄養素は null', () => {
+    const t = computeTargets({ sex: 'male', age: 25, activity: 'normal' })
+    expect(dailyReference('vitaminC', t)).toEqual({ value: 100, kind: 'target' })
+    expect(dailyReference('calcium', t)).toEqual({ value: 800, kind: 'target' })
+    expect(dailyReference('monoUnsatFat', t)).toBeNull()
   })
 })
