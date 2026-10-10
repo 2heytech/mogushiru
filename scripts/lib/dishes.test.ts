@@ -31,6 +31,11 @@ describe('料理データの生成', () => {
     expect(dishes[0].illustration).toBe('rice.webp')
   })
 
+  it('同じ料理に複数の形式があれば webp・png を svg より優先する', () => {
+    expect(buildDishes([recipe({})], foods, new Set(['rice.svg'])).dishes[0].illustration).toBe('rice.svg')
+    expect(buildDishes([recipe({})], foods, new Set(['rice.svg', 'rice.png'])).dishes[0].illustration).toBe('rice.png')
+  })
+
   it('未知の食品番号・重複ID・不正なカテゴリはエラー', () => {
     const { errors } = buildDishes(
       [

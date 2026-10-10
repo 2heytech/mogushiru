@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { Catalog, MenuTotals } from '../domain/nutrition'
 import { SLOTS, type DayMenu, type MenuItem, type Slot } from '../domain/types'
 import type { Targets } from '../domain/targets'
+import { menuItemImage } from './illustration'
 import { SLOT_LABEL } from './labels'
 import { SlotBalanceView } from './SlotBalanceView'
 
@@ -114,8 +115,9 @@ export function SlotBoard({
                   type="button"
                   onClick={() => setEditing(editing === item.uid ? null : item.uid)}
                   aria-expanded={editing === item.uid}
-                  className="min-h-7"
+                  className="flex min-h-7 items-center"
                 >
+                  {menuItemImage(item, catalog) && <img src={menuItemImage(item, catalog)} alt="" className="mr-1.5 -ml-2 h-7 w-7" />}
                   {itemName(item, catalog)}
                   <span className="ml-1 text-ink-soft">{portionLabel(item, catalog)}</span>
                 </button>

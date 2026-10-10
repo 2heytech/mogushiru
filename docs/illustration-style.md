@@ -1,6 +1,25 @@
 # 料理イラストのスタイル指定
 
-料理イラストは画像生成AIで作り、すべて同じタッチに揃える。新しい料理を追加するときも、このページの共通プロンプトを使う。
+料理イラストは「シンプルでポップ、かわいい」フラットイラストに揃える。今は手描きのSVG（`scripts/draw-illustrations.py` で生成）を使っていて、あとから画像生成AIの絵に差し替えられる。
+
+## いまの絵（SVG）
+
+- 正方形 128×128 の SVG。背景はカテゴリ色の丸、料理は太めの丸い茶色の輪郭線（`#5b4636`・3px）と明るいベタ塗りだけで描く。グラデーション・細かい影・文字は使わない。
+- かわいさの決まりごと: 器（器がない料理は料理そのもの）に、点の目・小さなにっこり口・ピンクのほっぺの顔を付ける。器の色は明るいパステル。背景の丸には白い小さなきらきらを同じ位置に入れる。
+- 正面から少しのぞきこむ角度で、器（お茶わん・お皿・グラス）＋上にのる具を2〜4個のかたちで表す。
+- 背景の丸の色: 主食・パン `#ffeeb0`／主菜・丼 `#ffd9cc`／副菜 `#d6f2dc`／汁物・麺 `#ffe3c2`／飲み物 `#d7ecff`／おやつ・お酒 `#e6defa`
+- ファイルは `public/illustrations/<料理ID>.svg`。絵がまだない料理には、カテゴリ色のふた付きのお皿（`public/illustrations/category/<カテゴリ>.svg`）が自動で出る。
+
+### 料理を足すとき
+
+1. `scripts/draw-illustrations.py` の `D['<料理ID>'] = (カテゴリ, 中身)` と、顔の位置 `FACE['<料理ID>']` を足す。器は `plate()`・`bowl()`・`can()` などの共通パーツを使い、具は近い料理を写して色とかたちを変える
+2. `python3 scripts/draw-illustrations.py` で SVG を書き出す
+3. `npm run data:dishes` を実行する（絵のある料理に自動でファイル名が入る）
+4. 画面で他の絵と並べて、浮いていないか確認する
+
+## 画像生成AIに差し替えるとき
+
+同じ料理IDの `.webp` か `.png` を `public/illustrations/` に置くと、SVG より優先して使われる（`npm run data:dishes` を実行し直す）。混ざると浮くので、差し替えるときは全品まとめて行う。
 
 ## 仕上がりの条件
 
@@ -8,8 +27,8 @@
 |---|---|
 | サイズ | 正方形 1024×1024 で生成し、配信用は 512×512 に縮小 |
 | 背景 | 透過（透過できないサービスでは白背景で生成し、後で切り抜く） |
-| 構図 | 料理だけを中央に、斜め上45度から。人物・手・文字・ロゴは入れない |
-| タッチ | やわらかいフラットイラスト、太めの丸い輪郭線、温かい色、ほんのり影 |
+| 構図 | 料理だけを中央に、正面から少しのぞきこむ角度で。人物・手・文字・ロゴは入れない |
+| タッチ | シンプルでポップ、かわいいフラットイラスト。太めの丸い輪郭線、明るいベタ塗り、影なし、器に小さな顔とほっぺ |
 | 器 | 和食は和食器、洋食は白い洋皿など。器の色はアプリの配色（クリーム・コーラル系）になじむもの |
 | ファイル | `public/illustrations/<料理ID>.webp`（または `.png`）。1枚 50KB 以下が目安 |
 
@@ -22,17 +41,17 @@
 `{dish}` を下の表の英語の説明に置き換える。
 
 ```
-A cute, warm flat illustration of {dish}, viewed from a 45-degree angle above,
-centered, single item, soft rounded thick outlines, gentle pastel and warm colors
-(cream, coral, soft yellow, mint), subtle soft shadow, simple shapes, kawaii but not childish,
-Japanese home cooking style, clean transparent background, no text, no people, no hands, no logo
+A simple, pop flat icon illustration of {dish}, viewed from the front slightly above,
+centered, single item, thick rounded dark brown outlines, bright solid flat colors
+(coral, sunny yellow, mint green, sky blue), no gradients, no shadows, minimal details, kawaii and cheerful, a tiny cute face with dot eyes, small smile and pink blush cheeks on the bowl or plate,
+Japanese home cooking style, inside a pastel circle, no text, no people, no hands, no logo
 ```
 
 ネガティブプロンプトが使えるサービスでは次を指定する。
 
 ```
-photorealistic, 3d render, text, letters, watermark, logo, people, hands,
-cluttered background, harsh shadows, dark colors
+photorealistic, 3d render, gradients, texture, detailed shading, text, letters, watermark, logo,
+people, hands, cluttered background, dark colors
 ```
 
 ## 料理ごとの説明
@@ -74,6 +93,48 @@ cluttered background, harsh shadows, dark colors
 | `curry-rice` | カレーライス | Japanese curry rice on a plate |
 | `gyudon` | 牛丼 | a beef bowl (gyudon) with sliced beef and onion over rice |
 | `oyakodon` | 親子丼 | oyakodon, chicken and soft egg over rice in a bowl |
+| `shumai` | しゅうまい | four steamed shumai dumplings on a small plate |
+| `subuta` | 酢豚 | sweet and sour pork with bell peppers, onion and pineapple on a plate |
+| `happosai` | 八宝菜 | happosai, stir-fried napa cabbage, shrimp, squid, pork and quail eggs in thick sauce on a plate |
+| `aji-nanban` | アジの南蛮漬け | fried horse mackerel marinated in sweet vinegar with sliced onion and carrot in a shallow dish |
+| `croquette` | コロッケ | two golden potato croquettes with shredded cabbage |
+| `cream-stew` | クリームシチュー | a bowl of Japanese white cream stew with chicken, potato, carrot and broccoli |
+| `beef-stew` | ビーフシチュー | a bowl of brown beef stew with potato and carrot |
+| `tofu-hamburg` | 豆腐ハンバーグ | a tofu hamburg steak with grated daikon and soy-based sauce |
+| `ebi-fry` | えびフライ | three fried breaded shrimp with a lemon wedge and shredded cabbage |
+| `menchi` | メンチカツ | a breaded fried minced meat cutlet (menchi katsu) cut in half |
+| `gratin` | えびグラタン | shrimp macaroni gratin with golden cheese crust in an oval baking dish |
+| `tonkatsu` | とんかつ | sliced pork cutlet (tonkatsu) with tonkatsu sauce and shredded cabbage |
+| `grilled-mackerel` | さばの塩焼き | a grilled salted mackerel fillet on a small rectangular plate |
+| `sashimi` | まぐろの刺身 | five slices of red tuna sashimi with wasabi and shiso leaf |
+| `boiled-egg` | ゆで卵 | a boiled egg cut in half showing the yellow yolk |
+| `okonomiyaki` | お好み焼き | okonomiyaki pancake with brown sauce, aonori and bonito flakes |
+| `harumaki` | 春巻き | two crispy fried spring rolls (harumaki) |
+| `shiraae` | 青菜の白和え | shira-ae, spinach and carrot dressed with mashed tofu in a small bowl |
+| `goma-ae` | いんげんのごま和え | green beans dressed with sesame sauce in a small bowl |
+| `namasu` | 紅白なます | kohaku namasu, thin strips of daikon and carrot in sweet vinegar in a small bowl |
+| `unohana` | 卯の花 | unohana, simmered okara with carrot and green onion in a small bowl |
+| `chikuzenni` | 筑前煮 | chikuzen-ni, simmered chicken, lotus root, carrot, burdock and taro in a bowl |
+| `namul` | もやしのナムル | bean sprout namul with sesame in a small dish |
+| `pumpkin-soup` | かぼちゃのスープ | a cup of creamy pumpkin soup |
+| `corn-soup` | コーンスープ | a cup of creamy corn potage soup |
+| `chimaki` | 中華ちまき | a Chinese sticky rice dumpling (zongzi) partly unwrapped from bamboo leaf |
+| `pilaf` | えびピラフ | shrimp pilaf with peas, corn and carrot on a plate |
+| `onigiri-ume` | 梅おにぎり | a triangle rice ball with nori seaweed and a red umeboshi plum on top |
+| `fried-rice` | チャーハン | a dome of Chinese fried rice with egg and green onion on a plate |
+| `yakisoba` | ソース焼きそば | sauce yakisoba noodles with pork and cabbage, topped with aonori |
+| `roll-bread` | ロールパン（2個） | two soft butter rolls |
+| `croissant` | クロワッサン | a croissant |
+| `mikan` | みかん | a mandarin orange (mikan) with a leaf |
+| `apple` | りんご | half an apple cut into wedges |
+| `shortcake` | いちごのショートケーキ | a slice of strawberry shortcake |
+| `pudding` | プリン | a custard pudding with caramel sauce |
+| `daifuku` | 大福 | a white daifuku mochi with red bean paste visible inside |
+| `potato-chips` | ポテトチップス（1袋） | a pile of potato chips in a small bowl (no package, no logo) |
+| `chocolate` | ミルクチョコレート（1/2枚） | a few pieces of a milk chocolate bar (no wrapper, no logo) |
+| `ice-cream` | アイスクリーム | a cup of vanilla ice cream with a small wooden spoon |
+| `orange-juice` | オレンジジュース | a glass of orange juice |
+| `cola` | コーラ（350mL） | a glass of cola with ice (no can, no logo) |
 
 ## マスコット「モグ」
 
@@ -87,7 +148,7 @@ transparent background, no text
 
 `{expression}` は `a big happy smile with rosy cheeks` / `a calm neutral face` / `a slightly worried face with a small frown` のいずれか。
 
-## 追加の手順
+## AIで生成するときの手順
 
 1. 共通プロンプトで生成し、512×512 に縮小して `public/illustrations/<料理ID>.webp` に置く
 2. `npm run data:dishes` を実行する（イラストのある料理に自動でファイル名が入る）
