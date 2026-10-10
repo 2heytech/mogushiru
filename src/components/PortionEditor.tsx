@@ -3,6 +3,8 @@ import type { MenuItem } from '../domain/types'
 import { usesGrams } from './itemName'
 
 const SERVING_STEPS = [0.5, 1, 1.5, 2]
+// サプリは1回分を何回飲むか
+const SUPPLEMENT_STEPS = [1, 2, 3]
 
 // 量の変更。人前で数えるものは ½〜2人前、グラムで数えるものは数値で入れる
 export function PortionEditor({ item, catalog, onPortion }: { item: MenuItem; catalog: Catalog; onPortion: (p: number) => void }) {
@@ -25,9 +27,10 @@ export function PortionEditor({ item, catalog, onPortion }: { item: MenuItem; ca
       </label>
     )
   }
+  const supplement = item.kind === 'supplement'
   return (
     <div className="flex gap-1">
-      {SERVING_STEPS.map((step) => (
+      {(supplement ? SUPPLEMENT_STEPS : SERVING_STEPS).map((step) => (
         <button
           key={step}
           type="button"
@@ -35,7 +38,8 @@ export function PortionEditor({ item, catalog, onPortion }: { item: MenuItem; ca
           onClick={() => onPortion(step)}
           className={`min-h-10 min-w-12 rounded-full px-3 text-sm ${item.portion === step ? 'bg-coral font-bold text-white' : 'bg-white'}`}
         >
-          {step === 0.5 ? '½' : step}人前
+          {step === 0.5 ? '½' : step}
+          {supplement ? '回分' : '人前'}
         </button>
       ))}
     </div>

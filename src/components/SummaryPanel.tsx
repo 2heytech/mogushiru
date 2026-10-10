@@ -120,7 +120,8 @@ export function SummaryPanel({ totals, targets }: { totals: MenuTotals; targets:
           ))}
         </ul>
       )}
-      {v.energyKcal > 0 && <NutrientChecks checks={nutrientChecks(totals.day, targets, undefined, totals.supplement)} />}
+      {/* サプリだけ（0kcal）でも成分の取りすぎを見られるように、何か入っていれば出す */}
+      {Object.values(v).some((x) => x > 0) && <NutrientChecks checks={nutrientChecks(totals.day, targets, undefined, totals.supplement)} />}
     </section>
   )
 }

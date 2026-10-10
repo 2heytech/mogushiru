@@ -1,7 +1,8 @@
 import type { MascotMood } from '../domain/mascotMood'
 import type { PfcKey } from '../domain/slotBalance'
 import type { CheckedNutrient } from '../domain/targets'
-import type { DishCategory, Slot } from '../domain/types'
+import { SUPPLEMENT_KEYS } from '../domain/supplement'
+import type { DishCategory, NutrientKey, Slot } from '../domain/types'
 
 export const SLOT_LABEL: Record<Slot, string> = { breakfast: '朝', lunch: '昼', dinner: '晩', other: 'その他' }
 
@@ -21,6 +22,7 @@ export const DISH_CATEGORY_LABEL: Record<DishCategory, string> = {
 // 市販品カテゴリ（products.json の categories のキー）の表示用
 export const PRODUCT_CATEGORY_EMOJI: Record<string, string> = {
   my: '⭐',
+  supplement: '💊',
   onigiri: '🍙',
   bento: '🍱',
   sandwich: '🥪',
@@ -93,3 +95,20 @@ export const NUTRIENT_INFO: Record<CheckedNutrient, { label: string; unit: strin
 
 export const PFC_LABEL: Record<PfcKey, string> = { p: 'たんぱく質', f: '脂質', c: '炭水化物' }
 export const PFC_COLOR: Record<PfcKey, string> = { p: 'var(--color-protein)', f: 'var(--color-fat)', c: 'var(--color-carb)' }
+
+const BASIC_NUTRIENT_INFO: Record<Exclude<NutrientKey, CheckedNutrient>, { label: string; unit: string; digits: number }> = {
+  energyKcal: { label: 'エネルギー', unit: 'kcal', digits: 0 },
+  protein: { label: 'たんぱく質', unit: 'g', digits: 1 },
+  fat: { label: '脂質', unit: 'g', digits: 1 },
+  carb: { label: '炭水化物', unit: 'g', digits: 1 },
+}
+
+// すべての栄養素の表示名・単位
+export const nutrientInfo = (k: NutrientKey) => (k in NUTRIENT_INFO ? NUTRIENT_INFO[k as CheckedNutrient] : BASIC_NUTRIENT_INFO[k as keyof typeof BASIC_NUTRIENT_INFO])
+
+// かっこ書きを外した短い名前（「ビタミンA（レチノール）」→「ビタミンA」）
+export const shortNutrientLabel = (k: NutrientKey) => nutrientInfo(k).label.replace(/（.*）$/, '')
+
+// サプリに入っている成分を「ビタミンC 1000mg」の形で並べる
+export const supplementLines = (v: Record<NutrientKey, number>): string[] =>
+  SUPPLEMENT_KEYS.filter((k) => v[k] > 0).map((k) => `${shortNutrientLabel(k)} ${Number(v[k].toPrecision(3))}${nutrientInfo(k).unit}`)
