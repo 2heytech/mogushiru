@@ -2,9 +2,13 @@ import { useState } from 'react'
 import type { Catalog, MenuTotals } from '../domain/nutrition'
 import { SLOTS, type DayMenu, type MenuItem, type Slot } from '../domain/types'
 import { menuItemImage } from './illustration'
-import { SLOT_LABEL } from './labels'
+import type { Targets } from '../domain/targets'
+import { MOOD_LABEL, SLOT_LABEL } from './labels'
+import { SlotBalanceView } from './SlotBalanceView'
+import { computeAlerts } from '../domain/alerts'
+import { bowlMood } from '../domain/mascotMood'
+import { BowlMogu } from './Mascot'
 
-const SLOT_ICON: Record<Slot, string> = { breakfast: '🌅', lunch: '☀️', dinner: '🌙', other: '🍪' }
 
 const SERVING_STEPS = [0.5, 1, 1.5, 2]
 
@@ -78,6 +82,7 @@ function itemName(item: MenuItem, catalog: Catalog): string {
 export function SlotBoard({
   menu,
   totals,
+  targets,
   catalog,
   onAdd,
   onRemove,
@@ -86,6 +91,7 @@ export function SlotBoard({
 }: {
   menu: DayMenu
   totals: MenuTotals
+  targets: Targets
   catalog: Catalog
   onAdd: (slot: Slot) => void
   onRemove: (slot: Slot, uid: string) => void
@@ -93,14 +99,23 @@ export function SlotBoard({
   onCustomize: (slot: Slot, uid: string) => void
 }) {
   const [editing, setEditing] = useState<string | null>(null)
+  const alerts = computeAlerts(totals, targets)
   return (
     <div className="grid gap-4 md:grid-cols-2">
       {SLOTS.map((slot) => (
         <section key={slot} className="rounded-[var(--radius-card)] bg-white p-4 shadow-sm">
           <header className="mb-3 flex items-center justify-between">
-            <h2 className="text-lg font-bold">
-              {SLOT_ICON[slot]} {SLOT_LABEL[slot]}
-              {slot !== 'other' && 'ごはん'}
+            <h2 className="flex items-center gap-2 text-lg font-bold">
+              <BowlMogu
+                slot={slot}
+                mood={bowlMood(totals.bySlot[slot], slot, targets, alerts)}
+                className={`h-11 w-11 shrink-0 transition-opacity ${menu[slot].length === 0 ? 'opacity-60' : ''}`}
+                label={`モグ（${MOOD_LABEL[bowlMood(totals.bySlot[slot], slot, targets, alerts)]}）`}
+              />
+              <span>
+                {SLOT_LABEL[slot]}
+                {slot !== 'other' && 'ごはん'}
+              </span>
             </h2>
             <span className="text-sm text-ink-soft tabular-nums">{Math.round(totals.bySlot[slot].values.energyKcal)} kcal</span>
           </header>
@@ -137,6 +152,7 @@ export function SlotBoard({
               </button>
             </li>
           </ul>
+          <SlotBalanceView totals={totals.bySlot[slot]} slot={slot} targets={targets} />
           {menu[slot].some((i) => i.uid === editing) && (
             <div className="mt-3 rounded-2xl border-2 border-cream p-3">
               {menu[slot]
