@@ -25,6 +25,41 @@ const NAV_BUTTON =
 
 type View = 'menu' | 'ranking'
 
+// アプリの2つの機能。いつも上に並べて、いまどちらを見ているかと、もう一方があることが分かるようにする
+const FEATURES: { view: View; emoji: string; title: string; lead: string }[] = [
+  { view: 'menu', emoji: '🍱', title: '献立をつくる', lead: '料理を選んで1日の栄養バランスを見る' },
+  { view: 'ranking', emoji: '🏆', title: '食品の栄養ランキング', lead: '栄養素の多い食品をさがす' },
+]
+
+function FeatureTabs({ view, onChange }: { view: View; onChange: (v: View) => void }) {
+  return (
+    <nav aria-label="機能の切り替え" className="mb-4 grid grid-cols-2 gap-2">
+      {FEATURES.map((f) => {
+        const active = f.view === view
+        return (
+          <button
+            key={f.view}
+            type="button"
+            aria-current={active ? 'page' : undefined}
+            onClick={() => onChange(f.view)}
+            className={`min-h-16 rounded-2xl border-2 px-2.5 py-2 text-left transition sm:px-4 ${
+              active ? 'border-coral bg-white shadow-sm' : 'border-transparent bg-white/60 text-ink-soft hover:bg-white'
+            }`}
+          >
+            <span className={`flex items-center gap-1 whitespace-nowrap text-xs font-bold leading-snug sm:gap-1.5 sm:text-base ${active ? 'text-coral-dark' : 'text-ink'}`}>
+              <span aria-hidden="true" className="text-base sm:text-2xl">
+                {f.emoji}
+              </span>
+              {f.title}
+            </span>
+            <span className="mt-0.5 block text-[11px] leading-snug sm:text-xs">{f.lead}</span>
+          </button>
+        )
+      })}
+    </nav>
+  )
+}
+
 const viewFromHash = (): View => (window.location.hash === '#ranking' ? 'ranking' : 'menu')
 
 // 画面の切り替えは URL の # で持つ（ブラウザの戻るで献立に戻れるように）
@@ -184,21 +219,13 @@ export default function App() {
           <BowlMogu slot="dinner" mood="happy" color="#ff8a65" className="h-11 w-11" label="ちゃわんモグ" />
           <span className="font-logo text-[28px] leading-none tracking-wide text-ink">モグシル</span>
         </h1>
-        <nav className="flex shrink-0 gap-2">
-          <button
-            type="button"
-            onClick={() => setView(view === 'ranking' ? 'menu' : 'ranking')}
-            className={NAV_BUTTON}
-          >
-            <span aria-hidden="true">{view === 'ranking' ? '🍚' : '🏆'}</span>
-            <span>{view === 'ranking' ? '献立' : 'ランキング'}</span>
-          </button>
-          <button type="button" onClick={() => setProfileOpen(true)} className={NAV_BUTTON}>
-            <span aria-hidden="true">👤</span>
-            <span>プロフィール</span>
-          </button>
-        </nav>
+        <button type="button" onClick={() => setProfileOpen(true)} className={NAV_BUTTON}>
+          <span aria-hidden="true">👤</span>
+          <span>プロフィール</span>
+        </button>
       </header>
+
+      <FeatureTabs view={view} onChange={setView} />
 
       {!profileSet && (
         <button type="button" onClick={() => setProfileOpen(true)} className="mb-4 w-full rounded-xl bg-white px-4 py-2 text-left text-sm shadow-sm">

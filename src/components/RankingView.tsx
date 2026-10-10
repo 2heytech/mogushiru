@@ -70,9 +70,10 @@ export function RankingView({ catalog, targets, prices }: { catalog: Catalog; ta
   return (
     <section aria-labelledby="ranking-title" className="space-y-4">
       <div>
-        <h2 id="ranking-title" className="text-xl font-bold">食材の栄養素ランキング</h2>
+        <h2 id="ranking-title" className="text-xl font-bold">食品の栄養素ランキング</h2>
         <p className="mt-1 text-sm text-ink-soft">
-          {info.caution ? `${info.label}が多い食材です。とりすぎに気をつけたいときの目安にどうぞ。` : `${info.label}をとりやすい食材をさがせます。`}
+          肉・魚・野菜・調味料などの食品（料理ではなく材料）を、栄養素の多い順に並べます。
+          {info.caution ? `いまは${info.label}が多い食品。とりすぎに気をつけたいときの目安にどうぞ。` : `いまは${info.label}をとりやすい食品の順です。`}
         </p>
       </div>
 
@@ -116,13 +117,13 @@ export function RankingView({ catalog, targets, prices }: { catalog: Catalog; ta
             type="search"
             value={query}
             onChange={(e) => (setQuery(e.target.value), reset())}
-            placeholder="食材名でしぼる"
-            aria-label="食材名でしぼる"
+            placeholder="食品名でしぼる"
+            aria-label="食品名でしぼる"
             className="min-h-10 min-w-0 flex-1 rounded-full bg-white px-4 text-sm shadow-sm outline-coral"
           />
           <label className="flex min-h-10 items-center gap-2 text-sm">
             <input type="checkbox" checked={familiarOnly} onChange={(e) => (setFamiliarOnly(e.target.checked), reset())} className="h-4 w-4 accent-coral" />
-            よく使う食材だけ
+            よく使う食品だけ
           </label>
         </div>
       </div>
@@ -135,7 +136,7 @@ export function RankingView({ catalog, targets, prices }: { catalog: Catalog; ta
       )}
 
       {rows.length === 0 ? (
-        <p className="rounded-xl bg-white px-4 py-6 text-center text-sm text-ink-soft">条件に合う食材がありません</p>
+        <p className="rounded-xl bg-white px-4 py-6 text-center text-sm text-ink-soft">条件に合う食品がありません</p>
       ) : (
         <ol className="space-y-2">
           {rows.slice(0, limit).map((r, i) => {
@@ -177,7 +178,7 @@ export function RankingView({ catalog, targets, prices }: { catalog: Catalog; ta
           もっと見る（あと {rows.length - limit} 件）
         </button>
       )}
-      <p className="text-xs text-ink-soft">{rows.length.toLocaleString()} 件の食材から。値は文部科学省「日本食品標準成分表（八訂）増補2023年」をもとに計算しています。{prices.size > 0 && '価格は総務省「小売物価統計調査（動向編）」2025年平均をもとに、可食部100gあたりに直したものです。'}</p>
+      <p className="text-xs text-ink-soft">{rows.length.toLocaleString()} 件の食品から。値は文部科学省「日本食品標準成分表（八訂）増補2023年」をもとに計算しています。{prices.size > 0 && '価格は総務省「小売物価統計調査（動向編）」2025年平均をもとに、可食部100gあたりに直したものです。'}</p>
     </section>
   )
 }

@@ -9,8 +9,8 @@ export type RankingMetric = 'serving' | 'per100g' | 'per100kcal' | 'per100yen'
 export const RANKING_METRICS: { key: RankingMetric; label: string; hint: string }[] = [
   { key: 'serving', label: '1回の量で', hint: 'ふだん1回に食べる量でくらべます。乾物や調味料のように一度にたくさん食べないものは下がります' },
   { key: 'per100g', label: '100gあたり', hint: '成分表の100gあたりの量でくらべます' },
-  { key: 'per100kcal', label: '100kcalあたり', hint: 'カロリーをとりすぎずにとれる食材が上に来ます（100gあたり10kcal未満の食材は除きます）' },
-  { key: 'per100yen', label: '100円あたり', hint: '店頭価格（全国の市の2025年平均）で、100円分に含まれる量でくらべます。価格が分かる食材だけ並びます（調味料は除きます）' },
+  { key: 'per100kcal', label: '100kcalあたり', hint: 'カロリーをとりすぎずにとれる食品が上に来ます（100gあたり10kcal未満の食品は除きます）' },
+  { key: 'per100yen', label: '100円あたり', hint: '店頭価格（全国の市の2025年平均）で、100円分に含まれる量でくらべます。価格が分かる食品だけ並びます（調味料は除きます）' },
 ]
 
 export type RankingNutrient = { key: NutrientKey; label: string; unit: string; caution?: boolean }
