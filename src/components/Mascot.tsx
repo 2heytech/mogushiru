@@ -88,13 +88,25 @@ function Steam({ mood }: { mood: MascotMood }) {
 }
 
 // ちゃわんモグ：湯気の形でも気分を表す（ごきげんで2本、こまると垂れる、アラートでギザギザ）
-export function BowlMogu({ mood, slot, className, label }: { mood: MascotMood; slot: Slot; className?: string; label: string }) {
+export function BowlMogu({
+  mood,
+  slot,
+  color = BOWL_COLOR[slot],
+  className,
+  label,
+}: {
+  mood: MascotMood
+  slot: Slot
+  color?: string
+  className?: string
+  label: string
+}) {
   return (
     <svg viewBox="0 0 120 120" className={className} role="img" aria-label={label}>
       <Steam mood={mood} />
-      <rect x="44" y="102" width="32" height="10" rx="3" fill={BOWL_COLOR[slot]} stroke={INK} strokeWidth="2.6" />
+      <rect x="44" y="102" width="32" height="10" rx="3" fill={color} stroke={INK} strokeWidth="2.6" />
       <path d="M22 68 C22 43 40 29 60 29 C80 29 98 43 98 68Z" fill="#fff" {...line} />
-      <path d="M12 66 H108 C108 92 87 106 60 106 C33 106 12 92 12 66Z" fill={BOWL_COLOR[slot]} {...line} />
+      <path d="M12 66 H108 C108 92 87 106 60 106 C33 106 12 92 12 66Z" fill={color} {...line} />
       {[
         [30, 82],
         [45, 86],
@@ -105,6 +117,51 @@ export function BowlMogu({ mood, slot, className, label }: { mood: MascotMood; s
         <circle key={cx} cx={cx} cy={cy} r="3.6" fill="#fff" opacity="0.85" />
       ))}
       <Face mood={mood} x={60} y={51} />
+    </svg>
+  )
+}
+
+const TILE_BG: Record<Slot, string> = { breakfast: '#ffe6bf', lunch: '#d8eefc', dinner: '#3f4a7d', other: '#ffe1ea' }
+
+// 朝・昼・晩・その他の図柄（日の出・太陽・月と星・おやつ）
+export function SlotIcon({ slot, className }: { slot: Slot; className?: string }) {
+  const s = { stroke: INK, strokeWidth: 2.2, strokeLinecap: 'round', strokeLinejoin: 'round' } as const
+  return (
+    <svg viewBox="0 0 48 48" className={className} aria-hidden>
+      <rect width="48" height="48" rx="14" fill={TILE_BG[slot]} />
+      {slot === 'breakfast' && (
+        <>
+          <path d="M24 9v4 M13 13.5l2.5 3 M35 13.5l-2.5 3 M7 22.5l3.5 1.5 M41 22.5l-3.5 1.5" fill="none" {...s} />
+          <path d="M12 32a12 12 0 0 1 24 0z" fill="#ff9f43" {...s} />
+          <path d="M7 32h34 M13 38h8 M26 38h9" fill="none" {...s} />
+        </>
+      )}
+      {slot === 'lunch' && (
+        <>
+          <path
+            d="M24 6v5 M24 37v5 M6 24h5 M37 24h5 M11.3 11.3l3.5 3.5 M33.2 33.2l3.5 3.5 M36.7 11.3l-3.5 3.5 M14.8 33.2l-3.5 3.5"
+            fill="none"
+            {...s}
+          />
+          <circle cx="24" cy="24" r="9" fill="#ffc94d" {...s} />
+        </>
+      )}
+      {slot === 'dinner' && (
+        <>
+          <path d="M27 9a15 15 0 1 0 12 23a12 12 0 1 1 -12 -23z" fill="#ffe08a" {...s} />
+          <path d="M12 10l1.2 2.8l2.8 1.2l-2.8 1.2l-1.2 2.8l-1.2 -2.8l-2.8 -1.2l2.8 -1.2z" fill="#fff6c9" />
+          <path d="M37 33l0.9 2.1l2.1 0.9l-2.1 0.9l-0.9 2.1l-0.9 -2.1l-2.1 -0.9l2.1 -0.9z" fill="#fff6c9" />
+        </>
+      )}
+      {slot === 'other' && (
+        <>
+          <path d="M24 10a14 14 0 1 0 13.6 10.6a5 5 0 0 1 -5.4 -6.4a5 5 0 0 1 -3.6 -3.6a14 14 0 0 0 -4.6 -0.6z" fill="#e7b477" {...s} />
+          <ellipse cx="18" cy="21" rx="2.2" ry="1.7" fill={INK} />
+          <ellipse cx="27" cy="26" rx="2.2" ry="1.7" fill={INK} />
+          <ellipse cx="19" cy="31" rx="2.2" ry="1.7" fill={INK} />
+          <ellipse cx="30" cy="34" rx="1.8" ry="1.4" fill={INK} />
+        </>
+      )}
     </svg>
   )
 }
