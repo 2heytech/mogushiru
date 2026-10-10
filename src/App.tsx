@@ -18,20 +18,21 @@ import { computeTargets } from './domain/targets'
 import type { Ingredient, Slot } from './domain/types'
 import { MY_PRODUCT_PREFIX, useAppStore } from './store/useAppStore'
 import { BowlMogu } from './components/Mascot'
+import { UiIcon, type UiIconName } from './components/UiIcon'
 
 const sameIngredients = (a: Ingredient[], b: Ingredient[]) =>
   a.length === b.length && a.every((x, i) => x.foodId === b[i].foodId && x.grams === b[i].grams)
 
-// スマホでは絵文字の下に小さく名前、広い画面では横並び
+// スマホではアイコンの下に小さく名前、広い画面では横並び
 const NAV_BUTTON =
   'flex min-h-11 min-w-14 flex-col items-center justify-center whitespace-nowrap rounded-2xl bg-white px-2 text-[11px] leading-tight shadow-sm sm:flex-row sm:gap-1 sm:rounded-full sm:px-4 sm:text-sm'
 
 type View = 'menu' | 'ranking'
 
 // アプリの2つの機能。いつも上に並べて、いまどちらを見ているかと、もう一方があることが分かるようにする
-const FEATURES: { view: View; emoji: string; title: string; lead: string }[] = [
-  { view: 'menu', emoji: '🍱', title: '1日の食事をつくる', lead: '料理を選んで1日の栄養バランスを見る' },
-  { view: 'ranking', emoji: '🏆', title: '食品の栄養ランキング', lead: '栄養素の多い食品をさがす' },
+const FEATURES: { view: View; icon: UiIconName; title: string; lead: string }[] = [
+  { view: 'menu', icon: 'menu', title: '1日の栄養バランスを確認', lead: '朝・昼・晩の料理を選んで確かめる' },
+  { view: 'ranking', icon: 'ranking', title: '食品の栄養ランキング', lead: '栄養素の多い食品をさがす' },
 ]
 
 function FeatureTabs({ view, onChange }: { view: View; onChange: (v: View) => void }) {
@@ -49,10 +50,8 @@ function FeatureTabs({ view, onChange }: { view: View; onChange: (v: View) => vo
               active ? 'border-coral bg-white shadow-sm' : 'border-transparent bg-white/60 text-ink-soft hover:bg-white'
             }`}
           >
-            <span className={`flex items-center gap-1 whitespace-nowrap text-xs font-bold leading-snug sm:gap-1.5 sm:text-base ${active ? 'text-coral-dark' : 'text-ink'}`}>
-              <span aria-hidden="true" className="text-base sm:text-2xl">
-                {f.emoji}
-              </span>
+            <span className={`flex items-center gap-1 text-xs font-bold sm:whitespace-nowrap leading-snug sm:gap-1.5 sm:text-base ${active ? 'text-coral-dark' : 'text-ink'}`}>
+              <UiIcon name={f.icon} className="h-7 w-7 shrink-0 sm:h-9 sm:w-9" />
               {f.title}
             </span>
             <span className="mt-0.5 block text-[11px] leading-snug sm:text-xs">{f.lead}</span>
@@ -229,7 +228,7 @@ export default function App() {
           <span className="font-logo text-[28px] leading-none tracking-wide text-ink">モグシル</span>
         </h1>
         <button type="button" onClick={() => setProfileOpen(true)} className={NAV_BUTTON}>
-          <span aria-hidden="true">👤</span>
+          <UiIcon name="profile" className="h-6 w-6 shrink-0" />
           <span>プロフィール</span>
         </button>
       </header>
