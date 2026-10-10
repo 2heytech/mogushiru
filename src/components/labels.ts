@@ -14,3 +14,38 @@ export const DISH_CATEGORY_LABEL: Record<DishCategory, string> = {
   drink: '飲み物',
   alcohol: 'お酒',
 }
+
+// イラストがまだない料理のカード用
+export const DISH_CATEGORY_EMOJI: Record<DishCategory, string> = {
+  staple: '🍚',
+  main: '🍖',
+  side: '🥗',
+  soup: '🥣',
+  noodle: '🍜',
+  bowl: '🍛',
+  bread: '🍞',
+  snack: '🍌',
+  drink: '🥛',
+  alcohol: '🍺',
+}
+
+// 市販品カテゴリ（products.json の categories のキー）の表示用
+export const PRODUCT_CATEGORY_EMOJI: Record<string, string> = {
+  onigiri: '🍙',
+  bento: '🍱',
+  sandwich: '🥪',
+  noodle: '🍜',
+  bread: '🥐',
+  side: '🍢',
+  dairy: '🧀',
+  snack: '🍪',
+  dessert: '🍮',
+  drink: '🧃',
+  alcohol: '🍺',
+  seasoning: '🧂',
+  ingredient: '🥕',
+  other: '🛒',
+}
+
+// 絞り込みで後ろに回すカテゴリ（献立づくりで選ぶことが少ないもの）
+export const PRODUCT_CATEGORY_LAST = ['seasoning', 'ingredient', 'other']

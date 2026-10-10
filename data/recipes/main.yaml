@@ -1,0 +1,138 @@
+# 主菜
+- id: karaage
+  name: 鶏の唐揚げ
+  kana: からあげ とりのからあげ
+  category: main
+  suggestedSlots: [lunch, dinner]
+  ingredients:
+    - { foodId: "11289", grams: 120, role: 唐揚げ } # 若どり もも から揚げ（5個）
+    - { foodId: "06061", grams: 30 } # キャベツ（付け合わせ）
+
+- id: grilled-salmon
+  name: 焼き鮭
+  kana: やきじゃけ やきさけ
+  category: main
+  suggestedSlots: [breakfast, dinner]
+  ingredients:
+    - { foodId: "10139", grams: 70, role: 魚, alternatives: ["10136"] } # 塩ざけ1切れ（甘塩の生鮭は 10136）
+
+- id: shogayaki
+  name: 豚の生姜焼き
+  kana: ぶたのしょうがやき
+  category: main
+  suggestedSlots: [lunch, dinner]
+  ingredients:
+    - { foodId: "11123", grams: 100, role: 肉, alternatives: ["11129", "11221"] } # 豚ロース
+    - { foodId: "06153", grams: 30 } # たまねぎ
+    - { foodId: "06103", grams: 5 } # しょうが
+    - { foodId: "17007", grams: 12 } # こいくちしょうゆ
+    - { foodId: "16025", grams: 10 } # 本みりん
+    - { foodId: "16001", grams: 5 } # 清酒
+    - { foodId: "14006", grams: 4 } # 調合油
+    - { foodId: "06061", grams: 40 } # キャベツ（付け合わせ）
+
+- id: hamburg
+  name: ハンバーグ
+  kana: はんばーぐ
+  category: main
+  suggestedSlots: [lunch, dinner]
+  ingredients:
+    - { foodId: "11089", grams: 50, role: ひき肉, alternatives: ["11230"] } # 牛ひき肉
+    - { foodId: "11163", grams: 50, role: ひき肉, alternatives: ["11230"] } # 豚ひき肉
+    - { foodId: "06153", grams: 30 } # たまねぎ
+    - { foodId: "01079", grams: 6 } # パン粉 乾燥
+    - { foodId: "13003", grams: 15 } # 牛乳
+    - { foodId: "12004", grams: 10 } # 鶏卵
+    - { foodId: "17012", grams: 0.8 } # 食塩
+    - { foodId: "14006", grams: 4 } # 調合油
+    - { foodId: "17036", grams: 10 } # トマトケチャップ
+    - { foodId: "17001", grams: 8 } # ウスターソース
+
+- id: nikujaga
+  name: 肉じゃが
+  kana: にくじゃが
+  category: main
+  suggestedSlots: [lunch, dinner]
+  ingredients:
+    - { foodId: "02017", grams: 100, role: いも } # じゃがいも
+    - { foodId: "11046", grams: 40, role: 肉, alternatives: ["11129", "11221"] } # 牛ばら
+    - { foodId: "06153", grams: 50 } # たまねぎ
+    - { foodId: "06214", grams: 20 } # にんじん
+    - { foodId: "17007", grams: 12 } # こいくちしょうゆ
+    - { foodId: "03003", grams: 6 } # 上白糖
+    - { foodId: "16025", grams: 8 } # 本みりん
+    - { foodId: "16001", grams: 5 } # 清酒
+    - { foodId: "14006", grams: 3 } # 調合油
+    - { foodId: "17021", grams: 100 } # だし
+
+- id: mapo-tofu
+  name: 麻婆豆腐
+  kana: まーぼーどうふ
+  category: main
+  suggestedSlots: [lunch, dinner]
+  ingredients:
+    - { foodId: "04032", grams: 150, role: 豆腐, alternatives: ["04033"] } # 木綿豆腐
+    - { foodId: "11163", grams: 40, role: ひき肉, alternatives: ["11230", "11089"] } # 豚ひき肉
+    - { foodId: "06226", grams: 10 } # ねぎ
+    - { foodId: "06223", grams: 2 } # にんにく
+    - { foodId: "06103", grams: 2 } # しょうが
+    - { foodId: "17004", grams: 3 } # トウバンジャン
+    - { foodId: "17007", grams: 6 } # こいくちしょうゆ
+    - { foodId: "03003", grams: 2 } # 上白糖
+    - { foodId: "16001", grams: 5 } # 清酒
+    - { foodId: "02034", grams: 3 } # かたくり粉
+    - { foodId: "14002", grams: 3 } # ごま油
+    - { foodId: "14006", grams: 3 } # 調合油
+
+- id: gyoza
+  name: 焼きぎょうざ
+  kana: ぎょうざ やきぎょうざ
+  category: main
+  suggestedSlots: [lunch, dinner]
+  ingredients:
+    - { foodId: "01074", grams: 36, role: 皮 } # ぎょうざの皮 6枚
+    - { foodId: "11163", grams: 50, role: ひき肉, alternatives: ["11230"] } # 豚ひき肉
+    - { foodId: "06061", grams: 50 } # キャベツ
+    - { foodId: "06207", grams: 10 } # にら
+    - { foodId: "06103", grams: 1 } # しょうが
+    - { foodId: "06223", grams: 1 } # にんにく
+    - { foodId: "17007", grams: 3 } # こいくちしょうゆ（あん）
+    - { foodId: "14002", grams: 3 } # ごま油
+    - { foodId: "17012", grams: 0.5 } # 食塩
+    - { foodId: "14006", grams: 4 } # 調合油（焼き用）
+    - { foodId: "17007", grams: 5 } # こいくちしょうゆ（たれ）
+    - { foodId: "17015", grams: 5 } # 穀物酢（たれ）
+
+- id: dashimaki
+  name: 卵焼き
+  kana: たまごやき だしまき
+  category: main
+  suggestedSlots: [breakfast, lunch]
+  ingredients:
+    - { foodId: "12004", grams: 100, role: 卵 } # 鶏卵2個
+    - { foodId: "17021", grams: 30 } # だし
+    - { foodId: "03003", grams: 3 } # 上白糖
+    - { foodId: "17008", grams: 2 } # うすくちしょうゆ
+    - { foodId: "17012", grams: 0.3 } # 食塩
+    - { foodId: "14006", grams: 2 } # 調合油
+
+- id: fried-egg
+  name: 目玉焼き
+  kana: めだまやき
+  category: main
+  suggestedSlots: [breakfast]
+  ingredients:
+    - { foodId: "12021", grams: 55, role: 卵 } # 鶏卵 目玉焼き（1個、焼き油込み）
+    - { foodId: "17012", grams: 0.3 } # 食塩
+
+- id: hiyayakko
+  name: 冷奴
+  kana: ひややっこ
+  category: side
+  suggestedSlots: [lunch, dinner]
+  ingredients:
+    - { foodId: "04033", grams: 150, role: 豆腐, alternatives: ["04032"] } # 絹ごし豆腐
+    - { foodId: "17007", grams: 5 } # こいくちしょうゆ
+    - { foodId: "06226", grams: 3 } # ねぎ
+    - { foodId: "06103", grams: 2 } # しょうが
+    - { foodId: "10091", grams: 0.5 } # かつお節

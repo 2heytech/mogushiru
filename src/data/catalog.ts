@@ -4,7 +4,7 @@ import type { Dish, Food, MyDish, Product } from '../domain/types'
 
 export type CatalogState =
   | { status: 'loading' }
-  | { status: 'ready'; catalog: Omit<Catalog, 'myDishes'>; missing: string[] }
+  | { status: 'ready'; catalog: Omit<Catalog, 'myDishes'>; productCategories: Record<string, string>; missing: string[] }
 
 async function loadJson<T>(path: string): Promise<T | null> {
   try {
@@ -23,7 +23,7 @@ export function useCatalog(): CatalogState {
     let alive = true
     Promise.all([
       loadJson<{ dishes: Dish[] }>('/data/dishes.json'),
-      loadJson<{ products: Product[] }>('/data/products.json'),
+      loadJson<{ products: Product[]; categories?: Record<string, string> }>('/data/products.json'),
       loadJson<{ foods: Food[] }>('/data/foods.json'),
     ]).then(([d, p, f]) => {
       if (!alive) return
@@ -31,6 +31,7 @@ export function useCatalog(): CatalogState {
       setState({
         status: 'ready',
         missing,
+        productCategories: p?.categories ?? {},
         catalog: {
           dishes: new Map((d?.dishes ?? []).map((x) => [x.id, x])),
           products: new Map((p?.products ?? []).map((x) => [x.jan, x])),

@@ -58,7 +58,9 @@ export function itemTotals(item: MenuItem, catalog: Catalog): NutrientTotals {
     case 'dish': {
       const dish = catalog.dishes.get(item.refId)
       if (!dish) throw new Error(`未知の料理: ${item.refId}`)
-      return addScaled(emptyTotals(), dish.nutrients, item.portion)
+      const t = addScaled(emptyTotals(), dish.nutrients, item.portion)
+      for (const k of dish.missingNutrients ?? []) t.missing.add(k)
+      return t
     }
     case 'myDish': {
       const my = catalog.myDishes.get(item.refId)

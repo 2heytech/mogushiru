@@ -20,7 +20,7 @@ npm run build    # 本番ビルド（dist/）
 |---|---|
 | 食品（文部科学省 日本食品標準成分表） | [公式配布ページ](https://www.mext.go.jp/a_menu/syokuhinseibun/mext_00001.html)から本表と脂肪酸成分表（第1表）のExcelを `data/raw/` に置き、`npm run data:mext -- data/raw/<本表>.xlsx data/raw/<脂肪酸成分表>.xlsx`。表示名・検索語は `data/food-names.json` で調整 |
 | 市販品（Open Food Facts） | `npm run data:off:fetch` で一括データ（約1.3GB）を読み流して日本販売分を取得（数分）→ `npm run data:off` で変換 |
-| 料理 | `data/recipes/*.yaml` から生成（作成中） |
+| 料理 | `data/recipes/*.yaml` を編集し、`npm run data:dishes` で検証・栄養計算（食品データの生成後に実行） |
 
 ## 公開（Cloudflare Pages）
 
