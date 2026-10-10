@@ -9,6 +9,7 @@ import { menuTotals, type Catalog } from './domain/nutrition'
 import { computeTargets } from './domain/targets'
 import type { Slot } from './domain/types'
 import { useAppStore } from './store/useAppStore'
+import { BowlMogu } from './components/Mascot'
 
 export default function App() {
   const catalogState = useCatalog()
@@ -84,7 +85,10 @@ export default function App() {
   return (
     <div className="mx-auto max-w-6xl px-4 pb-16">
       <header className="flex items-center justify-between py-4">
-        <h1 className="text-2xl font-bold text-coral">モグシル</h1>
+        <h1 className="flex items-center gap-1.5">
+          <BowlMogu slot="dinner" mood="happy" color="#ff8a65" className="h-11 w-11" label="ちゃわんモグ" />
+          <span className="font-logo text-[28px] leading-none tracking-wide text-ink">モグシル</span>
+        </h1>
         <button type="button" onClick={() => setProfileOpen(true)} className="min-h-11 rounded-full bg-white px-4 text-sm shadow-sm">
           👤 プロフィール
         </button>

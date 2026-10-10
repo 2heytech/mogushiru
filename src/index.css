@@ -3,6 +3,8 @@
 /* デザイントークン（docs/design.md 8.1） */
 @theme {
   --font-sans: 'Zen Maru Gothic', 'Hiragino Maru Gothic ProN', system-ui, sans-serif;
+  /* ロゴ文字（モグシル）専用 */
+  --font-logo: 'Mochiy Pop One', 'Zen Maru Gothic', 'Hiragino Maru Gothic ProN', sans-serif;
   --color-cream: #fff8ee;
   --color-ink: #5b4636;
   --color-ink-soft: #8a7563;
