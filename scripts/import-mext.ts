@@ -1,5 +1,5 @@
 // 使い方: npx tsx scripts/import-mext.ts data/raw/mext-honpyo.xlsx [data/raw/mext-fattyacid-1.xlsx]
-// 2つ目は脂肪酸成分表の第1表（可食部100g当たり）。指定すると飽和脂肪酸を足す。
+// 2つ目は脂肪酸成分表の第1表（可食部100g当たり）。指定すると飽和・一価不飽和・多価不飽和・n-3系・n-6系脂肪酸を足す。
 // 表示名・検索語は data/food-names.json と形態素解析（kuromoji）のよみで付ける。
 // 出力: data/generated/foods.full.json（原表記つき）, public/data/foods.json（配信用）
 import ExcelJS from 'exceljs'
@@ -8,13 +8,13 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import { dirname, join } from 'node:path'
 import { makeDisplayName, synonymTerms, toHiragana, type FoodNames } from './lib/food-names'
-import { applySaturatedFat, FOOD_GROUPS, findColumns, readSaturatedFat, rowToFood } from './lib/mext'
+import { applyFattyAcids, FOOD_GROUPS, findColumns, readFattyAcids, rowToFood } from './lib/mext'
 
 const SOURCE = {
   name: '文部科学省「日本食品標準成分表（八訂）増補2023年」本表・脂肪酸成分表編（2026年3月27日訂正反映）',
   url: 'https://www.mext.go.jp/a_menu/syokuhinseibun/mext_00001.html',
   processing:
-    '食品名・単位を整形し、アプリで使う成分を抽出。アルコールの「-」は含まないものとして 0、脂肪酸成分表にない食品の飽和脂肪酸は脂質が 0 なら 0 として扱う',
+    '食品名・単位を整形し、アプリで使う成分を抽出。アルコールの「-」は含まないものとして 0、脂肪酸成分表にない食品の脂肪酸は脂質が 0 なら 0 として扱う',
 }
 
 async function readRows(path: string): Promise<unknown[][]> {
@@ -44,10 +44,10 @@ async function main() {
   if (unknownGroups.length) throw new Error(`未知の食品群: ${unknownGroups.join(', ')}`)
 
   if (fattyAcidPath) {
-    const satFat = readSaturatedFat(await readRows(fattyAcidPath))
-    foods = foods.map((f) => applySaturatedFat(f, satFat))
+    const fattyAcids = readFattyAcids(await readRows(fattyAcidPath))
+    foods = foods.map((f) => applyFattyAcids(f, fattyAcids))
     const filled = foods.filter((f) => f.per100g.satFat !== null).length
-    console.log(`飽和脂肪酸: 脂肪酸成分表 ${satFat.size}件 → 値あり ${filled}件`)
+    console.log(`脂肪酸: 脂肪酸成分表 ${fattyAcids.size}件 → 値あり ${filled}件`)
   }
 
   const names = JSON.parse(readFileSync('data/food-names.json', 'utf8')) as FoodNames

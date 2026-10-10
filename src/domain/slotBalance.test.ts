@@ -32,7 +32,8 @@ describe('区分ごとのバランス', () => {
   it('PFCが目標範囲から外れたものを外れ幅の大きい順に返す', () => {
     // P 10%・F 50%・C 40%: 脂質が大きく多め、炭水化物とたんぱく質が少なめ
     const b = slotBalance(totals(600, 15, 33.3, 60), 'dinner', targets)
-    expect(b.hints[0]).toEqual({ key: 'f', direction: 'high' })
+    expect(b.hints[0]).toMatchObject({ key: 'f', direction: 'high' })
+    expect(b.hints[0].gap).toBeGreaterThan(0)
     expect(b.hints.map((h) => h.key)).toContain('c')
   })
 
