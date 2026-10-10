@@ -32,6 +32,9 @@ type Entry = { card: Card; fields: (string | undefined)[] }
 
 const MAX_CARDS = 60
 
+// 料理の絞り込みの「郷土料理」（農水省「うちの郷土料理」をもとにした料理）
+const KYODO = 'kyodo'
+
 const PLACEHOLDER: Record<Tab, string> = {
   all: '料理・市販品・食材をさがす',
   dish: '料理をさがす',
@@ -48,16 +51,20 @@ function entries(kind: Kind, { catalog, slot, query, category, showAlcohol, favo
     case 'dish':
       return [...catalog.dishes.values()]
         .filter((d) => showAlcohol || d.category !== 'alcohol')
-        .filter((d) => category === 'all' || d.category === category)
-        // 選んでいる区分に合う料理を先に（検索中は一致の度合いが優先）
-        .sort((a, b) => Number(b.suggestedSlots.includes(slot)) - Number(a.suggestedSlots.includes(slot)))
+        .filter((d) => category === 'all' || (category === KYODO ? Boolean(d.source) : d.category === category))
+        // 選んでいる区分に合う料理を先に、郷土料理は数が多いので基本の料理の後に（検索中は一致の度合いが優先）
+        .sort(
+          (a, b) =>
+            Number(b.suggestedSlots.includes(slot)) - Number(a.suggestedSlots.includes(slot)) ||
+            Number(Boolean(a.source)) - Number(Boolean(b.source)),
+        )
         .map((d) => ({
           fields: [d.name, d.kana],
           card: {
             key: `dish:${d.id}`,
             kind,
             name: d.name,
-            sub: DISH_CATEGORY_LABEL[d.category],
+            sub: [DISH_CATEGORY_LABEL[d.category], d.source?.region].filter(Boolean).join('・'),
             kcal: d.nutrients.energyKcal,
             image: dishImage(d),
             item: { kind: 'dish', refId: d.id, portion: 1 },
@@ -172,13 +179,14 @@ export function Picker({
     n.myDish = buildCards('myDish', filter).length
     return n
   }, [catalog, slot, query, showAlcohol, favorites])
+  const hasKyodo = useMemo(() => [...catalog.dishes.values()].some((d) => d.source), [catalog])
   const dishCategories = (Object.keys(DISH_CATEGORY_LABEL) as DishCategory[]).filter((c) => showAlcohol || c !== 'alcohol')
   const productCategoryIds = Object.keys(productCategories)
     .filter((c) => showAlcohol || c !== 'alcohol')
     .sort((a, b) => Number(PRODUCT_CATEGORY_LAST.includes(a)) - Number(PRODUCT_CATEGORY_LAST.includes(b)))
   const chips: { id: string; label: string }[] =
     tab === 'dish'
-      ? dishCategories.map((c) => ({ id: c, label: DISH_CATEGORY_LABEL[c] }))
+      ? [...dishCategories.map((c) => ({ id: c, label: DISH_CATEGORY_LABEL[c] })), ...(hasKyodo ? [{ id: KYODO, label: '郷土料理' }] : [])]
       : tab === 'product'
         ? productCategoryIds.map((c) => ({ id: c, label: productCategories[c] }))
         : []

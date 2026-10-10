@@ -89,6 +89,7 @@ export default function App() {
           title={dish.name}
           original={dish.ingredients}
           initial={item.customIngredients ?? dish.ingredients}
+          source={dish.source}
           foods={catalog.foods}
           saveLabel="お気に入りに保存"
           extra={portion}
@@ -114,6 +115,7 @@ export default function App() {
           title={my.name}
           original={base?.ingredients ?? my.ingredients}
           initial={my.ingredients}
+          source={base?.source}
           foods={catalog.foods}
           saveLabel="お気に入りを上書き保存"
           extra={portion}
@@ -267,7 +269,7 @@ export default function App() {
 
       <footer className="mt-12 text-xs leading-relaxed text-ink-soft">
         <p>表示される値は目安です。医療・栄養指導の代わりにはなりません。</p>
-        <p>出典：文部科学省「日本食品標準成分表（八訂）増補2023年」（2026年3月27日訂正反映）を加工して作成／Open Food Facts（ODbL）／厚生労働省「日本人の食事摂取基準（2025年版）」／総務省「小売物価統計調査（動向編）」（価格）</p>
+        <p>出典：文部科学省「日本食品標準成分表（八訂）増補2023年」（2026年3月27日訂正反映）を加工して作成／農林水産省「うちの郷土料理」（https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/）を加工して作成／Open Food Facts（ODbL）／厚生労働省「日本人の食事摂取基準（2025年版）」／総務省「小売物価統計調査（動向編）」（価格）</p>
       </footer>
     </div>
   )

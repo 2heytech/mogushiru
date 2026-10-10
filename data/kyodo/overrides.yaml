@@ -1,0 +1,7 @@
+# 郷土料理ごとの直し（キーは data/raw/maff-kyodo.json の id）
+# category / suggestedSlots: 料理名から推定した分類が合わないとき / servings: 人数 / exclude: 取り込まない理由
+iwashi_dango_tottori: { category: main } # いわしのつみれ
+33_8_saitama: { category: main } # ゼリーフライ（おからのコロッケ）
+31_12_tochigi: { category: side } # ゆず巻き（漬物）
+32_25_gunma: { category: side }
+33_17_saitama: { category: side }

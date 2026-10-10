@@ -2,7 +2,7 @@ import { useMemo, useState, type ReactNode } from 'react'
 import { swapIngredient } from '../domain/customize'
 import { ingredientsTotals } from '../domain/nutrition'
 import { rankAndFilter } from '../domain/search'
-import type { Food, Ingredient } from '../domain/types'
+import type { DishSource, Food, Ingredient } from '../domain/types'
 
 const SUGGEST_LIMIT = 8
 const ADD_GRAMS = 50
@@ -30,6 +30,7 @@ export function Customizer({
   title,
   original,
   initial,
+  source,
   foods,
   saveLabel,
   onApply,
@@ -40,6 +41,7 @@ export function Customizer({
   title: string
   original: Ingredient[]
   initial: Ingredient[]
+  source?: DishSource
   foods: Map<string, Food>
   saveLabel: string
   onApply?: (ingredients: Ingredient[]) => void
@@ -82,6 +84,15 @@ export function Customizer({
             ×
           </button>
         </header>
+        {source && (
+          <p className="-mt-2 mb-3 shrink-0 text-xs text-ink-soft">
+            {source.region && `${source.region}の郷土料理。`}
+            <a href={source.url} target="_blank" rel="noreferrer" className="underline">
+              {source.label}
+            </a>
+            のレシピを1人前に換算
+          </p>
+        )}
         {extra && <div className="mb-3 shrink-0">{extra}</div>}
         <div className="mb-3 flex shrink-0 items-center gap-2">
           <Summary label="元のレシピ（1人前）" kcal={before.energyKcal} p={before.protein} f={before.fat} c={before.carb} salt={before.salt} />
