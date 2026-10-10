@@ -36,6 +36,7 @@ const saltOver: Alert = {
   level: 'over',
   amount: 9,
   limit: 7.5,
+  limitKind: 'target',
   unit: 'g',
   topSlot: 'lunch',
 }

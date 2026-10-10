@@ -3,6 +3,8 @@ import { Customizer } from './components/Customizer'
 import { ItemEditor } from './components/ItemEditor'
 import { PortionEditor } from './components/PortionEditor'
 import { ProductForm } from './components/ProductForm'
+import { SupplementForm } from './components/SupplementForm'
+import { isSupplement } from './domain/supplement'
 import { Picker } from './components/Picker'
 import { ProfileDialog } from './components/ProfileDialog'
 import { SlotBoard } from './components/SlotBoard'
@@ -18,20 +20,21 @@ import { computeTargets } from './domain/targets'
 import type { Ingredient, Slot } from './domain/types'
 import { MY_PRODUCT_PREFIX, useAppStore } from './store/useAppStore'
 import { BowlMogu } from './components/Mascot'
+import { UiIcon, type UiIconName } from './components/UiIcon'
 
 const sameIngredients = (a: Ingredient[], b: Ingredient[]) =>
   a.length === b.length && a.every((x, i) => x.foodId === b[i].foodId && x.grams === b[i].grams)
 
-// スマホでは絵文字の下に小さく名前、広い画面では横並び
+// スマホではアイコンの下に小さく名前、広い画面では横並び
 const NAV_BUTTON =
   'flex min-h-11 min-w-14 flex-col items-center justify-center whitespace-nowrap rounded-2xl bg-white px-2 text-[11px] leading-tight shadow-sm sm:flex-row sm:gap-1 sm:rounded-full sm:px-4 sm:text-sm'
 
 type View = 'menu' | 'ranking'
 
 // アプリの2つの機能。いつも上に並べて、いまどちらを見ているかと、もう一方があることが分かるようにする
-const FEATURES: { view: View; emoji: string; title: string; lead: string }[] = [
-  { view: 'menu', emoji: '🍱', title: '1日の食事をつくる', lead: '料理を選んで1日の栄養バランスを見る' },
-  { view: 'ranking', emoji: '🏆', title: '食品の栄養ランキング', lead: '栄養素の多い食品をさがす' },
+const FEATURES: { view: View; icon: UiIconName; title: string; lead: string }[] = [
+  { view: 'menu', icon: 'menu', title: '1日の栄養バランスを確認', lead: '朝・昼・晩の料理を選んで確かめる' },
+  { view: 'ranking', icon: 'ranking', title: '食品の栄養ランキング', lead: '栄養素の多い食品をさがす' },
 ]
 
 function FeatureTabs({ view, onChange }: { view: View; onChange: (v: View) => void }) {
@@ -49,10 +52,8 @@ function FeatureTabs({ view, onChange }: { view: View; onChange: (v: View) => vo
               active ? 'border-coral bg-white shadow-sm' : 'border-transparent bg-white/60 text-ink-soft hover:bg-white'
             }`}
           >
-            <span className={`flex items-center gap-1 whitespace-nowrap text-xs font-bold leading-snug sm:gap-1.5 sm:text-base ${active ? 'text-coral-dark' : 'text-ink'}`}>
-              <span aria-hidden="true" className="text-base sm:text-2xl">
-                {f.emoji}
-              </span>
+            <span className={`flex items-center gap-1 text-xs font-bold sm:whitespace-nowrap leading-snug sm:gap-1.5 sm:text-base ${active ? 'text-coral-dark' : 'text-ink'}`}>
+              <UiIcon name={f.icon} className="h-7 w-7 shrink-0 sm:h-9 sm:w-9" />
               {f.title}
             </span>
             <span className="mt-0.5 block text-[11px] leading-snug sm:text-xs">{f.lead}</span>
@@ -115,7 +116,7 @@ export default function App() {
   const [pickerSlot, setPickerSlot] = useState<Slot | null>(null)
   const [editing, setEditing] = useState<{ slot: Slot; uid: string } | null>(null)
   // 市販品の登録（slot があれば登録後その区分に追加）・編集
-  const [productForm, setProductForm] = useState<{ jan?: string; slot?: Slot } | null>(null)
+  const [productForm, setProductForm] = useState<{ jan?: string; slot?: Slot; supplement?: boolean } | null>(null)
   const targets = useMemo(() => computeTargets(profile), [profile])
   const catalog = catalogState.status === 'ready' ? withMyData(catalogState.catalog, myDishes, myProducts) : null
   const totals = useMemo(() => (catalog ? menuTotals(menu, catalog) : null), [catalog, menu])
@@ -171,7 +172,7 @@ export default function App() {
         />
       )
     }
-    const isMine = item.kind === 'product' && item.refId.startsWith(MY_PRODUCT_PREFIX)
+    const isMine = (item.kind === 'product' || item.kind === 'supplement') && item.refId.startsWith(MY_PRODUCT_PREFIX)
     return (
       <ItemEditor
         item={item}
@@ -189,18 +190,22 @@ export default function App() {
     )
   }
 
-  function renderProductForm({ jan, slot }: { jan?: string; slot?: Slot }) {
+  function renderProductForm({ jan, slot, supplement }: { jan?: string; slot?: Slot; supplement?: boolean }) {
     const initial = jan ? myProducts.find((p) => p.jan === jan) : undefined
     const close = () => setProductForm(null)
+    const Form = supplement || isSupplement(initial) ? SupplementForm : ProductForm
     return (
-      <ProductForm
+      <Form
         initial={initial}
         onSave={(input) => {
           if (initial) updateMyProduct(initial.jan, input)
           else {
             const p = saveMyProduct(input)
             if (slot) {
-              addItem(slot, { kind: 'product', refId: p.jan, portion: p.basis === 'serving' ? 1 : (p.servingGrams ?? 100) })
+              addItem(
+                slot,
+                isSupplement(p) ? { kind: 'supplement', refId: p.jan, portion: 1 } : { kind: 'product', refId: p.jan, portion: p.basis === 'serving' ? 1 : (p.servingGrams ?? 100) },
+              )
               setPickerSlot(null)
             }
           }
@@ -229,7 +234,7 @@ export default function App() {
           <span className="font-logo text-[28px] leading-none tracking-wide text-ink">モグシル</span>
         </h1>
         <button type="button" onClick={() => setProfileOpen(true)} className={NAV_BUTTON}>
-          <span aria-hidden="true">👤</span>
+          <UiIcon name="profile" className="h-6 w-6 shrink-0" />
           <span>プロフィール</span>
         </button>
       </header>
@@ -287,6 +292,7 @@ export default function App() {
           favoriteProductIds={favoriteProductIds}
           onToggleFavorite={toggleFavoriteProduct}
           onRegisterProduct={() => setProductForm({ slot: pickerSlot })}
+          onRegisterSupplement={() => setProductForm({ slot: pickerSlot, supplement: true })}
           // 選んでも閉じずに続けて選べるようにする（閉じるのは「できた」か×）
           onPick={(item) => addItem(pickerSlot, item)}
           onUnpick={(uid) => removeItem(pickerSlot, uid)}

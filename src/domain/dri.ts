@@ -116,7 +116,8 @@ export const N3_AI: Row<number>[] = [
 // ビタミンAの推奨量（µgRAE/日）
 // 出典：報告書「1-6 ビタミン」ビタミンAの食事摂取基準（µgRAE/日）の表（p.181）
 // 耐容上限量 2,700 µgRAE/日は「プロビタミンAカロテノイドを含まない」（同表 脚注3）。
-// 成分表のレチノール活性当量はβ-カロテン由来の分を含むので、アプリでは上限と比べない
+// 成分表のレチノール活性当量はβ-カロテン由来の分を含むので、上限はレチノール（RETOL）と比べる
+export const VITAMIN_A_UL = 2700
 export const VITAMIN_A_RDA: Row<number>[] = [
   { min: 18, max: 29, male: 850, female: 650 },
   { min: 30, max: 49, male: 900, female: 700 },
@@ -179,4 +180,105 @@ export const IRON_RDA: (AgeBand & { male: number; female: number; femaleMenstrua
   { min: 50, max: 64, male: 7.0, female: 6.0, femaleMenstruating: 10.5 },
   { min: 65, max: 74, male: 7.0, female: 6.0, femaleMenstruating: null },
   { min: 75, max: 150, male: 6.5, female: 5.5, femaleMenstruating: null },
+]
+
+// ---- 2026-10 追加（サプリメントに多い栄養素）。各表と1行ずつ照合済み ----
+// 耐容上限量には「食事を含む全量」にかかるものと、「通常の食品以外（サプリメント・強化食品）
+// からの摂取量」だけにかかるものがある。後者は targets.ts で upperScope: 'supplement' にする
+
+// マグネシウムの推奨量（mg/日）
+// 出典：報告書「1-7 ミネラル」マグネシウムの食事摂取基準（mg/日）の表（p.284）。
+// 耐容上限量 350 mg/日（成人）は通常の食品以外からの摂取量だけにかかる（同表 脚注1）。
+// 通常の食品からの摂取には耐容上限量は設定されていない
+export const MAGNESIUM_RDA: Row<number>[] = [
+  { min: 18, max: 29, male: 340, female: 280 },
+  { min: 30, max: 49, male: 380, female: 290 },
+  { min: 50, max: 64, male: 370, female: 290 },
+  { min: 65, max: 74, male: 350, female: 280 },
+  { min: 75, max: 150, male: 330, female: 270 },
+]
+export const MAGNESIUM_SUPPLEMENT_UL = 350
+
+// 亜鉛の推奨量・耐容上限量（mg/日）。上限は食事を含む全量にかかる
+// 出典：報告書「1-8 ミネラル（微量ミネラル）」亜鉛の食事摂取基準（mg/日）の表（p.346）
+export const ZINC_RDA: Row<number>[] = [
+  { min: 18, max: 29, male: 9.0, female: 7.5 },
+  { min: 30, max: 49, male: 9.5, female: 8.0 },
+  { min: 50, max: 64, male: 9.5, female: 8.0 },
+  { min: 65, max: 74, male: 9.0, female: 7.5 },
+  { min: 75, max: 150, male: 9.0, female: 7.0 },
+]
+export const ZINC_UL: Row<number>[] = [
+  { min: 18, max: 29, male: 40, female: 35 },
+  { min: 30, max: 49, male: 45, female: 35 },
+  { min: 50, max: 64, male: 45, female: 35 },
+  { min: 65, max: 74, male: 45, female: 35 },
+  { min: 75, max: 150, male: 40, female: 35 },
+]
+
+// ビタミンEの目安量・耐容上限量（mg/日、α-トコフェロール）。上限は食事を含む全量にかかる
+// 出典：報告書「1-6 ビタミン」ビタミンEの食事摂取基準（mg/日）の表（p.183）
+export const VITAMIN_E_AI: Row<number>[] = [
+  { min: 18, max: 29, male: 6.5, female: 5.0 },
+  { min: 30, max: 49, male: 6.5, female: 6.0 },
+  { min: 50, max: 64, male: 6.5, female: 6.0 },
+  { min: 65, max: 74, male: 7.5, female: 7.0 },
+  { min: 75, max: 150, male: 7.0, female: 6.0 },
+]
+export const VITAMIN_E_UL: Row<number>[] = [
+  { min: 18, max: 29, male: 800, female: 650 },
+  { min: 30, max: 49, male: 800, female: 700 },
+  { min: 50, max: 64, male: 800, female: 700 },
+  { min: 65, max: 74, male: 800, female: 700 },
+  { min: 75, max: 150, male: 800, female: 650 },
+]
+
+// ナイアシンの推奨量（mgNE/日）と耐容上限量（mg/日）
+// 出典：報告書「1-6 ビタミン」ナイアシンの食事摂取基準（mgNE/日）の表（p.236）。
+// 耐容上限量はニコチンアミドの重量で、（ ）内のニコチン酸の値は使わない（同表 脚注3）。
+// 耐容上限量は強化食品・サプリメント由来のニコチンアミド・ニコチン酸に対する値で、
+// 通常の食品からの摂取には適用しない（報告書「1-6 ビタミン」3-2-2 耐容上限量の策定方法、p.196）
+export const NIACIN_RDA: Row<number>[] = [
+  { min: 18, max: 29, male: 15, female: 11 },
+  { min: 30, max: 49, male: 16, female: 12 },
+  { min: 50, max: 64, male: 15, female: 11 },
+  { min: 65, max: 74, male: 14, female: 11 },
+  { min: 75, max: 150, male: 13, female: 10 },
+]
+export const NIACIN_SUPPLEMENT_UL: Row<number>[] = [
+  { min: 18, max: 29, male: 300, female: 250 },
+  { min: 30, max: 49, male: 350, female: 250 },
+  { min: 50, max: 64, male: 350, female: 250 },
+  { min: 65, max: 74, male: 300, female: 250 },
+  { min: 75, max: 150, male: 300, female: 250 },
+]
+
+// ビタミンB6の推奨量・耐容上限量（mg/日）。上限はピリドキシンとしての量で、食事を含む全量にかかる
+// 出典：報告書「1-6 ビタミン」ビタミンB6の食事摂取基準（mg/日）の表（p.237）
+export const VITAMIN_B6_RDA: Row<number>[] = [
+  { min: 18, max: 29, male: 1.5, female: 1.2 },
+  { min: 30, max: 49, male: 1.5, female: 1.2 },
+  { min: 50, max: 64, male: 1.5, female: 1.2 },
+  { min: 65, max: 74, male: 1.4, female: 1.2 },
+  { min: 75, max: 150, male: 1.4, female: 1.2 },
+]
+export const VITAMIN_B6_UL: Row<number>[] = [
+  { min: 18, max: 29, male: 55, female: 45 },
+  { min: 30, max: 49, male: 60, female: 45 },
+  { min: 50, max: 64, male: 60, female: 45 },
+  { min: 65, max: 74, male: 55, female: 45 },
+  { min: 75, max: 150, male: 50, female: 40 },
+]
+
+// 葉酸の推奨量（µg/日、18歳以上は男女・年齢で同じ）と耐容上限量（µg/日、男女共通）
+// 出典：報告書「1-6 ビタミン」葉酸の食事摂取基準（µg/日）の表（p.239）。
+// 耐容上限量は「通常の食品以外の食品に含まれる葉酸に適用する」（同表 脚注2）。
+// サプリメントや強化食品の葉酸（プテロイルモノグルタミン酸）にかかる値で、通常の食品の葉酸には適用しない
+export const FOLATE_RDA = 240
+export const FOLATE_SUPPLEMENT_UL: (AgeBand & { value: number })[] = [
+  { min: 18, max: 29, value: 900 },
+  { min: 30, max: 49, value: 1000 },
+  { min: 50, max: 64, value: 1000 },
+  { min: 65, max: 74, value: 900 },
+  { min: 75, max: 150, value: 900 },
 ]

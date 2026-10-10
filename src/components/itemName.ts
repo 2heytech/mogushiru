@@ -11,6 +11,8 @@ export function itemName(item: MenuItem, catalog: Catalog): string {
       return catalog.myDishes.get(item.refId)?.name ?? '（削除されたお気に入り）'
     case 'product':
       return catalog.products.get(item.refId)?.name ?? '（不明な市販品）'
+    case 'supplement':
+      return catalog.products.get(item.refId)?.name ?? '（削除されたサプリ）'
     case 'food':
       return catalog.foods.get(item.refId)?.displayName ?? '（不明な食材）'
   }

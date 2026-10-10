@@ -8,15 +8,13 @@ import { MOOD_LABEL, SLOT_LABEL } from './labels'
 import { dangoMoods, type DangoMoods } from '../domain/mascotMood'
 import { DangoMogu } from './Mascot'
 import { NutrientChecks } from './NutrientChecks'
+import { NUTRIENT_INFO } from './labels'
 import { PfcBars, PfcGapList } from './PfcCompare'
 
 
-const ALERT_LABEL: Record<Alert['key'], string> = {
-  salt: '食塩',
-  alcohol: 'アルコール',
-  satFat: '飽和脂肪酸',
-  energy: 'カロリー',
-}
+const alertLabel = (a: Alert) => (a.key === 'energy' ? 'カロリー' : NUTRIENT_INFO[a.key].label)
+const alertDigits = (a: Alert) => (a.key === 'energy' ? 0 : NUTRIENT_INFO[a.key].digits)
+const fmtAlert = (a: Alert, v: number) => v.toLocaleString(undefined, { minimumFractionDigits: alertDigits(a), maximumFractionDigits: alertDigits(a) })
 
 function EnergyGauge({ value, target }: { value: number; target: number }) {
   const max = target * 1.5
@@ -78,7 +76,7 @@ const PFC_NAME = { p: 'たんぱく質', f: '脂質', c: '炭水化物' } as con
 function moguMessage(energy: number, mood: Mood, moods: DangoMoods, alerts: Alert[]): string {
   if (energy === 0) return '料理をえらんで、1日の食事をつくってみよう！'
   const over = alerts.find((a) => a.level === 'over')
-  if (over) return `${ALERT_LABEL[over.key]}が目安をこえてるよ！`
+  if (over) return `${alertLabel(over)}が${over.limitKind === 'upper' ? '上限' : '目安'}をこえてるよ！`
   const off = (['p', 'f', 'c'] as const).filter((k) => moods[k] === 'worried')
   if (off.length > 0) return `${off.map((k) => PFC_NAME[k]).join('と')}のだんごがこまってるよ`
   return MOOD_MESSAGE[mood]
@@ -114,14 +112,16 @@ export function SummaryPanel({ totals, targets }: { totals: MenuTotals; targets:
         <ul className="space-y-1">
           {alerts.map((a) => (
             <li key={a.key} className={`rounded-xl px-3 py-2 text-sm ${a.level === 'over' ? 'bg-alert/15' : 'bg-caution/20'}`}>
-              ⚠ {ALERT_LABEL[a.key]} {a.amount.toFixed(a.unit === 'kcal' ? 0 : 1)}
-              {a.unit}（目安 {a.limit.toFixed(a.unit === 'kcal' ? 0 : 1)}
-              {a.unit}）{a.topSlot && <span className="text-ink-soft"> いちばん多いのは{SLOT_LABEL[a.topSlot]}</span>}
+              ⚠ {alertLabel(a)}{a.supplementOnly && '（サプリの分）'} {fmtAlert(a, a.amount)}
+              {a.unit}（{a.limitKind === 'upper' ? '耐容上限量' : '目安'} {fmtAlert(a, a.limit)}
+              {a.unit}）
+              {a.limitKind === 'upper' && a.level === 'over' && <span className="font-bold"> とりすぎ注意</span>}{a.topSlot && <span className="text-ink-soft"> いちばん多いのは{SLOT_LABEL[a.topSlot]}</span>}
             </li>
           ))}
         </ul>
       )}
-      {v.energyKcal > 0 && <NutrientChecks checks={nutrientChecks(totals.day, targets)} />}
+      {/* サプリだけ（0kcal）でも成分の取りすぎを見られるように、何か入っていれば出す */}
+      {Object.values(v).some((x) => x > 0) && <NutrientChecks checks={nutrientChecks(totals.day, targets, undefined, totals.supplement)} />}
     </section>
   )
 }

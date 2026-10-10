@@ -15,10 +15,17 @@ export const NUTRIENT_KEYS = [
   'calcium', // mg
   'iron', // mg
   'potassium', // mg
+  'magnesium', // mg
+  'zinc', // mg
   'vitaminA', // µg（レチノール活性当量）
+  'retinol', // µg（レチノール。ビタミンAの耐容上限量の判定に使う）
   'vitaminD', // µg
+  'vitaminE', // mg（α-トコフェロール）
   'vitaminB1', // mg
   'vitaminB2', // mg
+  'niacin', // mgNE（ナイアシン当量）
+  'vitaminB6', // mg
+  'folate', // µg（葉酸）
   'vitaminC', // mg
 ] as const
 
@@ -97,6 +104,7 @@ export type Product = {
   category: string
   basis: '100g' | '100ml' | 'serving'
   servingGrams?: number
+  servingLabel?: string // 1回分の量の表示（サプリの「2粒」など）
   nutrients: Nutrients // basis 当たり
   // ユーザー登録：栄養成分表示を見てブラウザに保存した市販品（jan は "my-" で始まる）
   source: { name: 'Open Food Facts' | 'ユーザー登録'; fetchedAt: string; saltConverted?: boolean }
@@ -111,10 +119,11 @@ export type MyDish = {
   createdAt: string
 }
 
-// portion: dish・myDish・product(serving) は人前倍率、food・product(100g/100ml) はグラム（mL）
+// portion: dish・myDish・product(serving) は人前倍率、food・product(100g/100ml) はグラム（mL）、supplement は回数。
+// supplement は登録したサプリ（refId は Product の jan）。通常の食品以外からとった分として、上限の判定で見分けられるよう種類を分ける
 export type MenuItem = {
   uid: string
-  kind: 'dish' | 'myDish' | 'product' | 'food'
+  kind: 'dish' | 'myDish' | 'product' | 'food' | 'supplement'
   refId: string
   portion: number
   // 料理を献立の中だけでアレンジした材料（kind: 'dish' のとき）

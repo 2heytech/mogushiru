@@ -15,10 +15,17 @@ export const COMPONENT_IDS: Partial<Record<NutrientKey, string[]>> = {
   calcium: ['CA'],
   iron: ['FE'],
   potassium: ['K'],
+  magnesium: ['MG'],
+  zinc: ['ZN'],
   vitaminA: ['VITA_RAE'],
+  retinol: ['RETOL'],
   vitaminD: ['VITD'],
+  vitaminE: ['TOCPHA'],
   vitaminB1: ['THIA'],
   vitaminB2: ['RIBF'],
+  niacin: ['NE'],
+  vitaminB6: ['VITB6A'],
+  folate: ['FOL'],
   vitaminC: ['VITC'],
 }
 

@@ -4,10 +4,11 @@ import { SLOTS, type DayMenu } from '../domain/types'
 import type { SavedMenu } from '../store/useAppStore'
 import { confirmDialog } from './confirm'
 import { defaultMenuName } from './menuName'
+import { UiIcon } from './UiIcon'
 
 const itemCount = (menu: DayMenu) => SLOTS.reduce((n, s) => n + menu[s].length, 0)
 
-const BUTTON = 'flex min-h-10 items-center gap-1 rounded-full bg-white px-3.5 text-sm shadow-sm disabled:opacity-40'
+const BUTTON = 'flex min-h-10 items-center gap-1.5 rounded-full bg-white pl-2 pr-3.5 text-sm shadow-sm disabled:opacity-40'
 
 // 1日の食事の上に並べる「保存」「呼び出し」「リセット」
 export function MenuActions({
@@ -27,10 +28,10 @@ export function MenuActions({
   return (
     <div className="mb-3 flex flex-wrap items-center justify-end gap-2">
       <button type="button" onClick={onOpenSave} disabled={empty} aria-haspopup="dialog" className={BUTTON}>
-        <span aria-hidden="true">💾</span>保存
+        <UiIcon name="save" className="h-6 w-6 shrink-0" />保存
       </button>
       <button type="button" onClick={onOpenLoad} disabled={savedCount === 0} aria-haspopup="dialog" className={BUTTON}>
-        <span aria-hidden="true">📂</span>呼び出し
+        <UiIcon name="load" className="h-6 w-6 shrink-0" />呼び出し
         {savedCount > 0 && <span className="rounded-full bg-cream px-1.5 text-xs tabular-nums text-ink-soft">{savedCount}</span>}
       </button>
       <button
@@ -41,7 +42,7 @@ export function MenuActions({
         }}
         className={BUTTON}
       >
-        <span aria-hidden="true">🔄</span>リセット
+        <UiIcon name="reset" className="h-6 w-6 shrink-0" />リセット
       </button>
     </div>
   )

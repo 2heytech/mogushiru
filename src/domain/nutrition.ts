@@ -79,6 +79,11 @@ export function itemTotals(item: MenuItem, catalog: Catalog): NutrientTotals {
       const factor = p.basis === 'serving' ? item.portion : item.portion / 100
       return addScaled(emptyTotals(), p.nutrients, factor)
     }
+    case 'supplement': {
+      const p = catalog.products.get(item.refId)
+      if (!p) throw new Error(`未知のサプリ: ${item.refId}`)
+      return addScaled(emptyTotals(), p.nutrients, item.portion)
+    }
     case 'food': {
       const f = catalog.foods.get(item.refId)
       if (!f) throw new Error(`未知の食品: ${item.refId}`)
@@ -90,25 +95,43 @@ export function itemTotals(item: MenuItem, catalog: Catalog): NutrientTotals {
 export type MenuTotals = {
   bySlot: Record<Slot, NutrientTotals>
   day: NutrientTotals
+  // サプリメントなど通常の食品以外からとった分だけの1日の合計。
+  // マグネシウム・ナイアシン・葉酸の耐容上限量はこの量と比べる
+  supplement: NutrientTotals
 }
+
+// 通常の食品以外（サプリメント）として扱う項目の種類
+export const SUPPLEMENT_KINDS: readonly MenuItem['kind'][] = ['supplement']
+export const isSupplementItem = (item: MenuItem): boolean => SUPPLEMENT_KINDS.includes(item.kind)
 
 // データの更新でなくなった料理・市販品を外す（保存した1日の食事を呼び出すときに使う）
 export function knownItemsOnly(menu: DayMenu, catalog: Catalog): DayMenu {
   const known = (i: MenuItem) =>
-    i.kind === 'dish' ? catalog.dishes.has(i.refId) : i.kind === 'myDish' ? catalog.myDishes.has(i.refId) : catalog.products.has(i.refId)
+    i.kind === 'dish'
+      ? catalog.dishes.has(i.refId)
+      : i.kind === 'myDish'
+        ? catalog.myDishes.has(i.refId)
+        : i.kind === 'food'
+          ? catalog.foods.has(i.refId)
+          : catalog.products.has(i.refId)
   return Object.fromEntries(Object.entries(menu).map(([slot, items]) => [slot, items.filter(known)])) as DayMenu
 }
 
 export function menuTotals(menu: DayMenu, catalog: Catalog): MenuTotals {
   const day = emptyTotals()
+  const supplement = emptyTotals()
   const bySlot = {} as Record<Slot, NutrientTotals>
   for (const slot of Object.keys(menu) as Slot[]) {
     const slotTotals = emptyTotals()
-    for (const item of menu[slot]) mergeTotals(slotTotals, itemTotals(item, catalog))
+    for (const item of menu[slot]) {
+      const t = itemTotals(item, catalog)
+      mergeTotals(slotTotals, t)
+      if (isSupplementItem(item)) mergeTotals(supplement, t)
+    }
     bySlot[slot] = slotTotals
     mergeTotals(day, slotTotals)
   }
-  return { bySlot, day }
+  return { bySlot, day, supplement }
 }
 
 // 食塩相当量[g] = ナトリウム[mg] × 2.54 ÷ 1000

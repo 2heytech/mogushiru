@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { emptyMenu, MY_PRODUCT_PREFIX, useAppStore } from './useAppStore'
+import { isSupplement, SUPPLEMENT_CATEGORY, supplementNutrients } from '../domain/supplement'
 
 const custom = [{ foodId: '00001', grams: 80 }]
 
@@ -136,5 +137,33 @@ describe('料理を選ぶ画面での追加と取り消し', () => {
     addItem('breakfast', { kind: 'food', refId: '07013', portion: 15 })
     removeItem('breakfast', a)
     expect(useAppStore.getState().menu.breakfast.map((i) => i.refId)).toEqual(['07013'])
+  })
+})
+
+describe('サプリ', () => {
+  beforeEach(() => useAppStore.setState({ menu: emptyMenu(), myDishes: [], myProducts: [], favoriteProductIds: [], savedMenus: [] }))
+
+  it('登録したサプリはサプリとして保存され、お気に入りの市販品には入らない', () => {
+    const p = useAppStore.getState().saveMyProduct({
+      name: 'ビタミンC',
+      brand: '',
+      basis: 'serving',
+      servingLabel: '2粒',
+      nutrients: supplementNutrients({ vitaminC: 500 }),
+      category: SUPPLEMENT_CATEGORY,
+    })
+    expect(isSupplement(p)).toBe(true)
+    expect(p.servingLabel).toBe('2粒')
+    expect(useAppStore.getState().myProducts).toHaveLength(1)
+    expect(useAppStore.getState().favoriteProductIds).toEqual([])
+  })
+
+  it('サプリを消すと、1日の食事と保存した1日の食事からも外れる', () => {
+    const p = useAppStore.getState().saveMyProduct({ name: '鉄', brand: '', basis: 'serving', nutrients: supplementNutrients({ iron: 10 }), category: SUPPLEMENT_CATEGORY })
+    useAppStore.getState().addItem('other', { kind: 'supplement', refId: p.jan, portion: 1 })
+    useAppStore.getState().saveMenu('サプリあり')
+    useAppStore.getState().deleteMyProduct(p.jan)
+    expect(useAppStore.getState().menu.other).toEqual([])
+    expect(useAppStore.getState().savedMenus[0].menu.other).toEqual([])
   })
 })

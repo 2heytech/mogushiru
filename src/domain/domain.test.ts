@@ -67,6 +67,28 @@ describe('栄養計算', () => {
     expect(t.bySlot.other.values.energyKcal).toBeCloseTo(140 + 50)
     expect(t.bySlot.other.values.alcohol).toBeCloseTo(14)
     expect(t.day.values.energyKcal).toBeCloseTo(360 + 100 + 750 + 190)
+    // サプリの項目がなければサプリ分は 0
+    expect(t.supplement.values.energyKcal).toBe(0)
+  })
+
+  it('サプリの項目はサプリ分の合計にも入り、マグネシウムの上限はその量と比べる', () => {
+    const withSupplement: Catalog = {
+      ...catalog,
+      products: new Map([
+        ...catalog.products,
+        ['my-sup', { jan: 'my-sup', name: 'マグネシウム', brand: '', category: 'supplement', basis: 'serving',
+          nutrients: n({ magnesium: 200 }), source: { name: 'ユーザー登録', fetchedAt: '' } }],
+      ]),
+    }
+    const menu: DayMenu = {
+      breakfast: [{ uid: '1', kind: 'supplement', refId: 'my-sup', portion: 2 }],
+      lunch: [], dinner: [{ uid: '2', kind: 'dish', refId: 'd1', portion: 1 }], other: [],
+    }
+    const t = menuTotals(menu, withSupplement)
+    expect(t.supplement.values.magnesium).toBe(400)
+    expect(t.day.values.magnesium).toBe(400)
+    const mg = computeAlerts(t, computeTargets({ sex: 'female', age: 35, activity: 'normal' })).find((a) => a.key === 'magnesium')!
+    expect(mg).toMatchObject({ level: 'over', amount: 400, limit: 350, supplementOnly: true })
   })
 
   it('献立の中でアレンジした料理は、アレンジ後の材料から計算する', () => {
@@ -105,6 +127,11 @@ describe('栄養計算', () => {
     const kept = knownItemsOnly(menu, catalog)
     expect(kept.breakfast.map((i) => i.uid)).toEqual(['1'])
     expect(kept.dinner).toEqual([])
+  })
+
+  it('保存した1日の食事の食材は、食材のデータにあれば残す', () => {
+    const menu = { breakfast: [{ uid: '1', kind: 'food' as const, refId: '00001', portion: 100 }, { uid: '2', kind: 'food' as const, refId: 'gone', portion: 100 }], lunch: [], dinner: [], other: [] }
+    expect(knownItemsOnly(menu, catalog).breakfast.map((i) => i.uid)).toEqual(['1'])
   })
 })
 

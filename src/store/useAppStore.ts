@@ -1,14 +1,16 @@
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
 import { DEFAULT_PROFILE } from '../domain/targets'
+import { isSupplement } from '../domain/supplement'
 import type { DayMenu, Ingredient, MenuItem, MyDish, Product, Profile, Slot } from '../domain/types'
 
 export const emptyMenu = (): DayMenu => ({ breakfast: [], lunch: [], dinner: [], other: [] })
 
 export type SavedMenu = { id: string; name: string; menu: DayMenu; savedAt: string }
 
-// 栄養成分表示から登録する市販品。入力のない成分は未収録（null）
-export type MyProductInput = Pick<Product, 'name' | 'brand' | 'basis' | 'servingGrams' | 'nutrients'>
+// 栄養成分表示から登録する市販品。入力のない成分は未収録（null）。
+// category を 'supplement' にするとサプリメント（お気に入りでなく、サプリの一覧に入る）
+export type MyProductInput = Pick<Product, 'name' | 'brand' | 'basis' | 'servingGrams' | 'servingLabel' | 'nutrients'> & { category?: string }
 
 export const MY_PRODUCT_PREFIX = 'my-'
 
@@ -129,8 +131,11 @@ export const useAppStore = create<State>()(
         })),
       saveMyProduct: (input) => {
         const now = new Date().toISOString()
-        const product: Product = { ...input, jan: `${MY_PRODUCT_PREFIX}${uid()}`, category: 'my', source: { name: 'ユーザー登録', fetchedAt: now } }
-        set((s) => ({ myProducts: [...s.myProducts, product], favoriteProductIds: [...s.favoriteProductIds, product.jan] }))
+        const product: Product = { ...input, jan: `${MY_PRODUCT_PREFIX}${uid()}`, category: input.category ?? 'my', source: { name: 'ユーザー登録', fetchedAt: now } }
+        set((s) => ({
+          myProducts: [...s.myProducts, product],
+          favoriteProductIds: isSupplement(product) ? s.favoriteProductIds : [...s.favoriteProductIds, product.jan],
+        }))
         return product
       },
       updateMyProduct: (jan, input) => set((s) => ({ myProducts: s.myProducts.map((p) => (p.jan === jan ? { ...p, ...input } : p)) })),
@@ -138,8 +143,8 @@ export const useAppStore = create<State>()(
         set((s) => ({
           myProducts: s.myProducts.filter((p) => p.jan !== jan),
           favoriteProductIds: s.favoriteProductIds.filter((id) => id !== jan),
-          menu: without(s.menu, 'product', jan),
-          savedMenus: s.savedMenus.map((m) => ({ ...m, menu: without(m.menu, 'product', jan) })),
+          menu: without(without(s.menu, 'product', jan), 'supplement', jan),
+          savedMenus: s.savedMenus.map((m) => ({ ...m, menu: without(without(m.menu, 'product', jan), 'supplement', jan) })),
         })),
       toggleFavoriteProduct: (jan) =>
         set((s) => ({
