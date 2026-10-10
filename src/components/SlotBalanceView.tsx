@@ -1,14 +1,16 @@
 import type { Alert } from '../domain/alerts'
 import { slotMoods, type MascotMood } from '../domain/mascotMood'
-import { slotBalance, type EnergyLevel, type PfcKey } from '../domain/slotBalance'
+import { nutrientChecks } from '../domain/nutrientChecks'
+import { gapText, idealPfc } from '../domain/pfcGap'
+import { slotBalance, type EnergyLevel } from '../domain/slotBalance'
 import type { Targets } from '../domain/targets'
 import type { NutrientTotals, Slot } from '../domain/types'
-import { MOOD_LABEL } from './labels'
+import { MOOD_LABEL, PFC_LABEL } from './labels'
+import { NutrientChecks } from './NutrientChecks'
+import { PfcBars } from './PfcCompare'
 import { BowlMogu } from './Mascot'
 import type { ReactNode } from 'react'
 
-const PFC_LABEL: Record<PfcKey, string> = { p: 'たんぱく質', f: '脂質', c: '炭水化物' }
-const PFC_COLOR: Record<PfcKey, string> = { p: 'var(--color-protein)', f: 'var(--color-fat)', c: 'var(--color-carb)' }
 
 const ENERGY_TEXT: Record<Exclude<EnergyLevel, 'empty'>, string> = { low: '少なめ', ok: 'ちょうどいい', high: '多め' }
 const ENERGY_COLOR: Record<Exclude<EnergyLevel, 'empty'>, string> = { low: 'bg-coral', ok: 'bg-ok', high: 'bg-alert' }
@@ -32,6 +34,8 @@ export function SlotBalanceView({ totals, slot, targets, alerts }: { totals: Nut
   if (b.energy === 'empty' || !moods) return null
   const v = totals.values
   const max = b.targetKcal * 2
+  const checks = nutrientChecks(totals, targets, slot)
+  const saltGoal = checks.find((c) => c.key === 'salt')!.goal!
   return (
     <div className="mt-3 space-y-2 rounded-2xl bg-cream/70 p-3 text-xs">
       <Metric slot={slot} mood={moods.energy} what="カロリー">
@@ -51,26 +55,11 @@ export function SlotBalanceView({ totals, slot, targets, alerts }: { totals: Nut
       </Metric>
       {b.ratio && (
         <Metric slot={slot} mood={moods.pfc} what="PFCバランス">
-          <div
-            className="flex h-3 overflow-hidden rounded-full"
-            role="img"
-            aria-label={`PFCバランス たんぱく質${Math.round(b.ratio.p)}% 脂質${Math.round(b.ratio.f)}% 炭水化物${Math.round(b.ratio.c)}%`}
-          >
-            {(['p', 'f', 'c'] as const).map((k) => (
-              <div key={k} className="transition-all duration-500" style={{ width: `${b.ratio![k]}%`, background: PFC_COLOR[k] }} />
-            ))}
-          </div>
+          <PfcBars ideal={idealPfc(targets)} actual={b.ratio} thin />
           <p className="mt-1 flex flex-wrap gap-x-3 tabular-nums text-ink-soft">
-            <span>
-              P {Math.round(b.ratio.p)}%・{v.protein.toFixed(1)}g
-            </span>
-            <span>
-              F {Math.round(b.ratio.f)}%・{v.fat.toFixed(1)}g
-            </span>
-            <span>
-              C {Math.round(b.ratio.c)}%・{v.carb.toFixed(1)}g
-            </span>
-            <span>食塩 {v.salt.toFixed(1)}g</span>
+            <span>P {v.protein.toFixed(1)}g</span>
+            <span>F {v.fat.toFixed(1)}g</span>
+            <span>C {v.carb.toFixed(1)}g</span>
           </p>
           {slot !== 'other' && (
             <p className="mt-1 font-bold">
@@ -78,12 +67,27 @@ export function SlotBalanceView({ totals, slot, targets, alerts }: { totals: Nut
                 ? '◎ PFCバランスばっちり'
                 : b.hints
                     .slice(0, 2)
-                    .map((h) => `${PFC_LABEL[h.key]}が${h.direction === 'low' ? '少なめ' : '多め'}`)
+                    .map((h) => `${PFC_LABEL[h.key]}が目標より${gapText(h.gap)}`)
                     .join('、')}
             </p>
           )}
         </Metric>
       )}
+      <p className="flex flex-wrap gap-1.5 pl-12 tabular-nums">
+        <Chip label="食塩" value={`${v.salt.toFixed(1)}g`} sub={`目安 ${saltGoal.toFixed(1)}g`} warn={v.salt >= saltGoal} />
+        {v.alcohol >= 0.5 && <Chip label="アルコール" value={`${Math.round(v.alcohol)}g`} sub={`1日 ${targets.alcoholRiskG}g未満`} warn={v.alcohol >= targets.alcoholRiskG} />}
+        <Chip label="不飽和脂肪酸" value={`${(v.monoUnsatFat + v.polyUnsatFat).toFixed(1)}g`} />
+      </p>
+      <NutrientChecks checks={checks} perSlot />
     </div>
+  )
+}
+
+function Chip({ label, value, sub, warn }: { label: string; value: string; sub?: string; warn?: boolean }) {
+  return (
+    <span className={`rounded-full px-2.5 py-0.5 ${warn ? 'bg-alert/20' : 'bg-white'}`}>
+      {label} <strong>{value}</strong>
+      {sub && <span className="text-ink-soft">（{sub}）</span>}
+    </span>
   )
 }

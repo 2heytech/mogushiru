@@ -1,7 +1,7 @@
 // 食材の栄養素ランキング
 // 「100gあたり」だけでなく、1回に食べる量・カロリー・価格あたりでも並べられるようにする
 import { servingFor, type Serving } from './serving'
-import type { Targets } from './targets'
+import type { NutrientTarget, Targets } from './targets'
 import type { Food, NutrientKey } from './types'
 
 export type RankingMetric = 'serving' | 'per100g' | 'per100kcal' | 'per100yen'
@@ -10,7 +10,7 @@ export const RANKING_METRICS: { key: RankingMetric; label: string; hint: string 
   { key: 'serving', label: '1回の量で', hint: 'ふだん1回に食べる量でくらべます。乾物や調味料のように一度にたくさん食べないものは下がります' },
   { key: 'per100g', label: '100gあたり', hint: '成分表の100gあたりの量でくらべます' },
   { key: 'per100kcal', label: '100kcalあたり', hint: 'カロリーをとりすぎずにとれる食材が上に来ます（100gあたり10kcal未満の食材は除きます）' },
-  { key: 'per100yen', label: '100円あたり', hint: '店頭価格で、100円分に含まれる量でくらべます' },
+  { key: 'per100yen', label: '100円あたり', hint: '店頭価格（全国の市の2025年平均）で、100円分に含まれる量でくらべます。価格が分かる食材だけ並びます（調味料は除きます）' },
 ]
 
 export type RankingNutrient = { key: NutrientKey; label: string; unit: string; caution?: boolean }
@@ -26,6 +26,10 @@ export const RANKING_NUTRIENTS: RankingNutrient[] = [
   { key: 'vitaminB1', label: 'ビタミンB1', unit: 'mg' },
   { key: 'vitaminB2', label: 'ビタミンB2', unit: 'mg' },
   { key: 'vitaminC', label: 'ビタミンC', unit: 'mg' },
+  { key: 'n3Fat', label: 'n-3系脂肪酸', unit: 'g' },
+  { key: 'n6Fat', label: 'n-6系脂肪酸', unit: 'g' },
+  { key: 'monoUnsatFat', label: '一価不飽和脂肪酸', unit: 'g' },
+  { key: 'polyUnsatFat', label: '多価不飽和脂肪酸', unit: 'g' },
   { key: 'energyKcal', label: 'エネルギー', unit: 'kcal' },
   { key: 'fat', label: '脂質', unit: 'g' },
   { key: 'carb', label: '炭水化物', unit: 'g' },
@@ -67,6 +71,7 @@ export type RankingRow = {
 }
 
 export const MIN_KCAL_FOR_DENSITY = 10
+const SEASONING_GROUP = '17'
 
 export type RankingQuery = {
   nutrient: NutrientKey
@@ -89,6 +94,8 @@ export function metricValue(food: Food, q: RankingQuery): number | null {
       return (v / kcal) * 100
     }
     case 'per100yen': {
+      // 調味料は一度にたくさん使わないので、安くても「とりやすい」とは言えない
+      if (food.group === SEASONING_GROUP) return null
       const price = q.prices?.get(food.id)
       if (!price || price.yenPer100g <= 0) return null
       return (v / price.yenPer100g) * 100
@@ -130,7 +137,11 @@ export function dailyReference(nutrient: NutrientKey, t: Targets): { value: numb
       return { value: t.satFatMaxG, kind: 'max' }
     case 'alcohol':
       return { value: t.alcoholRiskG, kind: 'max' }
-    default:
-      return null
+    default: {
+      // ビタミン・ミネラル・脂肪酸は食事摂取基準の推奨量・目安量・目標量（targets.nutrients）を使う
+      const n = (t.nutrients as Partial<Record<NutrientKey, NutrientTarget>>)[nutrient]
+      if (!n || n.kind === 'none') return null
+      return { value: n.value, kind: n.kind === 'max' ? 'max' : 'target' }
+    }
   }
 }

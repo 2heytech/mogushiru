@@ -1,4 +1,6 @@
 import type { MascotMood } from '../domain/mascotMood'
+import type { PfcKey } from '../domain/slotBalance'
+import type { CheckedNutrient } from '../domain/targets'
 import type { DishCategory, Slot } from '../domain/types'
 
 export const SLOT_LABEL: Record<Slot, string> = { breakfast: '朝', lunch: '昼', dinner: '晩', other: 'その他' }
@@ -61,3 +63,26 @@ export const FOOD_GROUP_EMOJI: Record<string, string> = {
   '17': '🧂',
   '18': '🍳',
 }
+
+// PFC以外の栄養素の表示名・単位・小数の桁数
+export const NUTRIENT_INFO: Record<CheckedNutrient, { label: string; unit: string; digits: number }> = {
+  salt: { label: '食塩', unit: 'g', digits: 1 },
+  satFat: { label: '飽和脂肪酸', unit: 'g', digits: 1 },
+  alcohol: { label: 'アルコール', unit: 'g', digits: 0 },
+  fiber: { label: '食物繊維', unit: 'g', digits: 1 },
+  potassium: { label: 'カリウム', unit: 'mg', digits: 0 },
+  calcium: { label: 'カルシウム', unit: 'mg', digits: 0 },
+  iron: { label: '鉄', unit: 'mg', digits: 1 },
+  vitaminA: { label: 'ビタミンA', unit: 'µg', digits: 0 },
+  vitaminD: { label: 'ビタミンD', unit: 'µg', digits: 1 },
+  vitaminB1: { label: 'ビタミンB1', unit: 'mg', digits: 2 },
+  vitaminB2: { label: 'ビタミンB2', unit: 'mg', digits: 2 },
+  vitaminC: { label: 'ビタミンC', unit: 'mg', digits: 0 },
+  n3Fat: { label: 'n-3系脂肪酸', unit: 'g', digits: 1 },
+  n6Fat: { label: 'n-6系脂肪酸', unit: 'g', digits: 1 },
+  monoUnsatFat: { label: '一価不飽和脂肪酸', unit: 'g', digits: 1 },
+  polyUnsatFat: { label: '多価不飽和脂肪酸', unit: 'g', digits: 1 },
+}
+
+export const PFC_LABEL: Record<PfcKey, string> = { p: 'たんぱく質', f: '脂質', c: '炭水化物' }
+export const PFC_COLOR: Record<PfcKey, string> = { p: 'var(--color-protein)', f: 'var(--color-fat)', c: 'var(--color-carb)' }
