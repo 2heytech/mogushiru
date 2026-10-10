@@ -2,12 +2,15 @@ import {
   INFO_NUTRIENTS,
   LIMIT_NUTRIENTS,
   WANT_NUTRIENTS,
+  notableChecks,
   summarizeChecks,
   type CheckStatus,
   type NutrientCheck,
 } from '../domain/nutrientChecks'
 import type { CheckedNutrient } from '../domain/targets'
 import { NUTRIENT_INFO } from './labels'
+
+const CHECKED_COUNT = LIMIT_NUTRIENTS.length + WANT_NUTRIENTS.length + INFO_NUTRIENTS.length
 
 const fmt = (key: CheckedNutrient, v: number) => {
   const { digits } = NUTRIENT_INFO[key]
@@ -53,6 +56,9 @@ function goalText(c: NutrientCheck, perSlot: boolean): string {
   return `${perSlot ? '目安' : c.target.basis} ${value}`
 }
 
+// 達成の割合。0 でない少量は 1% と出す（0% に見えて「とれていない」と誤解されないように）
+const pct = (p: number) => (p > 0 && p < 1 ? 1 : Math.round(p))
+
 function CheckRow({ c, perSlot }: { c: NutrientCheck; perSlot: boolean }) {
   const { label, unit } = NUTRIENT_INFO[c.key]
   // 目安の線を 2/3 の位置に置き、目安の 1.5 倍までを描く
@@ -64,10 +70,15 @@ function CheckRow({ c, perSlot }: { c: NutrientCheck; perSlot: boolean }) {
           {label}
           {c.partial && <span className="text-ink-soft" title="成分が未収録の食品を含みます">※</span>}
         </span>
-        {c.goal ? (
-          <div className="relative mt-1 h-1.5 rounded-full bg-ink/10" aria-hidden>
-            <div className={`h-full rounded-full transition-all duration-500 ${BAR_COLOR[c.status]}`} style={{ width: `${scale * 100}%` }} />
-            <div className="absolute -inset-y-0.5 left-2/3 w-0.5 rounded-full bg-ink/40" />
+        {c.goal && c.percent !== null ? (
+          <div className="mt-1 flex items-center gap-1.5">
+            <div className="relative h-1.5 flex-1 rounded-full bg-ink/10" aria-hidden>
+              <div className={`h-full rounded-full transition-all duration-500 ${BAR_COLOR[c.status]}`} style={{ width: `${scale * 100}%` }} />
+              <div className="absolute -inset-y-0.5 left-2/3 w-0.5 rounded-full bg-ink/40" />
+            </div>
+            <span className="w-10 shrink-0 text-left text-xs leading-none font-bold tabular-nums" aria-label={`${c.target.kind === 'max' ? '上限' : '目安'}の${pct(c.percent)}%`}>
+              {pct(c.percent)}%
+            </span>
           </div>
         ) : null}
       </div>
@@ -108,19 +119,35 @@ export function NutrientChecks({ checks, perSlot = false }: { checks: NutrientCh
     .filter((x): x is { text: string; cls: string } => Boolean(x))
     .filter((x) => !perSlot || x.text.startsWith('こえ'))
   const partial = checks.some((c) => c.partial)
+  const notable = notableChecks(checks, perSlot ? 2 : 4)
+  const judged = checks.filter((c) => c.status !== 'info').length
   return (
-    <details className="group rounded-2xl bg-white/70 px-3 py-2">
-      <summary className="flex min-h-9 cursor-pointer list-none flex-wrap items-center gap-x-2 gap-y-1 text-sm font-bold">
-        <span className="text-ink-soft transition-transform group-open:rotate-90" aria-hidden>
-          ▸
+    <details className={`group rounded-2xl border-2 border-dashed border-coral/40 bg-white/70 px-3 py-2 open:border-solid open:border-transparent`}>
+      <summary className="cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+        <span className="flex min-h-9 flex-wrap items-center gap-x-2 gap-y-1 text-sm font-bold">
+          <span className="whitespace-nowrap">{perSlot ? 'くわしい栄養素' : '栄養素チェック'}</span>
+          <span className="text-[11px] font-normal text-ink-soft">{CHECKED_COUNT}項目</span>
+          <span className="ml-auto flex items-center gap-1 rounded-full bg-coral px-3 py-1 text-[11px] text-white shadow-sm">
+            <span className="group-open:hidden">ひらいて見る</span>
+            <span className="hidden group-open:inline">とじる</span>
+            <span className="transition-transform group-open:rotate-180" aria-hidden>
+              ▼
+            </span>
+          </span>
         </span>
-        <span className="whitespace-nowrap">{perSlot ? 'くわしい栄養素' : '栄養素チェック'}</span>
-        <span className="ml-auto flex flex-wrap justify-end gap-1 text-[11px] font-bold">
+        {/* 畳んでいるときも、何が分かるかを少しだけ見せる */}
+        <span className="mt-1 flex flex-wrap items-center gap-1 text-[11px] font-bold group-open:hidden">
           {counts.map((c) => (
             <span key={c.text} className={`rounded-full px-2 py-0.5 ${c.cls}`}>
               {c.text}
             </span>
           ))}
+          {notable.map((c) => (
+            <span key={c.key} className={`rounded-full px-2 py-0.5 font-normal ${CHIP[c.status]}`}>
+              {NUTRIENT_INFO[c.key].label} <strong>{pct(c.percent ?? 0)}%</strong>
+            </span>
+          ))}
+          {notable.length === 0 && judged > 0 && <span className="font-normal text-ink-soft">どの栄養素も目安との割合を見られます</span>}
         </span>
       </summary>
       <div className="mt-2 space-y-3 pb-1">

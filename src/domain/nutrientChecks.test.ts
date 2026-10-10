@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { judge, nutrientChecks, summarizeChecks } from './nutrientChecks'
+import { judge, notableChecks, nutrientChecks, summarizeChecks } from './nutrientChecks'
 import { idealPfc, pfcGaps } from './pfcGap'
 import { computeTargets } from './targets'
 import { NUTRIENT_KEYS, type NutrientKey, type NutrientTotals } from './types'
@@ -95,5 +95,21 @@ describe('PFCの理想と実績の差', () => {
     const ideal = idealPfc(targets)
     expect(ideal.p + ideal.f + ideal.c).toBeCloseTo(100)
     expect(ideal.f).toBeGreaterThan(ideal.p)
+  })
+})
+
+describe('達成の割合と、畳んだときに見せる栄養素', () => {
+  const targets = computeTargets({ sex: 'female', age: 35, activity: 'normal' })
+
+  it('目安（上限）に対する割合を返し、基準のない栄養素は null', () => {
+    const by = Object.fromEntries(nutrientChecks(totals({ vitaminC: 50, salt: 13 }), targets).map((c) => [c.key, c]))
+    expect(by.vitaminC.percent).toBeCloseTo(50)
+    expect(by.salt.percent).toBeCloseTo(200)
+    expect(by.monoUnsatFat.percent).toBeNull()
+  })
+
+  it('こえているもの、割合の低い不足の順に返す', () => {
+    const checks = nutrientChecks(totals({ salt: 13, vitaminC: 50, calcium: 100, iron: 10 }), targets)
+    expect(notableChecks(checks, 3).map((c) => c.key)).toEqual(['salt', 'fiber', 'potassium'])
   })
 })
