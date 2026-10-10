@@ -279,10 +279,8 @@ export default function App() {
           favoriteProductIds={favoriteProductIds}
           onToggleFavorite={toggleFavoriteProduct}
           onRegisterProduct={() => setProductForm({ slot: pickerSlot })}
-          onPick={(item) => {
-            addItem(pickerSlot, item)
-            setPickerSlot(null)
-          }}
+          // 選んでも閉じずに続けて選べるようにする（閉じるのは「できた」か×）
+          onPick={(item) => addItem(pickerSlot, item)}
           onClose={() => setPickerSlot(null)}
         />
       )}
