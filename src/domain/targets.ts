@@ -1,9 +1,21 @@
 import {
   ALCOHOL_RISK,
   BMR_PER_KG,
+  CALCIUM_RDA,
+  CALCIUM_UL,
   CARB_RATIO,
   FAT_RATIO,
   FIBER_MIN,
+  IRON_RDA,
+  N3_AI,
+  N6_AI,
+  POTASSIUM_DG,
+  VITAMIN_A_RDA,
+  VITAMIN_B1_RDA,
+  VITAMIN_B2_RDA,
+  VITAMIN_C_RDA,
+  VITAMIN_D_AI,
+  VITAMIN_D_UL,
   MIN_SUPPORTED_AGE,
   PAL,
   PROTEIN_RATIO,
@@ -12,9 +24,21 @@ import {
   SAT_FAT_RATIO_MAX,
   pick,
 } from './dri'
-import type { Goal, Profile } from './types'
+import type { Goal, NutrientKey, Profile } from './types'
 
 export type Range = { lo: number; hi: number }
+
+// PFC以外の栄養素の目安。食事摂取基準のどの指標かを basis に持つ
+export type NutrientTarget =
+  // これ以上とりたい（推奨量・目安量・目標量の下限）。upper は耐容上限量
+  | { kind: 'min'; value: number; basis: '推奨量' | '目安量' | '目標量'; upper?: number }
+  // これより少なくしたい。overAtLimit は「〜未満」「〜以上でリスク」のように、ちょうどでも超過とするもの
+  | { kind: 'max'; value: number; basis: '目標量' | '飲酒ガイドライン'; overAtLimit: boolean }
+  // 食事摂取基準に指標がない
+  | { kind: 'none' }
+
+// PFC（エネルギー・たんぱく質・脂質・炭水化物）はPFCバランスで別に扱う
+export type CheckedNutrient = Exclude<NutrientKey, 'energyKcal' | 'protein' | 'fat' | 'carb'>
 
 export type Targets = {
   energyKcal: number
@@ -26,6 +50,7 @@ export type Targets = {
   fiberMin: number
   satFatMaxG: number
   alcoholRiskG: number
+  nutrients: Record<CheckedNutrient, NutrientTarget>
   usedReferenceWeight: boolean
 }
 
@@ -46,6 +71,36 @@ const toGrams = (kcal: number, r: Range, kcalPerG: number): Range => ({
   hi: (kcal * r.hi) / 100 / kcalPerG,
 })
 
+// 女性の鉄：月経の有無が未設定なら50歳未満は「あり」とみなす。65歳以上は原典に「月経あり」の区分がない
+function ironRda(profile: Profile, age: number): number {
+  const row = pick(IRON_RDA, age)
+  if (profile.sex === 'male') return row.male
+  const menstruating = profile.menstruation ?? age < 50
+  return menstruating && row.femaleMenstruating !== null ? row.femaleMenstruating : row.female
+}
+
+function nutrientTargets(profile: Profile, age: number, kcal: number): Record<CheckedNutrient, NutrientTarget> {
+  const sex = profile.sex
+  return {
+    fiber: { kind: 'min', value: pick(FIBER_MIN, age)[sex], basis: '目標量' },
+    salt: { kind: 'max', value: SALT_MAX[sex], basis: '目標量', overAtLimit: true },
+    alcohol: { kind: 'max', value: ALCOHOL_RISK[sex], basis: '飲酒ガイドライン', overAtLimit: true },
+    satFat: { kind: 'max', value: (kcal * SAT_FAT_RATIO_MAX) / 100 / 9, basis: '目標量', overAtLimit: false },
+    monoUnsatFat: { kind: 'none' },
+    polyUnsatFat: { kind: 'none' },
+    n3Fat: { kind: 'min', value: pick(N3_AI, age)[sex], basis: '目安量' },
+    n6Fat: { kind: 'min', value: pick(N6_AI, age)[sex], basis: '目安量' },
+    potassium: { kind: 'min', value: POTASSIUM_DG[sex], basis: '目標量' },
+    calcium: { kind: 'min', value: pick(CALCIUM_RDA, age)[sex], basis: '推奨量', upper: CALCIUM_UL },
+    iron: { kind: 'min', value: ironRda(profile, age), basis: '推奨量' },
+    vitaminA: { kind: 'min', value: pick(VITAMIN_A_RDA, age)[sex], basis: '推奨量' },
+    vitaminD: { kind: 'min', value: VITAMIN_D_AI, basis: '目安量', upper: VITAMIN_D_UL },
+    vitaminB1: { kind: 'min', value: pick(VITAMIN_B1_RDA, age)[sex], basis: '推奨量' },
+    vitaminB2: { kind: 'min', value: pick(VITAMIN_B2_RDA, age)[sex], basis: '推奨量' },
+    vitaminC: { kind: 'min', value: VITAMIN_C_RDA, basis: '推奨量' },
+  }
+}
+
 export function computeTargets(profile: Profile): Targets {
   const age = Math.max(profile.age, MIN_SUPPORTED_AGE)
   const { kcal, usedReferenceWeight } = estimatedEnergy(profile)
@@ -63,6 +118,7 @@ export function computeTargets(profile: Profile): Targets {
     fiberMin: pick(FIBER_MIN, age)[profile.sex],
     satFatMaxG: (kcal * SAT_FAT_RATIO_MAX) / 100 / 9,
     alcoholRiskG: ALCOHOL_RISK[profile.sex],
+    nutrients: nutrientTargets(profile, age, kcal),
     usedReferenceWeight,
   }
 }

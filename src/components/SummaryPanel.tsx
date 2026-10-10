@@ -1,10 +1,14 @@
 import { balanceMood, computeAlerts, type Alert, type Mood } from '../domain/alerts'
-import { pfcRatio, type MenuTotals } from '../domain/nutrition'
-import type { Range, Targets } from '../domain/targets'
+import type { MenuTotals } from '../domain/nutrition'
+import { nutrientChecks } from '../domain/nutrientChecks'
+import { idealPfc, pfcGaps } from '../domain/pfcGap'
+import type { Targets } from '../domain/targets'
 import { SLOTS } from '../domain/types'
 import { MOOD_LABEL, SLOT_LABEL } from './labels'
 import { dangoMoods, type DangoMoods } from '../domain/mascotMood'
 import { DangoMogu } from './Mascot'
+import { NutrientChecks } from './NutrientChecks'
+import { PfcBars, PfcGapList } from './PfcCompare'
 
 
 const ALERT_LABEL: Record<Alert['key'], string> = {
@@ -64,23 +68,6 @@ function SlotShare({ totals }: { totals: MenuTotals }) {
   )
 }
 
-function PfcBar({ label, color, ratio, range, grams }: { label: string; color: string; ratio: number | null; range: Range; grams: number }) {
-  const inRange = ratio !== null && ratio >= range.lo && ratio <= range.hi
-  return (
-    <div className="flex items-center gap-2 text-sm">
-      <span className="w-20 shrink-0">{label}</span>
-      <div className="relative h-3 flex-1 rounded-full bg-white">
-        <div className="absolute inset-y-0 rounded-full bg-ok/25" style={{ left: `${range.lo}%`, width: `${range.hi - range.lo}%` }} />
-        <div className="absolute inset-y-0 left-0 rounded-full transition-all duration-500" style={{ width: `${Math.min(ratio ?? 0, 100)}%`, background: color }} />
-      </div>
-      <span className="w-24 shrink-0 text-right tabular-nums">
-        {ratio === null ? '—' : `${Math.round(ratio)}%`} <span className="text-ink-soft">{Math.round(grams)}g</span>
-        {ratio !== null && !inRange && <span aria-label="目標範囲外"> ⚠</span>}
-      </span>
-    </div>
-  )
-}
-
 const MOOD_MESSAGE: Record<Mood, string> = {
   happy: '3人そろって、いいバランス！',
   okay: 'いい感じ。もうひと工夫してみる？',
@@ -99,7 +86,7 @@ function moguMessage(energy: number, mood: Mood, moods: DangoMoods, alerts: Aler
 
 export function SummaryPanel({ totals, targets }: { totals: MenuTotals; targets: Targets }) {
   const v = totals.day.values
-  const ratio = pfcRatio(v)
+  const gaps = pfcGaps(v, targets)
   const alerts = computeAlerts(totals, targets)
   const mood = balanceMood(totals, targets, alerts)
   const moods = dangoMoods(totals, targets, alerts, mood)
@@ -116,11 +103,13 @@ export function SummaryPanel({ totals, targets }: { totals: MenuTotals; targets:
       </div>
       <EnergyGauge value={v.energyKcal} target={targets.energyKcal} />
       <SlotShare totals={totals} />
-      <div className="space-y-2">
-        <PfcBar label="たんぱく質" color="var(--color-protein)" ratio={ratio?.p ?? null} range={targets.pfcRatio.p} grams={v.protein} />
-        <PfcBar label="脂質" color="var(--color-fat)" ratio={ratio?.f ?? null} range={targets.pfcRatio.f} grams={v.fat} />
-        <PfcBar label="炭水化物" color="var(--color-carb)" ratio={ratio?.c ?? null} range={targets.pfcRatio.c} grams={v.carb} />
-      </div>
+      {gaps && (
+        <div className="space-y-2">
+          <p className="text-sm text-ink-soft">PFCバランス（カロリーのうちわけ）</p>
+          <PfcBars ideal={idealPfc(targets)} actual={{ p: gaps[0].ratio, f: gaps[1].ratio, c: gaps[2].ratio }} />
+          <PfcGapList gaps={gaps} gramRanges={targets.pfcGrams} />
+        </div>
+      )}
       {alerts.length > 0 && (
         <ul className="space-y-1">
           {alerts.map((a) => (
@@ -132,7 +121,7 @@ export function SummaryPanel({ totals, targets }: { totals: MenuTotals; targets:
           ))}
         </ul>
       )}
-      {totals.day.missing.size > 0 && v.energyKcal > 0 && <p className="text-xs text-ink-soft">※ 一部の成分が未収録の食品を含みます</p>}
+      {v.energyKcal > 0 && <NutrientChecks checks={nutrientChecks(totals.day, targets)} />}
     </section>
   )
 }

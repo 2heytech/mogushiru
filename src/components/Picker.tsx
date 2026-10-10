@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Catalog } from '../domain/nutrition'
 import { rankAcross, rankAndFilter } from '../domain/search'
 import type { DishCategory, MenuItem, Slot } from '../domain/types'
@@ -159,6 +159,11 @@ export function Picker({
       : tab === 'product'
         ? productCategoryIds.map((c) => ({ id: c, label: productCategories[c] }))
         : []
+  // 種類や絞り込みを切り替えたら一覧の先頭から見せる（画面の大きさは中身によらず一定）
+  const listRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    listRef.current?.scrollTo({ top: 0 })
+  }, [tab, category])
   const switchTab = (t: Tab) => {
     setTab(t)
     setCategory('all')
@@ -170,10 +175,10 @@ export function Picker({
         role="dialog"
         aria-modal="true"
         aria-label={`${SLOT_LABEL[slot]}に追加する料理をえらぶ`}
-        className="flex max-h-[85vh] w-full flex-col rounded-t-[var(--radius-card)] bg-cream p-4 shadow-xl md:max-w-3xl md:rounded-[var(--radius-card)]"
+        className="flex h-[85dvh] w-full flex-col rounded-t-[var(--radius-card)] bg-cream p-4 shadow-xl md:h-[min(85dvh,760px)] md:max-w-3xl md:rounded-[var(--radius-card)]"
         onClick={(e) => e.stopPropagation()}
       >
-        <header className="mb-3 flex items-center justify-between">
+        <header className="mb-3 flex shrink-0 items-center justify-between">
           <h2 className="text-lg font-bold">{SLOT_LABEL[slot]}に追加</h2>
           <button type="button" onClick={onClose} className="grid h-11 w-11 place-items-center rounded-full hover:bg-white" aria-label="閉じる">
             ×
@@ -220,7 +225,7 @@ export function Picker({
             ))}
           </div>
         )}
-        <div className="-mx-1 overflow-y-auto px-1">
+        <div ref={listRef} className="-mx-1 min-h-0 flex-1 overflow-y-auto px-1">
           {cards.length === 0 ? (
             <p className="py-10 text-center text-sm text-ink-soft">
               {tab === 'food' && !query ? '食材名を入力してください' : tab === 'myDish' && !query ? 'まだマイ料理はありません' : '見つかりませんでした'}
