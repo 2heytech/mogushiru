@@ -10,7 +10,7 @@ export function categoryImage(category: DishCategory): string {
   return `/illustrations/category/${category}.svg`
 }
 
-// 献立の項目の絵（料理とマイ料理だけ。マイ料理は元の料理の絵を使う）
+// 献立の項目の絵（料理とお気に入りの料理だけ。お気に入りの料理は元の料理の絵を使う）
 export function menuItemImage(item: MenuItem, catalog: Catalog): string | undefined {
   if (item.kind === 'dish') {
     const d = catalog.dishes.get(item.refId)

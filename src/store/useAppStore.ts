@@ -1,24 +1,36 @@
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
 import { DEFAULT_PROFILE } from '../domain/targets'
-import type { DayMenu, Ingredient, MenuItem, MyDish, Profile, Slot } from '../domain/types'
+import type { DayMenu, Ingredient, MenuItem, MyDish, Product, Profile, Slot } from '../domain/types'
 
 export const emptyMenu = (): DayMenu => ({ breakfast: [], lunch: [], dinner: [], other: [] })
 
 export type SavedMenu = { id: string; name: string; menu: DayMenu; savedAt: string }
+
+// 栄養成分表示から登録する市販品。入力のない成分は未収録（null）
+export type MyProductInput = Pick<Product, 'name' | 'brand' | 'basis' | 'servingGrams' | 'nutrients'>
+
+export const MY_PRODUCT_PREFIX = 'my-'
+
+// 献立から、消したお気に入りを参照している項目を外す
+const without = (menu: DayMenu, kind: MenuItem['kind'], refId: string): DayMenu =>
+  Object.fromEntries(Object.entries(menu).map(([slot, items]) => [slot, items.filter((i) => !(i.kind === kind && i.refId === refId))])) as DayMenu
 
 type State = {
   profile: Profile
   profileSet: boolean
   menu: DayMenu
   myDishes: MyDish[]
+  // お気に入り：登録した市販品と、星を付けた既存の市販品
+  myProducts: Product[]
+  favoriteProductIds: string[]
   savedMenus: SavedMenu[]
   setProfile: (p: Profile) => void
   addItem: (slot: Slot, item: Omit<MenuItem, 'uid'>) => void
   updatePortion: (slot: Slot, uid: string, portion: number) => void
   // 献立の料理をアレンジした材料で置き換える（null で元のレシピに戻す）
   customizeItem: (slot: Slot, uid: string, ingredients: Ingredient[] | null) => void
-  // 献立の料理をマイ料理に置き換える
+  // 献立の料理をお気に入りの料理に置き換える
   replaceWithMyDish: (slot: Slot, uid: string, myDishId: string) => void
   removeItem: (slot: Slot, uid: string) => void
   moveItem: (from: Slot, to: Slot, uid: string) => void
@@ -26,6 +38,10 @@ type State = {
   saveMyDish: (d: Omit<MyDish, 'id' | 'createdAt'>) => MyDish
   updateMyDish: (id: string, patch: Partial<Pick<MyDish, 'name' | 'ingredients'>>) => void
   deleteMyDish: (id: string) => void
+  saveMyProduct: (p: MyProductInput) => Product
+  updateMyProduct: (jan: string, p: MyProductInput) => void
+  deleteMyProduct: (jan: string) => void
+  toggleFavoriteProduct: (jan: string) => void
   saveMenu: (name: string) => void
   loadMenu: (id: string) => void
   deleteMenu: (id: string) => void
@@ -60,6 +76,8 @@ export const useAppStore = create<State>()(
       profileSet: false,
       menu: emptyMenu(),
       myDishes: [],
+      myProducts: [],
+      favoriteProductIds: [],
       savedMenus: [],
       setProfile: (profile) => set({ profile, profileSet: true }),
       addItem: (slot, item) =>
@@ -98,7 +116,30 @@ export const useAppStore = create<State>()(
         return dish
       },
       updateMyDish: (id, patch) => set((s) => ({ myDishes: s.myDishes.map((d) => (d.id === id ? { ...d, ...patch } : d)) })),
-      deleteMyDish: (id) => set((s) => ({ myDishes: s.myDishes.filter((d) => d.id !== id) })),
+      deleteMyDish: (id) =>
+        set((s) => ({
+          myDishes: s.myDishes.filter((d) => d.id !== id),
+          menu: without(s.menu, 'myDish', id),
+          savedMenus: s.savedMenus.map((m) => ({ ...m, menu: without(m.menu, 'myDish', id) })),
+        })),
+      saveMyProduct: (input) => {
+        const now = new Date().toISOString()
+        const product: Product = { ...input, jan: `${MY_PRODUCT_PREFIX}${uid()}`, category: 'my', source: { name: 'ユーザー登録', fetchedAt: now } }
+        set((s) => ({ myProducts: [...s.myProducts, product], favoriteProductIds: [...s.favoriteProductIds, product.jan] }))
+        return product
+      },
+      updateMyProduct: (jan, input) => set((s) => ({ myProducts: s.myProducts.map((p) => (p.jan === jan ? { ...p, ...input } : p)) })),
+      deleteMyProduct: (jan) =>
+        set((s) => ({
+          myProducts: s.myProducts.filter((p) => p.jan !== jan),
+          favoriteProductIds: s.favoriteProductIds.filter((id) => id !== jan),
+          menu: without(s.menu, 'product', jan),
+          savedMenus: s.savedMenus.map((m) => ({ ...m, menu: without(m.menu, 'product', jan) })),
+        })),
+      toggleFavoriteProduct: (jan) =>
+        set((s) => ({
+          favoriteProductIds: s.favoriteProductIds.includes(jan) ? s.favoriteProductIds.filter((id) => id !== jan) : [...s.favoriteProductIds, jan],
+        })),
       saveMenu: (name) =>
         set((s) => ({
           savedMenus: [...s.savedMenus, { id: uid(), name, menu: structuredClone(s.menu), savedAt: new Date().toISOString() }],
@@ -113,7 +154,15 @@ export const useAppStore = create<State>()(
       name: 'mogushiru',
       version: SCHEMA_VERSION,
       storage: safeStorage,
-      partialize: ({ profile, profileSet, menu, myDishes, savedMenus }) => ({ profile, profileSet, menu, myDishes, savedMenus }),
+      partialize: ({ profile, profileSet, menu, myDishes, myProducts, favoriteProductIds, savedMenus }) => ({
+        profile,
+        profileSet,
+        menu,
+        myDishes,
+        myProducts,
+        favoriteProductIds,
+        savedMenus,
+      }),
     },
   ),
 )

@@ -20,6 +20,7 @@ export const DISH_CATEGORY_LABEL: Record<DishCategory, string> = {
 
 // 市販品カテゴリ（products.json の categories のキー）の表示用
 export const PRODUCT_CATEGORY_EMOJI: Record<string, string> = {
+  my: '⭐',
   onigiri: '🍙',
   bento: '🍱',
   sandwich: '🥪',

@@ -46,7 +46,9 @@ export function useCatalog(): CatalogState {
   return state
 }
 
-export const withMyDishes = (c: Omit<Catalog, 'myDishes'>, myDishes: MyDish[]): Catalog => ({
+// ブラウザに保存したお気に入り（料理・登録した市販品）を足したカタログ
+export const withMyData = (c: Omit<Catalog, 'myDishes'>, myDishes: MyDish[], myProducts: Product[]): Catalog => ({
   ...c,
+  products: myProducts.length ? new Map([...c.products, ...myProducts.map((p) => [p.jan, p] as const)]) : c.products,
   myDishes: new Map(myDishes.map((d) => [d.id, d])),
 })
