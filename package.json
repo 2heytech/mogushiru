@@ -12,7 +12,8 @@
     "data:mext": "tsx scripts/import-mext.ts",
     "data:off:fetch": "tsx scripts/fetch-off.ts",
     "data:off": "tsx scripts/import-off.ts",
-    "data:dishes": "tsx scripts/build-dishes.ts"
+    "data:dishes": "tsx scripts/build-dishes.ts",
+    "data:prices": "tsx scripts/import-prices.ts"
   },
   "dependencies": {
     "react": "^19.2.8",

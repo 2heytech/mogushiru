@@ -60,6 +60,11 @@ describe('栄養素ランキング', () => {
     expect(rows.map((r) => r.food.id)).toEqual(['06086'])
     expect(rows[0].value).toBeCloseTo(5.6)
   })
+  it('100円あたりは調味料を除く', () => {
+    const salt = food('17012', '＜調味料類＞　（食塩類）　食塩', '17', { calcium: 22 })
+    const prices = new Map([['17012', { yenPer100g: 13, item: '食塩' }]])
+    expect(rankFoods([salt], { nutrient: 'calcium', metric: 'per100yen', prices })).toEqual([])
+  })
   it('食品群でしぼれる', () => {
     expect(rankFoods(foods, { nutrient: 'iron', metric: 'per100g', group: '06' }).map((r) => r.food.id)).toEqual(['06086'])
   })

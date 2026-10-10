@@ -177,7 +177,7 @@ export function RankingView({ catalog, targets, prices }: { catalog: Catalog; ta
           もっと見る（あと {rows.length - limit} 件）
         </button>
       )}
-      <p className="text-xs text-ink-soft">{rows.length.toLocaleString()} 件の食材から。値は文部科学省「日本食品標準成分表（八訂）増補2023年」をもとに計算しています。</p>
+      <p className="text-xs text-ink-soft">{rows.length.toLocaleString()} 件の食材から。値は文部科学省「日本食品標準成分表（八訂）増補2023年」をもとに計算しています。{prices.size > 0 && '価格は総務省「小売物価統計調査（動向編）」2025年平均をもとに、可食部100gあたりに直したものです。'}</p>
     </section>
   )
 }
