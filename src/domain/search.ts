@@ -36,15 +36,36 @@ export function matches(query: string, ...fields: (string | undefined)[]): boole
 // 先頭一致が1件でもあれば途中一致は出さない
 export const SHORT_QUERY_LENGTH = 2
 
-export function rankAndFilter<T>(items: T[], query: string, fields: (item: T) => (string | undefined)[]): T[] {
-  const q = normalizeForSearch(query)
-  if (!q) return items
-  const ranked = items
-    .map((item, i) => ({ item, i, rank: matchRank(q, ...fields(item)) }))
-    .filter((x): x is { item: T; i: number; rank: number } => x.rank !== null)
+const tier = (rank: number) => (rank <= 1 ? 0 : 1)
+
+type Ranked<T> = { item: T; group: number; i: number; rank: number }
+
+// 一致したものだけを並べる。完全一致・先頭一致（よく一致）を途中一致より前に置き、
+// その中ではグループの順 → 一致の度合い → 元の並び。
+// 短い検索語では、どこかに先頭一致があれば途中一致を出さない
+function rankGroups<T>(groups: { items: T[]; fields: (item: T) => (string | undefined)[] }[], q: string): T[] {
+  const ranked = groups.flatMap(({ items, fields }, group) =>
+    items
+      .map((item, i) => ({ item, group, i, rank: matchRank(q, ...fields(item)) }))
+      .filter((x): x is Ranked<T> => x.rank !== null),
+  )
   const hasPrefix = ranked.some((x) => x.rank <= 1)
   return ranked
     .filter((x) => !(q.length <= SHORT_QUERY_LENGTH && hasPrefix && x.rank === 2))
-    .sort((a, b) => a.rank - b.rank || a.i - b.i)
+    .sort((a, b) => tier(a.rank) - tier(b.rank) || a.group - b.group || a.rank - b.rank || a.i - b.i)
     .map((x) => x.item)
+}
+
+export function rankAndFilter<T>(items: T[], query: string, fields: (item: T) => (string | undefined)[]): T[] {
+  const q = normalizeForSearch(query)
+  if (!q) return items
+  return rankGroups([{ items, fields }], q)
+}
+
+// 種類の違うものをまとめて検索する（料理・市販品・食材の横断検索）。
+// よく一致したものの中では、先に渡したグループを前に並べる（完全一致の食材より先頭一致の料理が前）
+export function rankAcross<T>(groups: { items: T[]; fields: (item: T) => (string | undefined)[] }[], query: string): T[] {
+  const q = normalizeForSearch(query)
+  if (!q) return groups.flatMap((g) => g.items)
+  return rankGroups(groups, q)
 }
