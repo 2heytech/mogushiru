@@ -4,7 +4,7 @@
 
 - 料理ごとに public/illustrations/<料理ID>.svg を書く。料理を足すときは D['<料理ID>'] = (カテゴリ, 中身) を追加する。
 - 共通パーツ（plate / bowl / can など）と配色を使い、背景の丸はカテゴリ色にする。
-- 器か料理に顔（face）を付け、背景にきらきらを入れる。顔の位置は FACE に書く。
+- 器は明るいパステル色にし、背景にきらきらを入れる。料理には顔を付けない（顔はマスコット「モグ」だけ）。
 - 絵がまだない料理には category/<カテゴリ>.svg（ふた付きのお皿）が出る。
 - 同じ名前の .webp / .png を置くと、そちらが優先される（docs/illustration-style.md）。
 """
@@ -22,15 +22,6 @@ def star(x, y, r):
     return f'<path d="M{x} {y-r} Q{x} {y} {x+r} {y} Q{x} {y} {x} {y+r} Q{x} {y} {x-r} {y} Q{x} {y} {x} {y-r}Z" fill="#fff"/>'
 
 SPARKLE = star(20, 34, 6) + star(108, 26, 5) + '<circle cx="110" cy="44" r="2" fill="#fff"/>'
-
-# かわいい顔（点の目・にっこり口・ほっぺ）。light=True は濃い色の上に置くとき
-def face(x, y, s=1.0, light=False):
-    c = '#fff' if light else INK
-    e, r = 7 * s, 2.4 * s
-    return (f'<g stroke="none"><ellipse cx="{x-12*s:.1f}" cy="{y+3*s:.1f}" rx="{3.6*s:.1f}" ry="{2.3*s:.1f}" fill="#ff9a9a" opacity=".75"/>'
-            f'<ellipse cx="{x+12*s:.1f}" cy="{y+3*s:.1f}" rx="{3.6*s:.1f}" ry="{2.3*s:.1f}" fill="#ff9a9a" opacity=".75"/>'
-            f'<circle cx="{x-e:.1f}" cy="{y-2*s:.1f}" r="{r:.1f}" fill="{c}"/><circle cx="{x+e:.1f}" cy="{y-2*s:.1f}" r="{r:.1f}" fill="{c}"/></g>'
-            f'<path d="M{x-3*s:.1f} {y+1.5*s:.1f} q{3*s:.1f} {3.2*s:.1f} {6*s:.1f} 0" fill="none" stroke="{c}" stroke-width="{max(2, 2.4*s):.1f}"/>')
 
 def svg(cat, body):
     return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">'
@@ -117,7 +108,7 @@ def tamago(x, spiral=True):
     sp = f'<path d="M{x+12} 73 m-4 0 a4 4 0 1 1 4 4 a7 7 0 1 1 7 -7" fill="none" stroke="#e8b52e" stroke-width="2.5"/>' if spiral else ''
     return f'<rect x="{x}" y="58" width="24" height="30" rx="7" fill="#ffd94d"/>{sp}'
 
-D['dashimaki'] = ('main', '<rect x="18" y="76" width="92" height="24" rx="8" fill="#fff"/>' + tamago(28) + tamago(52, False) + tamago(76))
+D['dashimaki'] = ('main', '<rect x="18" y="76" width="92" height="24" rx="8" fill="#fff"/>' + tamago(28) + tamago(52) + tamago(76))
 
 D['fried-egg'] = ('main', plate()
     + '<path d="M30 76 Q28 54 50 56 Q60 44 78 52 Q100 52 98 72 Q100 90 76 90 Q60 96 46 90 Q30 90 30 76Z" fill="#fff"/>'
@@ -254,7 +245,6 @@ D['chuhai'] = ('alcohol', can(18, '#c9f08a', '<circle cx="34" cy="70" r="10" fil
     + dots([(76, 84), (86, 92), (82, 76)], 2.2, '#fff', False))
 
 # ---- 追加の42品 ----
-BOWL = (64, 88, 0.85)  # お茶わん・どんぶりの顔の位置
 def cutlet(x, y, w, h, rot=0, fill='#e8a24a'):
     return (f'<g transform="rotate({rot} {x+w/2} {y+h/2})"><rect x="{x}" y="{y}" width="{w}" height="{h}" rx="{h/2}" fill="{fill}"/>'
             + dots([(x + w * 0.25, y + h * 0.35), (x + w * 0.55, y + h * 0.6), (x + w * 0.75, y + h * 0.3)], 1.6, '#c97a2e', False) + '</g>')
@@ -475,44 +465,10 @@ D['cola'] = ('drink', glass('#7a3a1e', '<rect x="52" y="48" width="14" height="1
     '<rect x="64" y="58" width="14" height="14" rx="3" fill="#fff" fill-opacity=".6" stroke-width="2.5" transform="rotate(-12 71 65)"/>'
     + dots([(56, 90), (70, 96), (62, 98), (74, 84)], 2, '#c98a5a', False)))
 
-FACE_MORE = {
-    'shumai': (52, 79, 0.45), 'subuta': (64, 71, 0.55, True), 'happosai': (64, 93, 0.55), 'aji-nanban': (60, 74, 0.6),
-    'croquette': (80, 80, 0.6), 'cream-stew': BOWL, 'beef-stew': BOWL, 'tofu-hamburg': (62, 76, 0.6),
-    'ebi-fry': (58, 74, 0.45), 'menchi': (68, 77, 0.45, True), 'gratin': (64, 92, 0.6), 'tonkatsu': (64, 93, 0.5),
-    'grilled-mackerel': (64, 74, 0.6), 'sashimi': (64, 93, 0.5), 'boiled-egg': (46, 73, 0.45),
-    'okonomiyaki': (64, 74, 0.6, True), 'harumaki': (68, 80, 0.5), 'shiraae': (64, 92, 0.8), 'goma-ae': (64, 92, 0.8),
-    'namasu': (64, 92, 0.8), 'unohana': (64, 92, 0.8), 'chikuzenni': BOWL, 'namul': (64, 92, 0.55),
-    'pumpkin-soup': (64, 88, 0.8), 'corn-soup': (64, 88, 0.8), 'chimaki': (64, 70, 0.55), 'pilaf': (64, 72, 0.6),
-    'onigiri-ume': (64, 60, 0.85), 'fried-rice': (64, 70, 0.6), 'yakisoba': (64, 93, 0.5), 'roll-bread': (82, 76, 0.5),
-    'croissant': (64, 74, 0.6), 'mikan': (64, 76, 0.85), 'apple': (64, 74, 0.85), 'shortcake': (64, 84, 0.55),
-    'pudding': (64, 74, 0.7), 'daifuku': (60, 76, 0.8), 'potato-chips': BOWL, 'chocolate': (52, 72, 0.5, True),
-    'ice-cream': (64, 84, 0.75), 'orange-juice': (64, 80, 0.75), 'cola': (64, 84, 0.7, True),
-}
 
 CLOCHE = ('<ellipse cx="64" cy="88" rx="46" ry="12" fill="#fff"/>'
           '<path d="M26 84 Q26 44 64 44 Q102 44 102 84Z" fill="#fff4dc"/>'
           '<circle cx="64" cy="38" r="6" fill="#ff8a65"/><path d="M40 70 Q42 56 56 52" fill="none" stroke="#fff" stroke-width="4"/>')
-# 料理ごとの顔の位置 (x, y, 大きさ, 濃い色の上か)。器のある料理は器に、ないものは料理そのものに付ける
-FACE = {
-    'rice': BOWL, 'natto-rice': BOWL, 'nikujaga': BOWL, 'mapo-tofu': BOWL, 'green-salad': BOWL,
-    'miso-soup': BOWL, 'tonjiru': BOWL, 'kake-udon': BOWL, 'shoyu-ramen': BOWL, 'gyudon': BOWL, 'oyakodon': BOWL,
-    'ohitashi': (64, 92, 0.8), 'kinpira': (64, 92, 0.8),
-    'onigiri-salmon': (64, 60, 0.85), 'toast': (64, 86, 0.75),
-    'karaage': (62, 85, 0.6), 'grilled-salmon': (66, 74, 0.7), 'shogayaki': (64, 93, 0.55),
-    'hamburg': (60, 82, 0.7, True), 'gyoza': (66, 76, 0.55), 'dashimaki': (64, 75, 0.6),
-    'fried-egg': (62, 71, 0.65), 'hiyayakko': (77, 76, 0.5), 'yasai-itame': (64, 91, 0.55),
-    'zaru-soba': (97, 92, 0.5), 'meat-sauce': (64, 92, 0.55), 'curry-rice': (40, 78, 0.6),
-    'yogurt': (64, 80, 0.75), 'banana': (60, 80, 0.7), 'milk': (64, 80, 0.8),
-    'beer': (84, 78, 0.7), 'sake': (52, 86, 0.75), 'red-wine': (64, 62, 0.6, True),
-    'highball': (64, 92, 0.7), 'chuhai': (81, 84, 0.65),
-}
-FACE.update(FACE_MORE)
-for k, f in FACE.items():
-    cat, body = D[k]
-    x, y, sc, *light = f
-    D[k] = (cat, body + face(x, y, sc * 1.2, *light))
-
-CLOCHE += face(64, 70, 0.8)
 FALLBACK = {f'category/{c}': (c, CLOCHE) for c in BG}
 
 os.makedirs(os.path.join(OUT, 'category'), exist_ok=True)
