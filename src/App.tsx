@@ -7,6 +7,8 @@ import { Picker } from './components/Picker'
 import { ProfileDialog } from './components/ProfileDialog'
 import { SlotBoard } from './components/SlotBoard'
 import { RankingView } from './components/RankingView'
+import { confirmDialog } from './components/confirm'
+import { ConfirmHost } from './components/ConfirmDialog'
 import { MenuActions, SavedMenusDialog } from './components/SavedMenus'
 import { SummaryPanel } from './components/SummaryPanel'
 import { useCatalog, withMyData } from './data/catalog'
@@ -206,8 +208,8 @@ export default function App() {
         }}
         onDelete={
           initial
-            ? () => {
-                if (!window.confirm(`「${initial.name}」を削除しますか？1日の食事からも外れます。`)) return
+            ? async () => {
+                if (!(await confirmDialog(`「${initial.name}」を削除しますか？1日の食事からも外れます。`, { okLabel: '削除する', danger: true }))) return
                 setEditing(null)
                 deleteMyProduct(initial.jan)
                 close()
@@ -318,6 +320,8 @@ export default function App() {
           onClose={() => setProfileOpen(false)}
         />
       )}
+
+      <ConfirmHost />
 
       <footer className="mt-12 text-xs leading-relaxed text-ink-soft">
         <p>表示される値は目安です。医療・栄養指導の代わりにはなりません。</p>

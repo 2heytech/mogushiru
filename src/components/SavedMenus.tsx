@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { knownItemsOnly, menuTotals, type Catalog } from '../domain/nutrition'
 import { SLOTS, type DayMenu } from '../domain/types'
 import type { SavedMenu } from '../store/useAppStore'
+import { confirmDialog } from './confirm'
 
 const itemCount = (menu: DayMenu) => SLOTS.reduce((n, s) => n + menu[s].length, 0)
 
@@ -19,8 +20,8 @@ export function MenuActions({ menu, savedCount, onOpenSaved, onReset }: { menu: 
       <button
         type="button"
         disabled={empty}
-        onClick={() => {
-          if (window.confirm('朝・昼・晩・その他の料理をすべて外して、空にしますか？')) onReset()
+        onClick={async () => {
+          if (await confirmDialog('朝・昼・晩・その他の料理をすべて外して、空にしますか？', { okLabel: 'リセットする', danger: true })) onReset()
         }}
         className={BUTTON}
       >
@@ -59,6 +60,12 @@ export function SavedMenusDialog({
   const trimmed = name.trim()
   const empty = itemCount(menu) === 0
   const overwrite = saved.some((m) => m.name === trimmed)
+  // form の submit は埋め込み表示（allow-forms のない sandbox）で止められるため、ボタンと Enter キーで保存する
+  const save = async () => {
+    if (!trimmed || empty) return
+    if (overwrite && !(await confirmDialog(`「${trimmed}」を、いまの内容で上書きしますか？`, { okLabel: '上書きする' }))) return
+    onSave(trimmed)
+  }
   const summary = (m: SavedMenu) => {
     const known = knownItemsOnly(m.menu, catalog)
     return { count: itemCount(known), kcal: Math.round(menuTotals(known, catalog).day.values.energyKcal) }
@@ -76,15 +83,7 @@ export function SavedMenusDialog({
         <h2 className="mb-1 text-lg font-bold">1日の食事の保存・呼び出し</h2>
         <p className="mb-4 text-xs text-ink-soft">よく食べる組み合わせに名前を付けて取っておけます。この端末のブラウザにだけ保存されます。</p>
 
-        <form
-          className="rounded-2xl bg-white p-3"
-          onSubmit={(e) => {
-            e.preventDefault()
-            if (!trimmed || empty) return
-            if (overwrite && !window.confirm(`「${trimmed}」を、いまの内容で上書きしますか？`)) return
-            onSave(trimmed)
-          }}
-        >
+        <div className="rounded-2xl bg-white p-3">
           <label className="text-sm">
             いまの1日の食事を保存
             <input
@@ -92,13 +91,15 @@ export function SavedMenusDialog({
               value={name}
               maxLength={30}
               onChange={(e) => setName(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && !e.nativeEvent.isComposing && save()}
+              enterKeyHint="done"
             />
           </label>
-          <button type="submit" disabled={!trimmed || empty} className="mt-2 min-h-11 w-full rounded-full bg-coral font-bold text-white disabled:opacity-50">
+          <button type="button" onClick={save} disabled={!trimmed || empty} className="mt-2 min-h-11 w-full rounded-full bg-coral font-bold text-white disabled:opacity-50">
             {overwrite ? '上書き保存' : '保存'}
           </button>
           {empty && <p className="mt-1 text-xs text-ink-soft">料理を選ぶと保存できます</p>}
-        </form>
+        </div>
 
         <h3 className="mt-5 mb-2 text-sm font-bold">保存した1日の食事</h3>
         {saved.length === 0 ? (
@@ -117,8 +118,8 @@ export function SavedMenusDialog({
                   </div>
                   <button
                     type="button"
-                    onClick={() => {
-                      if (!empty && !window.confirm(`いまの1日の食事を「${m.name}」に置き換えますか？`)) return
+                    onClick={async () => {
+                      if (!empty && !(await confirmDialog(`いまの1日の食事を「${m.name}」に置き換えますか？`, { okLabel: '呼び出す' }))) return
                       onLoad(m)
                     }}
                     className="min-h-10 shrink-0 rounded-full bg-coral px-3.5 text-sm font-bold text-white"
@@ -128,8 +129,8 @@ export function SavedMenusDialog({
                   <button
                     type="button"
                     aria-label={`「${m.name}」を削除`}
-                    onClick={() => {
-                      if (window.confirm(`「${m.name}」を削除しますか？`)) onDelete(m)
+                    onClick={async () => {
+                      if (await confirmDialog(`「${m.name}」を削除しますか？`, { okLabel: '削除する', danger: true })) onDelete(m)
                     }}
                     className="grid min-h-10 min-w-10 shrink-0 place-items-center rounded-full bg-cream text-ink-soft"
                   >
