@@ -18,6 +18,7 @@ export type OffProduct = {
 const CSV_NUTRIMENTS = [
   'energy-kcal', 'proteins', 'fat', 'carbohydrates', 'salt', 'sodium', 'fiber', 'alcohol',
   'saturated-fat', 'monounsaturated-fat', 'polyunsaturated-fat', 'omega-3-fat', 'omega-6-fat', 'calcium', 'iron', 'potassium', 'vitamin-c',
+  'magnesium', 'zinc', 'vitamin-b6',
 ]
 export function csvRowToOffProduct(row: Record<string, string>): OffProduct {
   const nutriments: Record<string, string> = {}
@@ -128,6 +129,10 @@ export function toProduct(p: OffProduct, fetchedAt: string): Product | null {
     iron: mgFromG(g('iron')),
     potassium: mgFromG(g('potassium')),
     vitaminC: mgFromG(g('vitamin-c')),
+    magnesium: mgFromG(g('magnesium')),
+    zinc: mgFromG(g('zinc')),
+    vitaminB6: mgFromG(g('vitamin-b6')),
+    // ビタミンE（α-トコフェロールに限らない）・ナイアシン（当量でない）・葉酸は成分表と基準がそろわないので未収録（null）
     // OFF の vitamin-a はレチノールとカロテンを区別しないので、レチノールは未収録（null）のまま
   })
   for (const k of NUTRIENT_KEYS) nutrients[k] = round(nutrients[k])

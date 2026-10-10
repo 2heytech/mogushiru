@@ -67,6 +67,8 @@ describe('栄養計算', () => {
     expect(t.bySlot.other.values.energyKcal).toBeCloseTo(140 + 50)
     expect(t.bySlot.other.values.alcohol).toBeCloseTo(14)
     expect(t.day.values.energyKcal).toBeCloseTo(360 + 100 + 750 + 190)
+    // サプリの項目がなければサプリ分は 0
+    expect(t.supplement.values.energyKcal).toBe(0)
   })
 
   it('献立の中でアレンジした料理は、アレンジ後の材料から計算する', () => {

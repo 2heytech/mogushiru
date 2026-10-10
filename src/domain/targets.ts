@@ -6,7 +6,13 @@ import {
   CARB_RATIO,
   FAT_RATIO,
   FIBER_MIN,
+  FOLATE_RDA,
+  FOLATE_SUPPLEMENT_UL,
   IRON_RDA,
+  MAGNESIUM_RDA,
+  MAGNESIUM_SUPPLEMENT_UL,
+  NIACIN_RDA,
+  NIACIN_SUPPLEMENT_UL,
   N3_AI,
   N6_AI,
   POTASSIUM_DG,
@@ -17,6 +23,12 @@ import {
   VITAMIN_C_RDA,
   VITAMIN_D_AI,
   VITAMIN_D_UL,
+  VITAMIN_B6_RDA,
+  VITAMIN_B6_UL,
+  VITAMIN_E_AI,
+  VITAMIN_E_UL,
+  ZINC_RDA,
+  ZINC_UL,
   MIN_SUPPORTED_AGE,
   PAL,
   PROTEIN_RATIO,
@@ -31,13 +43,17 @@ export type Range = { lo: number; hi: number }
 
 // PFC以外の栄養素の目安。食事摂取基準のどの指標かを basis に持つ
 export type NutrientTarget =
-  // これ以上とりたい（推奨量・目安量・目標量の下限）。upper は耐容上限量
-  | { kind: 'min'; value: number; basis: '推奨量' | '目安量' | '目標量'; upper?: number }
+  // これ以上とりたい（推奨量・目安量・目標量の下限）。upper は耐容上限量。
+  // upperScope: 'supplement' は、上限がサプリメントなど通常の食品以外からとる分だけにかかるもの
+  // （マグネシウム・ナイアシン・葉酸）。省略時は食事を含む全量にかかる
+  | { kind: 'min'; value: number; basis: '推奨量' | '目安量' | '目標量'; upper?: number; upperScope?: UpperScope }
   // これより少なくしたい。overAtLimit は「〜未満」「〜以上でリスク」のように、ちょうどでも超過とするもの
   // 耐容上限量だけがある（ビタミンAのうちレチノール）ものも basis: '耐容上限量' でここに入る
   | { kind: 'max'; value: number; basis: '目標量' | '飲酒ガイドライン' | '耐容上限量'; overAtLimit: boolean }
   // 食事摂取基準に指標がない
   | { kind: 'none' }
+
+export type UpperScope = 'all' | 'supplement'
 
 // PFC（エネルギー・たんぱく質・脂質・炭水化物）はPFCバランスで別に扱う
 export type CheckedNutrient = Exclude<NutrientKey, 'energyKcal' | 'protein' | 'fat' | 'carb'>
@@ -95,11 +111,17 @@ function nutrientTargets(profile: Profile, age: number, kcal: number): Record<Ch
     potassium: { kind: 'min', value: POTASSIUM_DG[sex], basis: '目標量' },
     calcium: { kind: 'min', value: pick(CALCIUM_RDA, age)[sex], basis: '推奨量', upper: CALCIUM_UL },
     iron: { kind: 'min', value: ironRda(profile, age), basis: '推奨量' },
+    magnesium: { kind: 'min', value: pick(MAGNESIUM_RDA, age)[sex], basis: '推奨量', upper: MAGNESIUM_SUPPLEMENT_UL, upperScope: 'supplement' },
+    zinc: { kind: 'min', value: pick(ZINC_RDA, age)[sex], basis: '推奨量', upper: pick(ZINC_UL, age)[sex] },
     vitaminA: { kind: 'min', value: pick(VITAMIN_A_RDA, age)[sex], basis: '推奨量' },
     retinol: { kind: 'max', value: VITAMIN_A_UL, basis: '耐容上限量', overAtLimit: false },
     vitaminD: { kind: 'min', value: VITAMIN_D_AI, basis: '目安量', upper: VITAMIN_D_UL },
+    vitaminE: { kind: 'min', value: pick(VITAMIN_E_AI, age)[sex], basis: '目安量', upper: pick(VITAMIN_E_UL, age)[sex] },
     vitaminB1: { kind: 'min', value: pick(VITAMIN_B1_RDA, age)[sex], basis: '推奨量' },
     vitaminB2: { kind: 'min', value: pick(VITAMIN_B2_RDA, age)[sex], basis: '推奨量' },
+    niacin: { kind: 'min', value: pick(NIACIN_RDA, age)[sex], basis: '推奨量', upper: pick(NIACIN_SUPPLEMENT_UL, age)[sex], upperScope: 'supplement' },
+    vitaminB6: { kind: 'min', value: pick(VITAMIN_B6_RDA, age)[sex], basis: '推奨量', upper: pick(VITAMIN_B6_UL, age)[sex] },
+    folate: { kind: 'min', value: FOLATE_RDA, basis: '推奨量', upper: pick(FOLATE_SUPPLEMENT_UL, age).value, upperScope: 'supplement' },
     vitaminC: { kind: 'min', value: VITAMIN_C_RDA, basis: '推奨量' },
   }
 }

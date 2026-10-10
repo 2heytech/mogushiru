@@ -112,7 +112,7 @@ export function SummaryPanel({ totals, targets }: { totals: MenuTotals; targets:
         <ul className="space-y-1">
           {alerts.map((a) => (
             <li key={a.key} className={`rounded-xl px-3 py-2 text-sm ${a.level === 'over' ? 'bg-alert/15' : 'bg-caution/20'}`}>
-              ⚠ {alertLabel(a)} {fmtAlert(a, a.amount)}
+              ⚠ {alertLabel(a)}{a.supplementOnly && '（サプリの分）'} {fmtAlert(a, a.amount)}
               {a.unit}（{a.limitKind === 'upper' ? '耐容上限量' : '目安'} {fmtAlert(a, a.limit)}
               {a.unit}）
               {a.limitKind === 'upper' && a.level === 'over' && <span className="font-bold"> とりすぎ注意</span>}{a.topSlot && <span className="text-ink-soft"> いちばん多いのは{SLOT_LABEL[a.topSlot]}</span>}
@@ -120,7 +120,7 @@ export function SummaryPanel({ totals, targets }: { totals: MenuTotals; targets:
           ))}
         </ul>
       )}
-      {v.energyKcal > 0 && <NutrientChecks checks={nutrientChecks(totals.day, targets)} />}
+      {v.energyKcal > 0 && <NutrientChecks checks={nutrientChecks(totals.day, targets, undefined, totals.supplement)} />}
     </section>
   )
 }

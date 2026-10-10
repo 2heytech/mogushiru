@@ -15,11 +15,17 @@ export const NUTRIENT_KEYS = [
   'calcium', // mg
   'iron', // mg
   'potassium', // mg
+  'magnesium', // mg
+  'zinc', // mg
   'vitaminA', // µg（レチノール活性当量）
   'retinol', // µg（レチノール。ビタミンAの耐容上限量の判定に使う）
   'vitaminD', // µg
+  'vitaminE', // mg（α-トコフェロール）
   'vitaminB1', // mg
   'vitaminB2', // mg
+  'niacin', // mgNE（ナイアシン当量）
+  'vitaminB6', // mg
+  'folate', // µg（葉酸）
   'vitaminC', // mg
 ] as const
 

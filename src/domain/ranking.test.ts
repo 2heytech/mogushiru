@@ -8,6 +8,7 @@ const zero: Nutrients = {
   energyKcal: 0, protein: 0, fat: 0, carb: 0, fiber: 0, salt: 0, alcohol: 0, satFat: 0,
   monoUnsatFat: 0, polyUnsatFat: 0, n3Fat: 0, n6Fat: 0, retinol: 0,
   calcium: 0, iron: 0, potassium: 0, vitaminA: 0, vitaminD: 0, vitaminB1: 0, vitaminB2: 0, vitaminC: 0,
+  magnesium: 0, zinc: 0, vitaminE: 0, niacin: 0, vitaminB6: 0, folate: 0,
 }
 
 const food = (id: string, name: string, group: string, n: Partial<Nutrients>): Food => ({
