@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import type { Catalog } from '../domain/nutrition'
 import { rankAcross, rankAndFilter } from '../domain/search'
 import type { DishCategory, MenuItem, Slot } from '../domain/types'
+import { MY_PRODUCT_PREFIX } from '../store/useAppStore'
 import { dishImage, menuItemImage } from './illustration'
 import { DISH_CATEGORY_LABEL, FOOD_GROUP_EMOJI, PRODUCT_CATEGORY_EMOJI, PRODUCT_CATEGORY_LAST, SLOT_LABEL } from './labels'
 
@@ -13,7 +14,7 @@ const TABS: { id: Tab; label: string }[] = [
   { id: 'dish', label: '料理' },
   { id: 'product', label: '市販品' },
   { id: 'food', label: '食材' },
-  { id: 'myDish', label: 'マイ料理' },
+  { id: 'myDish', label: 'お気に入り' },
 ]
 
 // 横断検索での種類の並び（料理を優先。市販品は数が多いので食材の後）
@@ -21,7 +22,7 @@ const KIND_ORDER: Kind[] = ['myDish', 'dish', 'food', 'product']
 
 const KIND_BADGE: Record<Kind, { label: string; className: string }> = {
   dish: { label: '料理', className: 'bg-coral text-white' },
-  myDish: { label: 'マイ料理', className: 'bg-coral-dark text-white' },
+  myDish: { label: 'お気に入り', className: 'bg-coral-dark text-white' },
   product: { label: '市販品', className: 'bg-fat/70 text-ink' },
   food: { label: '食材', className: 'bg-carb/70 text-ink' },
 }
@@ -36,13 +37,13 @@ const PLACEHOLDER: Record<Tab, string> = {
   dish: '料理をさがす',
   product: '商品名・メーカーでさがす',
   food: '食材名で検索（例：たまご）',
-  myDish: 'マイ料理をさがす',
+  myDish: 'お気に入りをさがす',
 }
 
-type Filter = { catalog: Catalog; slot: Slot; query: string; category: string; showAlcohol: boolean }
+type Filter = { catalog: Catalog; slot: Slot; query: string; category: string; showAlcohol: boolean; favorites: Set<string> }
 
 // 種類ごとの候補（検索前）。並びは検索語が空のときの表示順
-function entries(kind: Kind, { catalog, slot, query, category, showAlcohol }: Filter): Entry[] {
+function entries(kind: Kind, { catalog, slot, query, category, showAlcohol, favorites }: Filter): Entry[] {
   switch (kind) {
     case 'dish':
       return [...catalog.dishes.values()]
@@ -65,7 +66,13 @@ function entries(kind: Kind, { catalog, slot, query, category, showAlcohol }: Fi
     case 'product':
       return [...catalog.products.values()]
         .filter((p) => showAlcohol || p.category !== 'alcohol')
-        .filter((p) => (category === 'all' ? Boolean(query) || !PRODUCT_CATEGORY_LAST.includes(p.category) : p.category === category))
+        .filter((p) =>
+          category === 'favorite'
+            ? favorites.has(p.jan)
+            : category === 'all'
+              ? Boolean(query) || !PRODUCT_CATEGORY_LAST.includes(p.category)
+              : p.category === category,
+        )
         .map((p) => {
           // 1食量が分かれば1食分、分からなければ100g(mL)で追加する
           const grams = p.servingGrams ?? 100
@@ -103,15 +110,21 @@ function entries(kind: Kind, { catalog, slot, query, category, showAlcohol }: Fi
         const item = { kind: 'myDish', refId: d.id, portion: 1 } as const
         return {
           fields: [d.name],
-          card: { key: `myDish:${d.id}`, kind, name: d.name, sub: 'マイ料理', kcal: null, image: menuItemImage({ uid: '', ...item }, catalog), item },
+          card: { key: `myDish:${d.id}`, kind, name: d.name, sub: 'アレンジした料理', kcal: null, image: menuItemImage({ uid: '', ...item }, catalog), item },
         }
       })
   }
 }
 
+// お気に入りタブ：アレンジして保存した料理と、お気に入りの市販品（登録したものを含む）
+function favoriteEntries(filter: Filter): Entry[] {
+  return [...entries('myDish', filter), ...entries('product', { ...filter, category: 'favorite' })]
+}
+
 function buildCards(tab: Tab, filter: Filter): Card[] {
+  if (tab === 'myDish') return rankAndFilter(favoriteEntries(filter), filter.query, (e) => e.fields).map((e) => e.card)
   if (tab === 'all') {
-    // 検索前は料理（マイ料理を含む）だけを並べ、検索したら市販品・食材もまとめて出す
+    // 検索前は料理（お気に入りの料理を含む）だけを並べ、検索したら市販品・食材もまとめて出す
     const kinds: Kind[] = filter.query ? KIND_ORDER : ['myDish', 'dish']
     const groups = kinds.map((k) => ({ items: entries(k, { ...filter, category: 'all' }), fields: (e: Entry) => e.fields }))
     return rankAcross(groups, filter.query).map((e) => e.card)
@@ -124,6 +137,9 @@ export function Picker({
   catalog,
   productCategories,
   showAlcohol,
+  favoriteProductIds,
+  onToggleFavorite,
+  onRegisterProduct,
   onPick,
   onClose,
 }: {
@@ -131,24 +147,31 @@ export function Picker({
   catalog: Catalog
   productCategories: Record<string, string>
   showAlcohol: boolean
+  favoriteProductIds: string[]
+  onToggleFavorite: (jan: string) => void
+  // データにない市販品を栄養成分表示から登録する
+  onRegisterProduct: () => void
   onPick: (item: Omit<MenuItem, 'uid'>) => void
   onClose: () => void
 }) {
   const [tab, setTab] = useState<Tab>('all')
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState('all')
+  const favorites = useMemo(() => new Set(favoriteProductIds), [favoriteProductIds])
   const cards = useMemo(
-    () => buildCards(tab, { catalog, slot, query, category, showAlcohol }),
-    [tab, catalog, slot, query, category, showAlcohol],
+    () => buildCards(tab, { catalog, slot, query, category, showAlcohol, favorites }),
+    [tab, catalog, slot, query, category, showAlcohol, favorites],
   )
   // 検索中は、種類ごとの件数をタブに出す
   const counts = useMemo(() => {
     if (!query) return null
-    const all = buildCards('all', { catalog, slot, query, category: 'all', showAlcohol })
+    const filter = { catalog, slot, query, category: 'all', showAlcohol, favorites }
+    const all = buildCards('all', filter)
     const n: Record<Tab, number> = { all: all.length, dish: 0, product: 0, food: 0, myDish: 0 }
     for (const c of all) n[c.kind]++
+    n.myDish = buildCards('myDish', filter).length
     return n
-  }, [catalog, slot, query, showAlcohol])
+  }, [catalog, slot, query, showAlcohol, favorites])
   const dishCategories = (Object.keys(DISH_CATEGORY_LABEL) as DishCategory[]).filter((c) => showAlcohol || c !== 'alcohol')
   const productCategoryIds = Object.keys(productCategories)
     .filter((c) => showAlcohol || c !== 'alcohol')
@@ -220,17 +243,30 @@ export function Picker({
             ))}
           </div>
         )}
+        {(tab === 'myDish' || tab === 'product' || (query && tab === 'all')) && (
+          <button
+            type="button"
+            onClick={onRegisterProduct}
+            className="mb-3 min-h-10 w-full shrink-0 rounded-full border-2 border-dashed border-coral/60 px-4 text-sm font-bold text-coral hover:bg-coral/10"
+          >
+            ＋ リストにない市販品を登録する
+          </button>
+        )}
         <div className="-mx-1 overflow-y-auto px-1">
           {cards.length === 0 ? (
             <p className="py-10 text-center text-sm text-ink-soft">
-              {tab === 'food' && !query ? '食材名を入力してください' : tab === 'myDish' && !query ? 'まだマイ料理はありません' : '見つかりませんでした'}
+              {tab === 'food' && !query
+                ? '食材名を入力してください'
+                : tab === 'myDish' && !query
+                  ? 'まだお気に入りはありません。料理の材料をアレンジして保存するか、市販品に☆を付けると、ここに並びます'
+                  : '見つかりませんでした'}
             </p>
           ) : (
             <>
               {tab === 'all' && !query && <p className="mb-2 text-xs text-ink-soft">料理・市販品・食材をまとめてさがせます</p>}
               <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
                 {cards.slice(0, MAX_CARDS).map((c) => (
-                  <li key={c.key}>
+                  <li key={c.key} className="relative">
                     <button
                       type="button"
                       onClick={() => onPick(c.item)}
@@ -254,6 +290,17 @@ export function Picker({
                         {c.kcal !== null && ` ・ ${Math.round(c.kcal)}kcal`}
                       </span>
                     </button>
+                    {c.kind === 'product' && !c.item.refId.startsWith(MY_PRODUCT_PREFIX) && (
+                      <button
+                        type="button"
+                        aria-pressed={favorites.has(c.item.refId)}
+                        aria-label={`${c.name}をお気に入り${favorites.has(c.item.refId) ? 'から外す' : 'に追加'}`}
+                        onClick={() => onToggleFavorite(c.item.refId)}
+                        className={`absolute top-1 right-1 grid h-9 w-9 place-items-center rounded-full text-lg ${favorites.has(c.item.refId) ? 'text-fat' : 'text-ink-soft/50 hover:text-fat'}`}
+                      >
+                        {favorites.has(c.item.refId) ? '★' : '☆'}
+                      </button>
+                    )}
                   </li>
                 ))}
               </ul>

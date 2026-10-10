@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import { swapIngredient } from '../domain/customize'
 import { ingredientsTotals } from '../domain/nutrition'
 import { rankAndFilter } from '../domain/search'
@@ -35,6 +35,7 @@ export function Customizer({
   onApply,
   onSave,
   onClose,
+  extra,
 }: {
   title: string
   original: Ingredient[]
@@ -44,6 +45,8 @@ export function Customizer({
   onApply?: (ingredients: Ingredient[]) => void
   onSave: (name: string, ingredients: Ingredient[]) => void
   onClose: () => void
+  // 量の変更など、材料の上に出すもの
+  extra?: ReactNode
 }) {
   const [rows, setRows] = useState<Row[]>(() => toRows(initial))
   const [query, setQuery] = useState('')
@@ -69,20 +72,21 @@ export function Customizer({
       <div
         role="dialog"
         aria-modal="true"
-        aria-label={`${title}をカスタマイズ`}
+        aria-label={`${title}を編集`}
         className="flex max-h-[92vh] w-full flex-col rounded-t-[var(--radius-card)] bg-cream p-4 shadow-xl md:max-w-2xl md:rounded-[var(--radius-card)]"
         onClick={(e) => e.stopPropagation()}
       >
         <header className="mb-3 flex shrink-0 items-center justify-between">
-          <h2 className="text-lg font-bold">{title}をカスタマイズ</h2>
+          <h2 className="text-lg font-bold">{title}を編集</h2>
           <button type="button" onClick={onClose} className="grid h-11 w-11 place-items-center rounded-full hover:bg-white" aria-label="閉じる">
             ×
           </button>
         </header>
+        {extra && <div className="mb-3 shrink-0">{extra}</div>}
         <div className="mb-3 flex shrink-0 items-center gap-2">
-          <Summary label="元のレシピ" kcal={before.energyKcal} p={before.protein} f={before.fat} c={before.carb} salt={before.salt} />
+          <Summary label="元のレシピ（1人前）" kcal={before.energyKcal} p={before.protein} f={before.fat} c={before.carb} salt={before.salt} />
           <span aria-hidden className="text-coral">→</span>
-          <Summary label="いまの材料" kcal={after.energyKcal} p={after.protein} f={after.fat} c={after.carb} salt={after.salt} />
+          <Summary label="いまの材料（1人前）" kcal={after.energyKcal} p={after.protein} f={after.fat} c={after.carb} salt={after.salt} />
         </div>
 
         <ul className="-mx-1 flex-1 space-y-2 overflow-y-auto px-1">

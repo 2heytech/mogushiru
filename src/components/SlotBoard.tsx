@@ -1,81 +1,12 @@
-import { useState } from 'react'
 import type { Catalog, MenuTotals } from '../domain/nutrition'
-import { SLOTS, type DayMenu, type MenuItem, type Slot } from '../domain/types'
+import { SLOTS, type DayMenu, type Slot } from '../domain/types'
 import { menuItemImage } from './illustration'
+import { itemName, portionLabel } from './itemName'
 import type { Targets } from '../domain/targets'
 import { SLOT_LABEL } from './labels'
 import { SlotBalanceView } from './SlotBalanceView'
 import { computeAlerts } from '../domain/alerts'
 import { SlotIcon } from './Mascot'
-
-const SERVING_STEPS = [0.5, 1, 1.5, 2]
-
-// 人前で数えるもの（料理・マイ料理・1食基準の市販品）と、グラムで数えるもの
-function usesGrams(item: MenuItem, catalog: Catalog): boolean {
-  if (item.kind === 'food') return true
-  if (item.kind === 'product') return catalog.products.get(item.refId)?.basis !== 'serving'
-  return false
-}
-
-function portionLabel(item: MenuItem, catalog: Catalog): string {
-  if (usesGrams(item, catalog)) {
-    const ml = item.kind === 'product' && catalog.products.get(item.refId)?.basis === '100ml'
-    return `${Math.round(item.portion)}${ml ? 'mL' : 'g'}`
-  }
-  return item.portion === 1 ? '' : `×${item.portion}`
-}
-
-function PortionEditor({ item, catalog, onPortion }: { item: MenuItem; catalog: Catalog; onPortion: (p: number) => void }) {
-  if (usesGrams(item, catalog)) {
-    return (
-      <label className="flex items-center gap-2 text-sm">
-        量
-        <input
-          type="number"
-          min={1}
-          step={10}
-          defaultValue={Math.round(item.portion)}
-          onChange={(e) => {
-            const v = Number(e.target.value)
-            if (v > 0) onPortion(v)
-          }}
-          className="min-h-10 w-24 rounded-full bg-cream px-3 text-base"
-        />
-        {item.kind === 'product' && catalog.products.get(item.refId)?.basis === '100ml' ? 'mL' : 'g'}
-      </label>
-    )
-  }
-  return (
-    <div className="flex gap-1">
-      {SERVING_STEPS.map((step) => (
-        <button
-          key={step}
-          type="button"
-          aria-pressed={item.portion === step}
-          onClick={() => onPortion(step)}
-          className={`min-h-10 min-w-12 rounded-full px-3 text-sm ${item.portion === step ? 'bg-coral font-bold text-white' : 'bg-cream'}`}
-        >
-          {step === 0.5 ? '½' : step}人前
-        </button>
-      ))}
-    </div>
-  )
-}
-
-function itemName(item: MenuItem, catalog: Catalog): string {
-  switch (item.kind) {
-    case 'dish': {
-      const name = catalog.dishes.get(item.refId)?.name ?? '（不明な料理）'
-      return item.customIngredients ? `${name}（アレンジ）` : name
-    }
-    case 'myDish':
-      return catalog.myDishes.get(item.refId)?.name ?? '（削除されたマイ料理）'
-    case 'product':
-      return catalog.products.get(item.refId)?.name ?? '（不明な市販品）'
-    case 'food':
-      return catalog.foods.get(item.refId)?.displayName ?? '（不明な食材）'
-  }
-}
 
 export function SlotBoard({
   menu,
@@ -84,8 +15,7 @@ export function SlotBoard({
   catalog,
   onAdd,
   onRemove,
-  onPortion,
-  onCustomize,
+  onEdit,
 }: {
   menu: DayMenu
   totals: MenuTotals
@@ -93,10 +23,9 @@ export function SlotBoard({
   catalog: Catalog
   onAdd: (slot: Slot) => void
   onRemove: (slot: Slot, uid: string) => void
-  onPortion: (slot: Slot, uid: string, portion: number) => void
-  onCustomize: (slot: Slot, uid: string) => void
+  // 献立の項目をタップしたら、その場で編集画面を開く
+  onEdit: (slot: Slot, uid: string) => void
 }) {
-  const [editing, setEditing] = useState<string | null>(null)
   const alerts = computeAlerts(totals, targets)
   return (
     <div className="grid gap-4 md:grid-cols-2">
@@ -117,13 +46,14 @@ export function SlotBoard({
               <li key={item.uid} className="flex items-center gap-1 rounded-full bg-cream py-1 pr-1 pl-3 text-sm">
                 <button
                   type="button"
-                  onClick={() => setEditing(editing === item.uid ? null : item.uid)}
-                  aria-expanded={editing === item.uid}
+                  onClick={() => onEdit(slot, item.uid)}
+                  aria-haspopup="dialog"
                   className="flex min-h-7 items-center"
                 >
                   {menuItemImage(item, catalog) && <img src={menuItemImage(item, catalog)} alt="" className="mr-1.5 -ml-2 h-7 w-7" />}
                   {itemName(item, catalog)}
                   <span className="ml-1 text-ink-soft">{portionLabel(item, catalog)}</span>
+                  <span aria-hidden className="ml-1.5 text-xs text-coral">✎</span>
                 </button>
                 <button
                   type="button"
@@ -146,27 +76,6 @@ export function SlotBoard({
             </li>
           </ul>
           <SlotBalanceView totals={totals.bySlot[slot]} slot={slot} targets={targets} alerts={alerts} />
-          {menu[slot].some((i) => i.uid === editing) && (
-            <div className="mt-3 rounded-2xl border-2 border-cream p-3">
-              {menu[slot]
-                .filter((i) => i.uid === editing)
-                .map((i) => (
-                  <div key={i.uid} className="flex flex-wrap items-center gap-2">
-                    <span className="text-sm font-bold">{itemName(i, catalog)}</span>
-                    <PortionEditor item={i} catalog={catalog} onPortion={(p) => onPortion(slot, i.uid, p)} />
-                    {(i.kind === 'dish' || i.kind === 'myDish') && (
-                      <button
-                        type="button"
-                        onClick={() => onCustomize(slot, i.uid)}
-                        className="min-h-10 rounded-full bg-ok/20 px-4 text-sm font-bold"
-                      >
-                        🥄 材料をアレンジ
-                      </button>
-                    )}
-                  </div>
-                ))}
-            </div>
-          )}
         </section>
       ))}
     </div>

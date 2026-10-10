@@ -86,7 +86,8 @@ export type Product = {
   basis: '100g' | '100ml' | 'serving'
   servingGrams?: number
   nutrients: Nutrients // basis 当たり
-  source: { name: 'Open Food Facts'; fetchedAt: string; saltConverted?: boolean }
+  // ユーザー登録：栄養成分表示を見てブラウザに保存した市販品（jan は "my-" で始まる）
+  source: { name: 'Open Food Facts' | 'ユーザー登録'; fetchedAt: string; saltConverted?: boolean }
 }
 
 // ブラウザに保存するもの

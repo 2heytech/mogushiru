@@ -1,15 +1,21 @@
 import { useMemo, useState } from 'react'
 import { Customizer } from './components/Customizer'
+import { ItemEditor } from './components/ItemEditor'
+import { PortionEditor } from './components/PortionEditor'
+import { ProductForm } from './components/ProductForm'
 import { Picker } from './components/Picker'
 import { ProfileDialog } from './components/ProfileDialog'
 import { SlotBoard } from './components/SlotBoard'
 import { SummaryPanel } from './components/SummaryPanel'
-import { useCatalog, withMyDishes } from './data/catalog'
+import { useCatalog, withMyData } from './data/catalog'
 import { menuTotals, type Catalog } from './domain/nutrition'
 import { computeTargets } from './domain/targets'
-import type { Slot } from './domain/types'
-import { useAppStore } from './store/useAppStore'
+import type { Ingredient, Slot } from './domain/types'
+import { MY_PRODUCT_PREFIX, useAppStore } from './store/useAppStore'
 import { BowlMogu } from './components/Mascot'
+
+const sameIngredients = (a: Ingredient[], b: Ingredient[]) =>
+  a.length === b.length && a.every((x, i) => x.foodId === b[i].foodId && x.grams === b[i].grams)
 
 export default function App() {
   const catalogState = useCatalog()
@@ -26,18 +32,28 @@ export default function App() {
     replaceWithMyDish,
     saveMyDish,
     updateMyDish,
+    myProducts,
+    favoriteProductIds,
+    saveMyProduct,
+    updateMyProduct,
+    deleteMyProduct,
+    toggleFavoriteProduct,
   } = useAppStore()
   const [profileOpen, setProfileOpen] = useState(false)
   const [pickerSlot, setPickerSlot] = useState<Slot | null>(null)
-  const [customizing, setCustomizing] = useState<{ slot: Slot; uid: string } | null>(null)
+  const [editing, setEditing] = useState<{ slot: Slot; uid: string } | null>(null)
+  // 市販品の登録（slot があれば登録後その区分に追加）・編集
+  const [productForm, setProductForm] = useState<{ jan?: string; slot?: Slot } | null>(null)
   const targets = useMemo(() => computeTargets(profile), [profile])
-  const catalog = catalogState.status === 'ready' ? withMyDishes(catalogState.catalog, myDishes) : null
+  const catalog = catalogState.status === 'ready' ? withMyData(catalogState.catalog, myDishes, myProducts) : null
   const totals = useMemo(() => (catalog ? menuTotals(menu, catalog) : null), [catalog, menu])
 
-  function renderCustomizer(catalog: Catalog, { slot, uid }: { slot: Slot; uid: string }) {
+  function renderEditor(catalog: Catalog, { slot, uid }: { slot: Slot; uid: string }) {
     const item = menu[slot].find((i) => i.uid === uid)
-    const close = () => setCustomizing(null)
-    if (item?.kind === 'dish') {
+    const close = () => setEditing(null)
+    if (!item) return null
+    const portion = <PortionEditor key={item.uid} item={item} catalog={catalog} onPortion={(p) => updatePortion(slot, uid, p)} />
+    if (item.kind === 'dish') {
       const dish = catalog.dishes.get(item.refId)
       if (!dish) return null
       return (
@@ -46,9 +62,10 @@ export default function App() {
           original={dish.ingredients}
           initial={item.customIngredients ?? dish.ingredients}
           foods={catalog.foods}
-          saveLabel="マイ料理に保存"
+          saveLabel="お気に入りに保存"
+          extra={portion}
           onApply={(ingredients) => {
-            customizeItem(slot, uid, ingredients)
+            customizeItem(slot, uid, sameIngredients(ingredients, dish.ingredients) ? null : ingredients)
             close()
           }}
           onSave={(name, ingredients) => {
@@ -60,7 +77,7 @@ export default function App() {
         />
       )
     }
-    if (item?.kind === 'myDish') {
+    if (item.kind === 'myDish') {
       const my = catalog.myDishes.get(item.refId)
       if (!my) return null
       const base = my.baseDishId ? catalog.dishes.get(my.baseDishId) : undefined
@@ -70,7 +87,8 @@ export default function App() {
           original={base?.ingredients ?? my.ingredients}
           initial={my.ingredients}
           foods={catalog.foods}
-          saveLabel="マイ料理を上書き保存"
+          saveLabel="お気に入りを上書き保存"
+          extra={portion}
           onSave={(name, ingredients) => {
             updateMyDish(my.id, { name, ingredients })
             close()
@@ -79,7 +97,54 @@ export default function App() {
         />
       )
     }
-    return null
+    const isMine = item.kind === 'product' && item.refId.startsWith(MY_PRODUCT_PREFIX)
+    return (
+      <ItemEditor
+        item={item}
+        catalog={catalog}
+        favorite={favoriteProductIds.includes(item.refId)}
+        onPortion={(p) => updatePortion(slot, uid, p)}
+        onToggleFavorite={item.kind === 'product' && !isMine ? () => toggleFavoriteProduct(item.refId) : undefined}
+        onEditProduct={isMine ? () => setProductForm({ jan: item.refId }) : undefined}
+        onRemove={() => {
+          removeItem(slot, uid)
+          close()
+        }}
+        onClose={close}
+      />
+    )
+  }
+
+  function renderProductForm({ jan, slot }: { jan?: string; slot?: Slot }) {
+    const initial = jan ? myProducts.find((p) => p.jan === jan) : undefined
+    const close = () => setProductForm(null)
+    return (
+      <ProductForm
+        initial={initial}
+        onSave={(input) => {
+          if (initial) updateMyProduct(initial.jan, input)
+          else {
+            const p = saveMyProduct(input)
+            if (slot) {
+              addItem(slot, { kind: 'product', refId: p.jan, portion: p.basis === 'serving' ? 1 : (p.servingGrams ?? 100) })
+              setPickerSlot(null)
+            }
+          }
+          close()
+        }}
+        onDelete={
+          initial
+            ? () => {
+                if (!window.confirm(`「${initial.name}」を削除しますか？献立からも外れます。`)) return
+                setEditing(null)
+                deleteMyProduct(initial.jan)
+                close()
+              }
+            : undefined
+        }
+        onClose={close}
+      />
+    )
   }
 
   return (
@@ -114,8 +179,7 @@ export default function App() {
               catalog={catalog}
               onAdd={setPickerSlot}
               onRemove={removeItem}
-              onPortion={updatePortion}
-              onCustomize={(slot, uid) => setCustomizing({ slot, uid })}
+              onEdit={(slot, uid) => setEditing({ slot, uid })}
             />
           </div>
           <aside className="order-1 lg:order-2 lg:sticky lg:top-4 lg:self-start">
@@ -132,6 +196,9 @@ export default function App() {
           catalog={catalog}
           productCategories={catalogState.status === 'ready' ? catalogState.productCategories : {}}
           showAlcohol={profile.age >= 20}
+          favoriteProductIds={favoriteProductIds}
+          onToggleFavorite={toggleFavoriteProduct}
+          onRegisterProduct={() => setProductForm({ slot: pickerSlot })}
           onPick={(item) => {
             addItem(pickerSlot, item)
             setPickerSlot(null)
@@ -140,7 +207,9 @@ export default function App() {
         />
       )}
 
-      {catalog && customizing && renderCustomizer(catalog, customizing)}
+      {catalog && editing && renderEditor(catalog, editing)}
+
+      {productForm && renderProductForm(productForm)}
 
       {profileOpen && (
         <ProfileDialog
