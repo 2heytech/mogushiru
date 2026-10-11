@@ -145,4 +145,6 @@ export type Profile = {
   goal?: Goal
   // 女性の鉄の推奨量を選ぶため。未設定なら50歳未満は「あり」として扱う
   menstruation?: boolean
+  // 1日の目安を朝・昼・晩・その他に分ける割合（％、合計100）。未設定なら 25:35:30:10
+  slotShare?: Record<Slot, number>
 }

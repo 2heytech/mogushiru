@@ -1,7 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { MIN_SUPPORTED_AGE } from '../domain/dri'
+import { DEFAULT_SLOT_SHARE_PERCENT } from '../domain/slotBalance'
 import { computeTargets } from '../domain/targets'
-import type { Activity, Goal, Profile, Sex } from '../domain/types'
+import { SLOTS, type Activity, type Goal, type Profile, type Sex, type Slot } from '../domain/types'
+import { SLOT_LABEL } from './labels'
 
 const ACTIVITY: { id: Activity; label: string; desc: string }[] = [
   { id: 'low', label: '低い', desc: '座っていることが多い' },
@@ -33,9 +35,59 @@ function Choice<T extends string>({ value, options, onChange }: { value: T; opti
   )
 }
 
+const SHARE_STEP = 5
+const sameShare = (a: Record<Slot, number>, b: Record<Slot, number>) => SLOTS.every((s) => a[s] === b[s])
+
+// 1日の目安を朝・昼・晩・その他に分ける割合。5%ずつ変え、合計100%で保存できる
+function SlotShareEditor({ value, onChange, dayKcal }: { value: Record<Slot, number>; onChange: (v: Record<Slot, number>) => void; dayKcal: number | null }) {
+  const total = SLOTS.reduce((a, s) => a + value[s], 0)
+  const step = (slot: Slot, d: number) => onChange({ ...value, [slot]: Math.min(100, Math.max(0, value[slot] + d)) })
+  const btn = 'grid h-9 w-9 shrink-0 place-items-center rounded-full bg-cream text-lg font-bold disabled:opacity-30'
+  return (
+    <div className="rounded-2xl bg-white px-4 py-3">
+      <ul className="space-y-1.5">
+        {SLOTS.map((slot) => (
+          <li key={slot} className="flex items-center gap-2 text-sm">
+            <span className="w-12 shrink-0">{SLOT_LABEL[slot]}</span>
+            <button type="button" className={btn} aria-label={`${SLOT_LABEL[slot]}を減らす`} disabled={value[slot] <= 0} onClick={() => step(slot, -SHARE_STEP)}>
+              −
+            </button>
+            <strong className="w-12 text-center tabular-nums">{value[slot]}%</strong>
+            <button type="button" className={btn} aria-label={`${SLOT_LABEL[slot]}を増やす`} disabled={value[slot] >= 100} onClick={() => step(slot, SHARE_STEP)}>
+              ＋
+            </button>
+            {dayKcal !== null && <span className="ml-auto text-xs text-ink-soft tabular-nums">{(Math.round((dayKcal * value[slot]) / 100 / 10) * 10).toLocaleString()} kcal</span>}
+          </li>
+        ))}
+      </ul>
+      <div className="mt-2 flex items-center justify-between gap-2 text-xs">
+        <span className={total === 100 ? 'text-ink-soft' : 'font-bold text-alert'}>
+          合計 {total}%{total !== 100 && `（あと ${total < 100 ? `${100 - total}% 増やして` : `${total - 100}% 減らして`}ください）`}
+        </span>
+        {!sameShare(value, DEFAULT_SLOT_SHARE_PERCENT) && (
+          <button type="button" className="shrink-0 rounded-full bg-cream px-3 py-1" onClick={() => onChange(DEFAULT_SLOT_SHARE_PERCENT)}>
+            はじめの配分に戻す
+          </button>
+        )}
+      </div>
+    </div>
+  )
+}
+
 const numOrUndef = (s: string) => (s.trim() === '' || Number.isNaN(Number(s)) ? undefined : Number(s))
 
-export function ProfileDialog({ profile, onSave, onClose }: { profile: Profile; onSave: (p: Profile) => void; onClose: () => void }) {
+export function ProfileDialog({
+  profile,
+  onSave,
+  onClose,
+  focus,
+}: {
+  profile: Profile
+  onSave: (p: Profile) => void
+  onClose: () => void
+  // 'slotShare' のときは配分の欄までスクロールして開く
+  focus?: 'slotShare'
+}) {
   const [sex, setSex] = useState<Sex>(profile.sex)
   const [age, setAge] = useState(String(profile.age))
   const [height, setHeight] = useState(profile.heightCm ? String(profile.heightCm) : '')
@@ -43,9 +95,15 @@ export function ProfileDialog({ profile, onSave, onClose }: { profile: Profile; 
   const [activity, setActivity] = useState<Activity>(profile.activity)
   const [goal, setGoal] = useState<Goal>(profile.goal ?? 'keep')
   const [menstruation, setMenstruation] = useState<boolean | undefined>(profile.menstruation)
+  const [slotShare, setSlotShare] = useState<Record<Slot, number>>(profile.slotShare ?? DEFAULT_SLOT_SHARE_PERCENT)
+  const slotShareRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (focus === 'slotShare') slotShareRef.current?.scrollIntoView({ block: 'center' })
+  }, [focus])
 
   const ageNum = numOrUndef(age)
-  const valid = ageNum !== undefined && ageNum >= 1 && ageNum <= 120
+  const shareOk = SLOTS.reduce((a, s) => a + slotShare[s], 0) === 100
+  const valid = ageNum !== undefined && ageNum >= 1 && ageNum <= 120 && shareOk
   const draft: Profile | null = valid
     ? {
         sex,
@@ -55,12 +113,16 @@ export function ProfileDialog({ profile, onSave, onClose }: { profile: Profile; 
         activity,
         goal,
         ...(sex === 'female' && menstruation !== undefined ? { menstruation } : {}),
+        // はじめの配分のままなら保存しない（初期値が変わったときに追従できるように）
+        ...(sameShare(slotShare, DEFAULT_SLOT_SHARE_PERCENT) ? {} : { slotShare }),
       }
     : null
   // 鉄の推奨量は、女性の64歳までだけ月経の有無で変わる
   const askMenstruation = sex === 'female' && ageNum !== undefined && ageNum <= 64
   const menstruationValue = menstruation ?? Math.max(ageNum ?? 0, MIN_SUPPORTED_AGE) < 50
   const preview = draft ? computeTargets(draft) : null
+  const ageOk = ageNum !== undefined && ageNum >= 1 && ageNum <= 120
+  const dayKcal = ageOk ? computeTargets({ sex, age: ageNum, weightKg: numOrUndef(weight), activity, goal }).energyKcal : null
 
   const field = 'min-h-11 w-full rounded-2xl border-2 border-white bg-white px-4 text-base outline-none focus:border-coral'
 
@@ -118,6 +180,11 @@ export function ProfileDialog({ profile, onSave, onClose }: { profile: Profile; 
           <div>
             <p className="mb-1 text-sm">体重の目標</p>
             <Choice value={goal} onChange={setGoal} options={GOAL} />
+          </div>
+          <div ref={slotShareRef}>
+            <p className="mb-1 text-sm">朝・昼・晩・その他の配分</p>
+            <SlotShareEditor value={slotShare} onChange={setSlotShare} dayKcal={dayKcal} />
+            <p className="mt-1 text-[11px] text-ink-soft">1日の目安をこの割合で分けて、区分ごとのカロリーや栄養素の目安にします</p>
           </div>
           {preview && (
             <p className="rounded-2xl bg-white px-4 py-3 text-sm">

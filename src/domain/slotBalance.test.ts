@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { emptyTotals } from './nutrition'
-import { SLOT_ENERGY_SHARE, slotBalance } from './slotBalance'
+import { nutrientChecks } from './nutrientChecks'
+import { SLOT_ENERGY_SHARE, slotBalance, slotShareFromPercent } from './slotBalance'
 import { computeTargets, DEFAULT_PROFILE } from './targets'
 
 const targets = computeTargets(DEFAULT_PROFILE)
@@ -45,5 +46,32 @@ describe('区分ごとのバランス', () => {
 
   it('その他（間食）は少なくても「少なめ」にしない', () => {
     expect(slotBalance(totals(50, 0, 0, 0), 'other', targets).energy).toBe('ok')
+  })
+})
+
+describe('朝・昼・晩・その他の配分を自分で決める', () => {
+  const custom = computeTargets({ ...DEFAULT_PROFILE, slotShare: { breakfast: 20, lunch: 30, dinner: 40, other: 10 } })
+
+  it('未設定なら 25:35:30:10', () => {
+    expect(targets.slotShare).toEqual(SLOT_ENERGY_SHARE)
+  })
+
+  it('設定した配分で区分の目安カロリーが変わる', () => {
+    expect(slotBalance(totals(0, 0, 0, 0), 'dinner', custom).targetKcal).toBe(Math.round((custom.energyKcal * 0.4) / 10) * 10)
+    expect(slotBalance(totals(0, 0, 0, 0), 'breakfast', custom).targetKcal).toBe(Math.round((custom.energyKcal * 0.2) / 10) * 10)
+  })
+
+  it('区分の栄養素の目安と判定も設定した配分に従う', () => {
+    const dinner = nutrientChecks(emptyTotals(), custom, 'dinner').find((c) => c.key === 'vitaminC')!
+    expect(dinner.goal).toBeCloseTo(100 * 0.4)
+    const salt = nutrientChecks(emptyTotals(), custom, 'breakfast').find((c) => c.key === 'salt')!
+    expect(salt.goal).toBeCloseTo(custom.saltMax * 0.2)
+  })
+
+  it('合計が100でなくても割合に直し、不正な値は初期値に戻す', () => {
+    expect(slotShareFromPercent({ breakfast: 1, lunch: 1, dinner: 2, other: 0 })).toEqual({ breakfast: 0.25, lunch: 0.25, dinner: 0.5, other: 0 })
+    expect(slotShareFromPercent({ breakfast: 0, lunch: 0, dinner: 0, other: 0 })).toEqual(SLOT_ENERGY_SHARE)
+    expect(slotShareFromPercent({ breakfast: -5, lunch: 50, dinner: 50, other: 5 })).toEqual(SLOT_ENERGY_SHARE)
+    expect(slotShareFromPercent(undefined)).toEqual(SLOT_ENERGY_SHARE)
   })
 })

@@ -1,4 +1,3 @@
-import { SLOT_ENERGY_SHARE } from './slotBalance'
 import type { CheckedNutrient, NutrientTarget, Targets, UpperScope } from './targets'
 import type { NutrientTotals, Slot } from './types'
 
@@ -80,7 +79,7 @@ export function nutrientChecks(totals: NutrientTotals, targets: Targets, slot?: 
   return CHECKED_NUTRIENTS.map((key) => {
     const target = targets.nutrients[key]
     const daily = key === 'alcohol' || (target.kind === 'max' && target.basis === '耐容上限量')
-    const share = slot && !daily ? SLOT_ENERGY_SHARE[slot] : 1
+    const share = slot && !daily ? targets.slotShare[slot] : 1
     const goal = target.kind === 'none' ? null : target.value * share
     const scope = upperScopeOf(target)
     const upper = target.kind === 'min' && target.upper !== undefined && (scope === 'all' || supplement) ? target.upper : null
