@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import type { Alert } from './alerts'
-import { dangoMoods, slotMoods } from './mascotMood'
-import { emptyTotals, type MenuTotals } from './nutrition'
+import { dangoMoods, dangoScale, slotMoods } from './mascotMood'
+import { pfcGaps } from './pfcGap'
+import { emptyTotals } from './nutrition'
 import { slotBalance } from './slotBalance'
 import { computeTargets, DEFAULT_PROFILE } from './targets'
 
@@ -19,18 +20,6 @@ function totals(kcal: number, p = 16.5, f = 25, c = 58.5) {
   return t
 }
 
-function menu(day: ReturnType<typeof totals>): MenuTotals {
-  return {
-    day,
-    bySlot: {
-      breakfast: emptyTotals(),
-      lunch: day,
-      dinner: emptyTotals(),
-      other: emptyTotals(),
-    },
-  } as MenuTotals
-}
-
 const saltOver: Alert = {
   key: 'salt',
   level: 'over',
@@ -43,29 +32,33 @@ const saltOver: Alert = {
 
 describe('PFCだんごモグの表情', () => {
   it('何も選んでいないときは全部ふつう', () => {
-    expect(dangoMoods(menu(emptyTotals()), targets, [], 'okay')).toEqual({
-      p: 'okay',
-      f: 'okay',
-      c: 'okay',
-    })
+    expect(dangoMoods(pfcGaps(emptyTotals().values, targets))).toEqual({ p: 'okay', f: 'okay', c: 'okay' })
   })
 
-  it('バランスが良ければ全部ごきげん', () => {
-    expect(dangoMoods(menu(totals(2000)), targets, [], 'happy')).toEqual({
-      p: 'happy',
-      f: 'happy',
-      c: 'happy',
-    })
+  it('目標範囲内なら全部ごきげん', () => {
+    expect(dangoMoods(pfcGaps(totals(2000).values, targets))).toEqual({ p: 'happy', f: 'happy', c: 'happy' })
   })
 
-  it('脂質が多いと脂質のだんごだけ困り顔', () => {
-    const m = dangoMoods(menu(totals(2000, 15, 45, 40)), targets, [], 'worried')
-    expect(m.f).toBe('worried')
-    expect(m.p).toBe('okay')
+  it('多いだんごはあせり顔、少ないだんごは困り顔', () => {
+    expect(dangoMoods(pfcGaps(totals(2000, 15, 45, 40).values, targets))).toEqual({ p: 'happy', f: 'alert', c: 'worried' })
   })
 
-  it('上限こえのアラートがあると範囲内のだんごはあせり顔', () => {
-    expect(dangoMoods(menu(totals(2000)), targets, [saltOver], 'okay')).toEqual({ p: 'alert', f: 'alert', c: 'alert' })
+  it('ほかの栄養素のアラートには反応しない', () => {
+    // 引数にアラートを取らないこと自体が仕様。食塩が多くてもPFCが範囲内ならごきげん
+    expect(dangoMoods(pfcGaps(totals(2000).values, targets)).p).toBe('happy')
+  })
+})
+
+describe('だんごの大きさ', () => {
+  it('目標のまんなかで1、多いほど大きく、少ないほど小さい（上下限あり）', () => {
+    const gaps = pfcGaps(totals(2000, 15, 45, 40).values, targets)!
+    const [p, f, c] = gaps.map(dangoScale)
+    expect(f).toBeGreaterThan(1)
+    expect(c).toBeLessThan(1)
+    expect(p).toBeGreaterThan(0.85)
+    expect(p).toBeLessThan(1.15)
+    expect(dangoScale({ ...gaps[1], ratio: 500 })).toBe(1.45)
+    expect(dangoScale({ ...gaps[1], ratio: 0 })).toBe(0.55)
   })
 })
 
