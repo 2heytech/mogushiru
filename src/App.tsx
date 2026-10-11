@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { Customizer } from './components/Customizer'
+import { CustomizeIcon } from './components/CustomizeIcon'
+import { CustomizeView } from './components/CustomizeView'
 import { ItemEditor } from './components/ItemEditor'
-import { PortionEditor } from './components/PortionEditor'
 import { ProductForm } from './components/ProductForm'
 import { SupplementForm } from './components/SupplementForm'
 import { isSupplement } from './domain/supplement'
@@ -20,7 +21,7 @@ import { computeTargets } from './domain/targets'
 import type { Ingredient, Slot } from './domain/types'
 import { MY_PRODUCT_PREFIX, useAppStore } from './store/useAppStore'
 import { BowlMogu } from './components/Mascot'
-import { UiIcon, type UiIconName } from './components/UiIcon'
+import { UiIcon } from './components/UiIcon'
 
 const sameIngredients = (a: Ingredient[], b: Ingredient[]) =>
   a.length === b.length && a.every((x, i) => x.foodId === b[i].foodId && x.grams === b[i].grams)
@@ -29,17 +30,20 @@ const sameIngredients = (a: Ingredient[], b: Ingredient[]) =>
 const NAV_BUTTON =
   'flex min-h-11 min-w-14 flex-col items-center justify-center whitespace-nowrap rounded-2xl bg-white px-2 text-[11px] leading-tight shadow-sm sm:flex-row sm:gap-1 sm:rounded-full sm:px-4 sm:text-sm'
 
-type View = 'menu' | 'ranking'
+type View = 'menu' | 'ranking' | 'customize'
 
-// アプリの2つの機能。いつも上に並べて、いまどちらを見ているかと、もう一方があることが分かるようにする
-const FEATURES: { view: View; icon: UiIconName; title: string; lead: string }[] = [
-  { view: 'menu', icon: 'menu', title: '1日の栄養バランスを確認', lead: '朝・昼・晩の料理を選んで確かめる' },
-  { view: 'ranking', icon: 'ranking', title: '食品の栄養ランキング', lead: '栄養素の多い食品をさがす' },
+const ICON_CLASS = 'h-7 w-7 shrink-0 sm:h-9 sm:w-9'
+
+// アプリの機能。いつも上に並べて、いまどれを見ているかと、ほかに何があるかが分かるようにする
+const FEATURES: { view: View; icon: ReactNode; title: string; lead: string }[] = [
+  { view: 'menu', icon: <UiIcon name="menu" className={ICON_CLASS} />, title: '1日の栄養バランスを確認', lead: '朝・昼・晩の料理を選んで確かめる' },
+  { view: 'ranking', icon: <UiIcon name="ranking" className={ICON_CLASS} />, title: '食品の栄養ランキング', lead: '栄養素の多い食品をさがす' },
+  { view: 'customize', icon: <CustomizeIcon className={ICON_CLASS} />, title: '料理をカスタマイズ', lead: '人前や材料の量を変えて保存' },
 ]
 
 function FeatureTabs({ view, onChange }: { view: View; onChange: (v: View) => void }) {
   return (
-    <nav aria-label="機能の切り替え" className="mb-4 grid grid-cols-2 gap-2">
+    <nav aria-label="機能の切り替え" className="mb-4 grid grid-cols-3 gap-2">
       {FEATURES.map((f) => {
         const active = f.view === view
         return (
@@ -48,15 +52,18 @@ function FeatureTabs({ view, onChange }: { view: View; onChange: (v: View) => vo
             type="button"
             aria-current={active ? 'page' : undefined}
             onClick={() => onChange(f.view)}
-            className={`min-h-16 rounded-2xl border-2 px-2.5 py-2 text-left transition sm:px-4 ${
+            className={`min-h-16 rounded-2xl border-2 px-1.5 py-2 text-center transition sm:px-4 sm:text-left ${
               active ? 'border-coral bg-white shadow-sm' : 'border-transparent bg-white/60 text-ink-soft hover:bg-white'
             }`}
           >
-            <span className={`flex items-center gap-1 text-xs font-bold sm:whitespace-nowrap leading-snug sm:gap-1.5 sm:text-base ${active ? 'text-coral-dark' : 'text-ink'}`}>
-              <UiIcon name={f.icon} className="h-7 w-7 shrink-0 sm:h-9 sm:w-9" />
+            {/* スマホは3つ並ぶので、アイコンの下に名前だけ。広い画面では横並びに説明も添える */}
+            <span
+              className={`flex flex-col items-center gap-1 text-[11px] leading-snug font-bold sm:flex-row sm:gap-1.5 sm:text-sm lg:text-base lg:whitespace-nowrap ${active ? 'text-coral-dark' : 'text-ink'}`}
+            >
+              {f.icon}
               {f.title}
             </span>
-            <span className="mt-0.5 block text-[11px] leading-snug sm:text-xs">{f.lead}</span>
+            <span className="mt-0.5 hidden text-xs leading-snug sm:block">{f.lead}</span>
           </button>
         )
       })}
@@ -64,7 +71,7 @@ function FeatureTabs({ view, onChange }: { view: View; onChange: (v: View) => vo
   )
 }
 
-const viewFromHash = (): View => (window.location.hash === '#ranking' ? 'ranking' : 'menu')
+const viewFromHash = (): View => (window.location.hash === '#ranking' ? 'ranking' : window.location.hash === '#customize' ? 'customize' : 'menu')
 
 // 画面の切り替えは URL の # で持つ（ブラウザの戻るで献立に戻れるように）
 function useView(): [View, (v: View) => void] {
@@ -75,7 +82,7 @@ function useView(): [View, (v: View) => void] {
     return () => window.removeEventListener('hashchange', onHash)
   }, [])
   const go = (v: View) => {
-    window.location.hash = v === 'ranking' ? 'ranking' : ''
+    window.location.hash = v === 'menu' ? '' : v
     setView(v)
     window.scrollTo({ top: 0 })
   }
@@ -99,6 +106,7 @@ export default function App() {
     replaceWithMyDish,
     saveMyDish,
     updateMyDish,
+    deleteMyDish,
     myProducts,
     favoriteProductIds,
     saveMyProduct,
@@ -126,7 +134,6 @@ export default function App() {
     const item = menu[slot].find((i) => i.uid === uid)
     const close = () => setEditing(null)
     if (!item) return null
-    const portion = <PortionEditor key={item.uid} item={item} catalog={catalog} onPortion={(p) => updatePortion(slot, uid, p)} />
     if (item.kind === 'dish') {
       const dish = catalog.dishes.get(item.refId)
       if (!dish) return null
@@ -135,17 +142,18 @@ export default function App() {
           title={dish.name}
           original={dish.ingredients}
           initial={item.customIngredients ?? dish.ingredients}
+          initialPortion={item.portion}
           source={dish.source}
           foods={catalog.foods}
           saveLabel="お気に入りに保存"
-          extra={portion}
-          onApply={(ingredients) => {
+          onApply={(ingredients, portion) => {
             customizeItem(slot, uid, sameIngredients(ingredients, dish.ingredients) ? null : ingredients)
+            updatePortion(slot, uid, portion)
             close()
           }}
-          onSave={(name, ingredients) => {
-            const my = saveMyDish({ baseDishId: dish.id, name, ingredients })
-            replaceWithMyDish(slot, uid, my.id)
+          onSave={(name, ingredients, portion) => {
+            const my = saveMyDish({ baseDishId: dish.id, name, ingredients, portion })
+            replaceWithMyDish(slot, uid, my.id, portion)
             close()
           }}
           onClose={close}
@@ -159,14 +167,23 @@ export default function App() {
       return (
         <Customizer
           title={my.name}
+          baseName={base?.name ?? my.name}
+          initialName={my.name}
           original={base?.ingredients ?? my.ingredients}
-          initial={my.ingredients}
+          initial={item.customIngredients ?? my.ingredients}
+          initialPortion={item.portion}
           source={base?.source}
           foods={catalog.foods}
           saveLabel="お気に入りを上書き保存"
-          extra={portion}
-          onSave={(name, ingredients) => {
-            updateMyDish(my.id, { name, ingredients })
+          onApply={(ingredients, portion) => {
+            customizeItem(slot, uid, sameIngredients(ingredients, my.ingredients) ? null : ingredients)
+            updatePortion(slot, uid, portion)
+            close()
+          }}
+          onSave={(name, ingredients, portion) => {
+            updateMyDish(my.id, { name, ingredients, portion })
+            customizeItem(slot, uid, null)
+            updatePortion(slot, uid, portion)
             close()
           }}
           onClose={close}
@@ -252,7 +269,18 @@ export default function App() {
         <p className="mb-4 rounded-xl bg-caution/20 px-4 py-2 text-sm">データ準備中：{catalogState.missing.join('・')}のデータはまだ読み込めません</p>
       )}
 
-      {catalog && view === 'ranking' ? (
+      {catalog && view === 'customize' ? (
+        <main>
+          <CustomizeView
+            catalog={catalog}
+            myDishes={myDishes}
+            showAlcohol={profile.age >= 20}
+            onSaveNew={saveMyDish}
+            onUpdate={updateMyDish}
+            onDelete={deleteMyDish}
+          />
+        </main>
+      ) : catalog && view === 'ranking' ? (
         <main>
           <RankingView catalog={catalog} targets={targets} prices={prices} />
         </main>

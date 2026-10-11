@@ -33,13 +33,13 @@ type State = {
   updatePortion: (slot: Slot, uid: string, portion: number) => void
   // 献立の料理をアレンジした材料で置き換える（null で元のレシピに戻す）
   customizeItem: (slot: Slot, uid: string, ingredients: Ingredient[] | null) => void
-  // 献立の料理をお気に入りの料理に置き換える
-  replaceWithMyDish: (slot: Slot, uid: string, myDishId: string) => void
+  // 献立の料理をお気に入りの料理に置き換える（portion を渡せば人前も変える）
+  replaceWithMyDish: (slot: Slot, uid: string, myDishId: string, portion?: number) => void
   removeItem: (slot: Slot, uid: string) => void
   moveItem: (from: Slot, to: Slot, uid: string) => void
   clearMenu: () => void
-  saveMyDish: (d: Omit<MyDish, 'id' | 'createdAt'>) => MyDish
-  updateMyDish: (id: string, patch: Partial<Pick<MyDish, 'name' | 'ingredients'>>) => void
+  saveMyDish: (d: Omit<MyDish, 'id' | 'createdAt' | 'updatedAt'>) => MyDish
+  updateMyDish: (id: string, patch: Partial<Pick<MyDish, 'name' | 'ingredients' | 'portion'>>) => void
   deleteMyDish: (id: string) => void
   saveMyProduct: (p: MyProductInput) => Product
   updateMyProduct: (jan: string, p: MyProductInput) => void
@@ -50,6 +50,10 @@ type State = {
   loadMenu: (id: string, prepare?: (menu: DayMenu) => DayMenu) => void
   deleteMenu: (id: string) => void
 }
+
+// カスタマイズした料理を、最後に保存したものから順に
+export const recentMyDishes = (dishes: MyDish[]): MyDish[] =>
+  [...dishes].sort((a, b) => (b.updatedAt ?? b.createdAt).localeCompare(a.updatedAt ?? a.createdAt))
 
 const uid = () => (globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`)
 
@@ -102,11 +106,11 @@ export const useAppStore = create<State>()(
             }),
           },
         })),
-      replaceWithMyDish: (slot, id, myDishId) =>
+      replaceWithMyDish: (slot, id, myDishId, portion) =>
         set((s) => ({
           menu: {
             ...s.menu,
-            [slot]: s.menu[slot].map((i) => (i.uid === id ? { uid: i.uid, kind: 'myDish', refId: myDishId, portion: i.portion } : i)),
+            [slot]: s.menu[slot].map((i) => (i.uid === id ? { uid: i.uid, kind: 'myDish', refId: myDishId, portion: portion ?? i.portion } : i)),
           },
         })),
       removeItem: (slot, id) => set((s) => ({ menu: { ...s.menu, [slot]: s.menu[slot].filter((i) => i.uid !== id) } })),
@@ -118,11 +122,13 @@ export const useAppStore = create<State>()(
         }),
       clearMenu: () => set({ menu: emptyMenu() }),
       saveMyDish: (d) => {
-        const dish: MyDish = { ...d, id: uid(), createdAt: new Date().toISOString() }
+        const now = new Date().toISOString()
+        const dish: MyDish = { ...d, id: uid(), createdAt: now, updatedAt: now }
         set((s) => ({ myDishes: [...s.myDishes, dish] }))
         return dish
       },
-      updateMyDish: (id, patch) => set((s) => ({ myDishes: s.myDishes.map((d) => (d.id === id ? { ...d, ...patch } : d)) })),
+      updateMyDish: (id, patch) =>
+        set((s) => ({ myDishes: s.myDishes.map((d) => (d.id === id ? { ...d, ...patch, updatedAt: new Date().toISOString() } : d)) })),
       deleteMyDish: (id) =>
         set((s) => ({
           myDishes: s.myDishes.filter((d) => d.id !== id),
