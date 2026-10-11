@@ -2,6 +2,8 @@ import {
   ALCOHOL_RISK,
   BMR_PER_KG,
   CALCIUM_RDA,
+  CAFFEINE_MAX_ADULT,
+  CAFFEINE_MAX_PER_KG_UNDER18,
   CALCIUM_UL,
   CARB_RATIO,
   FAT_RATIO,
@@ -50,7 +52,7 @@ export type NutrientTarget =
   | { kind: 'min'; value: number; basis: '推奨量' | '目安量' | '目標量'; upper?: number; upperScope?: UpperScope }
   // これより少なくしたい。overAtLimit は「〜未満」「〜以上でリスク」のように、ちょうどでも超過とするもの
   // 耐容上限量だけがある（ビタミンAのうちレチノール）ものも basis: '耐容上限量' でここに入る
-  | { kind: 'max'; value: number; basis: '目標量' | '飲酒ガイドライン' | '耐容上限量'; overAtLimit: boolean }
+  | { kind: 'max'; value: number; basis: '目標量' | '飲酒ガイドライン' | '耐容上限量' | '海外の目安'; overAtLimit: boolean }
   // 食事摂取基準に指標がない
   | { kind: 'none' }
 
@@ -92,6 +94,12 @@ const toGrams = (kcal: number, r: Range, kcalPerG: number): Range => ({
   hi: (kcal * r.hi) / 100 / kcalPerG,
 })
 
+// カフェイン：18歳未満で体重が分かれば体重1kgあたり 2.5 mg、それ以外は 400 mg
+function caffeineMax(profile: Profile): number {
+  if (profile.age < 18 && profile.weightKg) return Math.round(CAFFEINE_MAX_PER_KG_UNDER18 * profile.weightKg)
+  return CAFFEINE_MAX_ADULT
+}
+
 // 女性の鉄：月経の有無が未設定なら50歳未満は「あり」とみなす。65歳以上は原典に「月経あり」の区分がない
 function ironRda(profile: Profile, age: number): number {
   const row = pick(IRON_RDA, age)
@@ -106,6 +114,7 @@ function nutrientTargets(profile: Profile, age: number, kcal: number): Record<Ch
     fiber: { kind: 'min', value: pick(FIBER_MIN, age)[sex], basis: '目標量' },
     salt: { kind: 'max', value: SALT_MAX[sex], basis: '目標量', overAtLimit: true },
     alcohol: { kind: 'max', value: ALCOHOL_RISK[sex], basis: '飲酒ガイドライン', overAtLimit: true },
+    caffeine: { kind: 'max', value: caffeineMax(profile), basis: '海外の目安', overAtLimit: false },
     satFat: { kind: 'max', value: (kcal * SAT_FAT_RATIO_MAX) / 100 / 9, basis: '目標量', overAtLimit: false },
     monoUnsatFat: { kind: 'none' },
     polyUnsatFat: { kind: 'none' },

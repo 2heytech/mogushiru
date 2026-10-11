@@ -1,4 +1,5 @@
 import {
+  DAILY_ONLY,
   INFO_NUTRIENTS,
   LIMIT_NUTRIENTS,
   WANT_NUTRIENTS,
@@ -36,7 +37,7 @@ const CHIP: Record<CheckStatus, string> = {
 }
 
 // 「〜未満」「〜以下」：食塩は目標量が「未満」、アルコールは「この量以上でリスク」、飽和脂肪酸は「以下」
-const LIMIT_WORD: Partial<Record<CheckedNutrient, string>> = { salt: '未満', alcohol: '未満', satFat: '以下' }
+const LIMIT_WORD: Partial<Record<CheckedNutrient, string>> = { salt: '未満', alcohol: '未満', satFat: '以下', caffeine: 'まで' }
 
 function statusText(c: NutrientCheck): string {
   const unit = NUTRIENT_INFO[c.key].unit
@@ -57,7 +58,7 @@ function goalText(c: NutrientCheck, perSlot: boolean): string {
   if (c.target.kind === 'none' || c.goal === null) return ''
   const value = `${fmt(c.key, c.goal)}${unit}`
   if (c.target.kind === 'max' && c.target.basis === '耐容上限量') return `上限 ${value}`
-  if (c.target.kind === 'max') return `${perSlot && c.key !== 'alcohol' ? '目安' : c.target.basis === '飲酒ガイドライン' ? '1日' : c.target.basis} ${value}${LIMIT_WORD[c.key] ?? ''}`
+  if (c.target.kind === 'max') return `${DAILY_ONLY.includes(c.key) ? '1日' : perSlot ? '目安' : c.target.basis} ${value}${LIMIT_WORD[c.key] ?? ''}`
   return `${perSlot ? '目安' : c.target.basis} ${value}`
 }
 
@@ -123,7 +124,7 @@ function Group({
   checks: NutrientCheck[]
   perSlot: boolean
 }) {
-  const rows = keys.map((k) => checks.find((c) => c.key === k)!).filter((c) => !(perSlot && c.key === 'alcohol' && c.amount < 0.5))
+  const rows = keys.map((k) => checks.find((c) => c.key === k)!).filter((c) => !(perSlot && ((c.key === 'alcohol' && c.amount < 0.5) || (c.key === 'caffeine' && c.amount < 1))))
   const st = GROUP_STYLE[kind]
   return (
     <section className={`rounded-xl px-2.5 pt-2 pb-2.5 ring-1 ${st.box}`}>
@@ -206,11 +207,12 @@ export function NutrientChecks({
           {perSlot ? (
             <p>
               区分の目安は、1日の目安を{SLOTS.map((s) => `${SLOT_LABEL[s]}${Math.round((slotShare ?? SLOT_ENERGY_SHARE)[s] * 100)}%`).join('・')}
-              で分けた値です（プロフィールで変えられます。アルコールは1日の値）。
+              で分けた値です（プロフィールで変えられます。アルコール・カフェインは1日の値）。
             </p>
           ) : (
             <p>目安は「日本人の食事摂取基準（2025年版）」の推奨量・目安量・目標量、アルコールは「健康に配慮した飲酒に関するガイドライン」の値です。</p>
           )}
+          <p>カフェインは日本の基準がないため、欧州食品安全機関とカナダ保健省の「健康な大人は1日400mgまで」を目安にしています（農林水産省の資料で紹介されている値）。妊娠中・授乳中は1日200mgまでが目安です。</p>
           <p>一価・多価不飽和脂肪酸は食事摂取基準に値がないため、量だけを表示しています。</p>
           <p>カルシウム・亜鉛・ビタミンD・ビタミンE・ビタミンB6は、耐容上限量（とりすぎで健康をそこなうおそれがある量）をこえると「上限こえ」になります。ビタミンAの耐容上限量はβ-カロテン由来の分を含まない値のため、レチノールの量と比べます。</p>
           <p>マグネシウム・ナイアシン・葉酸の耐容上限量は、サプリメントなど通常の食品以外からとる分だけにかかる値のため、サプリの分だけで比べます。食事からとる分には上限がありません。</p>

@@ -2,7 +2,7 @@ import type { CheckedNutrient, NutrientTarget, Targets, UpperScope } from './tar
 import type { NutrientTotals, Slot } from './types'
 
 // 表示する順番。上限に気をつけたいもの → しっかりとりたいもの → 基準がないもの
-export const LIMIT_NUTRIENTS = ['salt', 'satFat', 'alcohol', 'retinol'] as const satisfies CheckedNutrient[]
+export const LIMIT_NUTRIENTS = ['salt', 'satFat', 'alcohol', 'caffeine', 'retinol'] as const satisfies CheckedNutrient[]
 export const WANT_NUTRIENTS = [
   'fiber',
   'potassium',
@@ -23,6 +23,8 @@ export const WANT_NUTRIENTS = [
   'n6Fat',
 ] as const satisfies CheckedNutrient[]
 export const INFO_NUTRIENTS = ['monoUnsatFat', 'polyUnsatFat'] as const satisfies CheckedNutrient[]
+// 区分に分けず、区分のカードでも1日の値と比べるもの
+export const DAILY_ONLY: CheckedNutrient[] = ['alcohol', 'caffeine']
 export const CHECKED_NUTRIENTS: CheckedNutrient[] = [...LIMIT_NUTRIENTS, ...WANT_NUTRIENTS, ...INFO_NUTRIENTS]
 
 // ok: 目安を満たす・上限より十分少ない／near: とりたい量の8割以上、または上限の8割こえ／
@@ -70,7 +72,7 @@ export function judge(
 }
 
 // slot を渡すと区分の目安（1日の目安 × 区分の割合）と比べる。
-// アルコールは1回でまとめて飲むことが多く、区分に分ける意味が薄いので1日の値のまま比べる。
+// アルコール・カフェインは1日の量の目安なので、区分に分けず1日の値のまま比べる。
 // 耐容上限量も1日の値のまま比べる（1食でこえれば1日でもこえる）。
 // その他（間食・飲み物）は少なくても問題にしないので、とりたい栄養素の不足は判定しない。
 // supplement はサプリの分だけの合計。サプリ分だけにかかる耐容上限量（マグネシウムなど）はこれと比べ、
@@ -78,7 +80,7 @@ export function judge(
 export function nutrientChecks(totals: NutrientTotals, targets: Targets, slot?: Slot, supplement?: NutrientTotals): NutrientCheck[] {
   return CHECKED_NUTRIENTS.map((key) => {
     const target = targets.nutrients[key]
-    const daily = key === 'alcohol' || (target.kind === 'max' && target.basis === '耐容上限量')
+    const daily = DAILY_ONLY.includes(key) || (target.kind === 'max' && target.basis === '耐容上限量')
     const share = slot && !daily ? targets.slotShare[slot] : 1
     const goal = target.kind === 'none' ? null : target.value * share
     const scope = upperScopeOf(target)

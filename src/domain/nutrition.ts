@@ -19,11 +19,12 @@ export function emptyTotals(): NutrientTotals {
   return { values, missing: new Set() }
 }
 
-// nutrients × factor を totals に足す。null は 0 として足さず、欠損として記録する
+// nutrients × factor を totals に足す。null は 0 として足さず、欠損として記録する。
+// ブラウザに保存した市販品・サプリは、登録後に増えた栄養素のキーを持たない（undefined）ので、これも欠損にする
 export function addScaled(totals: NutrientTotals, nutrients: Nutrients, factor: number): NutrientTotals {
   for (const k of NUTRIENT_KEYS) {
     const v = nutrients[k]
-    if (v === null) totals.missing.add(k)
+    if (v === null || v === undefined) totals.missing.add(k)
     else totals.values[k] += v * factor
   }
   return totals
@@ -82,7 +83,10 @@ export function itemTotals(item: MenuItem, catalog: Catalog): NutrientTotals {
     case 'supplement': {
       const p = catalog.products.get(item.refId)
       if (!p) throw new Error(`未知のサプリ: ${item.refId}`)
-      return addScaled(emptyTotals(), p.nutrients, item.portion)
+      // サプリはラベルに載っている成分がすべてなので、載っていない成分（登録後に増えた栄養素を含む）は 0
+      const t = addScaled(emptyTotals(), p.nutrients, item.portion)
+      t.missing.clear()
+      return t
     }
     case 'food': {
       const f = catalog.foods.get(item.refId)

@@ -87,6 +87,7 @@ export const NUTRIENT_INFO: Record<CheckedNutrient, { label: string; unit: strin
   vitaminB6: { label: 'ビタミンB6', unit: 'mg', digits: 2 },
   folate: { label: '葉酸', unit: 'µg', digits: 0 },
   vitaminC: { label: 'ビタミンC', unit: 'mg', digits: 0 },
+  caffeine: { label: 'カフェイン', unit: 'mg', digits: 0 },
   n3Fat: { label: 'n-3系脂肪酸', unit: 'g', digits: 1 },
   n6Fat: { label: 'n-6系脂肪酸', unit: 'g', digits: 1 },
   monoUnsatFat: { label: '一価不飽和脂肪酸', unit: 'g', digits: 1 },

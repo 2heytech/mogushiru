@@ -74,6 +74,7 @@ export type ColumnMap = {
   name: number
   group: number
   nutrients: Partial<Record<NutrientKey, number>>
+  remarks?: number // 備考の列（カフェインはここに載る）
 }
 
 // rows: シートを二次元配列にしたもの。anchor は成分識別子の行を見つける目印（本表は ENERC_KCAL、脂肪酸成分表は FASAT）
@@ -103,8 +104,25 @@ export function findColumns(
     }
     throw new Error(`見出し「${label}」が見つかりません`)
   }
-  return { headerRow, foodId: findLabel('食品番号'), name: findLabel('食品名'), group: findLabel('食品群'), nutrients }
+  let remarks: number | undefined
+  for (let r = 0; r <= headerRow && remarks === undefined; r++) {
+    const idx = rows[r].findIndex((c) => cellText(c).replace(/\s/g, '') === '備考')
+    if (idx >= 0) remarks = idx
+  }
+  return { headerRow, foodId: findLabel('食品番号'), name: findLabel('食品名'), group: findLabel('食品群'), nutrients, remarks }
 }
+
+// カフェインは成分値の列がなく、備考に「カフェイン： 0.06 g」の形で載る（可食部100g当たりの g）。mg に直して返す。
+// 載っていなければ null
+export function caffeineFromRemarks(remarks: string): ParsedCell | null {
+  const m = remarks.match(/カフェイン[：:]\s*(Tr|[\d.]+)\s*(g)?/)
+  if (!m) return null
+  if (m[1] === 'Tr') return { value: 0, trace: true, estimated: false, raw: m[0] }
+  return { value: Math.round(Number(m[1]) * 1000 * 10) / 10, trace: false, estimated: false, raw: m[0] }
+}
+
+// 備考にカフェインの記載がないが、カフェインを含むはずの食品（コーラ・コーヒー飲料など）。0 でなく未収録にする
+export const CAFFEINE_UNKNOWN_IDS = ['16053', '16047', '13007', '04054', '15180']
 
 export type MextFood = {
   id: string
@@ -138,8 +156,16 @@ export function rowToFood(row: unknown[], cols: ColumnMap): MextFood | null {
     if (cell.trace) traceFlags.push(key)
     if (cell.estimated) estimatedFlags.push(key)
   }
+  const id = idRaw.padStart(5, '0')
+  if (cols.remarks !== undefined) {
+    const caffeine = caffeineFromRemarks(cellText(row[cols.remarks]))
+    // 記載のない食品はほとんどがカフェインを含まないので 0。含むはずの食品だけ未収録にする
+    per100g.caffeine = caffeine ? caffeine.value : CAFFEINE_UNKNOWN_IDS.includes(id) ? null : 0
+    if (caffeine) raw.caffeine = caffeine.raw
+    if (caffeine?.trace) traceFlags.push('caffeine')
+  }
   return {
-    id: idRaw.padStart(5, '0'),
+    id,
     name: cellText(row[cols.name]).trim(),
     group: cellText(row[cols.group]).trim(),
     per100g,

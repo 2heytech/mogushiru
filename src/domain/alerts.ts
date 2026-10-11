@@ -73,8 +73,15 @@ function upperLimitAlerts(totals: MenuTotals, targets: Targets): (Alert | null)[
 const UNIT: Record<CheckedNutrient, string> = {
   salt: 'g', satFat: 'g', alcohol: 'g', fiber: 'g', potassium: 'mg', calcium: 'mg', iron: 'mg',
   magnesium: 'mg', zinc: 'mg', vitaminA: 'µg', retinol: 'µg', vitaminD: 'µg', vitaminE: 'mg',
-  vitaminB1: 'mg', vitaminB2: 'mg', niacin: 'mg', vitaminB6: 'mg', folate: 'µg', vitaminC: 'mg',
+  vitaminB1: 'mg', vitaminB2: 'mg', niacin: 'mg', vitaminB6: 'mg', folate: 'µg', vitaminC: 'mg', caffeine: 'mg',
   n3Fat: 'g', n6Fat: 'g', monoUnsatFat: 'g', polyUnsatFat: 'g',
+}
+
+// カフェイン（1日 400 mg までなど海外の目安）。目安ちょうどは超過にしない
+function caffeineAlert(totals: MenuTotals, targets: Targets): Alert | null {
+  const t = targets.nutrients.caffeine
+  if (t.kind !== 'max') return null
+  return check('caffeine', 'caffeine', totals.day.values.caffeine, t.value, 'mg', totals)
 }
 
 export function computeAlerts(totals: MenuTotals, targets: Targets): Alert[] {
@@ -84,6 +91,7 @@ export function computeAlerts(totals: MenuTotals, targets: Targets): Alert[] {
     ...upperLimitAlerts(totals, targets),
     check('salt', 'salt', v.salt, targets.saltMax, 'g', totals, true),
     check('alcohol', 'alcohol', v.alcohol, targets.alcoholRiskG, 'g', totals, true),
+    caffeineAlert(totals, targets),
     check('satFat', 'satFat', v.satFat, targets.satFatMaxG, 'g', totals),
     v.energyKcal > targets.energyKcal * ENERGY_OVER_FACTOR
       ? {
