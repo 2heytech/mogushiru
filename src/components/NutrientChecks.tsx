@@ -117,7 +117,18 @@ function Group({ title, keys, checks, perSlot }: { title: string; keys: readonly
 }
 
 // 1日のまとめ欄・区分カードの「栄養素チェック」。開くと栄養素ごとの目安・上限との比較が出る
-export function NutrientChecks({ checks, perSlot = false, slotShare }: { checks: NutrientCheck[]; perSlot?: boolean; slotShare?: Record<Slot, number> }) {
+// defaultOpen：はじめから全部ひらいておく（「とじる」で畳める）
+export function NutrientChecks({
+  checks,
+  perSlot = false,
+  slotShare,
+  defaultOpen = false,
+}: {
+  checks: NutrientCheck[]
+  perSlot?: boolean
+  slotShare?: Record<Slot, number>
+  defaultOpen?: boolean
+}) {
   const s = summarizeChecks(checks)
   // 区分カードでは混み合わないよう、こえているものだけ数を出す
   const counts = [
@@ -132,7 +143,7 @@ export function NutrientChecks({ checks, perSlot = false, slotShare }: { checks:
   const notable = notableChecks(checks, perSlot ? 2 : 4)
   const judged = checks.filter((c) => c.status !== 'info').length
   return (
-    <details className={`group rounded-2xl border-2 border-dashed border-coral/40 bg-white/70 px-3 py-2 open:border-solid open:border-transparent`}>
+    <details open={defaultOpen} className={`group rounded-2xl border-2 border-dashed border-coral/40 bg-white/70 px-3 py-2 open:border-solid open:border-transparent`}>
       <summary className="cursor-pointer list-none [&::-webkit-details-marker]:hidden">
         <span className="flex min-h-9 flex-wrap items-center gap-x-2 gap-y-1 text-sm font-bold">
           <span className="whitespace-nowrap">{perSlot ? 'くわしい栄養素' : '栄養素チェック'}</span>
