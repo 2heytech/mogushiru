@@ -135,14 +135,14 @@ export const POPULAR_BY_SLOT: Record<Slot, string[]> = {
   ],
 }
 
-// 食材を選んだときの、ふだんの1回分の量（ない食材は100g）と、食品群より分かりやすい絵文字
-export const FOOD_PORTION: Record<string, { grams: number; label: string; emoji?: string }> = {
-  '01026': { grams: 60, label: '6枚切り1枚', emoji: '🍞' },
-  '07013': { grams: 15, label: '大さじ1弱', emoji: '🍓' },
+// 食材を選んだときの、ふだんの1回分の量（ない食材は100g）
+export const FOOD_PORTION: Record<string, { grams: number; label: string }> = {
+  '01026': { grams: 60, label: '6枚切り1枚' },
+  '07013': { grams: 15, label: '大さじ1弱' },
   '14017': { grams: 8, label: '小さじ2' },
   '14020': { grams: 8, label: '小さじ2' },
   '03022': { grams: 7, label: '小さじ1' },
-  '01137': { grams: 40, label: '1食分', emoji: '🥣' },
+  '01137': { grams: 40, label: '1食分' },
   '09004': { grams: 3, label: '1枚' },
 }
 

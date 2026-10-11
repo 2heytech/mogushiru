@@ -235,7 +235,7 @@ export function Picker({
                         <img src={c.image} alt="" className="mb-2 h-20 w-20 object-contain transition-transform group-hover:scale-110 group-hover:-rotate-3" loading="lazy" />
                       ) : (
                         <span className="mb-2 grid h-20 w-20 place-items-center rounded-full bg-cream text-3xl" aria-hidden>
-                          {c.emoji ?? '🍽️'}
+                          🍽️
                         </span>
                       )}
                       <span className="line-clamp-2 text-sm font-bold">{c.name}</span>
