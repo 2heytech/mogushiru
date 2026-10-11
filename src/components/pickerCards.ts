@@ -79,7 +79,7 @@ function entries(kind: Kind, { catalog, slot, query, category, showAlcohol, favo
               key: `product:${p.jan}`,
               kind,
               name: p.name,
-              sub: [p.brand, p.basis === 'serving' ? '1食' : `${grams}${p.basis === '100ml' ? 'mL' : 'g'}`].filter(Boolean).join('・'),
+              sub: [p.brand, p.basis === 'serving' ? (p.servingLabel ?? '1食') : `${grams}${p.basis === '100ml' ? 'mL' : 'g'}`].filter(Boolean).join('・'),
               kcal: p.nutrients.energyKcal === null ? null : p.nutrients.energyKcal * per,
               image: productImage(p),
               item: { kind: 'product', refId: p.jan, portion: p.basis === 'serving' ? 1 : grams },

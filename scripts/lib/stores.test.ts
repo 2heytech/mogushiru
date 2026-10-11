@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { parseAmount, parseFamimaSafety, parseLabelText, parseLawsonDetail, parsePrice, parseSevenItem, toStoreProduct } from './stores'
+import { isAmbiguousSevenItem, labelBasis, parseAmount, parseFamimaSafety, parseLabelText, parseLawsonDetail, parsePrice, parseSevenItem, toStoreProduct } from './stores'
 
 describe('parseAmount', () => {
   it('数・全角・幅・微量を読む', () => {
@@ -106,5 +106,34 @@ describe('toStoreProduct', () => {
     expect(p).toMatchObject({ jan: 'lawson-1507092_1996', brand: 'ローソン', basis: 'serving', category: 'onigiri' })
     expect(p.nutrients).toMatchObject({ energyKcal: 204, salt: 1.5, alcohol: 0, fiber: null, calcium: null })
     expect(p.source).toEqual({ name: 'ローソン', url: 'https://www.lawson.co.jp/recommend/original/detail/1507092_1996.html', fetchedAt: '2026-10-11' })
+  })
+})
+
+describe('labelBasis', () => {
+  it('量当たりの表示と1回分の表示を見分ける', () => {
+    expect(labelBasis('100g当たり')).toEqual({ grams: 100, unit: 'g' })
+    expect(labelBasis('15g当たり')).toEqual({ grams: 15, unit: 'g' })
+    expect(labelBasis('100ml当たり')).toEqual({ grams: 100, unit: 'ml' })
+    expect(labelBasis('1個当たり')).toEqual({ label: '1個' })
+    expect(labelBasis('1包装当たり')).toEqual({})
+    expect(labelBasis(undefined)).toEqual({})
+  })
+  it('15g当たりの表示は100g当たりに直す', () => {
+    const p = toStoreProduct({
+      store: 'lawson', code: 'x', name: 'ふりかけ', category: 'seasoning', url: 'https://example.com', per: '15g当たり', fetchedAt: '2026-10-11',
+      label: { energyKcal: 60, protein: 3, fat: 1.5, carb: 9, salt: 1.2 },
+    })
+    expect(p.basis).toBe('100g')
+    expect(p.nutrients.energyKcal).toBe(400)
+    expect(p.nutrients.salt).toBe(8)
+  })
+})
+
+describe('isAmbiguousSevenItem', () => {
+  it('表示の単位が書かれていないセブンプレミアムの加工品は除く', () => {
+    expect(isAmbiguousSevenItem({ store: 'seven', name: '７プレミアム　ザ・ブリュー　３５０ｍｌ' })).toBe(true)
+    expect(isAmbiguousSevenItem({ store: 'seven', name: '7P 鉄板焼きハンバーグ' })).toBe(true)
+    expect(isAmbiguousSevenItem({ store: 'seven', name: '手巻おにぎり　ツナマヨネーズ' })).toBe(false)
+    expect(isAmbiguousSevenItem({ store: 'lawson', name: '7プレミアム' })).toBe(false)
   })
 })

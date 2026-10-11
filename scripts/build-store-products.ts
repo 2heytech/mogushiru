@@ -3,7 +3,7 @@
 // 配信用の public/data/store-products.json を作る
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { toMakerProduct, type MakerLabel } from './lib/makers'
-import { STORES, toStoreProduct, type StoreId, type StoreItem } from './lib/stores'
+import { STORES, isAmbiguousSevenItem, toStoreProduct, type StoreId, type StoreItem } from './lib/stores'
 
 const products = []
 const stores = []
@@ -14,6 +14,7 @@ for (const store of Object.keys(STORES) as StoreId[]) {
   // 地域ごとに番号の違う同じ商品（名前も栄養成分も同じもの）は1つにまとめる
   const seen = new Set<string>()
   const items = raw.items.filter((i) => {
+    if (isAmbiguousSevenItem(i)) return false
     const key = JSON.stringify([i.name, i.label])
     return !seen.has(key) && seen.add(key)
   })

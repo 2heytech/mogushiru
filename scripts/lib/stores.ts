@@ -268,17 +268,35 @@ export function parseFamimaSafety(html: string, pageUrl: string): Omit<StoreItem
 
 // ---- アプリの市販品にする ----
 
-// 栄養成分表示は1包装（1食）当たりなので basis: 'serving'
+// セブンプレミアムなどお店のブランドの加工品。サイトの表示に「1袋当たり」「100g当たり」などの単位が書かれておらず、
+// 商品によって1個・1食・100g(mL)当たりがまちまちなので取り込まない（例：ビール350mLが100mL当たり、卵10個が2個当たり）
+const SEVEN_PRIVATE_BRAND = /^\s*(7\s*P|7\s*プレミアム|セブンプレミアム|7\s*ザ\s*・?\s*プライス)/i
+export const isAmbiguousSevenItem = (item: Pick<StoreItem, 'store' | 'name'>): boolean =>
+  item.store === 'seven' && SEVEN_PRIVATE_BRAND.test(item.name.normalize('NFKC'))
+
+// 表示の単位。「100g当たり」「15g当たり」は量当たり、それ以外（1包装・1個・1本…）は1回分
+export function labelBasis(per: string | undefined): { grams: number; unit: 'g' | 'ml' } | { label?: string } {
+  const t = (per ?? '').normalize('NFKC')
+  const amount = t.match(/^(\d+(?:\.\d+)?)\s*(g|ml)当たり$/i)
+  if (amount) return { grams: Number(amount[1]), unit: amount[2].toLowerCase() as 'g' | 'ml' }
+  const label = t.replace(/当たり$/, '')
+  return label && !/^1(包装|食)$/.test(label) ? { label } : {}
+}
+
+// 1回分の表示は basis: 'serving'。100g・15g当たりなどの表示は100g(mL)当たりに直す
 export function toStoreProduct(item: StoreItem): Product {
+  const basis = labelBasis(item.per)
+  const factor = 'grams' in basis ? 100 / basis.grams : 1
+  const scale = (v: number | undefined) => (v === undefined ? null : Number((v * factor).toPrecision(4)))
   const nutrients = {} as Nutrients
   for (const k of NUTRIENT_KEYS) nutrients[k] = null
   Object.assign(nutrients, {
-    energyKcal: item.label.energyKcal,
-    protein: item.label.protein,
-    fat: item.label.fat,
-    carb: item.label.carb,
-    salt: item.label.salt,
-    fiber: item.label.fiber ?? null,
+    energyKcal: scale(item.label.energyKcal),
+    protein: scale(item.label.protein),
+    fat: scale(item.label.fat),
+    carb: scale(item.label.carb),
+    salt: scale(item.label.salt),
+    fiber: scale(item.label.fiber),
     // お酒以外は 0（市販品の取り込みと同じ扱い）
     alcohol: item.category === 'alcohol' ? null : 0,
   })
@@ -287,7 +305,7 @@ export function toStoreProduct(item: StoreItem): Product {
     name: item.name,
     brand: STORES[item.store].name,
     category: item.category,
-    basis: 'serving',
+    ...('grams' in basis ? { basis: basis.unit === 'ml' ? ('100ml' as const) : ('100g' as const) } : { basis: 'serving' as const, ...(basis.label ? { servingLabel: basis.label } : {}) }),
     nutrients,
     source: { name: STORES[item.store].name, url: item.url, fetchedAt: item.fetchedAt },
   }
