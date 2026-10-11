@@ -1,4 +1,4 @@
-// 食材の栄養素ランキング
+// 食品成分ランキング
 // 「100gあたり」だけでなく、1回に食べる量・カロリー・価格あたりでも並べられるようにする
 import { servingFor, type Serving } from './serving'
 import type { NutrientTarget, Targets } from './targets'

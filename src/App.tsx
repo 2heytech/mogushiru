@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { Fragment, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { Customizer } from './components/Customizer'
 import { prioritySlots, withSlot } from './domain/customize'
 import { CustomizeIcon } from './components/CustomizeIcon'
@@ -35,11 +35,11 @@ type View = 'menu' | 'ranking' | 'customize'
 
 const ICON_CLASS = 'h-7 w-7 shrink-0 sm:h-9 sm:w-9'
 
-// アプリの機能。いつも上に並べて、いまどれを見ているかと、ほかに何があるかが分かるようにする
+// アプリの機能。title の | は狭い画面で折り返してよい位置。いつも上に並べて、いまどれを見ているかと、ほかに何があるかが分かるようにする
 const FEATURES: { view: View; icon: ReactNode; title: string; lead: string }[] = [
-  { view: 'menu', icon: <UiIcon name="menu" className={ICON_CLASS} />, title: '1日の栄養バランスを確認', lead: '朝・昼・晩の料理を選んで確かめる' },
-  { view: 'ranking', icon: <UiIcon name="ranking" className={ICON_CLASS} />, title: '食品の栄養ランキング', lead: '栄養素の多い食品をさがす' },
-  { view: 'customize', icon: <CustomizeIcon className={ICON_CLASS} />, title: '料理をカスタマイズ', lead: '人前や材料の量を変えて保存' },
+  { view: 'menu', icon: <UiIcon name="menu" className={ICON_CLASS} />, title: '1日の|栄養バランス|を確認', lead: '朝・昼・晩の料理を選んで確かめる' },
+  { view: 'ranking', icon: <UiIcon name="ranking" className={ICON_CLASS} />, title: '食品成分|ランキング', lead: '成分の多い食品をさがす' },
+  { view: 'customize', icon: <CustomizeIcon className={ICON_CLASS} />, title: '料理を|カスタマイズ', lead: '人前や材料の量を変えて保存' },
 ]
 
 function FeatureTabs({ view, onChange }: { view: View; onChange: (v: View) => void }) {
@@ -62,7 +62,14 @@ function FeatureTabs({ view, onChange }: { view: View; onChange: (v: View) => vo
               className={`flex flex-col items-center gap-1 text-[11px] leading-snug font-bold sm:flex-row sm:gap-1.5 sm:text-sm lg:text-base lg:whitespace-nowrap ${active ? 'text-coral-dark' : 'text-ink'}`}
             >
               {f.icon}
-              {f.title}
+              <span className="[word-break:keep-all]">
+                {f.title.split('|').map((part, i) => (
+                  <Fragment key={part}>
+                    {i > 0 && <wbr />}
+                    {part}
+                  </Fragment>
+                ))}
+              </span>
             </span>
             <span className="mt-0.5 hidden text-xs leading-snug sm:block">{f.lead}</span>
           </button>
