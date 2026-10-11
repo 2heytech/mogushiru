@@ -143,45 +143,50 @@ export function DayInfo({ totals, targets, onEditSlotShare }: { totals: MenuTota
         ))}
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-[1fr_1fr_1.15fr] lg:items-start">
-        <div className={`${CARD} space-y-4 ${panel('summary')}`}>
-          <h2 className="hidden font-bold lg:block">まとめ</h2>
-          <div className="flex items-center gap-3">
-            <BowlMogu slot="dinner" mood={bowlMood} className="h-16 w-16 shrink-0" label={`モグは${MOOD_LABEL[bowlMood]}`} />
-            <p className="rounded-2xl bg-white px-4 py-2 text-sm shadow-sm">{message}</p>
-          </div>
-          <EnergyGauge value={v.energyKcal} target={targets.energyKcal} />
-          <SlotShare totals={totals} targets={targets} onEdit={onEditSlotShare} />
-          <AlertList alerts={alerts} />
-        </div>
-
-        <div className={`${CARD} ${panel('pfc')}`}>
-          {gaps ? <PfcDangoView gaps={gaps} gramRanges={targets.pfcGrams} /> : <Empty />}
-        </div>
-
-        <div className={`${CARD} lg:row-span-2 ${panel('nutrients')}`}>
-          {hasAny ? <NutrientChecks checks={nutrientChecks(totals.day, targets, undefined, totals.supplement)} defaultOpen /> : <Empty />}
-        </div>
-
-        <div className={`lg:col-span-2 ${panel('slots')}`}>
-          <h2 className="mb-2 hidden font-bold lg:block">区分ごとのバランス</h2>
-          <div className="grid gap-3 md:grid-cols-2">
-            {SLOTS.map((slot) => (
-              <div key={slot} className={CARD}>
-                <h3 className="flex items-center gap-2 font-bold">
-                  <SlotIcon slot={slot} className="h-8 w-8 shrink-0" />
-                  {SLOT_LABEL[slot]}
-                  {slot !== 'other' && 'ごはん'}
-                  <span className="ml-auto text-sm font-normal text-ink-soft tabular-nums">{Math.round(totals.bySlot[slot].values.energyKcal)} kcal</span>
-                </h3>
-                {totals.bySlot[slot].values.energyKcal > 0 ? (
-                  <SlotBalanceView totals={totals.bySlot[slot]} slot={slot} targets={targets} alerts={alerts} />
-                ) : (
-                  <p className="mt-2 text-xs text-ink-soft">まだ料理がありません</p>
-                )}
+      {/* 広い画面：左にまとめ・PFC・区分ごと、右に栄養素チェック。
+          列ごとに積むので、右の栄養素が長くても左に空きができない */}
+      <div className="grid gap-4 lg:grid-cols-[2fr_1.15fr] lg:items-start">
+        <div className="contents lg:flex lg:flex-col lg:gap-4">
+          <div className="contents lg:grid lg:grid-cols-2 lg:items-start lg:gap-4">
+            <div className={`${CARD} space-y-4 ${panel('summary')}`}>
+              <h2 className="hidden font-bold lg:block">まとめ</h2>
+              <div className="flex items-center gap-3">
+                <BowlMogu slot="dinner" mood={bowlMood} className="h-16 w-16 shrink-0" label={`モグは${MOOD_LABEL[bowlMood]}`} />
+                <p className="rounded-2xl bg-white px-4 py-2 text-sm shadow-sm">{message}</p>
               </div>
-            ))}
+              <EnergyGauge value={v.energyKcal} target={targets.energyKcal} />
+              <SlotShare totals={totals} targets={targets} onEdit={onEditSlotShare} />
+              <AlertList alerts={alerts} />
+            </div>
+
+            <div className={`${CARD} ${panel('pfc')}`}>
+              {gaps ? <PfcDangoView gaps={gaps} gramRanges={targets.pfcGrams} /> : <Empty />}
+            </div>
           </div>
+          <div className={panel('slots')}>
+            <h2 className="mb-2 hidden font-bold lg:block">区分ごとのバランス</h2>
+            <div className="grid items-start gap-3 md:grid-cols-2">
+              {SLOTS.map((slot) => (
+                <div key={slot} className={CARD}>
+                  <h3 className="flex items-center gap-2 font-bold">
+                    <SlotIcon slot={slot} className="h-8 w-8 shrink-0" />
+                    {SLOT_LABEL[slot]}
+                    {slot !== 'other' && 'ごはん'}
+                    <span className="ml-auto text-sm font-normal text-ink-soft tabular-nums">{Math.round(totals.bySlot[slot].values.energyKcal)} kcal</span>
+                  </h3>
+                  {totals.bySlot[slot].values.energyKcal > 0 ? (
+                    <SlotBalanceView totals={totals.bySlot[slot]} slot={slot} targets={targets} alerts={alerts} />
+                  ) : (
+                    <p className="mt-2 text-xs text-ink-soft">まだ料理がありません</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className={`${CARD} ${panel('nutrients')}`}>
+          {hasAny ? <NutrientChecks checks={nutrientChecks(totals.day, targets, undefined, totals.supplement)} defaultOpen /> : <Empty />}
         </div>
       </div>
     </section>
