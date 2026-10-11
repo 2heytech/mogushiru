@@ -8,7 +8,9 @@ import {
   type NutrientCheck,
 } from '../domain/nutrientChecks'
 import type { CheckedNutrient } from '../domain/targets'
-import { NUTRIENT_INFO } from './labels'
+import { SLOT_ENERGY_SHARE } from '../domain/slotBalance'
+import { SLOTS, type Slot } from '../domain/types'
+import { NUTRIENT_INFO, SLOT_LABEL } from './labels'
 
 const CHECKED_COUNT = LIMIT_NUTRIENTS.length + WANT_NUTRIENTS.length + INFO_NUTRIENTS.length
 
@@ -115,7 +117,7 @@ function Group({ title, keys, checks, perSlot }: { title: string; keys: readonly
 }
 
 // 1日のまとめ欄・区分カードの「栄養素チェック」。開くと栄養素ごとの目安・上限との比較が出る
-export function NutrientChecks({ checks, perSlot = false }: { checks: NutrientCheck[]; perSlot?: boolean }) {
+export function NutrientChecks({ checks, perSlot = false, slotShare }: { checks: NutrientCheck[]; perSlot?: boolean; slotShare?: Record<Slot, number> }) {
   const s = summarizeChecks(checks)
   // 区分カードでは混み合わないよう、こえているものだけ数を出す
   const counts = [
@@ -164,7 +166,10 @@ export function NutrientChecks({ checks, perSlot = false }: { checks: NutrientCh
         <Group title="基準のないもの" keys={INFO_NUTRIENTS} checks={checks} perSlot={perSlot} />
         <div className="space-y-0.5 text-[11px] leading-relaxed text-ink-soft">
           {perSlot ? (
-            <p>区分の目安は、1日の目安を朝25%・昼35%・晩30%・その他10%で分けたアプリ独自の値です（アルコールは1日の値）。</p>
+            <p>
+              区分の目安は、1日の目安を{SLOTS.map((s) => `${SLOT_LABEL[s]}${Math.round((slotShare ?? SLOT_ENERGY_SHARE)[s] * 100)}%`).join('・')}
+              で分けた値です（プロフィールで変えられます。アルコールは1日の値）。
+            </p>
           ) : (
             <p>目安は「日本人の食事摂取基準（2025年版）」の推奨量・目安量・目標量、アルコールは「健康に配慮した飲酒に関するガイドライン」の値です。</p>
           )}

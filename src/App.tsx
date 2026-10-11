@@ -113,6 +113,7 @@ export default function App() {
   } = useAppStore()
   const [savedDialog, setSavedDialog] = useState<'save' | 'load' | null>(null)
   const [profileOpen, setProfileOpen] = useState(false)
+  const [profileFocus, setProfileFocus] = useState<'slotShare' | undefined>()
   const [pickerSlot, setPickerSlot] = useState<Slot | null>(null)
   const [editing, setEditing] = useState<{ slot: Slot; uid: string } | null>(null)
   // 市販品の登録（slot があれば登録後その区分に追加）・編集
@@ -276,7 +277,14 @@ export default function App() {
             />
           </div>
           <aside className="order-1 lg:order-2 lg:sticky lg:top-4 lg:self-start">
-            <SummaryPanel totals={totals} targets={targets} />
+            <SummaryPanel
+              totals={totals}
+              targets={targets}
+              onEditSlotShare={() => {
+                setProfileFocus('slotShare')
+                setProfileOpen(true)
+              }}
+            />
           </aside>
         </main>
       ) : (
@@ -333,11 +341,16 @@ export default function App() {
       {profileOpen && (
         <ProfileDialog
           profile={profile}
+          focus={profileFocus}
           onSave={(p) => {
             setProfile(p)
             setProfileOpen(false)
+            setProfileFocus(undefined)
           }}
-          onClose={() => setProfileOpen(false)}
+          onClose={() => {
+            setProfileOpen(false)
+            setProfileFocus(undefined)
+          }}
         />
       )}
 

@@ -80,7 +80,7 @@ export function SlotBalanceView({ totals, slot, targets, alerts }: { totals: Nut
         {v.alcohol >= 0.5 && <Chip label="アルコール" value={`${Math.round(v.alcohol)}g`} sub={`1日 ${targets.alcoholRiskG}g未満`} warn={v.alcohol >= targets.alcoholRiskG} />}
         <Chip label="不飽和脂肪酸" value={`${(v.monoUnsatFat + v.polyUnsatFat).toFixed(1)}g`} />
       </p>
-      <NutrientChecks checks={checks} perSlot />
+      <NutrientChecks checks={checks} perSlot slotShare={targets.slotShare} />
     </div>
   )
 }

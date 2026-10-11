@@ -37,7 +37,8 @@ import {
   SAT_FAT_RATIO_MAX,
   pick,
 } from './dri'
-import type { Goal, NutrientKey, Profile } from './types'
+import { slotShareFromPercent } from './slotBalance'
+import type { Goal, NutrientKey, Profile, Slot } from './types'
 
 export type Range = { lo: number; hi: number }
 
@@ -69,6 +70,8 @@ export type Targets = {
   satFatMaxG: number
   alcoholRiskG: number
   nutrients: Record<CheckedNutrient, NutrientTarget>
+  // 1日の目安を区分に分ける割合（合計1）。区分の目安カロリー・栄養素の目安に使う
+  slotShare: Record<Slot, number>
   usedReferenceWeight: boolean
 }
 
@@ -144,6 +147,7 @@ export function computeTargets(profile: Profile): Targets {
     satFatMaxG: (kcal * SAT_FAT_RATIO_MAX) / 100 / 9,
     alcoholRiskG: ALCOHOL_RISK[profile.sex],
     nutrients: nutrientTargets(profile, age, kcal),
+    slotShare: slotShareFromPercent(profile.slotShare),
     usedReferenceWeight,
   }
 }

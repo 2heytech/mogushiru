@@ -44,24 +44,34 @@ function EnergyGauge({ value, target }: { value: number; target: number }) {
 
 const SLOT_SHADE = ['bg-[#ffd8a8]', 'bg-[#ffb07c]', 'bg-coral', 'bg-[#d9c2ad]']
 
-// 1日のカロリーを朝・昼・晩・その他がどれだけ占めているか
-function SlotShare({ totals }: { totals: MenuTotals }) {
+// 1日のカロリーを朝・昼・晩・その他がどれだけ占めているかと、配分の目安
+function SlotShare({ totals, targets, onEdit }: { totals: MenuTotals; targets: Targets; onEdit?: () => void }) {
   const day = totals.day.values.energyKcal
-  if (day <= 0) return null
+  const goal = SLOTS.map((slot) => `${SLOT_LABEL[slot]}${Math.round(targets.slotShare[slot] * 100)}`).join('・')
   return (
     <div>
       <p className="mb-1 text-sm text-ink-soft">カロリーの配分</p>
-      <div className="flex h-6 overflow-hidden rounded-full bg-white text-[11px] font-bold">
-        {SLOTS.map((slot, i) => {
-          const share = (totals.bySlot[slot].values.energyKcal / day) * 100
-          if (share <= 0) return null
-          return (
-            <div key={slot} className={`grid place-items-center overflow-hidden whitespace-nowrap ${SLOT_SHADE[i]}`} style={{ width: `${share}%` }} title={`${SLOT_LABEL[slot]} ${Math.round(share)}%`}>
-              {share >= 12 && `${SLOT_LABEL[slot]} ${Math.round(share)}%`}
-            </div>
-          )
-        })}
-      </div>
+      {day > 0 && (
+        <div className="flex h-6 overflow-hidden rounded-full bg-white text-[11px] font-bold">
+          {SLOTS.map((slot, i) => {
+            const share = (totals.bySlot[slot].values.energyKcal / day) * 100
+            if (share <= 0) return null
+            return (
+              <div key={slot} className={`grid place-items-center overflow-hidden whitespace-nowrap ${SLOT_SHADE[i]}`} style={{ width: `${share}%` }} title={`${SLOT_LABEL[slot]} ${Math.round(share)}%`}>
+                {share >= 12 && `${SLOT_LABEL[slot]} ${Math.round(share)}%`}
+              </div>
+            )
+          })}
+        </div>
+      )}
+      <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-ink-soft">
+        <span>目安の配分 {goal}%</span>
+        {onEdit && (
+          <button type="button" onClick={onEdit} className="rounded-full bg-white px-2.5 py-0.5 font-bold text-ink shadow-sm">
+            配分を変える
+          </button>
+        )}
+      </p>
     </div>
   )
 }
@@ -82,7 +92,7 @@ function moguMessage(energy: number, mood: Mood, moods: DangoMoods, alerts: Aler
   return MOOD_MESSAGE[mood]
 }
 
-export function SummaryPanel({ totals, targets }: { totals: MenuTotals; targets: Targets }) {
+export function SummaryPanel({ totals, targets, onEditSlotShare }: { totals: MenuTotals; targets: Targets; onEditSlotShare?: () => void }) {
   const v = totals.day.values
   const gaps = pfcGaps(v, targets)
   const alerts = computeAlerts(totals, targets)
@@ -100,7 +110,7 @@ export function SummaryPanel({ totals, targets }: { totals: MenuTotals; targets:
         <p className="rounded-2xl bg-white px-4 py-2 text-sm shadow-sm">{message}</p>
       </div>
       <EnergyGauge value={v.energyKcal} target={targets.energyKcal} />
-      <SlotShare totals={totals} />
+      <SlotShare totals={totals} targets={targets} onEdit={onEditSlotShare} />
       {gaps && (
         <div className="space-y-2">
           <p className="text-sm text-ink-soft">PFCバランス（カロリーのうちわけ）</p>
