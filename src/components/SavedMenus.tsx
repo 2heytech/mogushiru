@@ -26,7 +26,7 @@ export function MenuActions({
 }) {
   const empty = itemCount(menu) === 0
   return (
-    <div className="mb-3 flex flex-wrap items-center justify-end gap-2">
+    <div className="flex flex-wrap items-center justify-end gap-2">
       <button type="button" onClick={onOpenSave} disabled={empty} aria-haspopup="dialog" className={BUTTON}>
         <UiIcon name="save" className="h-6 w-6 shrink-0" />保存
       </button>

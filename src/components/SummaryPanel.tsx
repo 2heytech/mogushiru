@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { balanceMood, computeAlerts, type Alert, type Mood } from '../domain/alerts'
 import type { MenuTotals } from '../domain/nutrition'
 import { nutrientChecks } from '../domain/nutrientChecks'
@@ -6,7 +7,8 @@ import type { Targets } from '../domain/targets'
 import { SLOTS } from '../domain/types'
 import { MOOD_LABEL, SLOT_LABEL } from './labels'
 import type { MascotMood } from '../domain/mascotMood'
-import { BowlMogu } from './Mascot'
+import { BowlMogu, SlotIcon } from './Mascot'
+import { SlotBalanceView } from './SlotBalanceView'
 import { PfcDangoView } from './PfcDangoView'
 import { NutrientChecks } from './NutrientChecks'
 import { NUTRIENT_INFO } from './labels'
@@ -92,36 +94,116 @@ function moguMessage(energy: number, mood: Mood, gaps: PfcGap[] | null, alerts: 
   return MOOD_MESSAGE[mood]
 }
 
-export function SummaryPanel({ totals, targets, onEditSlotShare }: { totals: MenuTotals; targets: Targets; onEditSlotShare?: () => void }) {
+type InfoTab = 'summary' | 'pfc' | 'nutrients' | 'slots'
+
+const CARD = 'rounded-[var(--radius-card)] bg-[#fff1df] p-4 shadow-sm'
+
+// 1日の食事の下に出す情報。スマホ・タブレットはタブで1種類ずつ、広い画面ではタブなしで並べる
+export function DayInfo({ totals, targets, onEditSlotShare }: { totals: MenuTotals; targets: Targets; onEditSlotShare?: () => void }) {
+  const [tab, setTab] = useState<InfoTab>('summary')
   const v = totals.day.values
   const gaps = pfcGaps(v, targets)
   const alerts = computeAlerts(totals, targets)
   const mood = balanceMood(totals, targets, alerts)
   const bowlMood: MascotMood = alerts.some((a) => a.level === 'over') ? 'alert' : mood
   const message = moguMessage(v.energyKcal, mood, gaps, alerts)
+  // サプリだけ（0kcal）でも成分の取りすぎを見られるように、何か入っていれば出す
+  const hasAny = Object.values(v).some((x) => x > 0)
+  const overCount = alerts.filter((a) => a.level === 'over').length
+  const tabs: { key: InfoTab; label: string; badge?: number }[] = [
+    { key: 'summary', label: 'まとめ', badge: overCount || undefined },
+    { key: 'pfc', label: 'PFC' },
+    { key: 'nutrients', label: '栄養素' },
+    { key: 'slots', label: '区分ごと' },
+  ]
+  // lg 以上ではタブを使わず全部見せる
+  const panel = (key: InfoTab) => (tab === key ? '' : 'hidden lg:block')
+
   return (
-    <section className="space-y-4 rounded-[var(--radius-card)] bg-[#fff1df] p-5 shadow-sm">
-      <div className="flex items-center gap-3">
-        <BowlMogu slot="dinner" mood={bowlMood} className="h-16 w-16 shrink-0" label={`モグは${MOOD_LABEL[bowlMood]}`} />
-        <p className="rounded-2xl bg-white px-4 py-2 text-sm shadow-sm">{message}</p>
+    <section aria-label="1日の栄養バランス" className="space-y-3">
+      <div role="tablist" aria-label="見る情報" className="flex gap-1 rounded-full bg-white/70 p-1 shadow-sm lg:hidden">
+        {tabs.map((t) => (
+          <button
+            key={t.key}
+            type="button"
+            role="tab"
+            aria-selected={tab === t.key}
+            onClick={() => setTab(t.key)}
+            className={`flex min-h-10 flex-1 items-center justify-center gap-1 rounded-full text-sm whitespace-nowrap transition ${
+              tab === t.key ? 'bg-white font-bold text-ink shadow-sm' : 'text-ink-soft'
+            }`}
+          >
+            {t.label}
+            {t.badge && (
+              <span className="grid h-4 min-w-4 place-items-center rounded-full bg-alert px-1 text-[10px] leading-none font-bold text-white" aria-label={`とりすぎ ${t.badge}件`}>
+                {t.badge}
+              </span>
+            )}
+          </button>
+        ))}
       </div>
-      <EnergyGauge value={v.energyKcal} target={targets.energyKcal} />
-      <SlotShare totals={totals} targets={targets} onEdit={onEditSlotShare} />
-      {gaps && <PfcDangoView gaps={gaps} gramRanges={targets.pfcGrams} />}
-      {alerts.length > 0 && (
-        <ul className="space-y-1">
-          {alerts.map((a) => (
-            <li key={a.key} className={`rounded-xl px-3 py-2 text-sm ${a.level === 'over' ? 'bg-alert/15' : 'bg-caution/20'}`}>
-              ⚠ {alertLabel(a)}{a.supplementOnly && '（サプリの分）'} {fmtAlert(a, a.amount)}
-              {a.unit}（{a.limitKind === 'upper' ? '耐容上限量' : '目安'} {fmtAlert(a, a.limit)}
-              {a.unit}）
-              {a.limitKind === 'upper' && a.level === 'over' && <span className="font-bold"> とりすぎ注意</span>}{a.topSlot && <span className="text-ink-soft"> いちばん多いのは{SLOT_LABEL[a.topSlot]}</span>}
-            </li>
-          ))}
-        </ul>
-      )}
-      {/* サプリだけ（0kcal）でも成分の取りすぎを見られるように、何か入っていれば出す */}
-      {Object.values(v).some((x) => x > 0) && <NutrientChecks checks={nutrientChecks(totals.day, targets, undefined, totals.supplement)} />}
+
+      <div className="grid gap-4 lg:grid-cols-[1fr_1fr_1.15fr] lg:items-start">
+        <div className={`${CARD} space-y-4 ${panel('summary')}`}>
+          <h2 className="hidden font-bold lg:block">まとめ</h2>
+          <div className="flex items-center gap-3">
+            <BowlMogu slot="dinner" mood={bowlMood} className="h-16 w-16 shrink-0" label={`モグは${MOOD_LABEL[bowlMood]}`} />
+            <p className="rounded-2xl bg-white px-4 py-2 text-sm shadow-sm">{message}</p>
+          </div>
+          <EnergyGauge value={v.energyKcal} target={targets.energyKcal} />
+          <SlotShare totals={totals} targets={targets} onEdit={onEditSlotShare} />
+          <AlertList alerts={alerts} />
+        </div>
+
+        <div className={`${CARD} ${panel('pfc')}`}>
+          {gaps ? <PfcDangoView gaps={gaps} gramRanges={targets.pfcGrams} /> : <Empty />}
+        </div>
+
+        <div className={`${CARD} lg:row-span-2 ${panel('nutrients')}`}>
+          {hasAny ? <NutrientChecks checks={nutrientChecks(totals.day, targets, undefined, totals.supplement)} defaultOpen /> : <Empty />}
+        </div>
+
+        <div className={`lg:col-span-2 ${panel('slots')}`}>
+          <h2 className="mb-2 hidden font-bold lg:block">区分ごとのバランス</h2>
+          <div className="grid gap-3 md:grid-cols-2">
+            {SLOTS.map((slot) => (
+              <div key={slot} className={CARD}>
+                <h3 className="flex items-center gap-2 font-bold">
+                  <SlotIcon slot={slot} className="h-8 w-8 shrink-0" />
+                  {SLOT_LABEL[slot]}
+                  {slot !== 'other' && 'ごはん'}
+                  <span className="ml-auto text-sm font-normal text-ink-soft tabular-nums">{Math.round(totals.bySlot[slot].values.energyKcal)} kcal</span>
+                </h3>
+                {totals.bySlot[slot].values.energyKcal > 0 ? (
+                  <SlotBalanceView totals={totals.bySlot[slot]} slot={slot} targets={targets} alerts={alerts} />
+                ) : (
+                  <p className="mt-2 text-xs text-ink-soft">まだ料理がありません</p>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
     </section>
+  )
+}
+
+function Empty() {
+  return <p className="py-6 text-center text-sm text-ink-soft">料理をえらぶと、ここに出ます</p>
+}
+
+function AlertList({ alerts }: { alerts: Alert[] }) {
+  if (alerts.length === 0) return null
+  return (
+    <ul className="space-y-1">
+      {alerts.map((a) => (
+        <li key={a.key} className={`rounded-xl px-3 py-2 text-sm ${a.level === 'over' ? 'bg-alert/15' : 'bg-caution/20'}`}>
+          ⚠ {alertLabel(a)}{a.supplementOnly && '（サプリの分）'} {fmtAlert(a, a.amount)}
+          {a.unit}（{a.limitKind === 'upper' ? '耐容上限量' : '目安'} {fmtAlert(a, a.limit)}
+          {a.unit}）
+          {a.limitKind === 'upper' && a.level === 'over' && <span className="font-bold"> とりすぎ注意</span>}{a.topSlot && <span className="text-ink-soft"> いちばん多いのは{SLOT_LABEL[a.topSlot]}</span>}
+        </li>
+      ))}
+    </ul>
   )
 }

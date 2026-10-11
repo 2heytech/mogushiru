@@ -9,12 +9,12 @@ import { SupplementForm } from './components/SupplementForm'
 import { isSupplement } from './domain/supplement'
 import { Picker } from './components/Picker'
 import { ProfileDialog } from './components/ProfileDialog'
-import { SlotBoard } from './components/SlotBoard'
+import { SlotStrip } from './components/SlotStrip'
 import { RankingView } from './components/RankingView'
 import { confirmDialog } from './components/confirm'
 import { ConfirmHost } from './components/ConfirmDialog'
 import { LoadMenuDialog, MenuActions, SaveMenuDialog } from './components/SavedMenus'
-import { SummaryPanel } from './components/SummaryPanel'
+import { DayInfo } from './components/SummaryPanel'
 import { useCatalog, withMyData } from './data/catalog'
 import { usePrices } from './data/prices'
 import { knownItemsOnly, menuTotals, type Catalog } from './domain/nutrition'
@@ -288,35 +288,32 @@ export default function App() {
           <RankingView catalog={catalog} targets={targets} prices={prices} />
         </main>
       ) : catalog && totals ? (
-        <main className="grid gap-6 lg:grid-cols-[1fr_360px]">
-          <div className="order-2 lg:order-1">
-            <MenuActions
-              menu={menu}
-              savedCount={savedMenus.length}
-              onOpenSave={() => setSavedDialog('save')}
-              onOpenLoad={() => setSavedDialog('load')}
-              onReset={clearMenu}
-            />
-            <SlotBoard
-              menu={menu}
-              totals={totals}
-              targets={targets}
-              catalog={catalog}
-              onAdd={setPickerSlot}
-              onRemove={removeItem}
-              onEdit={(slot, uid) => setEditing({ slot, uid })}
-            />
-          </div>
-          <aside className="order-1 lg:order-2 lg:sticky lg:top-4 lg:self-start">
-            <SummaryPanel
-              totals={totals}
-              targets={targets}
-              onEditSlotShare={() => {
-                setProfileFocus('slotShare')
-                setProfileOpen(true)
-              }}
-            />
-          </aside>
+        <main className="space-y-4">
+          {/* いちばん上に朝・昼・晩・その他、その下に情報 */}
+          <SlotStrip
+            menu={menu}
+            totals={totals}
+            targets={targets}
+            catalog={catalog}
+            onAdd={setPickerSlot}
+            onRemove={removeItem}
+            onEdit={(slot, uid) => setEditing({ slot, uid })}
+          />
+          <MenuActions
+            menu={menu}
+            savedCount={savedMenus.length}
+            onOpenSave={() => setSavedDialog('save')}
+            onOpenLoad={() => setSavedDialog('load')}
+            onReset={clearMenu}
+          />
+          <DayInfo
+            totals={totals}
+            targets={targets}
+            onEditSlotShare={() => {
+              setProfileFocus('slotShare')
+              setProfileOpen(true)
+            }}
+          />
         </main>
       ) : (
         <p className="py-20 text-center text-ink-soft">読み込み中…</p>
