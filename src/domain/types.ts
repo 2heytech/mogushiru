@@ -27,6 +27,7 @@ export const NUTRIENT_KEYS = [
   'vitaminB6', // mg
   'folate', // µg（葉酸）
   'vitaminC', // mg
+  'caffeine', // mg（成分表は備考に記載）
 ] as const
 
 export type NutrientKey = (typeof NUTRIENT_KEYS)[number]

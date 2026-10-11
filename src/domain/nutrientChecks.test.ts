@@ -221,3 +221,30 @@ describe('サプリに多い栄養素の目安・上限（原典の表どおり�
     expect([25, 40, 60, 70, 80].map((a) => at('female', a).magnesium)).toMatchObject([280, 290, 290, 280, 270].map((value) => ({ value })))
   })
 })
+
+describe('カフェイン', () => {
+  const targets = computeTargets({ sex: 'female', age: 35, activity: 'normal' })
+  const menuOf = (v: Partial<Record<NutrientKey, number>>) => {
+    const day = totals(v)
+    return { day, bySlot: { breakfast: day, lunch: totals({}), dinner: totals({}), other: totals({}) }, supplement: totals({}) }
+  }
+
+  it('健康な大人は1日400mgまで。18歳未満は体重1kgあたり2.5mg', () => {
+    expect(targets.nutrients.caffeine).toMatchObject({ kind: 'max', value: 400, basis: '海外の目安' })
+    expect(computeTargets({ sex: 'male', age: 15, weightKg: 50, activity: 'normal' }).nutrients.caffeine).toMatchObject({ value: 125 })
+    expect(computeTargets({ sex: 'male', age: 15, activity: 'normal' }).nutrients.caffeine).toMatchObject({ value: 400 })
+  })
+
+  it('目安をこえるとアラート、8割をこえると注意', () => {
+    expect(computeAlerts(menuOf({ caffeine: 450 }), targets).find((a) => a.key === 'caffeine')).toMatchObject({ level: 'over', limit: 400, unit: 'mg', topSlot: 'breakfast' })
+    expect(computeAlerts(menuOf({ caffeine: 350 }), targets).find((a) => a.key === 'caffeine')!.level).toBe('warn')
+    expect(computeAlerts(menuOf({ caffeine: 400 }), targets).find((a) => a.key === 'caffeine')!.level).toBe('warn')
+    expect(computeAlerts(menuOf({ caffeine: 200 }), targets).find((a) => a.key === 'caffeine')).toBeUndefined()
+  })
+
+  it('区分のカードでも1日の目安のまま比べる', () => {
+    const c = nutrientChecks(totals({ caffeine: 150 }), targets, 'breakfast').find((x) => x.key === 'caffeine')!
+    expect(c.goal).toBe(400)
+    expect(c.status).toBe('ok')
+  })
+})

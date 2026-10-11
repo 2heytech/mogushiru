@@ -83,6 +83,17 @@ export const FIBER_MIN: Row<number>[] = [
 //       指標で、個々人の許容量を示したものではない
 export const ALCOHOL_RISK: Record<Sex, number> = { male: 40, female: 20 }
 
+// カフェインの1日の摂取量の目安（mg/日、この量まで）。日本の食事摂取基準には値がないため海外の評価を使う
+// 出典：欧州食品安全機関（EFSA）Scientific Opinion on the safety of caffeine（2015）、
+//       カナダ保健省（Health Canada）Caffeine in Food。
+//       いずれも農林水産省「カフェインの過剰摂取について」
+//       https://www.maff.go.jp/j/syouan/seisaku/risk_analysis/priority/hazard_chem/caffeine.html で紹介されている。
+// 健康な大人は 400 mg/日まで（EFSA・カナダ保健省）。18歳未満は体重1kgあたり 2.5 mg/日まで（カナダ保健省）。
+// 妊娠中・授乳中は 200 mg/日まで（EFSA）だが、アプリのプロフィールに妊娠の有無がないので注記だけにする
+export const CAFFEINE_MAX_ADULT = 400
+export const CAFFEINE_MAX_PER_KG_UNDER18 = 2.5
+export const CAFFEINE_MAX_PREGNANT = 200
+
 export function pick<T extends AgeBand>(rows: T[], age: number): T {
   const row = rows.find((r) => age >= r.min && age <= r.max)
   if (!row) throw new Error(`対応していない年齢: ${age}`)

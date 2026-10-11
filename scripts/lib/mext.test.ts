@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { applyFattyAcids, cellText, findColumns, parseCell, readFattyAcids, rowToFood } from './mext'
+import { applyFattyAcids, caffeineFromRemarks, cellText, findColumns, parseCell, readFattyAcids, rowToFood } from './mext'
 
 describe('成分値の表記', () => {
   it.each([
@@ -111,5 +111,14 @@ describe('脂肪酸成分表の飽和脂肪酸', () => {
     expect(tr.traceFlags).toContain('satFat')
     expect(applyFattyAcids(base('06001', 0.5), sat).per100g.satFat).toBeNull()
     expect(applyFattyAcids(base('06002', null), sat).per100g.satFat).toBeNull()
+  })
+})
+
+describe('備考のカフェイン', () => {
+  it('g/100g を mg に直して読む', () => {
+    expect(caffeineFromRemarks('浸出法： コーヒー粉末 10 g/熱湯150 mL カフェイン： 0.06 g、タンニン： 0.25 g')).toMatchObject({ value: 60, trace: false })
+    expect(caffeineFromRemarks('テオブロミン： 0.5 g、カフェイン： 0.1g、ポリフェノール： 1.4 g')).toMatchObject({ value: 100 })
+    expect(caffeineFromRemarks('カフェイン： Tr、ポリフェノール： 0.4 g')).toMatchObject({ value: 0, trace: true })
+    expect(caffeineFromRemarks('別名： 純ココア')).toBeNull()
   })
 })

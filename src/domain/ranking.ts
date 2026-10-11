@@ -41,6 +41,7 @@ export const RANKING_NUTRIENTS: RankingNutrient[] = [
   { key: 'carb', label: '炭水化物', unit: 'g' },
   { key: 'salt', label: '食塩', unit: 'g', caution: true },
   { key: 'satFat', label: '飽和脂肪酸', unit: 'g', caution: true },
+  { key: 'caffeine', label: 'カフェイン', unit: 'mg', caution: true },
 ]
 
 // 食品群の短い表示名（成分表の食品群番号）

@@ -91,6 +91,24 @@ describe('栄養計算', () => {
     expect(mg).toMatchObject({ level: 'over', amount: 400, limit: 350, supplementOnly: true })
   })
 
+  it('保存済みの市販品にあとから増えた栄養素がないときは欠損、サプリなら 0 として扱う', () => {
+    const old = { ...n({ energyKcal: 100 }) } as Partial<Nutrients>
+    delete old.caffeine
+    const c: Catalog = {
+      ...catalog,
+      products: new Map([
+        ['my-old', { jan: 'my-old', name: '昔の登録', brand: '', category: 'other', basis: 'serving', nutrients: old as Nutrients, source: { name: 'ユーザー登録', fetchedAt: '' } }],
+        ['my-sup', { jan: 'my-sup', name: '昔のサプリ', brand: '', category: 'supplement', basis: 'serving', nutrients: old as Nutrients, source: { name: 'ユーザー登録', fetchedAt: '' } }],
+      ]),
+    }
+    const product = itemTotals({ uid: '1', kind: 'product', refId: 'my-old', portion: 1 }, c)
+    expect(product.values.caffeine).toBe(0)
+    expect(product.missing.has('caffeine')).toBe(true)
+    const sup = itemTotals({ uid: '2', kind: 'supplement', refId: 'my-sup', portion: 1 }, c)
+    expect(sup.values.caffeine).toBe(0)
+    expect(sup.missing.size).toBe(0)
+  })
+
   it('献立の中でアレンジした料理は、アレンジ後の材料から計算する', () => {
     const t = itemTotals(
       { uid: '1', kind: 'dish', refId: 'd1', portion: 2, customIngredients: [{ foodId: '00001', grams: 100 }] },
