@@ -25,7 +25,8 @@ export function useCatalog(): CatalogState {
       loadJson<{ dishes: Dish[] }>('/data/dishes.json'),
       loadJson<{ products: Product[]; categories?: Record<string, string> }>('/data/products.json'),
       loadJson<{ foods: Food[] }>('/data/foods.json'),
-    ]).then(([d, p, f]) => {
+      loadJson<{ products: Product[] }>('/data/store-products.json'),
+    ]).then(([d, p, f, s]) => {
       if (!alive) return
       const missing = [!d && '料理', !p && '市販品', !f && '食材'].filter((x): x is string => Boolean(x))
       setState({
@@ -34,7 +35,7 @@ export function useCatalog(): CatalogState {
         productCategories: p?.categories ?? {},
         catalog: {
           dishes: new Map((d?.dishes ?? []).map((x) => [x.id, x])),
-          products: new Map((p?.products ?? []).map((x) => [x.jan, x])),
+          products: mergeProducts(s?.products ?? [], p?.products ?? []),
           foods: new Map((f?.foods ?? []).map((x) => [x.id, x])),
         },
       })
@@ -44,6 +45,14 @@ export function useCatalog(): CatalogState {
     }
   }, [])
   return state
+}
+
+// 公式サイトから取った商品（コンビニ各社・メーカー）を先に並べる（売り場にある商品から選びやすいように）。
+// 同じJANの商品は公式サイトの値を使う
+export function mergeProducts(official: Product[], others: Product[]): Map<string, Product> {
+  const map = new Map(official.map((x) => [x.jan, x]))
+  for (const x of others) if (!map.has(x.jan)) map.set(x.jan, x)
+  return map
 }
 
 // ブラウザに保存したお気に入り（料理・登録した市販品）を足したカタログ

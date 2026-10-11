@@ -97,7 +97,7 @@ export type DishSource = {
   region?: string // 都道府県
 }
 
-// 市販品マスター（Open Food Facts）
+// 市販品マスター（コンビニ各社の公式サイト・Open Food Facts）
 export type Product = {
   jan: string // 先頭0を落とさない文字列
   name: string
@@ -108,7 +108,9 @@ export type Product = {
   servingLabel?: string // 1回分の量の表示（サプリの「2粒」など）
   nutrients: Nutrients // basis 当たり
   // ユーザー登録：栄養成分表示を見てブラウザに保存した市販品（jan は "my-" で始まる）
-  source: { name: 'Open Food Facts' | 'ユーザー登録'; fetchedAt: string; saltConverted?: boolean }
+  // コンビニの商品（jan は "seven-" などの店の略号と各社の商品番号）とメーカー公式サイトから取った商品は、
+  // name に会社名、url に商品ページを持つ
+  source: { name: string; url?: string; fetchedAt: string; saltConverted?: boolean }
 }
 
 // ブラウザに保存するもの

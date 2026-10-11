@@ -61,6 +61,15 @@ export function ItemEditor({
               </span>
             </p>
           )}
+          {product?.source.url && (
+            <p className="text-xs text-ink-soft">
+              出典：
+              <a href={product.source.url} target="_blank" rel="noreferrer" className="underline">
+                {product.source.name}の商品ページ
+              </a>
+              （{formatFetchedAt(product.source.fetchedAt)}時点）。地域や時期で中身が変わることがあります
+            </p>
+          )}
           <div className="flex flex-wrap gap-2">
             {onToggleFavorite && (
               <button type="button" aria-pressed={favorite} onClick={onToggleFavorite} className="min-h-11 rounded-full bg-white px-4 text-sm font-bold">
@@ -83,4 +92,10 @@ export function ItemEditor({
       </div>
     </div>
   )
+}
+
+// "2026-10-11" → "2026年10月11日"
+const formatFetchedAt = (d: string) => {
+  const [y, m, day] = d.split('-').map(Number)
+  return y && m && day ? `${y}年${m}月${day}日` : d
 }

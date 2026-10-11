@@ -71,3 +71,13 @@ export const shortNutrientLabel = (k: NutrientKey) => nutrientInfo(k).label.repl
 // サプリに入っている成分を「ビタミンC 1000mg」の形で並べる
 export const supplementLines = (v: Record<NutrientKey, number>): string[] =>
   SUPPLEMENT_KEYS.filter((k) => v[k] > 0).map((k) => `${shortNutrientLabel(k)} ${Number(v[k].toPrecision(3))}${nutrientInfo(k).unit}`)
+
+// 市販品の「お店」の絞り込み。id は商品の jan の先頭（"seven-040114" など）。
+// maker はメーカー公式サイトの表示で入れた売れ筋の商品（jan はJANコード、出典URLあり）
+export const PRODUCT_STORES = [
+  { id: 'maker', label: '売れ筋メーカー品' },
+  { id: 'seven', label: 'セブン-イレブン' },
+  { id: 'famima', label: 'ファミリーマート' },
+  { id: 'lawson', label: 'ローソン' },
+] as const
+export const STORE_FILTER_PREFIX = 'store:'
