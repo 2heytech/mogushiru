@@ -189,3 +189,14 @@ describe('カスタマイズした料理', () => {
     expect(recentMyDishes(dishes).map((d) => d.id)).toEqual(['c', 'a', 'b'])
   })
 })
+
+describe('カスタマイズした料理の区分', () => {
+  beforeEach(() => useAppStore.setState({ menu: emptyMenu(), myDishes: [] }))
+
+  it('別の区分に入れたら、その区分でも上に出す', () => {
+    const s = useAppStore.getState()
+    const my = s.saveMyDish({ baseDishId: 'd1', name: 'うす味', ingredients: [], slots: ['dinner'] })
+    s.addItem('breakfast', { kind: 'myDish', refId: my.id, portion: 1 })
+    expect(useAppStore.getState().myDishes[0].slots).toEqual(['breakfast', 'dinner'])
+  })
+})

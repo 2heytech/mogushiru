@@ -2,7 +2,8 @@ import { useMemo, useState } from 'react'
 import { clampPortion, customDishName, formatPortion, gramStep, PORTION_MAX, PORTION_MIN, PORTION_STEP, round1, swapIngredient } from '../domain/customize'
 import { ingredientsTotals, scaleTotals } from '../domain/nutrition'
 import { rankAndFilter } from '../domain/search'
-import type { DishSource, Food, Ingredient } from '../domain/types'
+import { SLOTS, type DishSource, type Food, type Ingredient, type Slot } from '../domain/types'
+import { SLOT_LABEL } from './labels'
 
 const SUGGEST_LIMIT = 8
 const ADD_GRAMS = 50
@@ -85,6 +86,7 @@ export function Customizer({
   foods,
   saveLabel,
   applyLabel = 'この1日の食事に反映',
+  initialSlots,
   onApply,
   onSave,
   onClose,
@@ -101,13 +103,19 @@ export function Customizer({
   foods: Map<string, Food>
   saveLabel: string
   applyLabel?: string
+  // 保存したとき、料理をえらぶ画面で上に出す区分の初期値
+  initialSlots: Slot[]
   // 材料は1人前あたり。portion は何人前か
   onApply?: (ingredients: Ingredient[], portion: number) => void
-  onSave: (name: string, ingredients: Ingredient[], portion: number) => void
+  onSave: (name: string, ingredients: Ingredient[], portion: number, slots: Slot[]) => void
   onClose: () => void
 }) {
   const [rows, setRows] = useState<Row[]>(() => toRows(initial))
   const [portion, setPortion] = useState(initialPortion)
+  const [slots, setSlots] = useState<Slot[]>(initialSlots)
+  // 最後の1つは外せない（どの区分にも出ないと、保存しても見つけにくいため）
+  const toggleSlot = (slot: Slot) =>
+    setSlots((xs) => (xs.includes(slot) ? (xs.length > 1 ? xs.filter((s) => s !== slot) : xs) : SLOTS.filter((s) => s === slot || xs.includes(s))))
   const [query, setQuery] = useState('')
   // 名前を自分で直すまでは、人前や変えた材料に合わせて初期値を作り直す
   const [typedName, setTypedName] = useState<string | null>(initialName ?? null)
@@ -261,6 +269,20 @@ export function Customizer({
             名前
             <input value={name} onChange={(e) => setTypedName(e.target.value)} className="min-h-10 min-w-0 flex-1 rounded-full bg-white px-4 text-base" />
           </label>
+          <div className="flex flex-wrap items-center gap-1.5 text-sm" role="group" aria-label="料理をえらぶとき上に出す食事">
+            <span className="mr-1">上に出す</span>
+            {SLOTS.map((slot) => (
+              <button
+                key={slot}
+                type="button"
+                aria-pressed={slots.includes(slot)}
+                onClick={() => toggleSlot(slot)}
+                className={`min-h-9 rounded-full px-3 text-sm ${slots.includes(slot) ? 'bg-coral font-bold text-white' : 'bg-white text-ink-soft'}`}
+              >
+                {SLOT_LABEL[slot]}
+              </button>
+            ))}
+          </div>
           <div className="flex gap-2">
             <button
               type="button"
@@ -285,7 +307,7 @@ export function Customizer({
             <button
               type="button"
               disabled={result.length === 0 || !name.trim()}
-              onClick={() => onSave(name.trim(), result, portion)}
+              onClick={() => onSave(name.trim(), result, portion, slots)}
               className="min-h-11 flex-1 rounded-full bg-coral text-sm font-bold text-white disabled:opacity-50"
             >
               {saveLabel}

@@ -1,16 +1,19 @@
 import { useMemo, useState } from 'react'
-import { formatPortion } from '../domain/customize'
+import { formatPortion, prioritySlots } from '../domain/customize'
 import { ingredientsTotals, type Catalog } from '../domain/nutrition'
 import { NOT_POPULAR, popularRank } from '../domain/popular'
 import { rankAndFilter } from '../domain/search'
-import { SLOTS, type Dish, type Ingredient, type MyDish } from '../domain/types'
+import { SLOTS, type Dish, type Ingredient, type MyDish, type Slot } from '../domain/types'
 import { recentMyDishes } from '../store/useAppStore'
 import { confirmDialog } from './confirm'
 import { Customizer } from './Customizer'
 import { dishImage, menuItemImage } from './illustration'
-import { DISH_CATEGORY_LABEL } from './labels'
+import { DISH_CATEGORY_LABEL, SLOT_LABEL } from './labels'
 
 const MAX_CARDS = 60
+
+// 「朝・昼」「すべての食事」
+const slotsText = (slots: Slot[]) => (slots.length === SLOTS.length ? 'すべての食事' : slots.map((s) => SLOT_LABEL[s]).join('・'))
 
 // どれかの区分の定番を上に、郷土料理は基本の料理の後に
 const dishRank = (d: Dish) => Math.min(NOT_POPULAR, ...SLOTS.map((slot) => popularRank(slot, `dish:${d.id}`))) + (d.source ? 1 : 0)
@@ -38,7 +41,7 @@ export function CustomizeView({
   myDishes: MyDish[]
   showAlcohol: boolean
   onSaveNew: (d: Omit<MyDish, 'id' | 'createdAt' | 'updatedAt'>) => void
-  onUpdate: (id: string, patch: Pick<MyDish, 'name' | 'ingredients' | 'portion'>) => void
+  onUpdate: (id: string, patch: Pick<MyDish, 'name' | 'ingredients' | 'portion' | 'slots'>) => void
   onDelete: (id: string) => void
 }) {
   const [query, setQuery] = useState('')
@@ -68,9 +71,10 @@ export function CustomizeView({
           source={dish.source}
           foods={catalog.foods}
           saveLabel="お気に入りに保存"
-          onSave={(name, ingredients, portion) => {
-            onSaveNew({ baseDishId: dish.id, name, ingredients, portion })
-            setNotice(`「${name}」をお気に入りに保存しました。1日の食事で料理をえらぶとき、いちばん上に出ます`)
+          initialSlots={dish.suggestedSlots.length ? dish.suggestedSlots : [...SLOTS]}
+          onSave={(name, ingredients, portion, slots) => {
+            onSaveNew({ baseDishId: dish.id, name, ingredients, portion, slots })
+            setNotice(`「${name}」をお気に入りに保存しました。${slotsText(slots)}の料理をえらぶとき、いちばん上に出ます`)
             close()
           }}
           onClose={close}
@@ -90,8 +94,9 @@ export function CustomizeView({
         source={base?.source}
         foods={catalog.foods}
         saveLabel="上書き保存"
-        onSave={(name, ingredients, portion) => {
-          onUpdate(my.id, { name, ingredients, portion })
+        initialSlots={prioritySlots(my)}
+        onSave={(name, ingredients, portion, slots) => {
+          onUpdate(my.id, { name, ingredients, portion, slots })
           setNotice(`「${name}」を保存しました`)
           close()
         }}
@@ -131,6 +136,7 @@ export function CustomizeView({
                       {formatPortion(portion)}
                       {kcal !== null && ` ・ ${kcal}kcal`}
                     </span>
+                    <span className="mt-0.5 text-[11px] text-coral-dark">{slotsText(prioritySlots(my))}で上に</span>
                   </button>
                   <button
                     type="button"

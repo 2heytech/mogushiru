@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { Customizer } from './components/Customizer'
+import { prioritySlots, withSlot } from './domain/customize'
 import { CustomizeIcon } from './components/CustomizeIcon'
 import { CustomizeView } from './components/CustomizeView'
 import { ItemEditor } from './components/ItemEditor'
@@ -146,13 +147,14 @@ export default function App() {
           source={dish.source}
           foods={catalog.foods}
           saveLabel="お気に入りに保存"
+          initialSlots={[slot]}
           onApply={(ingredients, portion) => {
             customizeItem(slot, uid, sameIngredients(ingredients, dish.ingredients) ? null : ingredients)
             updatePortion(slot, uid, portion)
             close()
           }}
-          onSave={(name, ingredients, portion) => {
-            const my = saveMyDish({ baseDishId: dish.id, name, ingredients, portion })
+          onSave={(name, ingredients, portion, slots) => {
+            const my = saveMyDish({ baseDishId: dish.id, name, ingredients, portion, slots })
             replaceWithMyDish(slot, uid, my.id, portion)
             close()
           }}
@@ -175,13 +177,14 @@ export default function App() {
           source={base?.source}
           foods={catalog.foods}
           saveLabel="お気に入りを上書き保存"
+          initialSlots={withSlot(prioritySlots(my), slot)}
           onApply={(ingredients, portion) => {
             customizeItem(slot, uid, sameIngredients(ingredients, my.ingredients) ? null : ingredients)
             updatePortion(slot, uid, portion)
             close()
           }}
-          onSave={(name, ingredients, portion) => {
-            updateMyDish(my.id, { name, ingredients, portion })
+          onSave={(name, ingredients, portion, slots) => {
+            updateMyDish(my.id, { name, ingredients, portion, slots })
             customizeItem(slot, uid, null)
             updatePortion(slot, uid, portion)
             close()

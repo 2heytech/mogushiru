@@ -118,6 +118,8 @@ export type MyDish = {
   ingredients: Ingredient[]
   // 選んだときの人前（材料は1人前あたり）。なければ1人前
   portion?: number
+  // 料理をえらぶ画面で上に出す区分（朝・昼・晩・その他）。なければすべての区分
+  slots?: Slot[]
   createdAt: string
   // 最後に保存した日時。料理をえらぶ画面で新しいものから上に並べる
   updatedAt?: string

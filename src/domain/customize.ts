@@ -1,4 +1,4 @@
-import type { Ingredient } from './types'
+import { SLOTS, type Ingredient, type MyDish, type Slot } from './types'
 
 // 入れ替え候補は「いまの食材＋alternatives」。入れ替えたら元の食材を候補側へ回す
 export function swapIngredient(ing: Ingredient, foodId: string): Ingredient {
@@ -65,3 +65,12 @@ export function customDishName(title: string, portion: number, original: Ingredi
   if (changes.length > NAME_CHANGES_MAX) parts.push('ほか')
   return parts.length ? `${title}（${parts.join('・')}）` : title
 }
+
+// カスタマイズした料理を、その区分（朝・昼・晩・その他）で上に出すか。区分を持たない古い保存はどの区分でも上に
+export const prioritizedIn = (d: Pick<MyDish, 'slots'>, slot: Slot) => !d.slots || d.slots.includes(slot)
+
+// 保存した区分の一覧（なければすべて）
+export const prioritySlots = (d: Pick<MyDish, 'slots'>): Slot[] => d.slots ?? [...SLOTS]
+
+// 区分を足す（並びは朝・昼・晩・その他の順）
+export const withSlot = (slots: Slot[], slot: Slot): Slot[] => SLOTS.filter((s) => s === slot || slots.includes(s))
