@@ -70,16 +70,16 @@ export function RankingView({ catalog, targets, prices }: { catalog: Catalog; ta
   return (
     <section aria-labelledby="ranking-title" className="space-y-4">
       <div>
-        <h2 id="ranking-title" className="text-xl font-bold">食品の栄養素ランキング</h2>
+        <h2 id="ranking-title" className="text-xl font-bold">食品成分ランキング</h2>
         <p className="mt-1 text-sm text-ink-soft">
-          肉・魚・野菜・調味料などの食品（料理ではなく材料）を、栄養素の多い順に並べます。
+          肉・魚・野菜・調味料などの食品（料理ではなく材料）を、成分の多い順に並べます。
           {info.caution ? `いまは${info.label}が多い食品。とりすぎに気をつけたいときの目安にどうぞ。` : `いまは${info.label}をとりやすい食品の順です。`}
         </p>
       </div>
 
       <div className="space-y-3 rounded-[var(--radius-card)] bg-white/70 p-4 shadow-sm">
         <div>
-          <p className="mb-1.5 text-xs font-bold text-ink-soft">栄養素</p>
+          <p className="mb-1.5 text-xs font-bold text-ink-soft">成分</p>
           <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1 sm:flex-wrap">
             {RANKING_NUTRIENTS.map((n) => (
               <Chip key={n.key} active={n.key === nutrient} onClick={() => (setNutrient(n.key), reset())}>

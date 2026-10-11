@@ -41,7 +41,7 @@ describe('1回に食べる量の目安', () => {
   })
 })
 
-describe('栄養素ランキング', () => {
+describe('食品成分ランキング', () => {
   const foods = [nori, komatsuna, liver, tea, unknown]
   it('100gあたりでは焼きのりが上、1回量ではレバーや小松菜が上', () => {
     expect(rankFoods(foods, { nutrient: 'iron', metric: 'per100g' }).map((r) => r.food.id)).toEqual(['11092', '09004', '06086'])
