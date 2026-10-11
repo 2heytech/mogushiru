@@ -2,7 +2,7 @@
 const INK = '#5b4636'
 const CHEEK = '#ffa99a'
 
-export type UiIconName = 'menu' | 'ranking' | 'profile' | 'save' | 'load' | 'reset'
+export type UiIconName = 'menu' | 'ranking' | 'profile' | 'save' | 'load' | 'reset' | 'limit' | 'want' | 'info'
 
 const TILE_BG: Record<UiIconName, string> = {
   menu: '#ffe6bf',
@@ -11,6 +11,9 @@ const TILE_BG: Record<UiIconName, string> = {
   save: '#dceafb',
   load: '#dceafb',
   reset: '#ffe1ea',
+  limit: '#ffe1db',
+  want: '#dcf1e2',
+  info: '#f3ebe1',
 }
 
 export function UiIcon({ name, className }: { name: UiIconName; className?: string }) {
@@ -75,6 +78,31 @@ export function UiIcon({ name, className }: { name: UiIconName; className?: stri
           <path d="M35.5 28 A12.5 12.5 0 1 1 33 15.5" fill="none" {...s} stroke="#ff8a65" strokeWidth={4.5} />
           <path d="M33.5 7.5 L34.5 16.5 L25.5 17" fill="none" {...s} stroke="#ff8a65" strokeWidth={4.5} />
           <circle cx="24" cy="25" r="3.2" fill="#ff8a65" />
+        </>
+      )}
+      {name === 'limit' && (
+        // とりすぎに気をつけたい：コップの上のほうに赤い線。ここまでにしておこう
+        <>
+          <path d="M14 11 L17.5 38 a3 3 0 0 0 3 2.5 h7 a3 3 0 0 0 3 -2.5 L34 11 Z" fill="#fff" {...s} />
+          <path d="M16.3 27 L31.7 27 L30.2 37.6 a2 2 0 0 1 -2 1.6 h-8.4 a2 2 0 0 1 -2 -1.6 Z" fill="#ffb4a3" />
+          <path d="M9 19 h30" fill="none" stroke="#e8705f" strokeWidth={3.4} strokeLinecap="round" />
+        </>
+      )}
+      {name === 'want' && (
+        // しっかりとりたい：上向きの矢印とふた葉
+        <>
+          <path d="M24 40 V20" fill="none" {...s} stroke="#4fa874" strokeWidth={4} />
+          <path d="M15.5 24 L24 14.5 L32.5 24" fill="none" {...s} stroke="#4fa874" strokeWidth={4} />
+          <path d="M24 36 C18 37 12.5 34 12 28 C18 27.5 22.5 30.5 24 36 Z" fill="#7cc98a" {...s} strokeWidth={1.8} />
+          <path d="M37 9 l1.2 2.8 l2.8 1.2 l-2.8 1.2 l-1.2 2.8 l-1.2 -2.8 l-2.8 -1.2 l2.8 -1.2 z" fill="#ffc94d" />
+        </>
+      )}
+      {name === 'info' && (
+        // 基準のないもの：まるい「i」
+        <>
+          <circle cx="24" cy="24" r="13" fill="#fff" {...s} />
+          <circle cx="24" cy="17.5" r="2" fill={INK} />
+          <path d="M24 23 v8.5" fill="none" {...s} strokeWidth={3} />
         </>
       )}
     </svg>
