@@ -12,6 +12,7 @@ import type { CheckedNutrient } from '../domain/targets'
 import { SLOT_ENERGY_SHARE } from '../domain/slotBalance'
 import { SLOTS, type Slot } from '../domain/types'
 import { NUTRIENT_INFO, SLOT_LABEL } from './labels'
+import { UiIcon } from './UiIcon'
 
 const CHECKED_COUNT = LIMIT_NUTRIENTS.length + WANT_NUTRIENTS.length + INFO_NUTRIENTS.length
 
@@ -103,17 +104,43 @@ function CheckRow({ c, perSlot }: { c: NutrientCheck; perSlot: boolean }) {
   )
 }
 
-function Group({ title, keys, checks, perSlot }: { title: string; keys: readonly CheckedNutrient[]; checks: NutrientCheck[]; perSlot: boolean }) {
+// グループごとに色の台とアイコンを分け、「気をつけたい」と「とりたい」の境目がひと目で分かるようにする
+const GROUP_STYLE = {
+  limit: { icon: 'limit', box: 'bg-alert/8 ring-alert/25', title: 'text-alert', note: '少ないほど安心。上限の線をこえないように' },
+  want: { icon: 'want', box: 'bg-ok/10 ring-ok/30', title: 'text-[#3f9466]', note: '目安の線まで届けば達成' },
+  info: { icon: 'info', box: 'bg-cream ring-ink/10', title: 'text-ink-soft', note: '量だけを表示' },
+} as const
+
+function Group({
+  kind,
+  title,
+  keys,
+  checks,
+  perSlot,
+}: {
+  kind: keyof typeof GROUP_STYLE
+  title: string
+  keys: readonly CheckedNutrient[]
+  checks: NutrientCheck[]
+  perSlot: boolean
+}) {
   const rows = keys.map((k) => checks.find((c) => c.key === k)!).filter((c) => !(perSlot && ((c.key === 'alcohol' && c.amount < 0.5) || (c.key === 'caffeine' && c.amount < 1))))
+  const st = GROUP_STYLE[kind]
   return (
-    <div>
-      <h3 className="mb-1.5 text-xs font-bold text-ink-soft">{title}</h3>
+    <section className={`rounded-xl px-2.5 pt-2 pb-2.5 ring-1 ${st.box}`}>
+      <h3 className="mb-2 flex items-center gap-2">
+        <UiIcon name={st.icon} className="h-7 w-7 shrink-0" />
+        <span className="min-w-0 leading-tight">
+          <span className={`block text-sm font-bold ${st.title}`}>{title}</span>
+          <span className="block text-[11px] text-ink-soft">{st.note}</span>
+        </span>
+      </h3>
       <ul className="space-y-2 text-xs">
         {rows.map((c) => (
           <CheckRow key={c.key} c={c} perSlot={perSlot} />
         ))}
       </ul>
-    </div>
+    </section>
   )
 }
 
@@ -173,9 +200,9 @@ export function NutrientChecks({
         </span>
       </summary>
       <div className="mt-2 space-y-3 pb-1">
-        <Group title="とりすぎに気をつけたい" keys={LIMIT_NUTRIENTS} checks={checks} perSlot={perSlot} />
-        <Group title="しっかりとりたい" keys={WANT_NUTRIENTS} checks={checks} perSlot={perSlot} />
-        <Group title="基準のないもの" keys={INFO_NUTRIENTS} checks={checks} perSlot={perSlot} />
+        <Group kind="limit" title="とりすぎに気をつけたい" keys={LIMIT_NUTRIENTS} checks={checks} perSlot={perSlot} />
+        <Group kind="want" title="しっかりとりたい" keys={WANT_NUTRIENTS} checks={checks} perSlot={perSlot} />
+        <Group kind="info" title="基準のないもの" keys={INFO_NUTRIENTS} checks={checks} perSlot={perSlot} />
         <div className="space-y-0.5 text-[11px] leading-relaxed text-ink-soft">
           {perSlot ? (
             <p>
