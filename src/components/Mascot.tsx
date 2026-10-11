@@ -2,7 +2,7 @@ import type { DangoMoods, MascotMood } from '../domain/mascotMood'
 import type { PfcKey } from '../domain/slotBalance'
 import type { Slot } from '../domain/types'
 
-// マスコット「モグ」。1日のまとめは「PFCだんごモグ」、朝・昼・晩・その他のカードは「ちゃわんモグ」
+// マスコット「モグ」。PFCバランスは「PFCだんごモグ」、それ以外（ロゴ・まとめの一言・区分カード）は「ちゃわんモグ」
 const INK = '#5b4636'
 const line = { stroke: INK, strokeWidth: 3, strokeLinecap: 'round', strokeLinejoin: 'round' } as const
 
@@ -54,24 +54,31 @@ function Face({ mood, x, y, s = 1 }: { mood: MascotMood; x: number; y: number; s
   )
 }
 
-const BALL: { key: PfcKey; cy: number; color: string }[] = [
-  { key: 'p', cy: 28, color: '#f47c7c' },
-  { key: 'f', cy: 61, color: '#ffc94d' },
-  { key: 'c', cy: 94, color: '#7cc98a' },
+const BALL: { key: PfcKey; color: string }[] = [
+  { key: 'p', color: '#f47c7c' },
+  { key: 'f', color: '#ffc94d' },
+  { key: 'c', color: '#7cc98a' },
 ]
 
-// PFCだんごモグ：上からたんぱく質（いちご色）・脂質（たまご色）・炭水化物（わかば色）
-export function DangoMogu({ moods, className, label }: { moods: DangoMoods; className?: string; label: string }) {
+// PFCだんごモグ：左からたんぱく質（いちご色）・脂質（たまご色）・炭水化物（わかば色）。
+// だんごの大きさがいまの割合、点線の丸が目標の大きさ。PFCバランスの表示だけに使う
+export function PfcDango({ moods, scales, className, label }: { moods: DangoMoods; scales: Record<PfcKey, number>; className?: string; label: string }) {
+  const R = 28
   return (
-    <svg viewBox="0 0 120 120" className={className} role="img" aria-label={label}>
-      <rect x="57" y="4" width="6" height="112" rx="3" fill="#d9a86c" stroke={INK} strokeWidth="2.2" />
-      {BALL.map((b) => (
-        <g key={b.key}>
-          <circle cx="60" cy={b.cy} r="18.5" fill={b.color} {...line} />
-          <ellipse cx="51" cy={b.cy - 9} rx="4.5" ry="2.6" fill="#fff" opacity="0.65" transform={`rotate(-25 51 ${b.cy - 9})`} />
-          <Face mood={moods[b.key]} x={60} y={b.cy + 2} s={0.6} />
-        </g>
-      ))}
+    <svg viewBox="0 0 300 104" className={className} role="img" aria-label={label}>
+      <rect x="8" y="49" width="284" height="6" rx="3" fill="#d9a86c" stroke={INK} strokeWidth="2" />
+      {BALL.map((b, i) => {
+        const cx = 50 + i * 100
+        const r = R * scales[b.key]
+        return (
+          <g key={b.key}>
+            <circle cx={cx} cy="52" r={r} fill={b.color} {...line} style={{ transition: 'r 0.5s' }} />
+            <ellipse cx={cx - r * 0.45} cy={52 - r * 0.5} rx={r * 0.22} ry={r * 0.13} fill="#fff" opacity="0.65" transform={`rotate(-25 ${cx - r * 0.45} ${52 - r * 0.5})`} />
+            <Face mood={moods[b.key]} x={cx} y={54} s={0.85 * scales[b.key]} />
+            <circle cx={cx} cy="52" r={R} fill="none" stroke={INK} strokeWidth="1.6" strokeDasharray="4 4" opacity="0.45" />
+          </g>
+        )
+      })}
     </svg>
   )
 }
@@ -162,6 +169,41 @@ export function SlotIcon({ slot, className }: { slot: Slot; className?: string }
           <ellipse cx="30" cy="34" rx="1.8" ry="1.4" fill={INK} />
         </>
       )}
+    </svg>
+  )
+}
+
+// ロゴのちゃわんモグ：山盛りのごはん（粒つき）と、ふちに置いたお箸で「ごはん茶碗」と分かるようにする
+export function LogoMogu({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 120 120" className={className} aria-hidden>
+      <path d="M51 22 q-5 -4 0 -9 q5 -4 0 -9 M67 22 q-5 -4 0 -9 q5 -4 0 -9" fill="none" stroke={INK} strokeWidth="3" strokeLinecap="round" />
+      <path
+        d="M16 66 C16 52 22 44 30 41 C32 33 40 28 47 30 C51 24 60 22 66 27 C73 24 82 28 84 35 C93 36 101 44 102 52 C104 56 104 61 104 66 Z"
+        fill="#fff"
+        {...line}
+      />
+      {[
+        [34, 50, -20],
+        [48, 39, 10],
+        [70, 37, -15],
+        [88, 49, 25],
+        [94, 60, -10],
+        [27, 61, 15],
+      ].map(([x, y, a]) => (
+        <ellipse key={`${x}-${y}`} cx={x} cy={y} rx="4" ry="2.2" fill="none" stroke="#d8c8b4" strokeWidth="1.6" transform={`rotate(${a} ${x} ${y})`} />
+      ))}
+      <rect x="44" y="102" width="32" height="10" rx="3" fill="#e8704b" stroke={INK} strokeWidth="2.8" />
+      <path d="M8 64 H112 C112 90 90 106 60 106 C30 106 8 90 8 64 Z" fill="#ff8a65" {...line} />
+      <path d="M14 78 H106" stroke="#fff" strokeWidth="3" opacity="0.7" strokeLinecap="round" />
+      <circle cx="34" cy="90" r="3.4" fill="#fff" opacity="0.85" />
+      <circle cx="60" cy="95" r="3.4" fill="#fff" opacity="0.85" />
+      <circle cx="86" cy="90" r="3.4" fill="#fff" opacity="0.85" />
+      <path d="M84 70 L117 31" stroke={INK} strokeWidth="7.5" strokeLinecap="round" />
+      <path d="M84 70 L117 31" stroke="#c98b4f" strokeWidth="3.5" strokeLinecap="round" />
+      <path d="M92 72 L119 40" stroke={INK} strokeWidth="7.5" strokeLinecap="round" />
+      <path d="M92 72 L119 40" stroke="#c98b4f" strokeWidth="3.5" strokeLinecap="round" />
+      <Face mood="happy" x={56} y={52} s={0.95} />
     </svg>
   )
 }

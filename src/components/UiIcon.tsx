@@ -13,20 +13,6 @@ const TILE_BG: Record<UiIconName, string> = {
   reset: '#ffe1ea',
 }
 
-// 保存・呼び出しで共通の「保存容器」（ふた付きの箱）
-function Box() {
-  const s = { stroke: INK, strokeWidth: 2.2, strokeLinecap: 'round', strokeLinejoin: 'round' } as const
-  return (
-    <>
-      <rect x="11" y="26" width="26" height="14" rx="4" fill="#fff" {...s} />
-      <rect x="9" y="21" width="30" height="6" rx="3" fill="#7ab8e8" {...s} />
-      <circle cx="18" cy="33.5" r="1.4" fill={CHEEK} />
-      <circle cx="30" cy="33.5" r="1.4" fill={CHEEK} />
-      <path d="M22 33 q2 2 4 0" fill="none" {...s} strokeWidth={1.8} />
-    </>
-  )
-}
-
 export function UiIcon({ name, className }: { name: UiIconName; className?: string }) {
   const s = { stroke: INK, strokeWidth: 2.2, strokeLinecap: 'round', strokeLinejoin: 'round' } as const
   return (
@@ -65,26 +51,30 @@ export function UiIcon({ name, className }: { name: UiIconName; className?: stri
         </>
       )}
       {name === 'save' && (
-        // 容器にしまう（下向き矢印）
+        // 保存：まるっこいフロッピーディスク
         <>
-          <Box />
-          <path d="M24 6 v11 M19.5 12.5 L24 17 L28.5 12.5" fill="none" {...s} stroke="#ff8a65" strokeWidth={2.8} />
+          <path d="M11 13 a4 4 0 0 1 4 -4 h16 l6 6 v20 a4 4 0 0 1 -4 4 h-18 a4 4 0 0 1 -4 -4 z" fill="#7ab8e8" {...s} />
+          <rect x="17" y="9" width="12" height="9" rx="1.5" fill="#fff" {...s} strokeWidth={1.8} />
+          <rect x="24.5" y="11" width="2.5" height="5" rx="1" fill={INK} />
+          <rect x="16" y="25" width="16" height="11" rx="2.5" fill="#fff" {...s} strokeWidth={1.8} />
+          <path d="M19.5 29.5 h9 M19.5 32.5 h6" fill="none" stroke="#c9b8a6" strokeWidth="1.6" strokeLinecap="round" />
         </>
       )}
       {name === 'load' && (
-        // 容器から取り出す（上向き矢印）
+        // 呼び出し：ひらいたフォルダから紙が出てくる
         <>
-          <Box />
-          <path d="M24 17 v-11 M19.5 10.5 L24 6 L28.5 10.5" fill="none" {...s} stroke="#ff8a65" strokeWidth={2.8} />
+          <path d="M8 15 a3 3 0 0 1 3 -3 h8 l3 3 h15 a3 3 0 0 1 3 3 v18 a3 3 0 0 1 -3 3 h-26 a3 3 0 0 1 -3 -3 z" fill="#f2b84b" {...s} />
+          <rect x="15" y="9" width="18" height="17" rx="2" fill="#fff" {...s} strokeWidth={1.8} />
+          <path d="M19 14 h10 M19 17.5 h7" fill="none" stroke="#c9b8a6" strokeWidth="1.6" strokeLinecap="round" />
+          <path d="M8 22 h32 l-3 15 a3 3 0 0 1 -3 2.5 h-21 a3 3 0 0 1 -3 -2.5 z" fill="#ffc94d" {...s} />
         </>
       )}
       {name === 'reset' && (
-        // くるっと回ってやり直し。中心は空っぽのお皿
+        // リセット：くるっと回ってはじめから
         <>
-          <path d="M37 22 A13.5 13.5 0 1 1 31 12.5" fill="none" {...s} stroke="#ff8a65" strokeWidth={3} />
-          <path d="M30 6.5 L32 13 L25.5 14.5" fill="none" {...s} stroke="#ff8a65" strokeWidth={3} />
-          <ellipse cx="24" cy="25" rx="7.5" ry="5" fill="#fff" {...s} strokeWidth={1.8} />
-          <ellipse cx="24" cy="25" rx="3.5" ry="2" fill="none" stroke={INK} strokeWidth="1.2" opacity="0.5" />
+          <path d="M35.5 28 A12.5 12.5 0 1 1 33 15.5" fill="none" {...s} stroke="#ff8a65" strokeWidth={4.5} />
+          <path d="M33.5 7.5 L34.5 16.5 L25.5 17" fill="none" {...s} stroke="#ff8a65" strokeWidth={4.5} />
+          <circle cx="24" cy="25" r="3.2" fill="#ff8a65" />
         </>
       )}
     </svg>

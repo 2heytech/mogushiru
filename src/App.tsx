@@ -19,7 +19,7 @@ import { knownItemsOnly, menuTotals, type Catalog } from './domain/nutrition'
 import { computeTargets } from './domain/targets'
 import type { Ingredient, Slot } from './domain/types'
 import { MY_PRODUCT_PREFIX, useAppStore } from './store/useAppStore'
-import { BowlMogu } from './components/Mascot'
+import { LogoMogu } from './components/Mascot'
 import { UiIcon, type UiIconName } from './components/UiIcon'
 
 const sameIngredients = (a: Ingredient[], b: Ingredient[]) =>
@@ -231,7 +231,7 @@ export default function App() {
     <div className="mx-auto max-w-6xl px-4 pb-16">
       <header className="flex items-center justify-between py-4">
         <h1 className="flex shrink-0 items-center gap-1.5">
-          <BowlMogu slot="dinner" mood="happy" color="#ff8a65" className="h-11 w-11" label="ちゃわんモグ" />
+          <LogoMogu className="h-12 w-12" />
           <span className="font-logo text-[28px] leading-none tracking-wide text-ink">モグシル</span>
         </h1>
         <button type="button" onClick={() => setProfileOpen(true)} className={NAV_BUTTON}>

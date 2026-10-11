@@ -1,15 +1,15 @@
 import { balanceMood, computeAlerts, type Alert, type Mood } from '../domain/alerts'
 import type { MenuTotals } from '../domain/nutrition'
 import { nutrientChecks } from '../domain/nutrientChecks'
-import { idealPfc, pfcGaps } from '../domain/pfcGap'
+import { pfcGaps, type PfcGap } from '../domain/pfcGap'
 import type { Targets } from '../domain/targets'
 import { SLOTS } from '../domain/types'
 import { MOOD_LABEL, SLOT_LABEL } from './labels'
-import { dangoMoods, type DangoMoods } from '../domain/mascotMood'
-import { DangoMogu } from './Mascot'
+import type { MascotMood } from '../domain/mascotMood'
+import { BowlMogu } from './Mascot'
+import { PfcDangoView } from './PfcDangoView'
 import { NutrientChecks } from './NutrientChecks'
 import { NUTRIENT_INFO } from './labels'
-import { PfcBars, PfcGapList } from './PfcCompare'
 
 
 const alertLabel = (a: Alert) => (a.key === 'energy' ? 'カロリー' : NUTRIENT_INFO[a.key].label)
@@ -77,18 +77,18 @@ function SlotShare({ totals, targets, onEdit }: { totals: MenuTotals; targets: T
 }
 
 const MOOD_MESSAGE: Record<Mood, string> = {
-  happy: '3人そろって、いいバランス！',
+  happy: 'いいバランス！このままいこう',
   okay: 'いい感じ。もうひと工夫してみる？',
   worried: 'ちょっと偏ってるかも…',
 }
 const PFC_NAME = { p: 'たんぱく質', f: '脂質', c: '炭水化物' } as const
 
-function moguMessage(energy: number, mood: Mood, moods: DangoMoods, alerts: Alert[]): string {
+function moguMessage(energy: number, mood: Mood, gaps: PfcGap[] | null, alerts: Alert[]): string {
   if (energy === 0) return '料理をえらんで、1日の食事をつくってみよう！'
   const over = alerts.find((a) => a.level === 'over')
   if (over) return `${alertLabel(over)}が${over.limitKind === 'upper' ? '上限' : '目安'}をこえてるよ！`
-  const off = (['p', 'f', 'c'] as const).filter((k) => moods[k] === 'worried')
-  if (off.length > 0) return `${off.map((k) => PFC_NAME[k]).join('と')}のだんごがこまってるよ`
+  const off = (gaps ?? []).filter((g) => g.gap !== 0)
+  if (off.length > 0) return `${off.map((g) => `${PFC_NAME[g.key]}が${g.gap < 0 ? '少なめ' : '多め'}`).join('、')}かも`
   return MOOD_MESSAGE[mood]
 }
 
@@ -97,27 +97,17 @@ export function SummaryPanel({ totals, targets, onEditSlotShare }: { totals: Men
   const gaps = pfcGaps(v, targets)
   const alerts = computeAlerts(totals, targets)
   const mood = balanceMood(totals, targets, alerts)
-  const moods = dangoMoods(totals, targets, alerts, mood)
-  const message = moguMessage(v.energyKcal, mood, moods, alerts)
+  const bowlMood: MascotMood = alerts.some((a) => a.level === 'over') ? 'alert' : mood
+  const message = moguMessage(v.energyKcal, mood, gaps, alerts)
   return (
     <section className="space-y-4 rounded-[var(--radius-card)] bg-[#fff1df] p-5 shadow-sm">
       <div className="flex items-center gap-3">
-        <DangoMogu
-          moods={moods}
-          className="h-20 w-20 shrink-0 transition-transform hover:scale-105"
-          label={`モグ：たんぱく質${MOOD_LABEL[moods.p]}、脂質${MOOD_LABEL[moods.f]}、炭水化物${MOOD_LABEL[moods.c]}`}
-        />
+        <BowlMogu slot="dinner" mood={bowlMood} className="h-16 w-16 shrink-0" label={`モグは${MOOD_LABEL[bowlMood]}`} />
         <p className="rounded-2xl bg-white px-4 py-2 text-sm shadow-sm">{message}</p>
       </div>
       <EnergyGauge value={v.energyKcal} target={targets.energyKcal} />
       <SlotShare totals={totals} targets={targets} onEdit={onEditSlotShare} />
-      {gaps && (
-        <div className="space-y-2">
-          <p className="text-sm text-ink-soft">PFCバランス（カロリーのうちわけ）</p>
-          <PfcBars ideal={idealPfc(targets)} actual={{ p: gaps[0].ratio, f: gaps[1].ratio, c: gaps[2].ratio }} />
-          <PfcGapList gaps={gaps} gramRanges={targets.pfcGrams} />
-        </div>
-      )}
+      {gaps && <PfcDangoView gaps={gaps} gramRanges={targets.pfcGrams} />}
       {alerts.length > 0 && (
         <ul className="space-y-1">
           {alerts.map((a) => (
