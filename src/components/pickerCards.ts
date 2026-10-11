@@ -5,8 +5,8 @@ import { isSupplement, SUPPLEMENT_MAIN_KEYS } from '../domain/supplement'
 import { formatPortion, prioritizedIn } from '../domain/customize'
 import type { Ingredient, MenuItem, Product, Slot } from '../domain/types'
 import { recentMyDishes } from '../store/useAppStore'
-import { dishImage, menuItemImage } from './illustration'
-import { DISH_CATEGORY_LABEL, FOOD_GROUP_EMOJI, PRODUCT_CATEGORY_EMOJI, PRODUCT_CATEGORY_LAST, shortNutrientLabel } from './labels'
+import { dishImage, foodImage, menuItemImage, productImage, SUPPLEMENT_IMAGE } from './illustration'
+import { DISH_CATEGORY_LABEL, PRODUCT_CATEGORY_LAST, shortNutrientLabel } from './labels'
 
 // 料理をえらぶ画面のカードを作る（種類ごとの候補と並び）
 export type Kind = 'dish' | 'product' | 'food' | 'myDish' | 'supplement'
@@ -15,7 +15,7 @@ export type Tab = 'all' | Kind
 // 横断検索での種類の並び（料理を優先。市販品は数が多いので食材の後）
 const KIND_ORDER: Kind[] = ['myDish', 'dish', 'food', 'product', 'supplement']
 
-export type Card = { key: string; kind: Kind; name: string; sub: string; kcal: number | null; image?: string; emoji?: string; item: Omit<MenuItem, 'uid'> }
+export type Card = { key: string; kind: Kind; name: string; sub: string; kcal: number | null; image?: string; item: Omit<MenuItem, 'uid'> }
 export type Entry = { card: Card; fields: (string | undefined)[] }
 
 // 料理の絞り込みの「郷土料理」（農水省「うちの郷土料理」をもとにした料理）
@@ -73,7 +73,7 @@ function entries(kind: Kind, { catalog, slot, query, category, showAlcohol, favo
               name: p.name,
               sub: [p.brand, p.basis === 'serving' ? '1食' : `${grams}${p.basis === '100ml' ? 'mL' : 'g'}`].filter(Boolean).join('・'),
               kcal: p.nutrients.energyKcal === null ? null : p.nutrients.energyKcal * per,
-              emoji: PRODUCT_CATEGORY_EMOJI[p.category],
+              image: productImage(p),
               item: { kind: 'product', refId: p.jan, portion: p.basis === 'serving' ? 1 : grams },
             },
           }
@@ -95,7 +95,7 @@ function entries(kind: Kind, { catalog, slot, query, category, showAlcohol, favo
               name: f.displayName,
               sub: portion ? `${portion.label}（${grams}g）` : '100g',
               kcal: f.per100g.energyKcal === null ? null : (f.per100g.energyKcal * grams) / 100,
-              emoji: portion?.emoji ?? FOOD_GROUP_EMOJI[f.group],
+              image: foodImage(f),
               item: { kind: 'food', refId: f.id, portion: grams },
             },
           }
@@ -109,7 +109,7 @@ function entries(kind: Kind, { catalog, slot, query, category, showAlcohol, favo
           name: p.name,
           sub: supplementSub(p),
           kcal: null,
-          emoji: '💊',
+          image: SUPPLEMENT_IMAGE,
           item: { kind: 'supplement', refId: p.jan, portion: 1 },
         },
       }))

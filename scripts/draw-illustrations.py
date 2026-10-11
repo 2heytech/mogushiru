@@ -1537,6 +1537,110 @@ E['alcohol-shochu-oyuwari'] = ('alcohol', '<path d="M30 46 Q30 104 64 104 Q98 10
 
 D.update(E)
 
+# ---- 食材・市販品の絵（料理を選ぶ画面と献立に出す。src/components/illustration.ts と対応） ----
+def jar(fill, label='', lid='#ff8a65'):
+    return (f'<rect x="38" y="40" width="52" height="62" rx="12" fill="#fff"/><rect x="42" y="48" width="44" height="50" rx="9" fill="{fill}" stroke="none"/>'
+            f'<rect x="34" y="28" width="60" height="16" rx="5" fill="{lid}"/><path d="M40 36 h48" stroke="#fff" stroke-opacity=".6" stroke-width="2.5"/>'
+            '<rect x="38" y="40" width="52" height="62" rx="12" fill="none"/>' + label)
+
+def bottle(fill, cap, label=''):
+    return (f'<rect x="54" y="16" width="20" height="14" rx="3" fill="{cap}"/><path d="M50 30 h28 l4 12 v58 q0 6 -6 6 h-24 q-6 0 -6 -6 v-58Z" fill="{fill}"/>' + label
+            + '<path d="M54 50 v40" stroke="#fff" stroke-opacity=".6" stroke-width="4"/>')
+
+def bag(fill, top, label=''):
+    return (f'<path d="M30 34 L36 104 H92 L98 34Z" fill="{fill}"/><path d="M28 30 h72 v8 h-72Z" fill="{top}"/>'
+            '<path d="M28 34 q6 -6 12 0 t12 0 t12 0 t12 0 t12 0 t12 0" fill="none" stroke-width="2"/>' + label)
+
+def pack_tray(top, film='#eaf6ff'):
+    return ('<path d="M16 72 L24 100 H104 L112 72Z" fill="#fff"/>' + top + f'<path d="M14 72 Q64 56 114 72 L112 76 Q64 62 16 76Z" fill="{film}" fill-opacity=".7"/>')
+
+def bread_slice(crust='#e8b060', crumb='#fffaf0'):
+    return (f'<path d="M28 100 V56 Q24 34 44 30 Q64 22 84 30 Q104 34 100 56 V100Z" fill="{crust}"/>'
+            f'<path d="M36 94 V58 Q34 42 48 38 Q64 32 80 38 Q94 42 92 58 V94Z" fill="{crumb}" stroke="none"/>')
+
+strawberry = lambda x, y, r=1: (f'<path d="M{x-9*r} {y-4*r} Q{x} {y-10*r} {x+9*r} {y-4*r} Q{x+8*r} {y+8*r} {x} {y+12*r} Q{x-8*r} {y+8*r} {x-9*r} {y-4*r}Z" fill="#ff5a6a"/>'
+                                f'<path d="M{x-7*r} {y-6*r} l4 -4 l3 3 l3 -4 l3 4 l4 -2 l-2 5Z" fill="#6cbf5a" stroke-width="2"/>' + dots([(x - 3 * r, y), (x + 3 * r, y + 3 * r), (x, y + 6 * r)], 1, '#fff3a8', False))
+
+F = {}
+# よく選ぶ食材（1品ずつ）
+F['food/01026'] = ('bread', bread_slice() + '<path d="M50 52 q6 -4 12 -2 M66 66 q6 -2 10 2" fill="none" stroke="#f2e2c8" stroke-width="2.5"/>')
+F['food/07013'] = ('snack', jar('#e8455a', '<rect x="46" y="62" width="36" height="26" rx="6" fill="#fff"/>' + strawberry(64, 74, 0.8)))
+F['food/14017'] = ('side', small_dish('<path d="M36 76 L44 58 H88 L80 76Z" fill="#fff3b0"/><path d="M80 76 L88 58 V66 L80 84Z" fill="#ffe68a"/><path d="M36 76 H80 V84 H36Z" fill="#ffec9a"/>'
+    + '<path d="M50 64 h20" stroke="#fff" stroke-width="3"/><path d="M90 86 L108 70" stroke="#c9d0d8" stroke-width="5"/>', '#cfe6fa'))
+F['food/14020'] = ('side', '<ellipse cx="64" cy="94" rx="40" ry="10" fill="#ffe68a"/><path d="M24 62 V94 Q64 108 104 94 V62Z" fill="#ffe68a"/>'
+    + '<ellipse cx="64" cy="62" rx="40" ry="12" fill="#fff3b0"/><path d="M40 60 q12 -8 24 0 t24 0" fill="none" stroke="#f2d070" stroke-width="3"/>'
+    + '<path d="M28 76 Q64 88 100 76" fill="none" stroke="#7cc98a" stroke-width="5"/>' + leaf(64, 86, 18, 6, 0, '#7cc98a'))
+F['food/03022'] = ('snack', jar('#ffb82e', '<path d="M46 60 q6 6 12 0 t12 0 t12 0" fill="none" stroke="#ffd77a" stroke-width="3"/>', '#d9984a')
+    + '<path d="M86 48 L108 26" stroke="#c9944a" stroke-width="5"/><ellipse cx="84" cy="52" rx="7" ry="9" fill="#e8b45a" transform="rotate(-45 84 52)"/>')
+F['food/01137'] = ('staple', bowl('#7fa8e8', '#fffaf0', rx=46, top=''.join(f'<path d="M{x-8} {y} q8 -8 16 -2 q-6 8 -16 2Z" fill="#f2b84a" transform="rotate({r} {x} {y})"/>' for x, y, r in [(40, 58, -10), (54, 52, 20), (68, 56, -20), (82, 52, 10), (60, 62, 0), (76, 62, 30), (46, 64, 15)])))
+F['food/09004'] = ('side', small_dish(''.join(f'<rect x="{x}" y="{y}" width="40" height="32" rx="3" fill="#2f4a3a" transform="rotate({r} {x+20} {y+16})"/>' for x, y, r in [(30, 54, -10), (52, 56, 8)])
+    + '<path d="M58 66 h24 M58 74 h24" stroke="#4a6a5a" stroke-width="2" transform="rotate(8 70 70)"/>', '#fff4dc'))
+# 食品群（上にない食材）
+F['food-group/01'] = ('staple', small_dish('<path d="M30 80 Q32 58 64 56 Q96 58 98 80Z" fill="#fffaf0"/>' + dots([(46, 70), (56, 64), (66, 70), (76, 64), (84, 72), (60, 76), (72, 76)], 2.4, '#e8dcc4', False))
+    + '<path d="M86 84 Q88 50 100 22" fill="none" stroke="#c9a03a" stroke-width="3"/>' + ''.join(f'<ellipse cx="{x}" cy="{y}" rx="4" ry="7" fill="#f2c84a" transform="rotate(20 {x} {y})"/>' for x, y in [(94, 34), (98, 46), (90, 52), (100, 24)]))
+F['food-group/02'] = ('side', plate() + '<ellipse cx="46" cy="74" rx="20" ry="15" fill="#e8c890"/>' + dots([(40, 70), (52, 76)], 1.8, '#a8845a', False)
+    + '<path d="M60 80 Q66 56 94 58 Q108 62 100 76 Q88 90 66 88Z" fill="#a8445a"/><path d="M68 78 q12 -10 26 -10" fill="none" stroke="#c96a7e" stroke-width="2.5"/>')
+F['food-group/03'] = ('snack', small_dish(''.join(f'<rect x="{x}" y="{y}" width="20" height="20" rx="3" fill="#fff"/><path d="M{x+4} {y+5} h8" stroke="#e8eef4" stroke-width="2.5"/>' for x, y in [(40, 64), (62, 64), (51, 44), (84, 70)]), '#ffd0dc'))
+F['food-group/04'] = ('side', small_dish('<path d="M36 64 L60 54 L84 64 V80 L60 90 L36 80Z" fill="#fff"/><path d="M36 64 L60 74 L84 64 M60 74 V90" fill="none" stroke-width="2.5"/>'
+    + ''.join(f'<ellipse cx="{x}" cy="{y}" rx="6" ry="5" fill="#f2d8a0"/>' for x, y in [(90, 80), (98, 72), (88, 70)]), '#7fa8e8'))
+F['food-group/05'] = ('snack', plate() + '<path d="M30 82 Q30 60 48 56 Q66 60 66 82 Q48 92 30 82Z" fill="#8a4a2e"/><path d="M32 78 Q48 86 64 78 L64 84 Q48 92 32 84Z" fill="#e8c890"/><path d="M46 56 l2 -6" stroke-width="3"/>'
+    + '<ellipse cx="86" cy="74" rx="14" ry="10" fill="#c9944a"/><path d="M76 74 q10 -8 20 0 M78 78 q8 -4 16 0" fill="none" stroke="#a8703a" stroke-width="2"/>')
+F['food-group/06'] = ('side', plate() + '<path d="M28 60 L60 86 L66 78Z" fill="#ff9a3c"/><path d="M28 60 l-8 -8 m8 8 l-10 0 m10 0 l-4 -10" stroke="#4fae5c" stroke-width="3"/>'
+    + '<path d="M84 90 v-12" stroke="#8cc46a" stroke-width="7"/><circle cx="76" cy="70" r="9" fill="#3f9a50"/><circle cx="92" cy="70" r="9" fill="#3f9a50"/><circle cx="84" cy="62" r="9" fill="#4fae5c"/>')
+F['food-group/07'] = ('snack', plate() + '<path d="M48 54 Q36 46 28 58 Q20 76 34 88 Q44 94 50 88 Q56 94 66 88 Q78 76 70 58 Q62 46 48 54Z" fill="#ff5a5a"/><path d="M48 54 q0 -10 6 -14" fill="none" stroke-width="3"/>' + leaf(60, 44, 14, 5, -20, '#6cbf5a')
+    + '<circle cx="88" cy="76" r="16" fill="#ffa836"/><path d="M84 62 l4 2 l4 -2" fill="none" stroke="#6cbf5a" stroke-width="3"/>' + dots([(82, 74), (92, 80)], 1.4, '#ffd08a', False))
+F['food-group/08'] = ('side', plate() + '<path d="M28 70 a20 14 0 0 1 40 0Z" fill="#8a5a34"/><path d="M40 70 h16 v16 q-8 4 -16 0Z" fill="#f6eadc"/><path d="M40 62 l16 0 M48 56 v8" stroke="#e8c8a0" stroke-width="2.5"/>'
+    + ''.join(f'<path d="M{x} 88 V{y}" stroke="#fff4e0" stroke-width="5"/><circle cx="{x}" cy="{y}" r="6" fill="#c9a07a"/>' for x, y in [(76, 66), (86, 60), (96, 68)]))
+F['food-group/09'] = ('side', small_dish('<path d="M30 80 q4 -24 14 -28 q4 14 -2 30Z M46 80 q6 -30 20 -34 q2 18 -8 34Z M64 82 q8 -24 24 -26 q-2 16 -14 28Z" fill="#3d7a4a"/>'
+    + '<path d="M76 84 q10 -12 22 -8" fill="none" stroke="#2f4a3a" stroke-width="8"/>', '#fff4dc'))
+F['food-group/10'] = ('main', long_plate() + whole_fish('#9fb8d4', '#e8f0f8') + leaf(98, 92, 18, 6, -20, '#6cbf5a'))
+F['food-group/11'] = ('main', pack_tray('<path d="M26 82 q14 -16 32 -10 q16 -10 34 -2 q10 4 10 12 Q64 96 26 82Z" fill="#f28a9a"/><path d="M34 80 q16 -8 30 -4 q14 -6 28 2" fill="none" stroke="#fff4f4" stroke-width="3"/>'))
+F['food-group/12'] = ('main', plate() + '<ellipse cx="46" cy="68" rx="15" ry="19" fill="#fff8ec"/><ellipse cx="80" cy="70" rx="15" ry="19" fill="#f2c8a0"/><path d="M40 60 q4 -4 8 -2 M74 62 q4 -4 8 -2" fill="none" stroke="#fff" stroke-width="2.5"/>')
+F['food-group/13'] = ('drink', '<path d="M30 44 L36 30 H60 L66 44 V104 H30Z" fill="#fff"/><path d="M30 44 H66" stroke-width="2.5"/><rect x="34" y="60" width="28" height="22" rx="3" fill="#7fa8e8"/><path d="M40 70 h16" stroke="#fff" stroke-width="3"/>'
+    + '<path d="M70 98 L74 70 L108 82 L104 104Z" fill="#ffd94d"/><path d="M74 70 L108 82 L102 72Z" fill="#ffe68a"/>' + dots([(84, 88), (96, 94)], 3, '#ffb82e'))
+F['food-group/14'] = ('side', bottle('#ffd94d', '#7cc98a', '<rect x="50" y="62" width="32" height="20" rx="3" fill="#fff"/>' + leaf(66, 72, 16, 5, 0, '#7cc98a')))
+F['food-group/15'] = ('snack', plate() + '<circle cx="46" cy="74" r="18" fill="#e8b45a"/>' + dots([(40, 68), (52, 72), (44, 80)], 3, '#7a4a2e', False)
+    + '<circle cx="86" cy="72" r="12" fill="#ff8aa0"/><path d="M74 72 l-10 -6 v12Z M98 72 l10 -6 v12Z" fill="#ff8aa0" stroke-width="2.5"/><path d="M80 68 q6 -4 12 0" fill="none" stroke="#fff" stroke-width="2.5"/>')
+F['food-group/16'] = ('drink', teacup('#a8d86a'))
+F['food-group/17'] = ('side', bottle('#6b3a24', '#e8455a', '<rect x="50" y="60" width="32" height="24" rx="3" fill="#fff"/><path d="M58 68 h16 M58 76 h12" stroke="#e8455a" stroke-width="3"/>')
+    + '<path d="M92 104 V78 q0 -6 6 -6 h4 q6 0 6 6 V104Z" fill="#fff"/><rect x="92" y="64" width="16" height="10" rx="3" fill="#7fa8e8"/>' + dots([(97, 67), (103, 67)], 1.2, '#fff', False))
+F['food-group/18'] = ('main', pot('#5a5a62', '#d9a45a', '<path d="M40 60 q10 -8 20 0 l-2 8 q-10 2 -18 -8Z M64 56 q10 -8 20 0 l-2 8 q-10 2 -18 -8Z" fill="#e8a24a"/>' + negi([(80, 66), (50, 70)]), rx=44))
+# 市販品（カテゴリごと）
+F['product/my'] = ('snack', '<path d="M28 50 L36 104 H92 L100 50Z" fill="#f2d8a8"/><path d="M44 50 Q44 30 64 30 Q84 30 84 50" fill="none" stroke-width="5"/>'
+    + '<path d="M64 60 l6 12 l13 2 l-10 9 l3 13 l-12 -6 l-12 6 l3 -13 l-10 -9 l13 -2Z" fill="#ffd94d"/>')
+F['product/supplement'] = ('drink', '<rect x="40" y="40" width="48" height="62" rx="10" fill="#fff"/><rect x="44" y="26" width="40" height="16" rx="4" fill="#7fc8a8"/><rect x="44" y="58" width="40" height="26" rx="4" fill="#d7f0e4"/>'
+    + '<rect x="56" y="64" width="16" height="10" rx="5" fill="#ff8aa0" transform="rotate(-20 64 69)"/><path d="M64 64 v10" stroke-width="2" transform="rotate(-20 64 69)"/>'
+    + '<rect x="90" y="88" width="18" height="10" rx="5" fill="#ffd94d"/><circle cx="26" cy="94" r="6" fill="#fff"/>')
+F['product/onigiri'] = ('staple', onigiri('<path d="M30 72 L98 72" stroke="#e8455a" stroke-width="4"/><path d="M60 24 L68 24 L66 98 H62Z" fill="#ff8a8a" fill-opacity=".7" stroke="none"/>')
+    + '<path d="M64 22 Q72 22 98 72 Q108 96 88 98 H40 Q20 96 30 72 Q56 22 64 22Z" fill="#eaf6ff" fill-opacity=".35"/>')
+F['product/bento'] = ('main', '<rect x="16" y="46" width="96" height="56" rx="8" fill="#3a3a42"/><rect x="22" y="52" width="46" height="44" rx="4" fill="#fff"/>' + dots([(36, 66), (50, 62), (44, 78), (58, 84)], 1.4, '#e8dcc4', False)
+    + '<circle cx="44" cy="70" r="5" fill="#e8455a"/><rect x="72" y="52" width="34" height="44" rx="4" fill="#f6eedc"/><path d="M76 60 q8 -8 14 0 q8 -8 12 0 l-2 10 h-22Z" fill="#e3913d"/>'
+    + tamago(74).replace('y="58"', 'y="70"').replace('width="24" height="30"', 'width="16" height="16"').replace('M86 73', 'M80 78') + '<circle cx="98" cy="84" r="6" fill="#6cbf5a"/>'
+    + '<path d="M14 46 Q64 36 114 46" fill="none" stroke="#eaf6ff" stroke-width="4"/>')
+F['product/sandwich'] = ('bread', '<path d="M18 98 L64 34 L110 98Z" fill="#eaf6ff" fill-opacity=".6"/>' + sando(64, 72, '#ffd94d') + '<path d="M18 98 L64 34 L110 98Z" fill="none"/><rect x="48" y="86" width="32" height="10" rx="2" fill="#e8455a" stroke-width="2"/>')
+F['product/noodle'] = E['cup-ramen']
+F['product/bread'] = ('bread', bag('#eaf6ff', '#ff8a65', '<path d="M40 92 Q38 56 64 54 Q90 56 88 92Z" fill="#e8a24a"/><path d="M50 62 q14 -8 28 0" fill="none" stroke="#ffd28a" stroke-width="3"/>'))
+F['product/side'] = ('main', '<path d="M30 40 L38 104 H90 L98 40Z" fill="#fff4dc"/><path d="M30 40 L98 40 L94 56 H34Z" fill="#ff8a65"/>'
+    + '<path d="M44 52 q-2 -14 12 -14 q14 -2 14 12" fill="#e3913d"/><path d="M62 52 q0 -12 12 -12 q12 0 12 12" fill="#d9822e"/><path d="M50 74 h28" stroke="#ff8a65" stroke-width="4"/>')
+F['product/dairy'] = ('drink', '<path d="M30 54 L36 104 H70 L76 54Z" fill="#fff"/><ellipse cx="53" cy="54" rx="23" ry="7" fill="#fff"/><rect x="31" y="46" width="44" height="10" rx="3" fill="#ffb0c4"/><path d="M36 76 L38 90 H68 L70 76Z" fill="#ffd0dc" stroke="none"/>'
+    + '<path d="M74 100 L78 74 L110 84 L106 104Z" fill="#ffd94d"/><path d="M78 74 L110 84 L104 74Z" fill="#ffe68a"/>' + dots([(88, 90)], 3, '#ffb82e'))
+F['product/snack'] = ('snack', bag('#ffd94d', '#e8455a', '<ellipse cx="64" cy="72" rx="20" ry="16" fill="#fff"/>' + ''.join(f'<ellipse cx="{x}" cy="{y}" rx="9" ry="6" fill="#f2c84a" transform="rotate({r} {x} {y})"/>' for x, y, r in [(56, 70, -20), (70, 74, 20), (62, 80, 0)])))
+F['product/dessert'] = ('snack', '<path d="M36 52 L44 102 H84 L92 52Z" fill="#eaf6ff" fill-opacity=".7"/><path d="M40 60 L46 98 H82 L88 60Z" fill="#ffe08a" stroke="none"/><path d="M40 60 Q64 54 88 60 L87 66 Q64 60 41 66Z" fill="#a8602e" stroke="none"/>'
+    + '<path d="M36 52 L44 102 H84 L92 52Z" fill="none"/><ellipse cx="64" cy="52" rx="30" ry="7" fill="#fff"/><path d="M94 40 l-28 22" stroke="#c9d0d8" stroke-width="4"/>')
+F['product/drink'] = ('drink', '<rect x="54" y="14" width="20" height="12" rx="3" fill="#ff8a65"/><path d="M52 26 h24 l6 14 v58 q0 8 -8 8 h-20 q-8 0 -8 -8 v-58Z" fill="#eaf6ff"/>'
+    + '<path d="M48 56 h32 v40 q0 6 -6 6 h-20 q-6 0 -6 -6Z" fill="#ffc94a" stroke="none"/><rect x="46" y="58" width="36" height="20" fill="#fff" stroke-width="2.5"/><path d="M54 68 h20" stroke="#ff8a65" stroke-width="3"/>'
+    + '<path d="M52 26 h24 l6 14 v58 q0 8 -8 8 h-20 q-8 0 -8 -8 v-58Z" fill="none"/>')
+F['product/alcohol'] = D['beer']
+F['product/seasoning'] = F['food-group/17']
+F['product/ingredient'] = ('side', pack_tray('<path d="M28 78 L70 92 L74 84Z" fill="#ff9a3c"/><path d="M28 78 l-8 -6 m8 6 l-8 2" stroke="#4fae5c" stroke-width="3"/>'
+    + '<path d="M86 92 v-10" stroke="#8cc46a" stroke-width="6"/><circle cx="80" cy="76" r="8" fill="#3f9a50"/><circle cx="94" cy="76" r="8" fill="#3f9a50"/><circle cx="87" cy="70" r="8" fill="#4fae5c"/>'))
+F['product/other'] = ('snack', '<path d="M24 52 L32 104 H96 L104 52Z" fill="#ffd0dc"/><path d="M44 52 Q44 30 64 30 Q84 30 84 52" fill="none" stroke-width="5"/>'
+    + '<rect x="40" y="38" width="16" height="22" rx="3" fill="#7fa8e8"/><circle cx="72" cy="44" r="10" fill="#ff8a65"/><path d="M50 72 h28" stroke="#fff" stroke-width="4"/>')
+
+for d in ('food', 'food-group', 'product'):
+    os.makedirs(os.path.join(OUT, d), exist_ok=True)
+D.update(F)
+
 os.makedirs(os.path.join(OUT, 'genre'), exist_ok=True)
 D.update({f'genre/{g}': v for g, v in GENRE.items()})
 

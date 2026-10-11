@@ -10,6 +10,7 @@
 - 背景の丸の色: 主食・パン `#ffeeb0`／主菜・丼 `#ffd9cc`／副菜 `#d6f2dc`／汁物・麺 `#ffe3c2`／飲み物 `#d7ecff`／おやつ・お酒 `#e6defa`
 - ファイルは `public/illustrations/<料理ID>.svg`。
 - 1品ずつの絵がない料理（郷土料理など）には、料理名から選んだジャンル別の共通の絵（`public/illustrations/genre/<ジャンル>.svg`、雑煮・鍋・汁物・煮物・寿司・餅・団子・漬物など28種類）が自動で出る。ジャンルの選び方は `scripts/lib/illustration-genre.ts`（料理名のいちばん後ろで当たった調理法を優先）。1品ずつの絵を置けばそちらが優先される。各都道府県の代表など約100品は1品ずつ描いてあり、`draw-illustrations.py` の `K['<料理名>']` に足すと、都道府県違いの同じ名前の料理（例: 冷や汁（埼玉県）と冷や汁（宮崎県））すべてに同じ絵が付く。ふだんの定番料理（オムライス・冷やし中華など）は `E['<料理ID>']` に1品ずつ描き、郷土料理と同じ料理（すき焼き・ちゃんぽんなど）は同じ絵を使う。
+- 食材と市販品も同じ絵柄にする。よく選ぶ食材（食パン・いちごジャム・バターなど）は `public/illustrations/food/<食品番号>.svg`、ほかの食材は食品群ごとの `food-group/<群>.svg`、市販品はカテゴリごとの `product/<カテゴリ>.svg`（`draw-illustrations.py` の `F`、対応は `src/components/illustration.ts`）。
 - どれにも当たらない料理には、カテゴリ色のふた付きのお皿（`public/illustrations/category/<カテゴリ>.svg`）が出る。
 
 ### 料理を足すとき
