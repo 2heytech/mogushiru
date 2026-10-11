@@ -2,8 +2,8 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Catalog } from '../domain/nutrition'
 import type { DishCategory, MenuItem, Slot } from '../domain/types'
 import { MY_PRODUCT_PREFIX } from '../store/useAppStore'
-import { DISH_CATEGORY_LABEL, PRODUCT_CATEGORY_LAST, SLOT_LABEL } from './labels'
-import { buildCards, KYODO, type Card, type Kind, type Tab } from './pickerCards'
+import { DISH_CATEGORY_LABEL, PRODUCT_CATEGORY_LAST, PRODUCT_STORES, SLOT_LABEL, STORE_FILTER_PREFIX } from './labels'
+import { buildCards, KYODO, productStore, type Card, type Kind, type Tab } from './pickerCards'
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'all', label: 'すべて' },
@@ -82,6 +82,8 @@ export function Picker({
     n.dish = buildCards('dish', filter).length
     return n
   }, [catalog, slot, query, showAlcohol, favorites])
+  // コンビニ各社の商品があれば、お店ごとの絞り込みを出す
+  const hasStore = useMemo(() => new Set([...catalog.products.values()].map(productStore)), [catalog])
   const hasKyodo = useMemo(() => [...catalog.dishes.values()].some((d) => d.source), [catalog])
   const dishCategories = (Object.keys(DISH_CATEGORY_LABEL) as DishCategory[]).filter((c) => showAlcohol || c !== 'alcohol')
   const productCategoryIds = Object.keys(productCategories)
@@ -91,7 +93,10 @@ export function Picker({
     tab === 'dish'
       ? [...dishCategories.map((c) => ({ id: c, label: DISH_CATEGORY_LABEL[c] })), ...(hasKyodo ? [{ id: KYODO, label: '郷土料理' }] : [])]
       : tab === 'product'
-        ? productCategoryIds.map((c) => ({ id: c, label: productCategories[c] }))
+        ? [
+            ...PRODUCT_STORES.filter((st) => hasStore.has(st.id)).map((st) => ({ id: `${STORE_FILTER_PREFIX}${st.id}`, label: st.label })),
+            ...productCategoryIds.map((c) => ({ id: c, label: productCategories[c] })),
+          ]
         : []
   // 種類や絞り込みを切り替えたら一覧の先頭から見せる（画面の大きさは中身によらず一定）
   const listRef = useRef<HTMLDivElement>(null)

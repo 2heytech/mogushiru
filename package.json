@@ -13,7 +13,10 @@
     "data:off:fetch": "tsx scripts/fetch-off.ts",
     "data:off": "tsx scripts/import-off.ts",
     "data:dishes": "tsx scripts/build-dishes.ts",
-    "data:prices": "tsx scripts/import-prices.ts"
+    "data:prices": "tsx scripts/import-prices.ts",
+    "data:stores:fetch": "tsx scripts/fetch-stores.ts",
+    "data:stores": "tsx scripts/build-store-products.ts",
+    "data:makers:check": "tsx scripts/check-makers.ts"
   },
   "dependencies": {
     "react": "^19.2.8",

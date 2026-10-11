@@ -6,7 +6,7 @@ import { formatPortion, prioritizedIn } from '../domain/customize'
 import type { Ingredient, MenuItem, Product, Slot } from '../domain/types'
 import { recentMyDishes } from '../store/useAppStore'
 import { dishImage, foodImage, menuItemImage, productImage, SUPPLEMENT_IMAGE } from './illustration'
-import { DISH_CATEGORY_LABEL, PRODUCT_CATEGORY_LAST, shortNutrientLabel } from './labels'
+import { DISH_CATEGORY_LABEL, PRODUCT_CATEGORY_LAST, STORE_FILTER_PREFIX, shortNutrientLabel } from './labels'
 
 // 料理をえらぶ画面のカードを作る（種類ごとの候補と並び）
 export type Kind = 'dish' | 'product' | 'food' | 'myDish' | 'supplement'
@@ -22,6 +22,12 @@ export type Entry = { card: Card; fields: (string | undefined)[] }
 export const KYODO = 'kyodo'
 
 export type Filter = { catalog: Catalog; slot: Slot; query: string; category: string; showAlcohol: boolean; favorites: Set<string> }
+
+// 公式サイトから取った商品の出どころ（コンビニの略号か maker）。それ以外は null
+export function productStore(p: Product): string | null {
+  if (!p.source.url) return null
+  return /^\d+$/.test(p.jan) ? 'maker' : p.jan.split('-')[0]
+}
 
 // 種類ごとの候補（検索前）。並びは検索語が空のときの表示順
 function entries(kind: Kind, { catalog, slot, query, category, showAlcohol, favorites }: Filter): Entry[] {
@@ -57,7 +63,9 @@ function entries(kind: Kind, { catalog, slot, query, category, showAlcohol, favo
         .filter((p) =>
           category === 'favorite'
             ? favorites.has(p.jan)
-            : category === 'all'
+            : category.startsWith(STORE_FILTER_PREFIX)
+              ? productStore(p) === category.slice(STORE_FILTER_PREFIX.length)
+              : category === 'all'
               ? Boolean(query) || !PRODUCT_CATEGORY_LAST.includes(p.category)
               : p.category === category,
         )
