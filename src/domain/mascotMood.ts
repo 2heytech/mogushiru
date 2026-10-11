@@ -1,5 +1,6 @@
 import { type Alert, type Mood } from './alerts'
-import { pfcRatio, type MenuTotals } from './nutrition'
+import type { MenuTotals } from './nutrition'
+import type { PfcGap } from './pfcGap'
 import { slotBalance, type PfcKey } from './slotBalance'
 import type { Targets } from './targets'
 import type { Slot } from './types'
@@ -9,18 +10,21 @@ export type MascotMood = Mood | 'alert'
 
 export type DangoMoods = Record<PfcKey, MascotMood>
 
-// 1日のまとめ欄の「PFCだんごモグ」。だんご1つずつが P・F・C を表す。
-// 目標範囲から外れた栄養素のだんごだけ困り顔、上限こえのアラートがあれば残りのだんごはあせり顔
-export function dangoMoods(totals: MenuTotals, targets: Targets, alerts: Alert[], dayMood: Mood): DangoMoods {
-  const ratio = pfcRatio(totals.day.values)
-  const hasOver = alerts.some((a) => a.level === 'over')
-  const base: MascotMood = hasOver ? 'alert' : dayMood === 'happy' ? 'happy' : 'okay'
+// 「PFCだんごモグ」はPFCバランスだけを表す。だんご1つずつが P・F・C で、
+// 目標範囲内ならごきげん、少なければしょんぼり（困り顔）、多ければあせり顔。ほかの栄養素のアラートには反応しない
+export function dangoMoods(gaps: PfcGap[] | null): DangoMoods {
   const mood = (key: PfcKey): MascotMood => {
-    if (!ratio) return 'okay'
-    const r = targets.pfcRatio[key]
-    return ratio[key] < r.lo || ratio[key] > r.hi ? 'worried' : base
+    const g = gaps?.find((x) => x.key === key)
+    if (!g) return 'okay'
+    return g.gap === 0 ? 'happy' : g.gap < 0 ? 'worried' : 'alert'
   }
   return { p: mood('p'), f: mood('f'), c: mood('c') }
+}
+
+// だんごの大きさ。目標範囲のまんなかの割合を 1 として、面積が割合に比例するように半径の倍率を出す
+export function dangoScale(g: PfcGap): number {
+  const mid = (g.range.lo + g.range.hi) / 2
+  return Math.min(1.45, Math.max(0.55, Math.sqrt(g.ratio / mid)))
 }
 
 // 朝・昼・晩・その他のカードの「ちゃわんモグ」。カロリーとPFCそれぞれの横に、その指標の表情を出す。
