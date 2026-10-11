@@ -147,7 +147,8 @@ export function DayInfo({ totals, targets, onEditSlotShare }: { totals: MenuTota
           列ごとに積むので、右の栄養素が長くても左に空きができない */}
       <div className="grid gap-4 lg:grid-cols-[2fr_1.15fr] lg:items-start">
         <div className="contents lg:flex lg:flex-col lg:gap-4">
-          <div className="contents lg:grid lg:grid-cols-2 lg:items-start lg:gap-4">
+          {/* まとめとPFCは高さをそろえる（PFCの棒グラフで背が高くなっても、まとめの下に空きができない） */}
+          <div className="contents lg:grid lg:grid-cols-2 lg:items-stretch lg:gap-4">
             <div className={`${CARD} space-y-4 ${panel('summary')}`}>
               <h2 className="hidden font-bold lg:block">まとめ</h2>
               <div className="flex items-center gap-3">

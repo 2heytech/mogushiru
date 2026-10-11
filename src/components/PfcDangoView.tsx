@@ -25,7 +25,7 @@ export function PfcDangoView({ gaps, gramRanges }: { gaps: PfcGap[]; gramRanges:
       </div>
     ))
   return (
-    <div className="rounded-2xl bg-white/70 p-3">
+    <div className="h-full rounded-2xl bg-white/70 p-3">
       <div className="mb-1 flex items-baseline justify-between gap-2">
         <p className="text-sm font-bold">PFCバランス</p>
         <p className="flex items-center gap-1 text-[11px] text-ink-soft">
