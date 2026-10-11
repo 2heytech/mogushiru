@@ -7,8 +7,10 @@ export function itemName(item: MenuItem, catalog: Catalog): string {
       const name = catalog.dishes.get(item.refId)?.name ?? '（不明な料理）'
       return item.customIngredients ? `${name}（アレンジ）` : name
     }
-    case 'myDish':
-      return catalog.myDishes.get(item.refId)?.name ?? '（削除されたお気に入り）'
+    case 'myDish': {
+      const name = catalog.myDishes.get(item.refId)?.name ?? '（削除されたお気に入り）'
+      return item.customIngredients ? `${name}（アレンジ）` : name
+    }
     case 'product':
       return catalog.products.get(item.refId)?.name ?? '（不明な市販品）'
     case 'supplement':
@@ -30,5 +32,5 @@ export function portionLabel(item: MenuItem, catalog: Catalog): string {
     const ml = item.kind === 'product' && catalog.products.get(item.refId)?.basis === '100ml'
     return `${Math.round(item.portion)}${ml ? 'mL' : 'g'}`
   }
-  return item.portion === 1 ? '' : `×${item.portion}`
+  return item.portion === 1 ? '' : `×${Math.round(item.portion * 10) / 10}`
 }

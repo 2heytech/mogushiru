@@ -3,8 +3,9 @@ import type { Catalog } from '../domain/nutrition'
 import { FOOD_PORTION, isPopular, NOT_POPULAR, popularRank } from '../domain/popular'
 import { rankAcross, rankAndFilter } from '../domain/search'
 import { isSupplement, SUPPLEMENT_MAIN_KEYS } from '../domain/supplement'
-import type { DishCategory, MenuItem, Product, Slot } from '../domain/types'
-import { MY_PRODUCT_PREFIX } from '../store/useAppStore'
+import { formatPortion } from '../domain/customize'
+import type { DishCategory, Ingredient, MenuItem, Product, Slot } from '../domain/types'
+import { MY_PRODUCT_PREFIX, recentMyDishes } from '../store/useAppStore'
 import { dishImage, menuItemImage } from './illustration'
 import { DISH_CATEGORY_LABEL, FOOD_GROUP_EMOJI, PRODUCT_CATEGORY_EMOJI, PRODUCT_CATEGORY_LAST, shortNutrientLabel, SLOT_LABEL } from './labels'
 
@@ -141,14 +142,28 @@ function entries(kind: Kind, { catalog, slot, query, category, showAlcohol, favo
         },
       }))
     case 'myDish':
-      return [...catalog.myDishes.values()].map((d) => {
-        const item = { kind: 'myDish', refId: d.id, portion: 1 } as const
+      // カスタマイズした料理は、最後に保存したものから。保存したときの人前で追加する
+      return recentMyDishes([...catalog.myDishes.values()]).map((d) => {
+        const portion = d.portion ?? 1
+        const item = { kind: 'myDish', refId: d.id, portion } as const
         return {
           fields: [d.name],
-          card: { key: `myDish:${d.id}`, kind, name: d.name, sub: 'アレンジした料理', kcal: null, image: menuItemImage({ uid: '', ...item }, catalog), item },
+          card: {
+            key: `myDish:${d.id}`,
+            kind,
+            name: d.name,
+            sub: portion === 1 ? 'カスタマイズ' : `カスタマイズ・${formatPortion(portion)}`,
+            kcal: myDishKcal(d.ingredients, catalog) * portion,
+            image: menuItemImage({ uid: '', ...item }, catalog),
+            item,
+          },
         }
       })
   }
+}
+
+function myDishKcal(ingredients: Ingredient[], catalog: Catalog): number {
+  return ingredients.reduce((sum, i) => sum + ((catalog.foods.get(i.foodId)?.per100g.energyKcal ?? 0) * i.grams) / 100, 0)
 }
 
 // サプリのカードの説明：1回分の量と、入っている主な成分
@@ -163,6 +178,8 @@ function favoriteEntries(filter: Filter): Entry[] {
   return [...entries('myDish', filter), ...entries('product', { ...filter, category: 'favorite' })]
 }
 
+const pickRank = (slot: Slot, card: Card) => (card.kind === 'myDish' ? -1 : popularRank(slot, card.key))
+
 function buildCards(tab: Tab, filter: Filter): Card[] {
   if (tab === 'myDish') return rankAndFilter(favoriteEntries(filter), filter.query, (e) => e.fields).map((e) => e.card)
   if (tab === 'all') {
@@ -171,8 +188,13 @@ function buildCards(tab: Tab, filter: Filter): Card[] {
     const kinds: Kind[] = filter.query ? KIND_ORDER : ['myDish', 'dish', 'food']
     const groups = kinds.map((k) => ({ items: entries(k, { ...filter, category: 'all' }), fields: (e: Entry) => e.fields }))
     const ranked = rankAcross(groups, filter.query)
-    if (!filter.query) ranked.sort((a, b) => popularRank(filter.slot, a.card.key) - popularRank(filter.slot, b.card.key))
+    // カスタマイズした料理は定番より上に（並べ替えは安定なので、その中は新しい順のまま）
+    if (!filter.query) ranked.sort((a, b) => pickRank(filter.slot, a.card) - pickRank(filter.slot, b.card))
     return ranked.map((e) => e.card)
+  }
+  // 料理タブでも、カスタマイズした料理を先頭に（絞り込みが「すべて」のとき）
+  if (tab === 'dish' && filter.category === 'all') {
+    return rankAcross([entries('myDish', filter), entries('dish', filter)].map((items) => ({ items, fields: (e: Entry) => e.fields })), filter.query).map((e) => e.card)
   }
   return rankAndFilter(entries(tab, filter), filter.query, (e) => e.fields).map((e) => e.card)
 }
@@ -222,6 +244,7 @@ export function Picker({
     const n: Record<Tab, number> = { all: all.length, dish: 0, product: 0, food: 0, myDish: 0, supplement: 0 }
     for (const c of all) n[c.kind]++
     n.myDish = buildCards('myDish', filter).length
+    n.dish = buildCards('dish', filter).length
     return n
   }, [catalog, slot, query, showAlcohol, favorites])
   const hasKyodo = useMemo(() => [...catalog.dishes.values()].some((d) => d.source), [catalog])

@@ -116,7 +116,11 @@ export type MyDish = {
   baseDishId: string | null
   name: string
   ingredients: Ingredient[]
+  // 選んだときの人前（材料は1人前あたり）。なければ1人前
+  portion?: number
   createdAt: string
+  // 最後に保存した日時。料理をえらぶ画面で新しいものから上に並べる
+  updatedAt?: string
 }
 
 // portion: dish・myDish・product(serving) は人前倍率、food・product(100g/100ml) はグラム（mL）、supplement は回数。
@@ -126,7 +130,7 @@ export type MenuItem = {
   kind: 'dish' | 'myDish' | 'product' | 'food' | 'supplement'
   refId: string
   portion: number
-  // 料理を献立の中だけでアレンジした材料（kind: 'dish' のとき）
+  // 料理を献立の中だけでアレンジした材料（kind: 'dish'・'myDish' のとき）
   customIngredients?: Ingredient[]
 }
 

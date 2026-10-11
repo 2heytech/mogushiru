@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { emptyMenu, MY_PRODUCT_PREFIX, useAppStore } from './useAppStore'
+import { emptyMenu, MY_PRODUCT_PREFIX, recentMyDishes, useAppStore } from './useAppStore'
 import { isSupplement, SUPPLEMENT_CATEGORY, supplementNutrients } from '../domain/supplement'
 
 const custom = [{ foodId: '00001', grams: 80 }]
@@ -165,5 +165,27 @@ describe('サプリ', () => {
     useAppStore.getState().deleteMyProduct(p.jan)
     expect(useAppStore.getState().menu.other).toEqual([])
     expect(useAppStore.getState().savedMenus[0].menu.other).toEqual([])
+  })
+})
+
+describe('カスタマイズした料理', () => {
+  beforeEach(() => useAppStore.setState({ menu: emptyMenu(), myDishes: [] }))
+
+  it('人前を一緒に保存し、置き換えた献立の項目も同じ人前になる', () => {
+    const s = useAppStore.getState()
+    const uid = s.addItem('dinner', { kind: 'dish', refId: 'd1', portion: 1 })
+    const my = s.saveMyDish({ baseDishId: 'd1', name: '肉じゃが（1.5人前）', ingredients: [], portion: 1.5 })
+    s.replaceWithMyDish('dinner', uid, my.id, 1.5)
+    expect(useAppStore.getState().menu.dinner[0]).toEqual({ uid, kind: 'myDish', refId: my.id, portion: 1.5 })
+    expect(my.portion).toBe(1.5)
+  })
+
+  it('最後に保存したものから並ぶ', () => {
+    const dishes = [
+      { id: 'a', baseDishId: null, name: 'A', ingredients: [], createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-03T00:00:00Z' },
+      { id: 'b', baseDishId: null, name: 'B', ingredients: [], createdAt: '2026-01-02T00:00:00Z' },
+      { id: 'c', baseDishId: null, name: 'C', ingredients: [], createdAt: '2026-01-04T00:00:00Z' },
+    ]
+    expect(recentMyDishes(dishes).map((d) => d.id)).toEqual(['c', 'a', 'b'])
   })
 })

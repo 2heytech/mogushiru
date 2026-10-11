@@ -71,7 +71,7 @@ export function itemTotals(item: MenuItem, catalog: Catalog): NutrientTotals {
     case 'myDish': {
       const my = catalog.myDishes.get(item.refId)
       if (!my) throw new Error(`未知のお気に入りの料理: ${item.refId}`)
-      return scaleTotals(ingredientsTotals(my.ingredients, catalog.foods), item.portion)
+      return scaleTotals(ingredientsTotals(item.customIngredients ?? my.ingredients, catalog.foods), item.portion)
     }
     case 'product': {
       const p = catalog.products.get(item.refId)
