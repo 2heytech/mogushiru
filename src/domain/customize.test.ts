@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { clampPortion, customDishName, gramStep, round1, shortFoodName } from './customize'
+import { clampPortion, customDishName, gramStep, prioritizedIn, prioritySlots, round1, shortFoodName, withSlot } from './customize'
 import type { Ingredient } from './types'
 
 const NAMES: Record<string, string> = { potato: 'じゃがいも（水煮）', beef: '牛もも肉（赤身・ゆで）', pork: '豚もも肉（ゆで）', sugar: '砂糖（上白糖）', egg: 'たまご' }
@@ -52,5 +52,17 @@ describe('保存名の初期値', () => {
   it('食品名のかっこ書きを省く', () => {
     expect(shortFoodName('しょうゆ（濃口）')).toBe('しょうゆ')
     expect(shortFoodName('しらたき')).toBe('しらたき')
+  })
+})
+
+describe('上に出す区分', () => {
+  it('区分のない古い保存はどの区分でも上に', () => {
+    expect(prioritizedIn({}, 'lunch')).toBe(true)
+    expect(prioritizedIn({ slots: ['dinner'] }, 'lunch')).toBe(false)
+    expect(prioritySlots({})).toEqual(['breakfast', 'lunch', 'dinner', 'other'])
+  })
+  it('足した区分は朝・昼・晩・その他の順に並ぶ', () => {
+    expect(withSlot(['dinner'], 'breakfast')).toEqual(['breakfast', 'dinner'])
+    expect(withSlot(['dinner'], 'dinner')).toEqual(['dinner'])
   })
 })

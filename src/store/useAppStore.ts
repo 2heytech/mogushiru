@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
 import { DEFAULT_PROFILE } from '../domain/targets'
 import { isSupplement } from '../domain/supplement'
+import { withSlot } from '../domain/customize'
 import type { DayMenu, Ingredient, MenuItem, MyDish, Product, Profile, Slot } from '../domain/types'
 
 export const emptyMenu = (): DayMenu => ({ breakfast: [], lunch: [], dinner: [], other: [] })
@@ -39,7 +40,7 @@ type State = {
   moveItem: (from: Slot, to: Slot, uid: string) => void
   clearMenu: () => void
   saveMyDish: (d: Omit<MyDish, 'id' | 'createdAt' | 'updatedAt'>) => MyDish
-  updateMyDish: (id: string, patch: Partial<Pick<MyDish, 'name' | 'ingredients' | 'portion'>>) => void
+  updateMyDish: (id: string, patch: Partial<Pick<MyDish, 'name' | 'ingredients' | 'portion' | 'slots'>>) => void
   deleteMyDish: (id: string) => void
   saveMyProduct: (p: MyProductInput) => Product
   updateMyProduct: (jan: string, p: MyProductInput) => void
@@ -88,9 +89,16 @@ export const useAppStore = create<State>()(
       favoriteProductIds: [],
       savedMenus: [],
       setProfile: (profile) => set({ profile, profileSet: true }),
+      // カスタマイズした料理を別の区分にも入れたら、その区分でも上に出すようにする
       addItem: (slot, item) => {
         const id = uid()
-        set((s) => ({ menu: { ...s.menu, [slot]: [...s.menu[slot], { ...item, uid: id }] } }))
+        set((s) => ({
+          menu: { ...s.menu, [slot]: [...s.menu[slot], { ...item, uid: id }] },
+          myDishes:
+            item.kind === 'myDish'
+              ? s.myDishes.map((d) => (d.id === item.refId && d.slots && !d.slots.includes(slot) ? { ...d, slots: withSlot(d.slots, slot) } : d))
+              : s.myDishes,
+        }))
         return id
       },
       updatePortion: (slot, id, portion) =>
