@@ -3446,7 +3446,7 @@
    "per": "1食分(30g)当たり",
    "spec": "900g",
    "priceYen": 862,
-   "category": "other",
+   "category": "snack",
    "fetchedAt": "2026-10-12"
   },
   {
@@ -5642,7 +5642,7 @@
    "per": "1食分(30g)当たり",
    "spec": "330g",
    "priceYen": 354,
-   "category": "other",
+   "category": "snack",
    "fetchedAt": "2026-10-12"
   },
   {
@@ -5661,7 +5661,7 @@
    "per": "1食分(30g)当たり",
    "spec": "330g",
    "priceYen": 387,
-   "category": "other",
+   "category": "snack",
    "fetchedAt": "2026-10-12"
   },
   {
@@ -5680,7 +5680,7 @@
    "per": "1食分(50g)当たり",
    "spec": "400g",
    "priceYen": 430,
-   "category": "other",
+   "category": "snack",
    "fetchedAt": "2026-10-12"
   },
   {
@@ -8120,7 +8120,7 @@
    "per": "1食分(30g)当たり",
    "spec": "400g",
    "priceYen": 191,
-   "category": "other",
+   "category": "snack",
    "fetchedAt": "2026-10-12"
   },
   {
@@ -9373,7 +9373,7 @@
    "per": "1食分(40g)当たり",
    "spec": "200g",
    "priceYen": 408,
-   "category": "other",
+   "category": "snack",
    "fetchedAt": "2026-10-12"
   },
   {
@@ -9392,7 +9392,7 @@
    "per": "1食分(40g)当たり",
    "spec": "180g",
    "priceYen": 408,
-   "category": "other",
+   "category": "snack",
    "fetchedAt": "2026-10-12"
   },
   {
@@ -19943,7 +19943,7 @@
    "per": "1食分(40g)当たり",
    "spec": "270g",
    "priceYen": 354,
-   "category": "other",
+   "category": "snack",
    "fetchedAt": "2026-10-12"
   },
   {
@@ -19962,7 +19962,7 @@
    "per": "1食分(40g)当たり",
    "spec": "300g",
    "priceYen": 354,
-   "category": "other",
+   "category": "snack",
    "fetchedAt": "2026-10-12"
   },
   {
@@ -19981,7 +19981,7 @@
    "per": "1食分(40g)当たり",
    "spec": "300g",
    "priceYen": 354,
-   "category": "other",
+   "category": "snack",
    "fetchedAt": "2026-10-12"
   },
   {
@@ -73512,7 +73512,7 @@
    "per": "100g当たり",
    "spec": "800g",
    "priceYen": 376,
-   "category": "other",
+   "category": "ingredient",
    "fetchedAt": "2026-10-12"
   },
   {
@@ -75112,7 +75112,7 @@
    "per": "1食分(40g)当たり",
    "spec": "230g",
    "priceYen": 214,
-   "category": "other",
+   "category": "snack",
    "fetchedAt": "2026-10-12"
   },
   {

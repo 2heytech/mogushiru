@@ -126,7 +126,7 @@ export const TOPVALU_CATEGORIES: Record<string, string | null> = {
   '100300280': 'ingredient', // 玄米・胚芽精米
   '100300290': 'ingredient', // もち米
   '100300300': 'ingredient', // お米
-  '100300310': null, // 米関連
+  '100300310': 'ingredient', // 米関連（おにぎりのりなど）
   '100325100': 'seasoning', // 味噌
   '100325200': 'seasoning', // 醤油
   '100325300': 'seasoning', // 酢
@@ -158,7 +158,7 @@ export const TOPVALU_CATEGORIES: Record<string, string | null> = {
   '100425500': 'alcohol', // ビール類
   '100425550': 'alcohol', // ワイン
   '100450100': 'bread', // パン
-  '100450200': null, // シリアル
+  '100450200': 'snack', // シリアル
   '100475100': 'side', // ピザ・チルドスナック
   '100500500': 'seasoning', // ジャム・はちみつ
   '100525100': 'side', // 冷凍の惣菜
