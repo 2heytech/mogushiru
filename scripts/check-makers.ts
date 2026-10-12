@@ -1,7 +1,7 @@
 // 使い方: npx tsx scripts/check-makers.ts
 // data/makers/labels.json の商品ページを取り直し、記録したエネルギーの値がまだページに載っているかを確かめる
 // （リニューアルや終売でページが変わった商品を見つけ、表示を見直すため）
-// 表示が画像だけのページ（丸美屋）は、ここでは見つからないと出るので画像で確かめる
+// 表示が画像だけのページ（丸美屋）と、値をあとから読み込むページ（山崎製パン）は、ここでは見つからないと出るのでブラウザで確かめる
 import { readFileSync } from 'node:fs'
 import type { MakerLabel } from './lib/makers'
 
@@ -16,7 +16,9 @@ for (const item of items) {
     const res = await fetch(item.url, { headers: { 'User-Agent': USER_AGENT } })
     // 全角の数字・単位（「３１２ｋｃａｌ」）もそろえて探す
     const text = (await res.text()).replace(/<[^>]+>/g, ' ').normalize('NFKC')
-    const found = new RegExp(`(^|[^0-9.])${String(item.energyKcal).replace('.', '\\.')}\\s*kcal`, 'i').test(text)
+    // 「350kcal」のほか、表の見出しが「エネルギー(kcal)」で値が別のセルにある形も探す
+    const value = String(item.energyKcal).replace('.', '\\.')
+    const found = new RegExp(`(^|[^0-9.])${value}\\s*kcal`, 'i').test(text) || (/kcal/i.test(text) && new RegExp(`(エネルギー|熱量)[\\s\\S]{0,400}(^|[^0-9.])${value}($|[^0-9.])`).test(text))
     if (!res.ok || !found) changed.push(`${item.jan} ${item.name}: ${res.ok ? 'エネルギーの値が見つからない' : `HTTP ${res.status}`}（${item.url}）`)
   } catch (e) {
     changed.push(`${item.jan} ${item.name}: 取得できない（${(e as Error).message}）`)

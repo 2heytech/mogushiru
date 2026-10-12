@@ -20,4 +20,16 @@ describe('公式サイトの商品とほかの市販品をまとめる', () => {
     expect([...m.keys()]).toEqual(['seven-1', '490', '491'])
     expect(m.get('490')?.name).toBe('公式の値')
   })
+  it('トップバリュの商品は JAN の部分で同じ商品とみなし、古い JAN も同じ商品を指す', () => {
+    const tv = { jan: 'topvalu-4549414093889', name: '公式', basis: '100g' } as Product
+    const off = { jan: '4549414093889', name: 'Open Food Facts', basis: '100g' } as Product
+    const m = mergeProducts([tv], [off])
+    expect(m.get('4549414093889')).toBe(tv)
+    expect(new Set(m.values()).size).toBe(1)
+  })
+  it('表示の単位がちがうときは古い商品をそのまま残す', () => {
+    const tv = { jan: 'topvalu-4549414093889', basis: 'serving' } as Product
+    const off = { jan: '4549414093889', basis: '100g' } as Product
+    expect(mergeProducts([tv], [off]).get('4549414093889')).toBe(off)
+  })
 })

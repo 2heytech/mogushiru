@@ -1,13 +1,15 @@
-// コンビニ各社の公式サイトに載っている商品の栄養成分表示を読み取る
+// コンビニ各社・スーパー（トップバリュ）の公式サイトに載っている商品の栄養成分表示を読み取る
 // 取り込むのは商品名・内容量・価格・栄養成分の数値と出典URLだけ。写真や説明文は使わない
 import { NUTRIENT_KEYS, type Nutrients, type Product } from '../../src/domain/types'
 
-export type StoreId = 'seven' | 'famima' | 'lawson'
+export type StoreId = 'seven' | 'famima' | 'lawson' | 'topvalu'
 
 export const STORES = {
   seven: { name: 'セブン-イレブン' as const, site: 'https://www.sej.co.jp/' },
   famima: { name: 'ファミリーマート' as const, site: 'https://www.family.co.jp/' },
   lawson: { name: 'ローソン' as const, site: 'https://www.lawson.co.jp/' },
+  // イオンなどのスーパーで売っているお店のブランド
+  topvalu: { name: 'トップバリュ' as const, site: 'https://www.topvalu.net/' },
 } satisfies Record<StoreId, { name: string; site: string }>
 
 // 各社の商品カテゴリ（URLの名前）→ アプリのカテゴリ。null は商品名から判定する
@@ -88,6 +90,106 @@ export const FAMIMA_PAGES: Record<string, string> = {
   cafe: 'drink',
 }
 
+// トップバリュの食品の小分類（/items/category/<番号>）→ アプリのカテゴリ。null は商品名から判定する
+export const TOPVALU_CATEGORIES: Record<string, string | null> = {
+  '100100100': 'ingredient', // 野菜
+  '100125125': 'ingredient', // 果物
+  '100150100': 'ingredient', // 刺身・生食用
+  '100150200': 'ingredient', // 海藻
+  '100150300': 'ingredient', // 鮮魚・切身・焼魚・煮魚
+  '100150400': 'ingredient', // 塩鮭・ひもの
+  '100150500': 'ingredient', // 魚卵・しらす・鮭フレーク
+  '100150600': 'ingredient', // 冷凍の魚介・フライ
+  '100150700': null, // 簡単調理・たれ
+  '100175100': 'ingredient', // 牛肉
+  '100175200': 'ingredient', // 豚肉
+  '100175300': 'ingredient', // 鶏肉
+  '100175500': null, // 餃子の皮・たれ
+  '100175600': 'side', // 半調理品・お肉のオードブル
+  '100200100': 'ingredient', // ハム・ベーコン
+  '100200200': 'ingredient', // ウインナー・ソーセージ
+  '100200300': 'side', // ハンバーグ・ミートボール
+  '100200400': 'side', // 焼き豚
+  '100200500': 'side', // 畜肉加工品
+  '100225300': 'side', // おかず
+  '100225400': 'side', // サラダ
+  '100250250': 'ingredient', // たまご
+  '100275100': 'side', // 豆腐
+  '100275200': 'side', // 納豆
+  '100275300': 'side', // おかず素材
+  '100275250': 'ingredient', // こんにゃく
+  '100275260': 'side', // 練り製品
+  '100275270': 'side', // 漬物
+  '100275280': 'side', // 佃煮・煮豆
+  '100275290': 'side', // 和風チルド
+  '100275310': 'side', // 中華チルド
+  '100300280': 'ingredient', // 玄米・胚芽精米
+  '100300290': 'ingredient', // もち米
+  '100300300': 'ingredient', // お米
+  '100300310': 'ingredient', // 米関連（おにぎりのりなど）
+  '100325100': 'seasoning', // 味噌
+  '100325200': 'seasoning', // 醤油
+  '100325300': 'seasoning', // 酢
+  '100325400': 'seasoning', // 塩・砂糖
+  '100350100': 'seasoning', // マヨネーズ・ドレッシング
+  '100350200': 'seasoning', // ソース・ケチャップ
+  '100350300': 'seasoning', // 料理酒・みりん
+  '100350400': 'seasoning', // 食用油
+  '100350500': 'seasoning', // つゆ・たれ
+  '100350600': 'seasoning', // 香辛料
+  '100350700': 'seasoning', // だし
+  '100375100': 'seasoning', // カレー・シチュー
+  '100375200': null, // スープの素
+  '100375300': 'seasoning', // 中華料理の素
+  '100375400': 'seasoning', // その他料理の素
+  '100400100': 'dairy', // 牛乳
+  '100400200': 'drink', // 豆乳
+  '100400400': 'dairy', // チーズ
+  '100400500': 'dairy', // バター・マーガリン
+  '100400600': 'dairy', // ヨーグルト
+  '100425100': 'drink', // コーヒー豆・茶葉・粉末
+  '100425150': 'drink', // お茶
+  '100425200': 'drink', // コーヒー
+  '100425250': 'drink', // 水
+  '100425300': 'drink', // スポーツ飲料
+  '100425350': 'drink', // 果汁・野菜飲料
+  '100425400': 'drink', // その他・健康飲料
+  '100425450': 'alcohol', // お酒類
+  '100425500': 'alcohol', // ビール類
+  '100425550': 'alcohol', // ワイン
+  '100450100': 'bread', // パン
+  '100450200': 'snack', // シリアル
+  '100475100': 'side', // ピザ・チルドスナック
+  '100500500': 'seasoning', // ジャム・はちみつ
+  '100525100': 'side', // 冷凍の惣菜
+  '100525200': null, // 冷凍の米飯・麺類
+  '100525300': 'side', // 冷凍スナック
+  '100525400': 'ingredient', // 冷凍野菜・冷凍果実
+  '100525500': null, // その他冷凍食品
+  '100550550': 'dessert', // アイスクリーム・氷
+  '100575100': 'snack', // チョコレート菓子
+  '100575150': 'snack', // スナック菓子
+  '100575200': 'snack', // クッキー・ビスケット
+  '100575250': 'snack', // キャンディ・ガム
+  '100575300': 'snack', // おせんべい
+  '100575350': 'snack', // 豆菓子・ナッツ・ドライフルーツ
+  '100575400': 'snack', // おつまみ・珍味
+  '100575450': 'dessert', // 和菓子
+  '100575500': 'dessert', // 洋菓子
+  '100575550': 'snack', // その他お菓子
+  '100600600': 'dessert', // スイーツ
+  '100625200': 'side', // レトルト
+  '100625300': null, // その他インスタント食品
+  '100650100': 'noodle', // カップ麺
+  '100650200': 'noodle', // 袋麺
+  '100650300': 'noodle', // 乾麺
+  '100650650': 'noodle', // 麺類
+  '100675675': 'noodle', // パスタ・マカロニ
+  '100700700': 'ingredient', // 粉類
+  '100725725': 'ingredient', // 乾物
+  '100750750': null, // 缶詰・瓶詰
+}
+
 // 1包装（1食）当たりの栄養成分表示
 export type Label = {
   energyKcal: number
@@ -107,6 +209,7 @@ export type StoreItem = {
   label: Label
   per?: string // 表示の単位（「1包装当たり」など。書かれていれば）
   priceYen?: number // 税込の価格（書かれていれば）
+  spec?: string // 内容量（トップバリュの「規格」。「200g」「170g×4」など）
   fetchedAt: string
 }
 
@@ -163,7 +266,7 @@ function completeLabel(l: Partial<Record<keyof Label, number | null>>): Label | 
 // 税込価格。「398円（税込429.84円）」は税込の方、「297円(税込)」はその数
 export function parsePrice(text: string): number | undefined {
   const t = half(decode(text)).replace(/,/g, '')
-  const inc = t.match(/税込\s*([0-9.]+)\s*円/) ?? t.match(/([0-9.]+)\s*円\s*[(（]\s*税込/)
+  const inc = t.match(/税込(?:価格)?\s*([0-9.]+)\s*円/) ?? t.match(/([0-9.]+)\s*円\s*[(（]\s*税込/)
   return inc ? Math.round(Number(inc[1])) : undefined
 }
 
@@ -266,6 +369,45 @@ export function parseFamimaSafety(html: string, pageUrl: string): Omit<StoreItem
   return items
 }
 
+// ---- トップバリュ ----
+
+// 商品ページ https://www.topvalu.net/items/detail/4549414093889/ （番号はJANコード）
+// 栄養成分は「100g当たり エネルギー40kcal たんぱく質1.2g …」の1行。調理前・調理後など表示が2つあるときは最初のもの
+export function parseTopvaluDetail(html: string, jan: string): Omit<StoreItem, 'category' | 'fetchedAt'> | null {
+  const name = html.match(/<h1 class="item-detail__name">([\s\S]*?)<\/h1>/)?.[1]
+  const nutrition = html.match(/<dt>栄養成分<\/dt>\s*<dd>([\s\S]*?)<\/dd>/)?.[1]
+  if (!name || !nutrition) return null
+  const text = half(decode(nutrition.replace(/<br\s*\/?>/g, ' ')))
+  const first = text.search(/エネルギー|熱量/)
+  if (first < 0) return null
+  const second = text.slice(first + 2).search(/エネルギー|熱量/)
+  const label = parseLabelText(second < 0 ? text : text.slice(0, first + 2 + second))
+  if (!label) return null
+  const per = text.slice(0, first).trim().match(/([^ ]*当たり)$/)?.[1]
+  const spec = html.match(/規格：<\/dt>\s*<dd[^>]*>([\s\S]*?)<\/dd>/)?.[1]
+  const price = html.match(/<div class="item-detail__specs item-detail__specs--price">([\s\S]*?)<\/div>/)?.[1]
+  const priceYen = price ? parsePrice(price.replace(/&nbsp;/g, ' ')) : undefined
+  return {
+    store: 'topvalu',
+    code: jan,
+    name: decode(name),
+    url: `https://www.topvalu.net/items/detail/${jan}/`,
+    label,
+    ...(per ? { per } : {}),
+    ...(spec && decode(spec) ? { spec: decode(spec) } : {}),
+    ...(priceYen ? { priceYen } : {}),
+  }
+}
+
+export const topvaluItemCodes = (html: string): string[] => [...new Set([...html.matchAll(/\/items\/detail\/(\d{8,14})/g)].map((m) => m[1]))]
+
+// 「200g」「170g×4」「500ml」の1個分の量。食べきる量として初期値に使うので、大きなもの（300gをこえる袋・600mLをこえる飲み物）は使わない
+export function specAmount(spec: string | undefined): number | undefined {
+  const m = (spec ?? '').normalize('NFKC').match(/^(\d+(?:\.\d+)?)\s*(g|ml|mL)(?:\s*[×x]\s*\d+.*)?$/)
+  const v = m ? Number(m[1]) : undefined
+  return v && v <= (m![2] === 'g' ? 300 : 600) ? v : undefined
+}
+
 // ---- アプリの市販品にする ----
 
 // セブンプレミアムなどお店のブランドの加工品。サイトの表示に「1袋当たり」「100g当たり」などの単位が書かれておらず、
@@ -274,11 +416,20 @@ const SEVEN_PRIVATE_BRAND = /^\s*(7\s*P|7\s*プレミアム|セブンプレミ�
 export const isAmbiguousSevenItem = (item: Pick<StoreItem, 'store' | 'name'>): boolean =>
   item.store === 'seven' && SEVEN_PRIVATE_BRAND.test(item.name.normalize('NFKC'))
 
-// 表示の単位。「100g当たり」「15g当たり」は量当たり、それ以外（1包装・1個・1本…）は1回分
-export function labelBasis(per: string | undefined): { grams: number; unit: 'g' | 'ml' } | { label?: string } {
+// 表示の単位が分からず値をまちがえるおそれのある商品（取り込まない）。トップバリュは表示の単位が書かれていないものを除く
+export const isAmbiguousItem = (item: Pick<StoreItem, 'store' | 'name' | 'per'>): boolean =>
+  isAmbiguousSevenItem(item) || (item.store === 'topvalu' && !item.per?.match(/.当たり$/))
+
+// 表示の単位。「100g当たり」「15g当たり」「1袋(40g)当たり」は量当たり、それ以外（1包装・1個・1本…）は1回分
+// 「1袋(40g)当たり」のように1回分の量も分かるものは serving にその量を持たせる
+export function labelBasis(per: string | undefined): { grams: number; unit: 'g' | 'ml'; serving?: number } | { label?: string } {
   const t = (per ?? '').normalize('NFKC')
-  const amount = t.match(/^(\d+(?:\.\d+)?)\s*(g|ml)当たり$/i)
+  // 「可食部100g当たり」「精米100g当たり」も100g当たり
+  const amount = t.match(/^(?:可食部|精米|製品)?(\d+(?:\.\d+)?)\s*(g|ml)当たり$/i)
   if (amount) return { grams: Number(amount[1]), unit: amount[2].toLowerCase() as 'g' | 'ml' }
+  // 「1袋(40g)」「大さじ1杯(15ml)」「鶏卵1個(可食部44g)」。かっこの中が量だけのもの（「1食(めん60g)」は一部の量なので1回分の表示のまま）
+  const unit = t.match(/^[^()]{1,8}\((?:可食部|標準|固形量)?(\d+(?:\.\d+)?)\s*(g|ml)(?::平均値)?\)当たり$/i)
+  if (unit) return { grams: Number(unit[1]), unit: unit[2].toLowerCase() as 'g' | 'ml', serving: Number(unit[1]) }
   const label = t.replace(/当たり$/, '')
   return label && !/^1(包装|食)$/.test(label) ? { label } : {}
 }
@@ -300,12 +451,18 @@ export function toStoreProduct(item: StoreItem): Product {
     // お酒以外は 0（市販品の取り込みと同じ扱い）
     alcohol: item.category === 'alcohol' ? null : 0,
   })
+  // 1回分の量：表示に書かれた量、なければ内容量（食べきりの大きさのものだけ）。
+  // 食材・調味料・麺（乾麺など）は1袋で何回分にもなるので内容量は使わない
+  const whole = !['ingredient', 'seasoning', 'noodle', 'other'].includes(item.category)
+  const servingGrams = 'grams' in basis ? (basis.serving ?? (whole ? specAmount(item.spec) : undefined)) : undefined
   return {
     jan: `${item.store}-${item.code}`,
     name: item.name,
     brand: STORES[item.store].name,
     category: item.category,
-    ...('grams' in basis ? { basis: basis.unit === 'ml' ? ('100ml' as const) : ('100g' as const) } : { basis: 'serving' as const, ...(basis.label ? { servingLabel: basis.label } : {}) }),
+    ...('grams' in basis
+      ? { basis: basis.unit === 'ml' ? ('100ml' as const) : ('100g' as const), ...(servingGrams && servingGrams !== 100 ? { servingGrams } : {}) }
+      : { basis: 'serving' as const, ...(basis.label ? { servingLabel: basis.label } : {}) }),
     nutrients,
     source: { name: STORES[item.store].name, url: item.url, fetchedAt: item.fetchedAt },
   }
