@@ -1,5 +1,5 @@
-// 使い方: npx tsx scripts/fetch-stores.ts [HTMLを保存するフォルダ] [seven|famima|lawson ...]
-// コンビニ3社の公式サイトの商品ページから栄養成分表示を読み取り、data/raw/stores/<店>.json に書き出す
+// 使い方: npx tsx scripts/fetch-stores.ts [HTMLを保存するフォルダ] [seven|famima|lawson|topvalu ...]
+// コンビニ3社とトップバリュ（イオンなどのスーパーのお店のブランド）の公式サイトの商品ページから栄養成分表示を読み取り、data/raw/stores/<店>.json に書き出す
 // 商品の入れ替わりが速いので、何度でも取り直せるようにしている（月に1回の取り直しを想定）
 // フォルダを指定すると取得したHTMLをそこに保存し、次回はそれを使う（同じ日に作り直すときにサイトへの負荷を避けるため）
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
@@ -10,11 +10,14 @@ import {
   LAWSON_CATEGORIES,
   SEVEN_CATEGORIES,
   STORES,
+  TOPVALU_CATEGORIES,
   lawsonDetailCodes,
   parseFamimaSafety,
   parseLawsonDetail,
   parseSevenItem,
+  parseTopvaluDetail,
   sevenItemCodes,
+  topvaluItemCodes,
   type StoreId,
   type StoreItem,
 } from './lib/stores'
@@ -25,7 +28,7 @@ const WAIT_MS = 1000 // 1秒に1回まで
 const args = process.argv.slice(2)
 const storeArgs = args.filter((a): a is StoreId => a in STORES)
 const cache = args.find((a) => !(a in STORES))
-const targets: StoreId[] = storeArgs.length ? storeArgs : ['seven', 'famima', 'lawson']
+const targets: StoreId[] = storeArgs.length ? storeArgs : ['seven', 'famima', 'lawson', 'topvalu']
 const fetchedAt = new Date().toISOString().slice(0, 10)
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
@@ -104,9 +107,33 @@ async function lawson(): Promise<StoreItem[]> {
   return items
 }
 
+async function topvalu(): Promise<StoreItem[]> {
+  const base = 'https://www.topvalu.net/items/'
+  const itemCategory = new Map<string, string | null>()
+  for (const [cat, appCategory] of Object.entries(TOPVALU_CATEGORIES)) {
+    const codes = new Set<string>()
+    // 1ページ目はカテゴリのページ、2ページ目からは一覧（1ページ30品）
+    for (let page = 1; page <= 100; page++) {
+      const html = await get(page === 1 ? `${base}category/${cat}/` : `${base}list/${cat}?page=${page}&sort=Products.release_datetime&direction=desc`)
+      const before = codes.size
+      for (const c of html ? topvaluItemCodes(html) : []) codes.add(c)
+      if (codes.size === before || !html?.includes(`page=${page + 1}&`)) break
+    }
+    for (const c of codes) if (!itemCategory.has(c)) itemCategory.set(c, appCategory)
+    console.log(`トップバリュ ${cat}: ${codes.size}品`)
+  }
+  const items: StoreItem[] = []
+  for (const [code, appCategory] of itemCategory) {
+    const html = await get(`${base}detail/${code}/`)
+    const item = html ? parseTopvaluDetail(html, code) : null
+    if (item) items.push({ ...item, category: appCategory ?? categorize([], item.name), fetchedAt })
+  }
+  return items
+}
+
 if (cache) mkdirSync(cache, { recursive: true })
 mkdirSync('data/raw/stores', { recursive: true })
-const fetchers: Record<StoreId, () => Promise<StoreItem[]>> = { seven, famima, lawson }
+const fetchers: Record<StoreId, () => Promise<StoreItem[]>> = { seven, famima, lawson, topvalu }
 for (const store of targets) {
   const all = await fetchers[store]()
   // 同じ商品番号は最初のものだけ（地域ごとのページに同じ商品が出るため）

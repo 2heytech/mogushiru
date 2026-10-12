@@ -3,7 +3,7 @@
 // 配信用の public/data/store-products.json を作る
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { toMakerProduct, type MakerLabel } from './lib/makers'
-import { STORES, isAmbiguousSevenItem, toStoreProduct, type StoreId, type StoreItem } from './lib/stores'
+import { STORES, isAmbiguousItem, toStoreProduct, type StoreId, type StoreItem } from './lib/stores'
 
 const products = []
 const stores = []
@@ -14,7 +14,7 @@ for (const store of Object.keys(STORES) as StoreId[]) {
   // 地域ごとに番号の違う同じ商品（名前も栄養成分も同じもの）は1つにまとめる
   const seen = new Set<string>()
   const items = raw.items.filter((i) => {
-    if (isAmbiguousSevenItem(i)) return false
+    if (isAmbiguousItem(i)) return false
     const key = JSON.stringify([i.name, i.label])
     return !seen.has(key) && seen.add(key)
   })
@@ -27,7 +27,7 @@ const makers = JSON.parse(readFileSync('data/makers/labels.json', 'utf8')) as { 
 const makerProducts = makers.items.map(toMakerProduct).filter((p) => p !== null)
 // 売上上位のメーカー品を先に並べる
 products.unshift(...makerProducts)
-// 「おすすめ」で食事に選ぶことの多いものが先に来るよう、カテゴリ順に並べる（同じカテゴリの中はメーカー品・セブン・ファミマ・ローソンの順）
+// 「おすすめ」で食事に選ぶことの多いものが先に来るよう、カテゴリ順に並べる（同じカテゴリの中はメーカー品・セブン・ファミマ・ローソン・トップバリュの順）
 const CATEGORY_ORDER = ['onigiri', 'bento', 'sandwich', 'noodle', 'bread', 'side', 'dairy', 'snack', 'dessert', 'drink', 'alcohol']
 const rank = (c: string) => (CATEGORY_ORDER.includes(c) ? CATEGORY_ORDER.indexOf(c) : CATEGORY_ORDER.length)
 products.sort((a, b) => rank(a.category) - rank(b.category))

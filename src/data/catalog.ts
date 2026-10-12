@@ -48,10 +48,16 @@ export function useCatalog(): CatalogState {
 }
 
 // 公式サイトから取った商品（コンビニ各社・メーカー）を先に並べる（売り場にある商品から選びやすいように）。
-// 同じJANの商品は公式サイトの値を使う
+// 同じJANの商品は公式サイトの値を使う。トップバリュは "topvalu-<JAN>" なので、JANの部分で同じ商品か見る。
+// そのJANで保存された1日の食事も読めるよう、表示の単位が同じなら古いJANも公式の商品を指すようにする（一覧には1回だけ出す）
 export function mergeProducts(official: Product[], others: Product[]): Map<string, Product> {
   const map = new Map(official.map((x) => [x.jan, x]))
-  for (const x of others) if (!map.has(x.jan)) map.set(x.jan, x)
+  const byJan = new Map(official.flatMap((x) => (/^[a-z]+-\d{8,14}$/.test(x.jan) ? [[x.jan.split('-')[1], x] as const] : [])))
+  for (const x of others) {
+    if (map.has(x.jan)) continue
+    const same = byJan.get(x.jan)
+    map.set(x.jan, same && same.basis === x.basis ? same : x)
+  }
   return map
 }
 

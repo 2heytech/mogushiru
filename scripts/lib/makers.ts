@@ -66,7 +66,10 @@ export function toMakerProduct(l: MakerLabel): Product | null {
   }
   if (!per100) return { ...base, basis: 'serving', servingLabel: l.basis.replace(/当[たり]+|あたり|（.*?）/g, '').trim() }
   // 飲み物・アイスは1本（1個）の容量、ほかは表示の量（100g当たりの表示なら100g）を1回分にする
-  const servingGrams = l.servingUnit === 'ml' ? (l.containerMl ?? containerMl(l.name) ?? (l.servingAmount === 100 ? undefined : l.servingAmount)) : l.servingAmount === 100 ? undefined : l.servingAmount
+  // 1Lの牛乳のような大きな容器は1回に飲む量ではないので、容量は600mLまでの食べきり・飲みきりのものだけ使う
+  const container = l.containerMl ?? containerMl(l.name)
+  const amount = l.servingAmount === 100 ? undefined : l.servingAmount
+  const servingGrams = l.servingUnit === 'ml' ? (container && container <= 600 ? container : amount) : amount
   return {
     ...base,
     basis: l.servingUnit === 'ml' ? '100ml' : '100g',

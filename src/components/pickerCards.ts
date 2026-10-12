@@ -57,7 +57,8 @@ function entries(kind: Kind, { catalog, slot, query, category, showAlcohol, favo
           },
         }))
     case 'product':
-      return [...catalog.products.values()]
+      // 同じ商品が古いJANでも入っていることがあるので1回だけ
+      return [...new Set(catalog.products.values())]
         .filter((p) => !isSupplement(p))
         .filter((p) => showAlcohol || p.category !== 'alcohol')
         .filter((p) =>

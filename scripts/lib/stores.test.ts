@@ -1,5 +1,18 @@
 import { describe, expect, it } from 'vitest'
-import { isAmbiguousSevenItem, labelBasis, parseAmount, parseFamimaSafety, parseLabelText, parseLawsonDetail, parsePrice, parseSevenItem, toStoreProduct } from './stores'
+import {
+  isAmbiguousItem,
+  isAmbiguousSevenItem,
+  labelBasis,
+  parseAmount,
+  parseFamimaSafety,
+  parseLabelText,
+  parseLawsonDetail,
+  parsePrice,
+  parseSevenItem,
+  parseTopvaluDetail,
+  specAmount,
+  toStoreProduct,
+} from './stores'
 
 describe('parseAmount', () => {
   it('数・全角・幅・微量を読む', () => {
@@ -31,6 +44,7 @@ describe('parsePrice', () => {
   it('税込の価格を取る', () => {
     expect(parsePrice('<p>398円（税込429.84円）</p>')).toBe(430)
     expect(parsePrice('<dd><span>297</span><span>円(税込)</span></dd>')).toBe(297)
+    expect(parsePrice('本体価格 298円（税込価格 321.84円）')).toBe(322)
   })
 })
 
@@ -115,6 +129,15 @@ describe('labelBasis', () => {
     expect(labelBasis('15g当たり')).toEqual({ grams: 15, unit: 'g' })
     expect(labelBasis('100ml当たり')).toEqual({ grams: 100, unit: 'ml' })
     expect(labelBasis('1個当たり')).toEqual({ label: '1個' })
+    expect(labelBasis('1袋(40g)当たり')).toEqual({ grams: 40, unit: 'g', serving: 40 })
+    expect(labelBasis('1本（240ml）当たり')).toEqual({ grams: 240, unit: 'ml', serving: 240 })
+    expect(labelBasis('1食(5個入)当たり')).toEqual({ label: '1食(5個入)' })
+    expect(labelBasis('可食部100g当たり')).toEqual({ grams: 100, unit: 'g' })
+    expect(labelBasis('大さじ1杯(15ml)当たり')).toEqual({ grams: 15, unit: 'ml', serving: 15 })
+    expect(labelBasis('鶏卵1個(可食部44g)当たり')).toEqual({ grams: 44, unit: 'g', serving: 44 })
+    expect(labelBasis('1食(めん60g)当たり')).toEqual({ label: '1食(めん60g)' })
+    expect(labelBasis('1枚(60g:平均値)当たり')).toEqual({ grams: 60, unit: 'g', serving: 60 })
+    expect(labelBasis('1個(標準13.5g)当たり')).toEqual({ grams: 13.5, unit: 'g', serving: 13.5 })
     expect(labelBasis('1包装当たり')).toEqual({})
     expect(labelBasis(undefined)).toEqual({})
   })
@@ -135,5 +158,60 @@ describe('isAmbiguousSevenItem', () => {
     expect(isAmbiguousSevenItem({ store: 'seven', name: '7P 鉄板焼きハンバーグ' })).toBe(true)
     expect(isAmbiguousSevenItem({ store: 'seven', name: '手巻おにぎり　ツナマヨネーズ' })).toBe(false)
     expect(isAmbiguousSevenItem({ store: 'lawson', name: '7プレミアム' })).toBe(false)
+  })
+})
+
+describe('parseTopvaluDetail', () => {
+  const html = `<h1 class="item-detail__name">焼肉用(北海道)</h1>
+    <dl class="item-detail__specs">
+      <dt class="item-detail__specs__field">規格：</dt>
+      <dd class="item-detail__specs__value">200g</dd>
+      <dt class="item-detail__specs__field">JAN：</dt>
+      <dd class="item-detail__specs__value">4549414000000</dd>
+    </dl>
+    <div class="item-detail__specs item-detail__specs--price">
+      <p class="item-detail__specs__strong">本体価格&nbsp;<span>298</span>円</p>
+      <p class="item-detail__specs__strong">（税込価格&nbsp;<span>321.84</span>円）</p>
+    </div>
+    <div class="infoBox"><dl><dt>保存方法</dt><dd>要冷蔵</dd></dl><dl><dt>栄養成分</dt><dd>100g当たり エネルギー40kcal たんぱく質1.2g 脂質0.2g 炭水化物9.4g 糖質7.3g 食物繊維2.1g 食塩相当量0.01g この表示値は、目安です。</dd></dl></div>`
+  it('商品名・規格・価格・表示の単位・栄養成分を読む', () => {
+    expect(parseTopvaluDetail(html, '4549414000000')).toEqual({
+      store: 'topvalu',
+      code: '4549414000000',
+      name: '焼肉用(北海道)',
+      url: 'https://www.topvalu.net/items/detail/4549414000000/',
+      label: { energyKcal: 40, protein: 1.2, fat: 0.2, carb: 9.4, salt: 0.01, fiber: 2.1 },
+      per: '100g当たり',
+      spec: '200g',
+      priceYen: 322,
+    })
+  })
+  it('調理前・調理後など表示が2つあるときは最初の表示を使う', () => {
+    const two = html.replace(/100g当たり[^<]*/, '1食(めん80g)当たり エネルギー300kcal たんぱく質8g 脂質1g 炭水化物60g 食塩相当量5g 調理後 エネルギー320kcal たんぱく質9g 脂質2g 炭水化物61g 食塩相当量5.5g')
+    expect(parseTopvaluDetail(two, '1')?.label).toEqual({ energyKcal: 300, protein: 8, fat: 1, carb: 60, salt: 5 })
+  })
+  it('内容量が食べきりの大きさなら1回分の量にする', () => {
+    const item = parseTopvaluDetail(html, '4549414000000')!
+    const p = toStoreProduct({ ...item, category: 'ingredient', fetchedAt: '2026-10-12' })
+    expect(p).toMatchObject({ jan: 'topvalu-4549414000000', brand: 'トップバリュ', basis: '100g', servingGrams: 200 })
+  })
+})
+
+describe('specAmount', () => {
+  it('1個分の量。大きな袋は使わない', () => {
+    expect(specAmount('200g')).toBe(200)
+    expect(specAmount('170g×4')).toBe(170)
+    expect(specAmount('５００ｍｌ')).toBe(500)
+    expect(specAmount('1000ml')).toBeUndefined()
+    expect(specAmount('1パック')).toBeUndefined()
+  })
+})
+
+describe('isAmbiguousItem', () => {
+  it('表示の単位が書かれていないトップバリュの商品は除く', () => {
+    expect(isAmbiguousItem({ store: 'topvalu', name: 'みそ', per: undefined })).toBe(true)
+    expect(isAmbiguousItem({ store: 'topvalu', name: 'みそ', per: '当たり' })).toBe(true)
+    expect(isAmbiguousItem({ store: 'topvalu', name: 'みそ', per: '100g当たり' })).toBe(false)
+    expect(isAmbiguousItem({ store: 'seven', name: '7P ハンバーグ' })).toBe(true)
   })
 })

@@ -45,6 +45,11 @@ describe('toMakerProduct', () => {
     expect(p.nutrients.alcohol).toBe(4)
     expect(p.nutrients.salt).toBe(0)
   })
+  it('1Lの牛乳のような大きな容器の容量は1回分にしない', () => {
+    const p = toMakerProduct(label({ name: '牛乳 1000ml', category: 'dairy', basis: '100ml当たり', servingAmount: 100, servingUnit: 'ml', energyKcal: 67, protein: 3.4, fat: 3.8, carb: 5.3, salt: 0.1 }))!
+    expect(p.basis).toBe('100ml')
+    expect(p.servingGrams).toBeUndefined()
+  })
   it('量の書かれていない「1枚当たり」は1回分の表示のまま', () => {
     const p = toMakerProduct(label({ basis: '1枚当たり', servingAmount: undefined, servingUnit: undefined }))!
     expect(p).toMatchObject({ basis: 'serving', servingLabel: '1枚' })

@@ -79,5 +79,6 @@ export const PRODUCT_STORES = [
   { id: 'seven', label: 'セブン-イレブン' },
   { id: 'famima', label: 'ファミリーマート' },
   { id: 'lawson', label: 'ローソン' },
+  { id: 'topvalu', label: 'トップバリュ' },
 ] as const
 export const STORE_FILTER_PREFIX = 'store:'
