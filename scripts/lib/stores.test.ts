@@ -192,8 +192,10 @@ describe('parseTopvaluDetail', () => {
   })
   it('内容量が食べきりの大きさなら1回分の量にする', () => {
     const item = parseTopvaluDetail(html, '4549414000000')!
-    const p = toStoreProduct({ ...item, category: 'ingredient', fetchedAt: '2026-10-12' })
+    const p = toStoreProduct({ ...item, category: 'side', fetchedAt: '2026-10-12' })
     expect(p).toMatchObject({ jan: 'topvalu-4549414000000', brand: 'トップバリュ', basis: '100g', servingGrams: 200 })
+    // 食材は1袋で何回分にもなるので内容量は使わない
+    expect(toStoreProduct({ ...item, category: 'ingredient', fetchedAt: '2026-10-12' }).servingGrams).toBeUndefined()
   })
 })
 
@@ -203,6 +205,7 @@ describe('specAmount', () => {
     expect(specAmount('170g×4')).toBe(170)
     expect(specAmount('５００ｍｌ')).toBe(500)
     expect(specAmount('1000ml')).toBeUndefined()
+    expect(specAmount('400g')).toBeUndefined()
     expect(specAmount('1パック')).toBeUndefined()
   })
 })

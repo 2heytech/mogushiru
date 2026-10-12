@@ -45416,7 +45416,7 @@
    "per": "3切1枚(0.9g)当たり",
    "spec": "3切50枚",
    "priceYen": 754,
-   "category": "onigiri",
+   "category": "ingredient",
    "fetchedAt": "2026-10-12"
   },
   {
@@ -65502,7 +65502,7 @@
    "per": "3切1枚(0.9g)当たり",
    "spec": "3切50枚",
    "priceYen": 819,
-   "category": "onigiri",
+   "category": "ingredient",
    "fetchedAt": "2026-10-12"
   },
   {
@@ -75596,7 +75596,7 @@
    "per": "3切1枚(1.1g)当たり",
    "spec": "30枚",
    "priceYen": 538,
-   "category": "onigiri",
+   "category": "ingredient",
    "fetchedAt": "2026-10-12"
   },
   {
@@ -75615,7 +75615,7 @@
    "per": "3切1枚(1.3g)当たり",
    "spec": "20枚",
    "priceYen": 495,
-   "category": "onigiri",
+   "category": "ingredient",
    "fetchedAt": "2026-10-12"
   },
   {
@@ -75957,7 +75957,7 @@
    "per": "3切1枚(0.9g)当たり",
    "spec": "3切30枚",
    "priceYen": 646,
-   "category": "onigiri",
+   "category": "ingredient",
    "fetchedAt": "2026-10-12"
   },
   {

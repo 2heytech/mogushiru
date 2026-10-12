@@ -126,7 +126,9 @@ async function topvalu(): Promise<StoreItem[]> {
   for (const [code, appCategory] of itemCategory) {
     const html = await get(`${base}detail/${code}/`)
     const item = html ? parseTopvaluDetail(html, code) : null
-    if (item) items.push({ ...item, category: appCategory ?? categorize([], item.name), fetchedAt })
+    // おにぎり・お弁当は売っていないので、名前に「おにぎり」とあるもの（おにぎりのりなど）は食材
+    const byName = () => categorize([], item!.name).replace(/^(onigiri|bento)$/, 'ingredient')
+    if (item) items.push({ ...item, category: appCategory ?? byName(), fetchedAt })
   }
   return items
 }

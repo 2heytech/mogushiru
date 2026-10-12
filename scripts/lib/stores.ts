@@ -401,11 +401,11 @@ export function parseTopvaluDetail(html: string, jan: string): Omit<StoreItem, '
 
 export const topvaluItemCodes = (html: string): string[] => [...new Set([...html.matchAll(/\/items\/detail\/(\d{8,14})/g)].map((m) => m[1]))]
 
-// 「200g」「170g×4」「500ml」の1個分の量。食べきる量として初期値に使うので、大きな袋（1kgの米など）は使わない
+// 「200g」「170g×4」「500ml」の1個分の量。食べきる量として初期値に使うので、大きなもの（300gをこえる袋・600mLをこえる飲み物）は使わない
 export function specAmount(spec: string | undefined): number | undefined {
   const m = (spec ?? '').normalize('NFKC').match(/^(\d+(?:\.\d+)?)\s*(g|ml|mL)(?:\s*[×x]\s*\d+.*)?$/)
   const v = m ? Number(m[1]) : undefined
-  return v && v <= 600 ? v : undefined
+  return v && v <= (m![2] === 'g' ? 300 : 600) ? v : undefined
 }
 
 // ---- アプリの市販品にする ----
@@ -451,8 +451,10 @@ export function toStoreProduct(item: StoreItem): Product {
     // お酒以外は 0（市販品の取り込みと同じ扱い）
     alcohol: item.category === 'alcohol' ? null : 0,
   })
-  // 1回分の量：表示に書かれた量、なければ内容量（食べきりの大きさのものだけ）
-  const servingGrams = 'grams' in basis ? (basis.serving ?? specAmount(item.spec)) : undefined
+  // 1回分の量：表示に書かれた量、なければ内容量（食べきりの大きさのものだけ）。
+  // 食材・調味料・麺（乾麺など）は1袋で何回分にもなるので内容量は使わない
+  const whole = !['ingredient', 'seasoning', 'noodle', 'other'].includes(item.category)
+  const servingGrams = 'grams' in basis ? (basis.serving ?? (whole ? specAmount(item.spec) : undefined)) : undefined
   return {
     jan: `${item.store}-${item.code}`,
     name: item.name,
