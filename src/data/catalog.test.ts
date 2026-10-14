@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Product } from '../domain/types'
-import { mergeProducts, withMyData } from './catalog'
+import { mergeProducts, withMyData, withNullNutrients } from './catalog'
 
 describe('お気に入りを足したカタログ', () => {
   it('登録した市販品を市販品に加え、元のカタログは変えない', () => {
@@ -31,5 +31,14 @@ describe('公式サイトの商品とほかの市販品をまとめる', () => {
     const tv = { jan: 'topvalu-4549414093889', basis: 'serving' } as Product
     const off = { jan: '4549414093889', basis: '100g' } as Product
     expect(mergeProducts([tv], [off]).get('4549414093889')).toBe(off)
+  })
+})
+
+describe('省いた栄養素を補う', () => {
+  it('書かれていない栄養素は null にする', () => {
+    const p = withNullNutrients({ jan: 'x', nutrients: { energyKcal: 100, protein: 1, fat: 2, carb: 3, salt: 0.1 } } as unknown as Product)
+    expect(p.nutrients.energyKcal).toBe(100)
+    expect(p.nutrients.calcium).toBeNull()
+    expect(Object.keys(p.nutrients)).toHaveLength(Object.keys(withNullNutrients({ jan: 'y', nutrients: {} } as unknown as Product).nutrients).length)
   })
 })
