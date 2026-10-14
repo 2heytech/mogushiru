@@ -1,4 +1,5 @@
-// メーカー公式サイトの商品ページで確かめた栄養成分表示（data/makers/labels.json）をアプリの市販品にする
+// メーカー公式サイトの商品ページで確かめた栄養成分表示（data/makers/*.json）をアプリの市販品にする
+import { readdirSync, readFileSync } from 'node:fs'
 import { NUTRIENT_KEYS, type Nutrients, type Product } from '../../src/domain/types'
 import { sodiumMgToSaltG } from '../../src/domain/nutrition'
 import { alcoholVolToG } from './off'
@@ -24,6 +25,23 @@ export type MakerLabel = {
   caffeineMg?: number
   fetchedAt: string
   note?: string
+}
+
+// data/makers/ のファイル（labels.json は売れ筋・定番、ほかは食品カテゴリーごとの主要メーカーの商品）をまとめて読む。
+// 同じ商品（同じJAN、または同じページの同じ名前）は先に読んだものを使う
+export function readMakerLabels(dir = 'data/makers'): MakerLabel[] {
+  const files = readdirSync(dir).filter((f) => f.endsWith('.json')).sort((a, b) => Number(b === 'labels.json') - Number(a === 'labels.json') || a.localeCompare(b))
+  const seen = new Set<string>()
+  const items: MakerLabel[] = []
+  for (const f of files) {
+    for (const l of (JSON.parse(readFileSync(`${dir}/${f}`, 'utf8')) as { items: MakerLabel[] }).items) {
+      const keys = [l.jan, `${l.url} ${l.name}`]
+      if (keys.some((k) => seen.has(k))) continue
+      keys.forEach((k) => seen.add(k))
+      items.push(l)
+    }
+  }
+  return items
 }
 
 // 商品名の容量（「600ml」「３５０ｍｌ」「1.5L」）。1本・1缶で選べるように使う
@@ -75,4 +93,11 @@ export function toMakerProduct(l: MakerLabel): Product | null {
     basis: l.servingUnit === 'ml' ? '100ml' : '100g',
     ...(servingGrams && servingGrams <= 2000 ? { servingGrams } : {}),
   }
+}
+
+// 100g(mL)当たりに直した値がありえない大きさのもの（1個の重さと表示の組み合わせがずれているなど）は使わない
+export function isImplausible(p: Product): boolean {
+  if (p.basis === 'serving') return false
+  const { energyKcal, protein, fat, carb } = p.nutrients
+  return (energyKcal ?? 0) > 950 || (protein ?? 0) + (fat ?? 0) + (carb ?? 0) > 105
 }

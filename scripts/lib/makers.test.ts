@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { containerMl, toMakerProduct, type MakerLabel } from './makers'
+import { containerMl, isImplausible, toMakerProduct, type MakerLabel } from './makers'
 
 const label = (over: Partial<MakerLabel>): MakerLabel => ({
   jan: '4900000000001',
@@ -57,5 +57,14 @@ describe('toMakerProduct', () => {
   })
   it('必須の項目が足りなければ使わない', () => {
     expect(toMakerProduct(label({ protein: undefined }))).toBeNull()
+  })
+})
+
+describe('isImplausible', () => {
+  it('100g当たりに直してありえない値になるものを見つける', () => {
+    // 1個7.5gの表示のつもりで、実際は1袋の値（100g当たり 670kcal・PFC 118g）
+    expect(isImplausible(toMakerProduct(label({ basis: '1個(7.5g)当たり', servingAmount: 7.5, servingUnit: 'g', energyKcal: 52, protein: 0.7, fat: 3.4, carb: 4.8, salt: 0.05 }))!)).toBe(true)
+    expect(isImplausible(toMakerProduct(label({ basis: '100g当たり', servingAmount: 100, servingUnit: 'g' }))!)).toBe(false)
+    expect(isImplausible(toMakerProduct(label({ basis: '1枚当たり', servingAmount: undefined, servingUnit: undefined, energyKcal: 2000 }))!)).toBe(false)
   })
 })

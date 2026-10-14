@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { Catalog } from '../domain/nutrition'
-import type { Dish, Food, MyDish, Product } from '../domain/types'
+import { NUTRIENT_KEYS, type Dish, type Food, type MyDish, type Product } from '../domain/types'
 
 export type CatalogState =
   | { status: 'loading' }
@@ -35,7 +35,7 @@ export function useCatalog(): CatalogState {
         productCategories: p?.categories ?? {},
         catalog: {
           dishes: new Map((d?.dishes ?? []).map((x) => [x.id, x])),
-          products: mergeProducts(s?.products ?? [], p?.products ?? []),
+          products: mergeProducts((s?.products ?? []).map(withNullNutrients), p?.products ?? []),
           foods: new Map((f?.foods ?? []).map((x) => [x.id, x])),
         },
       })
@@ -45,6 +45,13 @@ export function useCatalog(): CatalogState {
     }
   }, [])
   return state
+}
+
+// store-products.json は書かれていない栄養素を省いているので null で補う
+export function withNullNutrients(p: Product): Product {
+  const nutrients = { ...p.nutrients }
+  for (const k of NUTRIENT_KEYS) nutrients[k] ??= null
+  return { ...p, nutrients }
 }
 
 // 公式サイトから取った商品（コンビニ各社・メーカー）を先に並べる（売り場にある商品から選びやすいように）。
