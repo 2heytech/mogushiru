@@ -28,4 +28,14 @@ describe('よく食べられるもの', () => {
     expect(popularRank('breakfast', 'food:07013')).toBe(1)
     expect(popularRank('lunch', 'food:01026')).toBe(NOT_POPULAR)
   })
+  it('ヨーグルトは無糖より加糖が上', () => {
+    for (const slot of ['breakfast', 'other'] as const) {
+      expect(popularRank(slot, 'dish:sweets-yogurt-sweet')).toBeLessThan(popularRank(slot, 'dish:yogurt'))
+    }
+  })
+  it('間食はお菓子、昼はおにぎり・麺類が上位', () => {
+    expect(popularRank('other', 'dish:chocolate')).toBe(0)
+    expect(popularRank('lunch', 'dish:onigiri-salmon')).toBeLessThan(10)
+    expect(popularRank('lunch', 'dish:shoyu-ramen')).toBeLessThan(10)
+  })
 })
