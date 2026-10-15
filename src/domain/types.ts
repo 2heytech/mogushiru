@@ -145,6 +145,10 @@ export type Sex = 'male' | 'female'
 export type Activity = 'low' | 'normal' | 'high'
 export type Goal = 'lose' | 'keep' | 'gain'
 
+// ふだんの運動。type は EXERCISE_TYPES（src/domain/energy.ts）の id。minutes は1回の時間（分）、
+// steps があれば歩数から時間に直す。perWeek は週の回数（1〜7）。mets は「そのほか」で入れた強さ
+export type Exercise = { type: string; minutes: number; steps?: number; perWeek: number; mets?: number }
+
 export type Profile = {
   sex: Sex
   age: number
@@ -156,4 +160,6 @@ export type Profile = {
   menstruation?: boolean
   // 1日の目安を朝・昼・晩・その他に分ける割合（％、合計100）。未設定なら 25:35:30:10
   slotShare?: Record<Slot, number>
+  // ふだんの運動。activity は運動をのぞいた生活の動きとして、運動の分はここから足す
+  exercises?: Exercise[]
 }

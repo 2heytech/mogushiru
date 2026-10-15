@@ -1,6 +1,5 @@
 import {
   ALCOHOL_RISK,
-  BMR_PER_KG,
   CALCIUM_RDA,
   CAFFEINE_MAX_ADULT,
   CAFFEINE_MAX_PER_KG_UNDER18,
@@ -32,13 +31,12 @@ import {
   ZINC_RDA,
   ZINC_UL,
   MIN_SUPPORTED_AGE,
-  PAL,
   PROTEIN_RATIO,
-  REFERENCE_WEIGHT,
   SALT_MAX,
   SAT_FAT_RATIO_MAX,
   pick,
 } from './dri'
+import { expenditure } from './energy'
 import { slotShareFromPercent } from './slotBalance'
 import type { Goal, NutrientKey, Profile, Slot } from './types'
 
@@ -79,13 +77,10 @@ export type Targets = {
 
 const GOAL_FACTOR: Record<Goal, number> = { lose: 0.9, keep: 1, gain: 1.1 }
 
+// 1日の目安：消費（基礎代謝基準値×体重×身体活動レベル＋ふだんの運動）に、体重の目標の分をかける
 export function estimatedEnergy(profile: Profile): { kcal: number; usedReferenceWeight: boolean } {
-  const age = Math.max(profile.age, MIN_SUPPORTED_AGE)
-  const bmrPerKg = pick(BMR_PER_KG, age)[profile.sex]
-  const usedReferenceWeight = !profile.weightKg
-  const weight = profile.weightKg ?? pick(REFERENCE_WEIGHT, age)[profile.sex]
-  const pal = pick(PAL, age)[profile.activity]
-  const kcal = bmrPerKg * weight * pal * GOAL_FACTOR[profile.goal ?? 'keep']
+  const { total, usedReferenceWeight } = expenditure(profile)
+  const kcal = total * GOAL_FACTOR[profile.goal ?? 'keep']
   return { kcal: Math.round(kcal / 10) * 10, usedReferenceWeight }
 }
 

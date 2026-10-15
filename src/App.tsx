@@ -8,7 +8,7 @@ import { ProductForm } from './components/ProductForm'
 import { SupplementForm } from './components/SupplementForm'
 import { isSupplement } from './domain/supplement'
 import { Picker } from './components/Picker'
-import { ProfileDialog } from './components/ProfileDialog'
+import { ProfileDialog, type ProfileFocus } from './components/ProfileDialog'
 import { SlotStrip } from './components/SlotStrip'
 import { RankingView } from './components/RankingView'
 import { confirmDialog } from './components/confirm'
@@ -129,7 +129,7 @@ export default function App() {
   } = useAppStore()
   const [savedDialog, setSavedDialog] = useState<'save' | 'load' | null>(null)
   const [profileOpen, setProfileOpen] = useState(false)
-  const [profileFocus, setProfileFocus] = useState<'slotShare' | undefined>()
+  const [profileFocus, setProfileFocus] = useState<ProfileFocus | undefined>()
   const [pickerSlot, setPickerSlot] = useState<Slot | null>(null)
   const [editing, setEditing] = useState<{ slot: Slot; uid: string } | null>(null)
   // 市販品の登録（slot があれば登録後その区分に追加）・編集
@@ -316,10 +316,16 @@ export default function App() {
           <DayInfo
             totals={totals}
             targets={targets}
+            profile={profile}
             onEditSlotShare={() => {
               setProfileFocus('slotShare')
               setProfileOpen(true)
             }}
+            onEditExercise={() => {
+              setProfileFocus('exercise')
+              setProfileOpen(true)
+            }}
+            onEditProfile={() => setProfileOpen(true)}
           />
         </main>
       ) : (

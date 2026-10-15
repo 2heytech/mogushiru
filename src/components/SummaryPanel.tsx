@@ -3,8 +3,10 @@ import { balanceMood, computeAlerts, type Alert, type Mood } from '../domain/ale
 import type { MenuTotals } from '../domain/nutrition'
 import { nutrientChecks } from '../domain/nutrientChecks'
 import { pfcGaps, type PfcGap } from '../domain/pfcGap'
+import { expenditure } from '../domain/energy'
 import type { Targets } from '../domain/targets'
-import { SLOTS } from '../domain/types'
+import { SLOTS, type Profile } from '../domain/types'
+import { EnergyBalanceView, WeightSimView } from './EnergyView'
 import { MOOD_LABEL, SLOT_LABEL } from './labels'
 import type { MascotMood } from '../domain/mascotMood'
 import { BowlMogu, SlotIcon } from './Mascot'
@@ -94,13 +96,28 @@ function moguMessage(energy: number, mood: Mood, gaps: PfcGap[] | null, alerts: 
   return MOOD_MESSAGE[mood]
 }
 
-type InfoTab = 'summary' | 'pfc' | 'nutrients' | 'slots'
+type InfoTab = 'summary' | 'pfc' | 'nutrients' | 'slots' | 'energy'
 
 const CARD = 'rounded-[var(--radius-card)] bg-[#fff1df] p-4 shadow-sm'
 
 // 1日の食事の下に出す情報。スマホ・タブレットはタブで1種類ずつ、広い画面ではタブなしで並べる
-export function DayInfo({ totals, targets, onEditSlotShare }: { totals: MenuTotals; targets: Targets; onEditSlotShare?: () => void }) {
+export function DayInfo({
+  totals,
+  targets,
+  profile,
+  onEditSlotShare,
+  onEditExercise,
+  onEditProfile,
+}: {
+  totals: MenuTotals
+  targets: Targets
+  profile: Profile
+  onEditSlotShare?: () => void
+  onEditExercise?: () => void
+  onEditProfile?: () => void
+}) {
   const [tab, setTab] = useState<InfoTab>('summary')
+  const energy = expenditure(profile)
   const v = totals.day.values
   const gaps = pfcGaps(v, targets)
   const alerts = computeAlerts(totals, targets)
@@ -115,6 +132,7 @@ export function DayInfo({ totals, targets, onEditSlotShare }: { totals: MenuTota
     { key: 'pfc', label: 'PFC' },
     { key: 'nutrients', label: '栄養素' },
     { key: 'slots', label: '区分ごと' },
+    { key: 'energy', label: '体重' },
   ]
   // lg 以上ではタブを使わず全部見せる
   const panel = (key: InfoTab) => (tab === key ? '' : 'hidden lg:block')
@@ -162,6 +180,15 @@ export function DayInfo({ totals, targets, onEditSlotShare }: { totals: MenuTota
 
             <div className={`${CARD} ${panel('pfc')}`}>
               {gaps ? <PfcDangoView gaps={gaps} gramRanges={targets.pfcGrams} /> : <Empty />}
+            </div>
+          </div>
+          {/* 食べる・使うカロリーと、続けたときの体重 */}
+          <div className="contents lg:grid lg:grid-cols-2 lg:items-stretch lg:gap-4">
+            <div className={`${CARD} ${panel('energy')}`}>
+              <EnergyBalanceView totals={totals} energy={energy} targets={targets} profile={profile} onEditExercise={onEditExercise} />
+            </div>
+            <div className={`${CARD} ${panel('energy')}`}>
+              <WeightSimView totals={totals} energy={energy} profile={profile} onEditProfile={onEditProfile} />
             </div>
           </div>
           <div className={panel('slots')}>
