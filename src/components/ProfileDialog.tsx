@@ -1,14 +1,18 @@
 import { useEffect, useRef, useState } from 'react'
 import { MIN_SUPPORTED_AGE } from '../domain/dri'
 import { DEFAULT_SLOT_SHARE_PERCENT } from '../domain/slotBalance'
+import { expenditure } from '../domain/energy'
 import { computeTargets } from '../domain/targets'
-import { SLOTS, type Activity, type Goal, type Profile, type Sex, type Slot } from '../domain/types'
+import { SLOTS, type Activity, type Exercise, type Goal, type Profile, type Sex, type Slot } from '../domain/types'
+import { ExerciseEditor } from './ExerciseEditor'
+import { fromDraft, toDraft, type ExerciseDraft } from './exerciseDraft'
 import { SLOT_LABEL } from './labels'
 
-const ACTIVITY: { id: Activity; label: string; desc: string }[] = [
+// 運動を入れたときは、運動の分は別に足すので「高い」から運動習慣を外す
+const activityOptions = (withExercise: boolean): { id: Activity; label: string; desc: string }[] => [
   { id: 'low', label: '低い', desc: '座っていることが多い' },
   { id: 'normal', label: 'ふつう', desc: '立ち仕事や通勤・家事で動く' },
-  { id: 'high', label: '高い', desc: '体を動かす仕事・運動習慣がある' },
+  { id: 'high', label: '高い', desc: withExercise ? '体を動かす仕事が多い' : '体を動かす仕事・運動習慣がある' },
 ]
 const GOAL: { id: Goal; label: string }[] = [
   { id: 'lose', label: '減らしたい' },
@@ -74,6 +78,8 @@ function SlotShareEditor({ value, onChange, dayKcal }: { value: Record<Slot, num
   )
 }
 
+export type ProfileFocus = 'slotShare' | 'exercise'
+
 const numOrUndef = (s: string) => (s.trim() === '' || Number.isNaN(Number(s)) ? undefined : Number(s))
 
 export function ProfileDialog({
@@ -85,8 +91,8 @@ export function ProfileDialog({
   profile: Profile
   onSave: (p: Profile) => void
   onClose: () => void
-  // 'slotShare' のときは配分の欄までスクロールして開く
-  focus?: 'slotShare'
+  // 'slotShare'・'exercise' のときはその欄までスクロールして開く
+  focus?: ProfileFocus
 }) {
   const [sex, setSex] = useState<Sex>(profile.sex)
   const [age, setAge] = useState(String(profile.age))
@@ -96,14 +102,20 @@ export function ProfileDialog({
   const [goal, setGoal] = useState<Goal>(profile.goal ?? 'keep')
   const [menstruation, setMenstruation] = useState<boolean | undefined>(profile.menstruation)
   const [slotShare, setSlotShare] = useState<Record<Slot, number>>(profile.slotShare ?? DEFAULT_SLOT_SHARE_PERCENT)
+  const [exercises, setExercises] = useState<ExerciseDraft[]>(() => (profile.exercises ?? []).map(toDraft))
   const slotShareRef = useRef<HTMLDivElement>(null)
+  const exerciseRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
     if (focus === 'slotShare') slotShareRef.current?.scrollIntoView({ block: 'center' })
+    if (focus === 'exercise') exerciseRef.current?.scrollIntoView({ block: 'start' })
   }, [focus])
 
   const ageNum = numOrUndef(age)
   const shareOk = SLOTS.reduce((a, s) => a + slotShare[s], 0) === 100
-  const valid = ageNum !== undefined && ageNum >= 1 && ageNum <= 120 && shareOk
+  const exerciseList = exercises.map(fromDraft)
+  const exercisesOk = exerciseList.every((e) => e !== null)
+  const validExercises = exerciseList.filter((e): e is Exercise => e !== null)
+  const valid = ageNum !== undefined && ageNum >= 1 && ageNum <= 120 && shareOk && exercisesOk
   const draft: Profile | null = valid
     ? {
         sex,
@@ -115,6 +127,7 @@ export function ProfileDialog({
         ...(sex === 'female' && menstruation !== undefined ? { menstruation } : {}),
         // はじめの配分のままなら保存しない（初期値が変わったときに追従できるように）
         ...(sameShare(slotShare, DEFAULT_SLOT_SHARE_PERCENT) ? {} : { slotShare }),
+        ...(validExercises.length > 0 ? { exercises: validExercises } : {}),
       }
     : null
   // 鉄の推奨量は、女性の64歳までだけ月経の有無で変わる
@@ -122,7 +135,10 @@ export function ProfileDialog({
   const menstruationValue = menstruation ?? Math.max(ageNum ?? 0, MIN_SUPPORTED_AGE) < 50
   const preview = draft ? computeTargets(draft) : null
   const ageOk = ageNum !== undefined && ageNum >= 1 && ageNum <= 120
-  const dayKcal = ageOk ? computeTargets({ sex, age: ageNum, weightKg: numOrUndef(weight), activity, goal }).energyKcal : null
+  const basics: Profile | null = ageOk ? { sex, age: ageNum, weightKg: numOrUndef(weight), activity, goal, exercises: validExercises } : null
+  const dayKcal = basics ? computeTargets(basics).energyKcal : null
+  // 運動の1回あたりの消費は、入れた体重（なければ参照体重）で出す
+  const energy = basics ? expenditure(basics) : null
 
   const field = 'min-h-11 w-full rounded-2xl border-2 border-white bg-white px-4 text-base outline-none focus:border-coral'
 
@@ -175,7 +191,16 @@ export function ProfileDialog({
           )}
           <div>
             <p className="mb-1 text-sm">ふだんの活動量</p>
-            <Choice value={activity} onChange={setActivity} options={ACTIVITY} />
+            <Choice value={activity} onChange={setActivity} options={activityOptions(exercises.length > 0)} />
+          </div>
+          <div ref={exerciseRef} className="scroll-mt-4">
+            <p className="mb-1 text-sm">ふだんの運動（任意）</p>
+            <ExerciseEditor value={exercises} onChange={setExercises} weightKg={energy?.weightKg ?? 60} />
+            <p className="mt-1 text-[11px] text-ink-soft">
+              {exercises.length > 0 && energy
+                ? `運動で 1日あたり 約${Math.round(energy.exercise).toLocaleString()} kcal（週の回数でならした分）を足します。通勤や家事の動きは「ふだんの活動量」に入っています。`
+                : '続けている運動を入れると、使うカロリーに足して計算します。通勤や家事の動きは「ふだんの活動量」に入っています。'}
+            </p>
           </div>
           <div>
             <p className="mb-1 text-sm">体重の目標</p>
