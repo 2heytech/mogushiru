@@ -4377,31 +4377,6 @@
    "reason": "ネスレ日本公式サイト(nestle.jp)はcurlでCloudflareチャレンジ(403)、WebFetchはDNS解決失敗で取得不可。また公式に通常品「11枚」ページは確認できず（現行は12枚 キットカット ミニ 009418148、11枚はオトナの甘さ）"
   },
   {
-   "jan": "4901777300446",
-   "name": "サントリー　緑茶　伊右衛門　ペット　６００ｍｌ",
-   "reason": "サントリー公式(products.suntory.co.jp/d/4901777300446/ ほか www.suntory.co.jp)はcurlでAkamai 403 Access Denied、WebFetchもDNS解決失敗のため取得不可"
-  },
-  {
-   "jan": "45191961",
-   "name": "サントリー　ＧＲＥＥＮ　ＤＡＫＡＲＡ　やさしい麦茶　６８０ｍｌ",
-   "reason": "サントリー公式(products.suntory.co.jp/d/45191961/ ほか www.suntory.co.jp)はcurlでAkamai 403 Access Denied、WebFetchもDNS解決失敗のため取得不可"
-  },
-  {
-   "jan": "4901777377141",
-   "name": "サントリー　伊右衛門濃い味　ペット　６００ｍｌ",
-   "reason": "サントリー公式(products.suntory.co.jp/d/4901777377141/ ほか www.suntory.co.jp)はcurlでAkamai 403 Access Denied、WebFetchもDNS解決失敗のため取得不可"
-  },
-  {
-   "jan": "4901777453340",
-   "name": "サントリー　伊右衛門　京都サイダー　ペット　５００ｍｌ",
-   "reason": "サントリー公式(products.suntory.co.jp/d/4901777453340/ ほか www.suntory.co.jp)はcurlでAkamai 403 Access Denied、WebFetchもDNS解決失敗のため取得不可"
-  },
-  {
-   "jan": "4901777232310",
-   "name": "サントリー　Ｃ．Ｃ．レモン　ペット　５００ｍｌ",
-   "reason": "サントリー公式(products.suntory.co.jp/d/4901777232310/ ほか www.suntory.co.jp)はcurlでAkamai 403 Access Denied、WebFetchもDNS解決失敗のため取得不可"
-  },
-  {
    "jan": "4902402921555",
    "name": "ハウス　プロクオリティ　カレー中辛　１７０ｇ×４",
    "reason": "ハウス食品公式商品カタログ(housefoods.jp/products/catalog/cd_1,092155.html)は取得できたが栄養成分表示の掲載なし（内容量・原材料・アレルギーのみ）"
@@ -4412,14 +4387,9 @@
    "reason": "ハウス食品公式商品カタログ(housefoods.jp/products/catalog/cd_1,092750.html 「180g 咖喱屋カレー 中辛」)は取得できたが栄養成分表示の掲載なし"
   },
   {
-   "jan": "4514603263213",
-   "name": "アサヒ飲料　三ツ矢サイダー　ペット　５００ｍｌ",
-   "reason": "アサヒ飲料公式(www.asahiinryo.co.jp/products/carbonated/mitsuya_cider/)はcurlでAkamai 403 Access Denied、WebFetchもDNS解決失敗のため取得不可"
-  },
-  {
    "jan": "4904230030010",
    "name": "アサヒ　ドライゼロ　缶　３５０ｍｌ",
-   "reason": "アサヒビール公式(www.asahibeer.co.jp/products/non-alcohol/dryzero/dryzero.html)はcurlでAkamai 403 Access Denied、WebFetchもDNS解決失敗のため取得不可"
+   "reason": "アサヒビールの成分一覧（asahi.json、ブラウザで取得）に「アサヒドライゼロ」として収録。一覧にJANがないのでJANでは結びつかない"
   },
   {
    "jan": "4901004006721",
@@ -4429,12 +4399,12 @@
   {
    "jan": "4901004008244",
    "name": "アサヒ　クリアアサヒ　缶　３５０ｍｌ",
-   "reason": "アサヒビール公式(www.asahibeer.co.jp/products/beer/clear/clear.html)はcurlでAkamai 403 Access Denied、WebFetchもDNS解決失敗のため取得不可"
+   "reason": "アサヒビールの成分一覧（2026-10-28、ブラウザで取得）にこの商品名がない（「クリア アサヒ<生>」「クリアアサヒ 贅沢ゼロ」は別商品として asahi.json に収録）"
   },
   {
    "jan": "4901777185333",
    "name": "サントリー　金麦　缶　３５０ｍｌ",
-   "reason": "サントリー公式(products.suntory.co.jp/d/4901777185333/)はcurlでAkamai 403 Access Denied、WebFetchもDNS解決失敗のため取得不可"
+   "reason": "サントリーの成分一覧（2026-10-28、ブラウザで取得）ではこのJANの商品がなく、「金麦」は新しいJAN 4901777455474 で suntory.json に収録"
   },
   {
    "jan": "4901326037274",
@@ -4517,11 +4487,6 @@
    "reason": "公式サイト www.satohfoods.co.jp への接続がプロキシで拒否される（CONNECT 502、3回再試行）。なお指定の www.sato-foods.co.jp は別会社（佐藤食品工業、エキス類）でパックごはんの掲載なし"
   },
   {
-   "name": "ケロッグ コーンフロスティ",
-   "maker": "日本ケロッグ",
-   "reason": "www.kelloggs.jp がアクセス拒否ページ（HTTP 405 \"Access denied due to security risk\"）を返す"
-  },
-  {
    "name": "テーブルマーク パックごはん（国産こしひかり 等）",
    "maker": "テーブルマーク",
    "reason": "商品一覧・検索がJavaScriptで外部検索API（tablemark.sitesearch.jp）から読み込まれ、そのAPIに接続できない（トンネル切断）。パックごはんの詳細ページURLをサイト内リンクから見つけられなかった"
@@ -4540,21 +4505,6 @@
    "name": "ジャワカレー",
    "maker": "ハウス食品",
    "reason": "同上（ハウス食品の商品カタログは栄養成分がパッケージ画像のみ）"
-  },
-  {
-   "name": "ハーゲンダッツ ミニカップ バニラ",
-   "maker": "ハーゲンダッツ ジャパン",
-   "reason": "www.haagen-dazs.co.jp が 403 Access Denied（自動取得拒否）"
-  },
-  {
-   "name": "BOSS（缶コーヒー）",
-   "maker": "サントリー食品インターナショナル",
-   "reason": "www.suntory.co.jp が 403 Access Denied（自動取得拒否）"
-  },
-  {
-   "name": "カルピスウォーター",
-   "maker": "アサヒ飲料",
-   "reason": "www.asahiinryo.co.jp が 403 Access Denied（自動取得拒否）"
   },
   {
    "name": "あずきバー 65ml",

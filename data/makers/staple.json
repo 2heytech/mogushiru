@@ -21153,12 +21153,7 @@
   {
    "name": "パックごはん全般",
    "maker": "アイリスオーヤマ",
-   "reason": "公式サイト www.irisohyama.co.jp が robots.txt を含め HTTP 403 (Akamai Access Denied) を返すため取得せず"
-  },
-  {
-   "name": "シリアル全般（コーンフロスティ等）",
-   "maker": "ケロッグ",
-   "reason": "公式サイト www.kelloggs.jp が HTTP 405 'Access denied due to security risk' のボット遮断ページを返すため取得せず"
+   "reason": "公式サイト（www.irisohyama.co.jp/retort-cooked-rice/ など）に栄養成分表示がなく、公式通販（アイリスプラザ）は2026-10-28にブラウザで開いたときメンテナンス中だったため取得せず"
   },
   {
    "name": "サトウのごはん 全商品",

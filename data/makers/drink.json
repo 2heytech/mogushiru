@@ -16091,21 +16091,6 @@
  ],
  "notFound": [
   {
-   "name": "全商品",
-   "maker": "アサヒ飲料",
-   "reason": "www.asahiinryo.co.jp が自動アクセスに 403 Access Denied（Akamai）を返したため取得せず"
-  },
-  {
-   "name": "全商品",
-   "maker": "アサヒビール",
-   "reason": "www.asahibeer.co.jp が 403 Access Denied を返したため取得せず"
-  },
-  {
-   "name": "全商品",
-   "maker": "サントリー",
-   "reason": "www.suntory.co.jp が 403 Access Denied を返したため取得せず"
-  },
-  {
    "name": "全商品（リキッドコーヒー・インスタント・ドリップ・リプトン等）",
    "maker": "キーコーヒー",
    "reason": "公式商品ページに栄養成分表示が掲載されていない"
