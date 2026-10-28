@@ -3,12 +3,15 @@
 // （リニューアルや終売でページが変わった商品を見つけ、表示を見直すため）
 // 値をあとから読み込むページ（山崎製パン）は、ここでは見つからないと出るのでブラウザで確かめる
 // パッケージ画像から読んだ商品（丸美屋）はページに文字の値がないので、ページがまだあることだけを確かめる
+// 自動取得を拒否するサイトの商品（サントリー・アサヒ・ケロッグ・ハーゲンダッツ。note に「ブラウザで取得」）はここでは取り直せないので、件数だけ出してブラウザで確かめる
 import { readMakerLabels } from './lib/makers'
 
 const USER_AGENT = 'Mozilla/5.0 (compatible; MogushiruBot/0.1; +https://github.com/2heytech/mogushiru)'
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
-const items = readMakerLabels()
+const all = readMakerLabels()
+const browserOnly = all.filter((item) => /ブラウザで取得/.test(item.note ?? ''))
+const items = all.filter((item) => !browserOnly.includes(item))
 const changed: string[] = []
 // 一覧表のページなど、同じページの商品はまとめて1回だけ取り直す
 const byUrl = new Map<string, typeof items>()
@@ -34,3 +37,4 @@ for (const [url, group] of byUrl) {
   }
 }
 console.log(changed.length ? `見直しが必要 ${changed.length}品:\n${changed.join('\n')}` : `${items.length}品すべて、ページの値は変わっていません`)
+if (browserOnly.length) console.log(`ブラウザで確かめる品（自動取得を拒否するサイト）: ${browserOnly.length}品`)
