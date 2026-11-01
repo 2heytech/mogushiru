@@ -2266,24 +2266,6 @@
    "fetchedAt": "2026-10-14"
   },
   {
-   "jan": "4901901007845",
-   "name": "北海道のいわし水煮 食塩不使用 150グラム",
-   "maker": "Umios（旧マルハニチロ）",
-   "category": "ingredient",
-   "url": "https://www.umios.com/jp/products/product?j=4901901007845",
-   "basis": "1缶分(150g)当り",
-   "servingAmount": 150,
-   "servingUnit": "g",
-   "energyKcal": 274,
-   "protein": 19.4,
-   "fat": 21.7,
-   "carb": 0.3,
-   "salt": 0.4,
-   "sodiumMg": 0,
-   "fetchedAt": "2026-10-14",
-   "note": "エネルギーの表示「186~362」（範囲の中央値を記録）; 脂質の表示「12.0~31.4」（範囲の中央値を記録）; 食塩相当量の表示「0.3~0.5」（範囲の中央値を記録）"
-  },
-  {
    "jan": "4901901625957",
    "name": "北海道産たらこソーセージ65g3本束 195g(65 g×3本)",
    "maker": "Umios（旧マルハニチロ）",
@@ -2685,42 +2667,6 @@
    "salt": 1.4,
    "sodiumMg": 550,
    "fetchedAt": "2026-10-14"
-  },
-  {
-   "jan": "4901901575214",
-   "name": "機能性表示食品 減塩さばみそ煮N 中性脂肪を低下させる 190g",
-   "maker": "Umios（旧マルハニチロ）",
-   "category": "ingredient",
-   "url": "https://www.umios.com/jp/products/product?j=4901901575214",
-   "basis": "(一日摂取目安量(190グラム)あたり)",
-   "servingAmount": 190,
-   "servingUnit": "g",
-   "energyKcal": 407,
-   "protein": 28.8,
-   "fat": 24.4,
-   "carb": 17.8,
-   "salt": 1.1,
-   "sodiumMg": 443,
-   "fetchedAt": "2026-10-14",
-   "note": "エネルギーの表示「222-592」（範囲の中央値を記録）; 脂質の表示「5.0-43.8」（範囲の中央値を記録）"
-  },
-  {
-   "jan": "4901901575207",
-   "name": "機能性表示食品 減塩さば水煮N 中性脂肪を低下させる 190g",
-   "maker": "Umios（旧マルハニチロ）",
-   "category": "ingredient",
-   "url": "https://www.umios.com/jp/products/product?j=4901901575207",
-   "basis": "(一日摂取目安量(190グラム)あたり)",
-   "servingAmount": 190,
-   "servingUnit": "g",
-   "energyKcal": 326,
-   "protein": 27.0,
-   "fat": 24.1,
-   "carb": 0.0,
-   "salt": 1.2,
-   "sodiumMg": 483,
-   "fetchedAt": "2026-10-14",
-   "note": "エネルギーの表示「141-511」（範囲の中央値を記録）; 脂質の表示「4.7-43.5」（範囲の中央値を記録）"
   },
   {
    "jan": "4901901009757",
@@ -30987,22 +30933,6 @@
    "fetchedAt": "2026-10-14"
   },
   {
-   "jan": "maker-yonekyu-40",
-   "name": "ロース生ハムツインパック 期間限定10％増量",
-   "maker": "米久",
-   "category": "ingredient",
-   "url": "https://www.yonekyu.co.jp/product/detail.html?pdid=40",
-   "basis": "ツインパック(96g)当たり",
-   "servingAmount": 96,
-   "servingUnit": "g",
-   "energyKcal": 153,
-   "protein": 19.2,
-   "fat": 6.4,
-   "carb": 4.4,
-   "salt": 5.3,
-   "fetchedAt": "2026-10-14"
-  },
-  {
    "jan": "maker-yonekyu-33",
    "name": "串つきフランクフルト",
    "maker": "米久",
@@ -31267,12 +31197,12 @@
    "basis": "100g当たり",
    "servingAmount": 100,
    "servingUnit": "g",
-   "energyKcal": 332,
-   "protein": 11.3,
-   "fat": 30.8,
+   "energyKcal": 298,
+   "protein": 10.9,
+   "fat": 27.2,
    "carb": 2.4,
    "salt": 1.7,
-   "fetchedAt": "2026-10-14"
+   "fetchedAt": "2026-11-01"
   },
   {
    "jan": "maker-yonekyu-553",
@@ -31283,12 +31213,12 @@
    "basis": "100g当たり",
    "servingAmount": 100,
    "servingUnit": "g",
-   "energyKcal": 304,
-   "protein": 12.8,
-   "fat": 26.6,
-   "carb": 3.4,
-   "salt": 2.4,
-   "fetchedAt": "2026-10-14"
+   "energyKcal": 315,
+   "protein": 11.7,
+   "fat": 28.6,
+   "carb": 2.7,
+   "salt": 2.2,
+   "fetchedAt": "2026-11-01"
   },
   {
    "jan": "maker-yonekyu-554",
@@ -31299,12 +31229,12 @@
    "basis": "100g当たり",
    "servingAmount": 100,
    "servingUnit": "g",
-   "energyKcal": 304,
-   "protein": 11.4,
-   "fat": 27.9,
-   "carb": 1.8,
-   "salt": 2.0,
-   "fetchedAt": "2026-10-14"
+   "energyKcal": 282,
+   "protein": 11.5,
+   "fat": 25.2,
+   "carb": 2.3,
+   "salt": 1.7,
+   "fetchedAt": "2026-11-01"
   },
   {
    "jan": "maker-yonekyu-324",
@@ -34262,6 +34192,26 @@
    "name": "公式サイト www.inabafoods.co.jp",
    "maker": "いなば食品",
    "reason": "同ドメインは到達不能（プロキシ502）。公式サイト www.inaba-foods.jp から収集"
+  },
+  {
+   "name": "北海道のいわし水煮 食塩不使用 150グラム",
+   "maker": "Umios（旧マルハニチロ）",
+   "reason": "公式の商品ページに「休売」とある（2026-11-01確認）ため外した https://www.umios.com/jp/products/product?j=4901901007845"
+  },
+  {
+   "name": "機能性表示食品 減塩さばみそ煮N 中性脂肪を低下させる 190g",
+   "maker": "Umios（旧マルハニチロ）",
+   "reason": "公式の商品ページに「製造終了」とある（2026-11-01確認）ため外した https://www.umios.com/jp/products/product?j=4901901575214"
+  },
+  {
+   "name": "機能性表示食品 減塩さば水煮N 中性脂肪を低下させる 190g",
+   "maker": "Umios（旧マルハニチロ）",
+   "reason": "公式の商品ページに「製造終了」とある（2026-11-01確認）ため外した https://www.umios.com/jp/products/product?j=4901901575207"
+  },
+  {
+   "name": "ロース生ハムツインパック 期間限定10％増量",
+   "maker": "米久",
+   "reason": "公式の商品ページがなくなった（HTTP 404、2026-11-01確認）ため外した。期間限定・季節の商品の販売終了とみられる https://www.yonekyu.co.jp/product/detail.html?pdid=40"
   }
  ]
 }

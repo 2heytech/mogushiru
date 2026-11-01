@@ -13799,22 +13799,6 @@
    "fetchedAt": "2026-10-14"
   },
   {
-   "jan": "maker-cocacola-georgia-gohobi-presso",
-   "name": "ジョージア ご褒美プレッソ",
-   "maker": "日本コカ・コーラ",
-   "category": "drink",
-   "url": "https://www.coca-cola.com/jp/ja/brands/georgia/products",
-   "basis": "100g当たり",
-   "servingAmount": 100,
-   "servingUnit": "g",
-   "energyKcal": 24,
-   "protein": 0.9,
-   "fat": 0.9,
-   "carb": 3,
-   "salt": 0.2,
-   "fetchedAt": "2026-10-14"
-  },
-  {
    "jan": "maker-cocacola-georgia-ice-cafeaulait",
    "name": "ジョージア アイスカフェオレ",
    "maker": "日本コカ・コーラ",
@@ -14084,22 +14068,6 @@
    "protein": 0.6,
    "fat": 0.6,
    "carb": 3.3,
-   "salt": 0.1,
-   "fetchedAt": "2026-10-14"
-  },
-  {
-   "jan": "maker-cocacola-georgia-zeitaku-break",
-   "name": "ジョージア 匠の一杯 贅沢ブレイク",
-   "maker": "日本コカ・コーラ",
-   "category": "drink",
-   "url": "https://www.coca-cola.com/jp/ja/brands/georgia/products",
-   "basis": "100g当たり",
-   "servingAmount": 100,
-   "servingUnit": "g",
-   "energyKcal": 25,
-   "protein": 0.3,
-   "fat": 0.3,
-   "carb": 5.3,
    "salt": 0.1,
    "fetchedAt": "2026-10-14"
   },
@@ -16139,6 +16107,16 @@
    "name": "レギュラー/ドリップコーヒー",
    "maker": "味の素AGF",
    "reason": "対象外（栄養成分の対象となる飲料・スティック・インスタントのみ収録）"
+  },
+  {
+   "name": "ジョージア ご褒美プレッソ",
+   "maker": "日本コカ・コーラ",
+   "reason": "公式の商品一覧に載らなくなった（2026-11-01確認）ため外した https://www.coca-cola.com/jp/ja/brands/georgia/products"
+  },
+  {
+   "name": "ジョージア 匠の一杯 贅沢ブレイク",
+   "maker": "日本コカ・コーラ",
+   "reason": "公式の商品一覧に載らなくなった（2026-11-01確認）ため外した https://www.coca-cola.com/jp/ja/brands/georgia/products"
   }
  ]
 }

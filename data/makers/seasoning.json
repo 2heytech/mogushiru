@@ -5159,12 +5159,12 @@
    "basis": "２５０ｇ当たり",
    "servingAmount": 250,
    "servingUnit": "g",
-   "energyKcal": 118,
-   "protein": 2.8,
-   "fat": 2.8,
-   "carb": 20.3,
+   "energyKcal": 121,
+   "protein": 2.7,
+   "fat": 2.9,
+   "carb": 20.9,
    "salt": 2.0,
-   "fetchedAt": "2026-10-14"
+   "fetchedAt": "2026-11-01"
   },
   {
    "jan": "maker-kagome-a5846",

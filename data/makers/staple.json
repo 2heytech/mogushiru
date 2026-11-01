@@ -2951,22 +2951,6 @@
    "fetchedAt": "2026-10-14"
   },
   {
-   "jan": "4901734063070",
-   "name": "サッポロ一番 みそラーメン 北海道 石狩鍋風 ５食パック 480g（425g）",
-   "maker": "サンヨー食品",
-   "category": "noodle",
-   "url": "https://www.sanyofoods.co.jp/products/11508/",
-   "basis": "1食（96g）当たり",
-   "servingAmount": 96,
-   "servingUnit": "g",
-   "energyKcal": 445,
-   "protein": 9.0,
-   "fat": 19.3,
-   "carb": 58.8,
-   "salt": 5.5,
-   "fetchedAt": "2026-10-14"
-  },
-  {
    "jan": "4901734043690",
    "name": "サッポロ一番 みそラーメン 旨辛 102g（80g）",
    "maker": "サンヨー食品",
@@ -3447,38 +3431,6 @@
    "fetchedAt": "2026-10-14"
   },
   {
-   "jan": "4901734062813",
-   "name": "サッポロ一番 塩らーめん タテビッグ やっぱりたまごでしょ！ 109g（85g）",
-   "maker": "サンヨー食品",
-   "category": "noodle",
-   "url": "https://www.sanyofoods.co.jp/products/11412/",
-   "basis": "1食（109g）当たり",
-   "servingAmount": 109,
-   "servingUnit": "g",
-   "energyKcal": 471,
-   "protein": 10.9,
-   "fat": 18.5,
-   "carb": 65.3,
-   "salt": 6.9,
-   "fetchedAt": "2026-10-14"
-  },
-  {
-   "jan": "4901734063292",
-   "name": "サッポロ一番 塩らーめん 福岡 水炊き風 ５食パック 480g（425g）",
-   "maker": "サンヨー食品",
-   "category": "noodle",
-   "url": "https://www.sanyofoods.co.jp/products/11509/",
-   "basis": "1食（96g）当たり",
-   "servingAmount": 96,
-   "servingUnit": "g",
-   "energyKcal": 438,
-   "protein": 9.2,
-   "fat": 17.5,
-   "carb": 60.8,
-   "salt": 5.5,
-   "fetchedAt": "2026-10-14"
-  },
-  {
    "jan": "4901734053613",
    "name": "サッポロ一番 塩らーめんどんぶり 75g（63g）",
    "maker": "サンヨー食品",
@@ -3525,23 +3477,6 @@
    "carb": 64.6,
    "salt": 3.3,
    "fetchedAt": "2026-10-14"
-  },
-  {
-   "jan": "4901734062103",
-   "name": "サッポロ一番 塩カルビ味焼そば フンドーキン青柚子こしょう風味 94g（85g）",
-   "maker": "サンヨー食品",
-   "category": "noodle",
-   "url": "https://www.sanyofoods.co.jp/products/11425/",
-   "basis": "1食（94g）当たり",
-   "servingAmount": 94,
-   "servingUnit": "g",
-   "energyKcal": 450,
-   "protein": 9.4,
-   "fat": 20.4,
-   "carb": 57.1,
-   "salt": 3.2,
-   "fetchedAt": "2026-10-14",
-   "note": "発売地区: 九州"
   },
   {
    "jan": "4901734057970",
@@ -4043,20 +3978,6 @@
    "fetchedAt": "2026-10-14"
   },
   {
-   "jan": "maker-fujipan-arigatoukoppepann",
-   "name": "ありがとうこっぺぱん【仙台工場１５周年】 １個入",
-   "maker": "フジパン",
-   "category": "bread",
-   "url": "https://www.fujipan.co.jp/product/lineup/index.html#arigatoukoppepann",
-   "basis": "1個当たり",
-   "energyKcal": 619,
-   "protein": 11.8,
-   "fat": 21.8,
-   "carb": 94.0,
-   "salt": 1.4,
-   "fetchedAt": "2026-10-14"
-  },
-  {
    "jan": "maker-fujipan-uruoisand_ichigo",
    "name": "うるおいサンド イチゴ １個入",
    "maker": "フジパン",
@@ -4082,20 +4003,6 @@
    "fat": 3.1,
    "carb": 46.5,
    "salt": 0.87,
-   "fetchedAt": "2026-10-14"
-  },
-  {
-   "jan": "maker-fujipan-uruoisand_milk",
-   "name": "うるおいサンド ミルク １個入",
-   "maker": "フジパン",
-   "category": "bread",
-   "url": "https://www.fujipan.co.jp/product/lineup/index.html#uruoisand_milk",
-   "basis": "1個当たり",
-   "energyKcal": 254,
-   "protein": 5.1,
-   "fat": 3.3,
-   "carb": 50.9,
-   "salt": 0.84,
    "fetchedAt": "2026-10-14"
   },
   {
@@ -4155,20 +4062,6 @@
    "fetchedAt": "2026-10-14"
   },
   {
-   "jan": "maker-fujipan-chikuwapan_tunaandmayo",
-   "name": "ちくわパン ツナ＆マヨ １個入",
-   "maker": "フジパン",
-   "category": "bread",
-   "url": "https://www.fujipan.co.jp/product/lineup/index.html#chikuwapan_tunaandmayo",
-   "basis": "1個当たり",
-   "energyKcal": 174,
-   "protein": 6.1,
-   "fat": 5.1,
-   "carb": 25.9,
-   "salt": 1.39,
-   "fetchedAt": "2026-10-14"
-  },
-  {
    "jan": "maker-fujipan-fuwashiroroll_choco",
    "name": "ふわしろロール チョコ ６個入",
    "maker": "フジパン",
@@ -4208,34 +4101,6 @@
    "fat": 7.3,
    "carb": 63.7,
    "salt": 0.76,
-   "fetchedAt": "2026-10-14"
-  },
-  {
-   "jan": "maker-fujipan-matataku_choco",
-   "name": "またたく、チョコ。 １個入",
-   "maker": "フジパン",
-   "category": "bread",
-   "url": "https://www.fujipan.co.jp/product/lineup/index.html#matataku_choco",
-   "basis": "1個当たり",
-   "energyKcal": 311,
-   "protein": 6.8,
-   "fat": 9.0,
-   "carb": 50.8,
-   "salt": 0.7,
-   "fetchedAt": "2026-10-14"
-  },
-  {
-   "jan": "maker-fujipan-ringo_kuiniaman",
-   "name": "りんごのクイニーアマン ～タルトタタン風～ １個入",
-   "maker": "フジパン",
-   "category": "bread",
-   "url": "https://www.fujipan.co.jp/product/lineup/index.html#ringo_kuiniaman",
-   "basis": "1個当たり",
-   "energyKcal": 340,
-   "protein": 2.9,
-   "fat": 18.7,
-   "carb": 40.1,
-   "salt": 0.47,
    "fetchedAt": "2026-10-14"
   },
   {
@@ -4407,34 +4272,6 @@
    "fetchedAt": "2026-10-14"
   },
   {
-   "jan": "maker-fujipan-garlicmayo_onion",
-   "name": "ガーリックマヨオニオン １個入",
-   "maker": "フジパン",
-   "category": "bread",
-   "url": "https://www.fujipan.co.jp/product/lineup/index.html#garlicmayo_onion",
-   "basis": "1個当たり",
-   "energyKcal": 218,
-   "protein": 4.9,
-   "fat": 4.9,
-   "carb": 38.5,
-   "salt": 0.83,
-   "fetchedAt": "2026-10-14"
-  },
-  {
-   "jan": "maker-fujipan-kurocchi_choco",
-   "name": "クロッチ チョコ １個入",
-   "maker": "フジパン",
-   "category": "bread",
-   "url": "https://www.fujipan.co.jp/product/lineup/index.html#kurocchi_choco",
-   "basis": "1個当たり",
-   "energyKcal": 296,
-   "protein": 4.1,
-   "fat": 14.9,
-   "carb": 36.4,
-   "salt": 0.63,
-   "fetchedAt": "2026-10-14"
-  },
-  {
    "jan": "maker-fujipan-koppepan_ogura_margarine",
    "name": "コッペパン 小倉＆マーガリン １個入",
    "maker": "フジパン",
@@ -4561,34 +4398,6 @@
    "fetchedAt": "2026-10-14"
   },
   {
-   "jan": "maker-fujipan-snacksand_onion_gratin",
-   "name": "スナックサンド オニオングラタンスープ味 ２個入",
-   "maker": "フジパン",
-   "category": "bread",
-   "url": "https://www.fujipan.co.jp/product/lineup/index.html#snacksand_onion_gratin",
-   "basis": "1個当たり",
-   "energyKcal": 105,
-   "protein": 2.4,
-   "fat": 2.6,
-   "carb": 18.0,
-   "salt": 0.69,
-   "fetchedAt": "2026-10-14"
-  },
-  {
-   "jan": "maker-fujipan-snacksand_custard",
-   "name": "スナックサンド カスタード ２個入",
-   "maker": "フジパン",
-   "category": "bread",
-   "url": "https://www.fujipan.co.jp/product/lineup/index.html#snacksand_custard",
-   "basis": "1個当たり",
-   "energyKcal": 134,
-   "protein": 2.8,
-   "fat": 3.6,
-   "carb": 22.7,
-   "salt": 0.37,
-   "fetchedAt": "2026-10-14"
-  },
-  {
    "jan": "maker-fujipan-snacksand_custardcream_whip",
    "name": "スナックサンド カスタードクリーム＆ホイップ ２個入",
    "maker": "フジパン",
@@ -4642,20 +4451,6 @@
    "fat": 6.0,
    "carb": 15.6,
    "salt": 0.67,
-   "fetchedAt": "2026-10-14"
-  },
-  {
-   "jan": "maker-fujipan-snacksand_chickencurry",
-   "name": "スナックサンド チキンカレー ２個入",
-   "maker": "フジパン",
-   "category": "bread",
-   "url": "https://www.fujipan.co.jp/product/lineup/index.html#snacksand_chickencurry",
-   "basis": "1個当たり",
-   "energyKcal": 103,
-   "protein": 2.8,
-   "fat": 1.7,
-   "carb": 19.0,
-   "salt": 0.76,
    "fetchedAt": "2026-10-14"
   },
   {
@@ -4883,20 +4678,6 @@
    "fetchedAt": "2026-10-14"
   },
   {
-   "jan": "maker-fujipan-snacksand_oguraandmargarine",
-   "name": "スナックサンド 小倉＆マーガリン ２個入",
-   "maker": "フジパン",
-   "category": "bread",
-   "url": "https://www.fujipan.co.jp/product/lineup/index.html#snacksand_oguraandmargarine",
-   "basis": "1個当たり",
-   "energyKcal": 148,
-   "protein": 2.7,
-   "fat": 5.2,
-   "carb": 22.5,
-   "salt": 0.4,
-   "fetchedAt": "2026-10-14"
-  },
-  {
    "jan": "maker-fujipan-snacksand_yakisoba_karashimayo",
    "name": "スナックサンド 焼きそば＆からしマヨ ２個入",
    "maker": "フジパン",
@@ -4964,20 +4745,6 @@
    "fat": 2.6,
    "carb": 24.0,
    "salt": 0.36,
-   "fetchedAt": "2026-10-14"
-  },
-  {
-   "jan": "maker-fujipan-snacksand_kingomagobou",
-   "name": "スナックサンド 金ごまごぼう＆マヨ ２個入",
-   "maker": "フジパン",
-   "category": "bread",
-   "url": "https://www.fujipan.co.jp/product/lineup/index.html#snacksand_kingomagobou",
-   "basis": "1個当たり",
-   "energyKcal": 137,
-   "protein": 2.5,
-   "fat": 6.5,
-   "carb": 17.2,
-   "salt": 0.82,
    "fetchedAt": "2026-10-14"
   },
   {
@@ -5149,20 +4916,6 @@
    "fetchedAt": "2026-10-14"
   },
   {
-   "jan": "maker-fujipan-fujipansand_mapleandcustard",
-   "name": "フジパンサンド メープル＆カスタード【仙台工場１５周年】 １個入",
-   "maker": "フジパン",
-   "category": "bread",
-   "url": "https://www.fujipan.co.jp/product/lineup/index.html#fujipansand_mapleandcustard",
-   "basis": "1個当たり",
-   "energyKcal": 212,
-   "protein": 5.1,
-   "fat": 3.4,
-   "carb": 40.2,
-   "salt": 0.83,
-   "fetchedAt": "2026-10-14"
-  },
-  {
    "jan": "maker-fujipan-puchiham_mayo",
    "name": "プチハム＆チーズマヨ １個入",
    "maker": "フジパン",
@@ -5191,20 +4944,6 @@
    "fetchedAt": "2026-10-14"
   },
   {
-   "jan": "maker-fujipan-mini_choco_croissant",
-   "name": "ミニチョコクロワッサン ４個入",
-   "maker": "フジパン",
-   "category": "bread",
-   "url": "https://www.fujipan.co.jp/product/lineup/index.html#mini_choco_croissant",
-   "basis": "1個当たり",
-   "energyKcal": 85,
-   "protein": 1.5,
-   "fat": 3.6,
-   "carb": 11.7,
-   "salt": 0.21,
-   "fetchedAt": "2026-10-14"
-  },
-  {
    "jan": "maker-fujipan-melonpanna_milkstick",
    "name": "メロンパンナのみるくメロンスティック ５本入",
    "maker": "フジパン",
@@ -5216,20 +4955,6 @@
    "fat": 14.8,
    "carb": 64.8,
    "salt": 0.48,
-   "fetchedAt": "2026-10-14"
-  },
-  {
-   "jan": "maker-fujipan-longstick_ringobutter",
-   "name": "ロングスティック りんごバター １個入",
-   "maker": "フジパン",
-   "category": "bread",
-   "url": "https://www.fujipan.co.jp/product/lineup/index.html#longstick_ringobutter",
-   "basis": "1個当たり",
-   "energyKcal": 246,
-   "protein": 5.2,
-   "fat": 6.1,
-   "carb": 42.6,
-   "salt": 0.97,
    "fetchedAt": "2026-10-14"
   },
   {
@@ -5258,20 +4983,6 @@
    "fat": 18.3,
    "carb": 41.6,
    "salt": 0.94,
-   "fetchedAt": "2026-10-14"
-  },
-  {
-   "jan": "maker-fujipan-longstick_belgian_choco",
-   "name": "ロングスティック ベルギーチョコ １個入",
-   "maker": "フジパン",
-   "category": "bread",
-   "url": "https://www.fujipan.co.jp/product/lineup/index.html#longstick_belgian_choco",
-   "basis": "1個当たり",
-   "energyKcal": 275,
-   "protein": 5.4,
-   "fat": 10.7,
-   "carb": 39.3,
-   "salt": 0.9,
    "fetchedAt": "2026-10-14"
   },
   {
@@ -5328,20 +5039,6 @@
    "fat": 8.5,
    "carb": 60.0,
    "salt": 0.69,
-   "fetchedAt": "2026-10-14"
-  },
-  {
-   "jan": "maker-fujipan-waguri_whip_koppe",
-   "name": "和栗＆ホイップコッペ １個入",
-   "maker": "フジパン",
-   "category": "bread",
-   "url": "https://www.fujipan.co.jp/product/lineup/index.html#waguri_whip_koppe",
-   "basis": "1個当たり",
-   "energyKcal": 329,
-   "protein": 6.6,
-   "fat": 8.6,
-   "carb": 56.4,
-   "salt": 0.66,
    "fetchedAt": "2026-10-14"
   },
   {
@@ -5611,20 +5308,6 @@
    "fetchedAt": "2026-10-14"
   },
   {
-   "jan": "maker-fujipan-numaruogura_margarine",
-   "name": "沼る小倉＆マーガリン １個入",
-   "maker": "フジパン",
-   "category": "bread",
-   "url": "https://www.fujipan.co.jp/product/lineup/index.html#numaruogura_margarine",
-   "basis": "1個当たり",
-   "energyKcal": 441,
-   "protein": 6.9,
-   "fat": 16.2,
-   "carb": 67.0,
-   "salt": 1.03,
-   "fetchedAt": "2026-10-14"
-  },
-  {
    "jan": "maker-fujipan-numaru_milkbread",
    "name": "沼る牛乳ぱん １個入",
    "maker": "フジパン",
@@ -5790,20 +5473,6 @@
    "fat": 11.5,
    "carb": 25.1,
    "salt": 1.2,
-   "fetchedAt": "2026-10-14"
-  },
-  {
-   "jan": "maker-fujipan-namakoppe_tappurihokkaidopotato",
-   "name": "生こっぺ たっぷり北海道ポテト １個入",
-   "maker": "フジパン",
-   "category": "bread",
-   "url": "https://www.fujipan.co.jp/product/lineup/index.html#namakoppe_tappurihokkaidopotato",
-   "basis": "1個当たり",
-   "energyKcal": 215,
-   "protein": 5.3,
-   "fat": 8.2,
-   "carb": 29.9,
-   "salt": 1.37,
    "fetchedAt": "2026-10-14"
   },
   {
@@ -6045,34 +5714,6 @@
    "fetchedAt": "2026-10-14"
   },
   {
-   "jan": "maker-fujipan-kinufuwa_tsubuan",
-   "name": "絹ふわ つぶあん ４個入",
-   "maker": "フジパン",
-   "category": "bread",
-   "url": "https://www.fujipan.co.jp/product/lineup/index.html#kinufuwa_tsubuan",
-   "basis": "1個当たり",
-   "energyKcal": 90,
-   "protein": 1.8,
-   "fat": 1.5,
-   "carb": 17.2,
-   "salt": 0.04,
-   "fetchedAt": "2026-10-14"
-  },
-  {
-   "jan": "maker-fujipan-kinufuwa_custard",
-   "name": "絹ふわ カスタード ４個入",
-   "maker": "フジパン",
-   "category": "bread",
-   "url": "https://www.fujipan.co.jp/product/lineup/index.html#kinufuwa_custard",
-   "basis": "1個当たり",
-   "energyKcal": 87,
-   "protein": 1.7,
-   "fat": 3.3,
-   "carb": 12.7,
-   "salt": 0.06,
-   "fetchedAt": "2026-10-14"
-  },
-  {
    "jan": "maker-fujipan-kinjoken_currypan",
    "name": "金城軒カリーパン １個入",
    "maker": "フジパン",
@@ -6167,20 +5808,6 @@
    "protein": 2.3,
    "fat": 9.9,
    "carb": 21.2,
-   "salt": 0.36,
-   "fetchedAt": "2026-10-14"
-  },
-  {
-   "jan": "maker-fujipan-mixsnacksand_touhokumixfruitsringomomo",
-   "name": "ＭＩＸスナックサンド 東北ミックスフルーツ＆ミルク【仙台工場１５周年】 ２個入",
-   "maker": "フジパン",
-   "category": "bread",
-   "url": "https://www.fujipan.co.jp/product/lineup/index.html#mixsnacksand_touhokumixfruitsringomomo",
-   "basis": "1個当たり",
-   "energyKcal": 134,
-   "protein": 2.3,
-   "fat": 3.3,
-   "carb": 23.8,
    "salt": 0.36,
    "fetchedAt": "2026-10-14"
   },
@@ -7033,12 +6660,12 @@
    "category": "bread",
    "url": "https://www.pasconet.co.jp/products/nutrition/",
    "basis": "1個当たり",
-   "energyKcal": 460,
-   "protein": 7.3,
-   "fat": 23.1,
-   "carb": 55.7,
+   "energyKcal": 457,
+   "protein": 7.2,
+   "fat": 23.0,
+   "carb": 55.2,
    "salt": 1.3,
-   "fetchedAt": "2026-10-14"
+   "fetchedAt": "2026-11-01"
   },
   {
    "jan": "maker-pasco-5157",
@@ -7108,20 +6735,6 @@
    "fat": 20.7,
    "carb": 37.9,
    "salt": 0.5,
-   "fetchedAt": "2026-10-14"
-  },
-  {
-   "jan": "maker-pasco-5660",
-   "name": "さつまいものメロンパン",
-   "maker": "敷島製パン（Pasco）",
-   "category": "bread",
-   "url": "https://www.pasconet.co.jp/products/nutrition/",
-   "basis": "1個当たり",
-   "energyKcal": 329,
-   "protein": 5.9,
-   "fat": 11.7,
-   "carb": 49.9,
-   "salt": 0.4,
    "fetchedAt": "2026-10-14"
   },
   {
@@ -7229,12 +6842,12 @@
    "category": "bread",
    "url": "https://www.pasconet.co.jp/products/nutrition/",
    "basis": "1個当たり",
-   "energyKcal": 301,
-   "protein": 5.0,
-   "fat": 13.5,
-   "carb": 39.8,
+   "energyKcal": 315,
+   "protein": 5.1,
+   "fat": 14.4,
+   "carb": 41.2,
    "salt": 0.6,
-   "fetchedAt": "2026-10-14"
+   "fetchedAt": "2026-11-01"
   },
   {
    "jan": "maker-pasco-5559",
@@ -7248,20 +6861,6 @@
    "fat": 12.1,
    "carb": 41.6,
    "salt": 0.6,
-   "fetchedAt": "2026-10-14"
-  },
-  {
-   "jan": "maker-pasco-5123",
-   "name": "たまごのしっとりロール 4個入",
-   "maker": "敷島製パン（Pasco）",
-   "category": "bread",
-   "url": "https://www.pasconet.co.jp/products/nutrition/",
-   "basis": "1個当たり",
-   "energyKcal": 128,
-   "protein": 2.7,
-   "fat": 4.5,
-   "carb": 19.1,
-   "salt": 0.3,
    "fetchedAt": "2026-10-14"
   },
   {
@@ -7616,20 +7215,6 @@
    "fetchedAt": "2026-10-14"
   },
   {
-   "jan": "maker-pasco-5643",
-   "name": "シャキッとふじりんごクリームパン",
-   "maker": "敷島製パン（Pasco）",
-   "category": "bread",
-   "url": "https://www.pasconet.co.jp/products/nutrition/",
-   "basis": "1個当たり",
-   "energyKcal": 249,
-   "protein": 4.7,
-   "fat": 7.1,
-   "carb": 41.6,
-   "salt": 0.5,
-   "fetchedAt": "2026-10-14"
-  },
-  {
    "jan": "maker-pasco-4639",
    "name": "ショコラデニッシュ 4個入",
    "maker": "敷島製パン（Pasco）",
@@ -7854,20 +7439,6 @@
    "fetchedAt": "2026-10-14"
   },
   {
-   "jan": "maker-pasco-5614",
-   "name": "ファボールサンド 熊本県産和栗",
-   "maker": "敷島製パン（Pasco）",
-   "category": "bread",
-   "url": "https://www.pasconet.co.jp/products/nutrition/",
-   "basis": "1本当たり",
-   "energyKcal": 249,
-   "protein": 6.1,
-   "fat": 6.4,
-   "carb": 41.8,
-   "salt": 0.8,
-   "fetchedAt": "2026-10-14"
-  },
-  {
    "jan": "maker-pasco-15",
    "name": "ファミリーモーニング 4枚スライス",
    "maker": "敷島製パン（Pasco）",
@@ -7952,20 +7523,6 @@
    "fetchedAt": "2026-10-14"
   },
   {
-   "jan": "maker-pasco-5635",
-   "name": "ホイップメロンパン バターキャラメル",
-   "maker": "敷島製パン（Pasco）",
-   "category": "bread",
-   "url": "https://www.pasconet.co.jp/products/nutrition/",
-   "basis": "1個当たり",
-   "energyKcal": 370,
-   "protein": 5.9,
-   "fat": 13.5,
-   "carb": 56.3,
-   "salt": 0.4,
-   "fetchedAt": "2026-10-14"
-  },
-  {
    "jan": "maker-pasco-5659",
    "name": "メープルシュガーとブリオッシュ",
    "maker": "敷島製パン（Pasco）",
@@ -8019,36 +7576,6 @@
    "fat": 2.6,
    "carb": 34.0,
    "salt": 0.6,
-   "fetchedAt": "2026-10-14"
-  },
-  {
-   "jan": "maker-pasco-4147",
-   "name": "ロカボスティックパン 4種のフルーツ",
-   "maker": "敷島製パン（Pasco）",
-   "category": "bread",
-   "url": "https://www.pasconet.co.jp/products/nutrition/",
-   "basis": "1本当たり",
-   "energyKcal": 141,
-   "protein": 4.3,
-   "fat": 4.5,
-   "carb": 24.4,
-   "salt": 0.3,
-   "fiber": 7.3,
-   "fetchedAt": "2026-10-14"
-  },
-  {
-   "jan": "maker-pasco-4149",
-   "name": "ロカボスティックパン くるみ＆アマニ",
-   "maker": "敷島製パン（Pasco）",
-   "category": "bread",
-   "url": "https://www.pasconet.co.jp/products/nutrition/",
-   "basis": "1本当たり",
-   "energyKcal": 204,
-   "protein": 5.2,
-   "fat": 8.5,
-   "carb": 30.6,
-   "salt": 0.3,
-   "fiber": 7.9,
    "fetchedAt": "2026-10-14"
   },
   {
@@ -8510,20 +8037,6 @@
    "fetchedAt": "2026-10-14"
   },
   {
-   "jan": "maker-pasco-5615",
-   "name": "厚ぎりメープルシュガートースト 2個入",
-   "maker": "敷島製パン（Pasco）",
-   "category": "bread",
-   "url": "https://www.pasconet.co.jp/products/nutrition/",
-   "basis": "1包装当たり",
-   "energyKcal": 398,
-   "protein": 6.2,
-   "fat": 18.3,
-   "carb": 52.2,
-   "salt": 0.9,
-   "fetchedAt": "2026-10-14"
-  },
-  {
    "jan": "maker-pasco-4549",
    "name": "喫茶店風たまごトースト",
    "maker": "敷島製パン（Pasco）",
@@ -8684,12 +8197,12 @@
    "category": "bread",
    "url": "https://www.pasconet.co.jp/products/nutrition/",
    "basis": "1包装当たり",
-   "energyKcal": 522,
-   "protein": 15.9,
+   "energyKcal": 525,
+   "protein": 15.0,
    "fat": 6.6,
-   "carb": 99.8,
+   "carb": 101.4,
    "salt": 2.6,
-   "fetchedAt": "2026-10-14"
+   "fetchedAt": "2026-11-01"
   },
   {
    "jan": "maker-pasco-5332",
@@ -8787,20 +8300,6 @@
    "fat": 3.5,
    "carb": 16.6,
    "salt": 0.3,
-   "fetchedAt": "2026-10-14"
-  },
-  {
-   "jan": "maker-pasco-5391",
-   "name": "国産小麦 全粒粉入りミニバゲット",
-   "maker": "敷島製パン（Pasco）",
-   "category": "bread",
-   "url": "https://www.pasconet.co.jp/products/nutrition/",
-   "basis": "1本当たり",
-   "energyKcal": 393,
-   "protein": 12.8,
-   "fat": 2.2,
-   "carb": 80.5,
-   "salt": 1.9,
    "fetchedAt": "2026-10-14"
   },
   {
@@ -9114,20 +8613,6 @@
    "fetchedAt": "2026-10-14"
   },
   {
-   "jan": "maker-pasco-4559",
-   "name": "自家製ソースのピザフォカッチャ 5個入",
-   "maker": "敷島製パン（Pasco）",
-   "category": "bread",
-   "url": "https://www.pasconet.co.jp/products/nutrition/",
-   "basis": "1包装当たり",
-   "energyKcal": 518,
-   "protein": 18.1,
-   "fat": 13.3,
-   "carb": 81.5,
-   "salt": 3.2,
-   "fetchedAt": "2026-10-14"
-  },
-  {
    "jan": "maker-pasco-9-5",
    "name": "超熟 10枚スライス",
    "maker": "敷島製パン（Pasco）",
@@ -9302,12 +8787,12 @@
    "category": "bread",
    "url": "https://www.pasconet.co.jp/products/nutrition/",
    "basis": "1包装当たり",
-   "energyKcal": 527,
-   "protein": 15.2,
-   "fat": 13.8,
-   "carb": 85.6,
-   "salt": 2.6,
-   "fetchedAt": "2026-10-14"
+   "energyKcal": 528,
+   "protein": 15.1,
+   "fat": 13.1,
+   "carb": 87.4,
+   "salt": 2.7,
+   "fetchedAt": "2026-11-01"
   },
   {
    "jan": "maker-pasco-25-3",
@@ -9753,23 +9238,6 @@
    "fat": 7.1,
    "carb": 27.7,
    "salt": 0.24,
-   "fiber": 4.4,
-   "fetchedAt": "2026-10-14"
-  },
-  {
-   "jan": "4901620161842",
-   "name": "ごろグラ 華やぐアールグレイ 280g",
-   "maker": "日清シスコ",
-   "category": "snack",
-   "url": "https://www.nissin.com/jp/product/items/13436/",
-   "basis": "1食分(40g)当たり",
-   "servingAmount": 40,
-   "servingUnit": "g",
-   "energyKcal": 164,
-   "protein": 2.6,
-   "fat": 5.0,
-   "carb": 30.2,
-   "salt": 0.25,
    "fiber": 4.4,
    "fetchedAt": "2026-10-14"
   },
@@ -12984,22 +12452,6 @@
    "fetchedAt": "2026-10-14"
   },
   {
-   "jan": "4902105295885",
-   "name": "日清の最強どん兵衛 博多ごぼ天うどん 103g(66g)",
-   "maker": "日清食品",
-   "category": "noodle",
-   "url": "https://www.nissin.com/jp/product/items/13737/",
-   "basis": "1食 (103g) 当たり",
-   "servingAmount": 103,
-   "servingUnit": "g",
-   "energyKcal": 442,
-   "protein": 6.8,
-   "fat": 21.6,
-   "carb": 55.0,
-   "salt": 5.2,
-   "fetchedAt": "2026-10-14"
-  },
-  {
    "jan": "4902105295236",
    "name": "日清の江戸そば 68g(55g)",
    "maker": "日清食品",
@@ -13816,22 +13268,6 @@
    "fetchedAt": "2026-10-14"
   },
   {
-   "jan": "4902881405287",
-   "name": "明星 らぁ麺や嶋 トリュフ香る白醤油らぁ麺 108g(70g)",
-   "maker": "明星食品",
-   "category": "noodle",
-   "url": "https://www.myojofoods.co.jp/products/items/13759/",
-   "basis": "1食 (108g) 当たり",
-   "servingAmount": 108,
-   "servingUnit": "g",
-   "energyKcal": 383,
-   "protein": 11.1,
-   "fat": 8.9,
-   "carb": 64.6,
-   "salt": 7.9,
-   "fetchedAt": "2026-10-14"
-  },
-  {
    "jan": "4902881414500",
    "name": "明星 カップ 沖縄そば 84g(74g)",
    "maker": "明星食品",
@@ -14055,22 +13491,6 @@
    "fat": 21.4,
    "carb": 58.3,
    "salt": 3.6,
-   "fetchedAt": "2026-10-14"
-  },
-  {
-   "jan": "4902881416290",
-   "name": "明星 チャルメラ 油そばカップ 111g(90g)",
-   "maker": "明星食品",
-   "category": "noodle",
-   "url": "https://www.myojofoods.co.jp/products/items/13805/",
-   "basis": "1食 (111g) 当たり",
-   "servingAmount": 111,
-   "servingUnit": "g",
-   "energyKcal": 509,
-   "protein": 8.0,
-   "fat": 23.5,
-   "carb": 66.3,
-   "salt": 4.9,
    "fetchedAt": "2026-10-14"
   },
   {
@@ -15131,22 +14551,6 @@
    "fetchedAt": "2026-10-14"
   },
   {
-   "jan": "4902881066440",
-   "name": "明星 評判屋 味噌ラーメン ５食パック 85g(80g) ×5食",
-   "maker": "明星食品",
-   "category": "noodle",
-   "url": "https://www.myojofoods.co.jp/products/items/13302/",
-   "basis": "1食 (85g) 当たり",
-   "servingAmount": 85,
-   "servingUnit": "g",
-   "energyKcal": 383,
-   "protein": 7.9,
-   "fat": 15.4,
-   "carb": 53.2,
-   "salt": 2.8,
-   "fetchedAt": "2026-10-14"
-  },
-  {
    "jan": "4902881433754",
    "name": "明星 評判屋 塩焼そば 104g(90g)",
    "maker": "明星食品",
@@ -15160,22 +14564,6 @@
    "fat": 22.6,
    "carb": 62.7,
    "salt": 2.0,
-   "fetchedAt": "2026-10-14"
-  },
-  {
-   "jan": "4902881433976",
-   "name": "明星 評判屋 梅かつお塩焼そば 104g(90g)",
-   "maker": "明星食品",
-   "category": "noodle",
-   "url": "https://www.myojofoods.co.jp/products/items/13758/",
-   "basis": "1食 (104g) 当たり",
-   "servingAmount": 104,
-   "servingUnit": "g",
-   "energyKcal": 484,
-   "protein": 9.7,
-   "fat": 23.6,
-   "carb": 58.2,
-   "salt": 2.7,
    "fetchedAt": "2026-10-14"
   },
   {
@@ -20206,20 +19594,6 @@
    "fetchedAt": "2026-10-14"
   },
   {
-   "jan": "maker-daiichipan-80a539ea",
-   "name": "じゅわっとキャラメルシュガーマーガリン",
-   "maker": "第一屋製パン",
-   "category": "bread",
-   "url": "https://www.daiichipan.co.jp/products/nutrient/",
-   "basis": "1個当たり",
-   "energyKcal": 369,
-   "protein": 5.6,
-   "fat": 22.0,
-   "carb": 37.5,
-   "salt": 0.8,
-   "fetchedAt": "2026-10-14"
-  },
-  {
    "jan": "maker-daiichipan-69867253",
    "name": "たっぷりコーンパン",
    "maker": "第一屋製パン",
@@ -20640,34 +20014,6 @@
    "fetchedAt": "2026-10-14"
   },
   {
-   "jan": "maker-daiichipan-6b118b79",
-   "name": "ポケモンシールホルダーセット2026年ハロウィン!（チョコ）",
-   "maker": "第一屋製パン",
-   "category": "bread",
-   "url": "https://www.daiichipan.co.jp/products/nutrient/",
-   "basis": "1個当たり",
-   "energyKcal": 213,
-   "protein": 3.6,
-   "fat": 10.7,
-   "carb": 25.5,
-   "salt": 0.3,
-   "fetchedAt": "2026-10-14"
-  },
-  {
-   "jan": "maker-daiichipan-2eac730d",
-   "name": "ポケモンシールホルダーセット2026年ハロウィン!（ミルク）",
-   "maker": "第一屋製パン",
-   "category": "bread",
-   "url": "https://www.daiichipan.co.jp/products/nutrient/",
-   "basis": "1個当たり",
-   "energyKcal": 216,
-   "protein": 3.5,
-   "fat": 11.0,
-   "carb": 25.7,
-   "salt": 0.3,
-   "fetchedAt": "2026-10-14"
-  },
-  {
    "jan": "maker-daiichipan-52e35b1f",
    "name": "ポケモンチョコクロワッサン5個入",
    "maker": "第一屋製パン",
@@ -20990,20 +20336,6 @@
    "fetchedAt": "2026-10-14"
   },
   {
-   "jan": "maker-daiichipan-88b968a3",
-   "name": "大きなデニッシュ 安納芋クリーム",
-   "maker": "第一屋製パン",
-   "category": "bread",
-   "url": "https://www.daiichipan.co.jp/products/nutrient/",
-   "basis": "1個当たり",
-   "energyKcal": 435,
-   "protein": 6.8,
-   "fat": 25.0,
-   "carb": 45.8,
-   "salt": 1.0,
-   "fetchedAt": "2026-10-14"
-  },
-  {
    "jan": "maker-daiichipan-f7b5ec9b",
    "name": "安納芋とろけるクリームパン",
    "maker": "第一屋製パン",
@@ -21184,6 +20516,236 @@
    "name": "サッポロ一番 ミニどんぶり バラエティーパック",
    "maker": "サンヨー食品",
    "reason": "詰め合わせ品で単一の栄養成分表示が無い"
+  },
+  {
+   "name": "サッポロ一番 みそラーメン 北海道 石狩鍋風 ５食パック 480g（425g）",
+   "maker": "サンヨー食品",
+   "reason": "公式の商品ページがなくなった（HTTP 404、2026-11-01確認）ため外した。期間限定・季節の商品の販売終了とみられる https://www.sanyofoods.co.jp/products/11508/"
+  },
+  {
+   "name": "サッポロ一番 塩らーめん タテビッグ やっぱりたまごでしょ！ 109g（85g）",
+   "maker": "サンヨー食品",
+   "reason": "公式の商品ページがなくなった（HTTP 404、2026-11-01確認）ため外した。期間限定・季節の商品の販売終了とみられる https://www.sanyofoods.co.jp/products/11412/"
+  },
+  {
+   "name": "サッポロ一番 塩らーめん 福岡 水炊き風 ５食パック 480g（425g）",
+   "maker": "サンヨー食品",
+   "reason": "公式の商品ページがなくなった（HTTP 404、2026-11-01確認）ため外した。期間限定・季節の商品の販売終了とみられる https://www.sanyofoods.co.jp/products/11509/"
+  },
+  {
+   "name": "サッポロ一番 塩カルビ味焼そば フンドーキン青柚子こしょう風味 94g（85g）",
+   "maker": "サンヨー食品",
+   "reason": "公式の商品ページがなくなった（HTTP 404、2026-11-01確認）ため外した。期間限定・季節の商品の販売終了とみられる https://www.sanyofoods.co.jp/products/11425/"
+  },
+  {
+   "name": "ありがとうこっぺぱん【仙台工場１５周年】 １個入",
+   "maker": "フジパン",
+   "reason": "公式の栄養成分一覧に載らなくなった（2026-11-01確認）ため外した。期間限定・季節の商品の販売終了とみられる https://www.fujipan.co.jp/product/lineup/index.html#arigatoukoppepann"
+  },
+  {
+   "name": "うるおいサンド ミルク １個入",
+   "maker": "フジパン",
+   "reason": "公式の栄養成分一覧に載らなくなった（2026-11-01確認）ため外した。期間限定・季節の商品の販売終了とみられる https://www.fujipan.co.jp/product/lineup/index.html#uruoisand_milk"
+  },
+  {
+   "name": "ちくわパン ツナ＆マヨ １個入",
+   "maker": "フジパン",
+   "reason": "公式の栄養成分一覧に載らなくなった（2026-11-01確認）ため外した。期間限定・季節の商品の販売終了とみられる https://www.fujipan.co.jp/product/lineup/index.html#chikuwapan_tunaandmayo"
+  },
+  {
+   "name": "またたく、チョコ。 １個入",
+   "maker": "フジパン",
+   "reason": "公式の栄養成分一覧に載らなくなった（2026-11-01確認）ため外した。期間限定・季節の商品の販売終了とみられる https://www.fujipan.co.jp/product/lineup/index.html#matataku_choco"
+  },
+  {
+   "name": "りんごのクイニーアマン ～タルトタタン風～ １個入",
+   "maker": "フジパン",
+   "reason": "公式の栄養成分一覧に載らなくなった（2026-11-01確認）ため外した。期間限定・季節の商品の販売終了とみられる https://www.fujipan.co.jp/product/lineup/index.html#ringo_kuiniaman"
+  },
+  {
+   "name": "ガーリックマヨオニオン １個入",
+   "maker": "フジパン",
+   "reason": "公式の栄養成分一覧に載らなくなった（2026-11-01確認）ため外した。期間限定・季節の商品の販売終了とみられる https://www.fujipan.co.jp/product/lineup/index.html#garlicmayo_onion"
+  },
+  {
+   "name": "クロッチ チョコ １個入",
+   "maker": "フジパン",
+   "reason": "公式の栄養成分一覧に載らなくなった（2026-11-01確認）ため外した。期間限定・季節の商品の販売終了とみられる https://www.fujipan.co.jp/product/lineup/index.html#kurocchi_choco"
+  },
+  {
+   "name": "スナックサンド オニオングラタンスープ味 ２個入",
+   "maker": "フジパン",
+   "reason": "公式の栄養成分一覧に載らなくなった（2026-11-01確認）ため外した。期間限定・季節の商品の販売終了とみられる https://www.fujipan.co.jp/product/lineup/index.html#snacksand_onion_gratin"
+  },
+  {
+   "name": "スナックサンド カスタード ２個入",
+   "maker": "フジパン",
+   "reason": "公式の栄養成分一覧に載らなくなった（2026-11-01確認）ため外した。期間限定・季節の商品の販売終了とみられる https://www.fujipan.co.jp/product/lineup/index.html#snacksand_custard"
+  },
+  {
+   "name": "スナックサンド チキンカレー ２個入",
+   "maker": "フジパン",
+   "reason": "公式の栄養成分一覧に載らなくなった（2026-11-01確認）ため外した。期間限定・季節の商品の販売終了とみられる https://www.fujipan.co.jp/product/lineup/index.html#snacksand_chickencurry"
+  },
+  {
+   "name": "スナックサンド 小倉＆マーガリン ２個入",
+   "maker": "フジパン",
+   "reason": "公式の栄養成分一覧に載らなくなった（2026-11-01確認）ため外した。期間限定・季節の商品の販売終了とみられる https://www.fujipan.co.jp/product/lineup/index.html#snacksand_oguraandmargarine"
+  },
+  {
+   "name": "スナックサンド 金ごまごぼう＆マヨ ２個入",
+   "maker": "フジパン",
+   "reason": "公式の栄養成分一覧に載らなくなった（2026-11-01確認）ため外した。期間限定・季節の商品の販売終了とみられる https://www.fujipan.co.jp/product/lineup/index.html#snacksand_kingomagobou"
+  },
+  {
+   "name": "フジパンサンド メープル＆カスタード【仙台工場１５周年】 １個入",
+   "maker": "フジパン",
+   "reason": "公式の栄養成分一覧に載らなくなった（2026-11-01確認）ため外した。期間限定・季節の商品の販売終了とみられる https://www.fujipan.co.jp/product/lineup/index.html#fujipansand_mapleandcustard"
+  },
+  {
+   "name": "ミニチョコクロワッサン ４個入",
+   "maker": "フジパン",
+   "reason": "公式の栄養成分一覧に載らなくなった（2026-11-01確認）ため外した。期間限定・季節の商品の販売終了とみられる https://www.fujipan.co.jp/product/lineup/index.html#mini_choco_croissant"
+  },
+  {
+   "name": "ロングスティック りんごバター １個入",
+   "maker": "フジパン",
+   "reason": "公式の栄養成分一覧に載らなくなった（2026-11-01確認）ため外した。期間限定・季節の商品の販売終了とみられる https://www.fujipan.co.jp/product/lineup/index.html#longstick_ringobutter"
+  },
+  {
+   "name": "ロングスティック ベルギーチョコ １個入",
+   "maker": "フジパン",
+   "reason": "公式の栄養成分一覧に載らなくなった（2026-11-01確認）ため外した。期間限定・季節の商品の販売終了とみられる https://www.fujipan.co.jp/product/lineup/index.html#longstick_belgian_choco"
+  },
+  {
+   "name": "和栗＆ホイップコッペ １個入",
+   "maker": "フジパン",
+   "reason": "公式の栄養成分一覧に載らなくなった（2026-11-01確認）ため外した。期間限定・季節の商品の販売終了とみられる https://www.fujipan.co.jp/product/lineup/index.html#waguri_whip_koppe"
+  },
+  {
+   "name": "沼る小倉＆マーガリン １個入",
+   "maker": "フジパン",
+   "reason": "公式の栄養成分一覧に載らなくなった（2026-11-01確認）ため外した。期間限定・季節の商品の販売終了とみられる https://www.fujipan.co.jp/product/lineup/index.html#numaruogura_margarine"
+  },
+  {
+   "name": "生こっぺ たっぷり北海道ポテト １個入",
+   "maker": "フジパン",
+   "reason": "公式の栄養成分一覧に載らなくなった（2026-11-01確認）ため外した。期間限定・季節の商品の販売終了とみられる https://www.fujipan.co.jp/product/lineup/index.html#namakoppe_tappurihokkaidopotato"
+  },
+  {
+   "name": "絹ふわ つぶあん ４個入",
+   "maker": "フジパン",
+   "reason": "公式の栄養成分一覧に載らなくなった（2026-11-01確認）ため外した。期間限定・季節の商品の販売終了とみられる https://www.fujipan.co.jp/product/lineup/index.html#kinufuwa_tsubuan"
+  },
+  {
+   "name": "絹ふわ カスタード ４個入",
+   "maker": "フジパン",
+   "reason": "公式の栄養成分一覧に載らなくなった（2026-11-01確認）ため外した。期間限定・季節の商品の販売終了とみられる https://www.fujipan.co.jp/product/lineup/index.html#kinufuwa_custard"
+  },
+  {
+   "name": "ＭＩＸスナックサンド 東北ミックスフルーツ＆ミルク【仙台工場１５周年】 ２個入",
+   "maker": "フジパン",
+   "reason": "公式の栄養成分一覧に載らなくなった（2026-11-01確認）ため外した。期間限定・季節の商品の販売終了とみられる https://www.fujipan.co.jp/product/lineup/index.html#mixsnacksand_touhokumixfruitsringomomo"
+  },
+  {
+   "name": "さつまいものメロンパン",
+   "maker": "敷島製パン（Pasco）",
+   "reason": "公式の栄養成分一覧に載らなくなった（2026-11-01確認）ため外した。期間限定・季節の商品の販売終了とみられる https://www.pasconet.co.jp/products/nutrition/"
+  },
+  {
+   "name": "たまごのしっとりロール 4個入",
+   "maker": "敷島製パン（Pasco）",
+   "reason": "公式の栄養成分一覧に載らなくなった（2026-11-01確認）ため外した。期間限定・季節の商品の販売終了とみられる https://www.pasconet.co.jp/products/nutrition/"
+  },
+  {
+   "name": "シャキッとふじりんごクリームパン",
+   "maker": "敷島製パン（Pasco）",
+   "reason": "公式の栄養成分一覧に載らなくなった（2026-11-01確認）ため外した。期間限定・季節の商品の販売終了とみられる https://www.pasconet.co.jp/products/nutrition/"
+  },
+  {
+   "name": "ファボールサンド 熊本県産和栗",
+   "maker": "敷島製パン（Pasco）",
+   "reason": "公式の栄養成分一覧に載らなくなった（2026-11-01確認）ため外した。期間限定・季節の商品の販売終了とみられる https://www.pasconet.co.jp/products/nutrition/"
+  },
+  {
+   "name": "ホイップメロンパン バターキャラメル",
+   "maker": "敷島製パン（Pasco）",
+   "reason": "公式の栄養成分一覧に載らなくなった（2026-11-01確認）ため外した。期間限定・季節の商品の販売終了とみられる https://www.pasconet.co.jp/products/nutrition/"
+  },
+  {
+   "name": "ロカボスティックパン 4種のフルーツ",
+   "maker": "敷島製パン（Pasco）",
+   "reason": "公式の栄養成分一覧に載らなくなった（2026-11-01確認）ため外した。期間限定・季節の商品の販売終了とみられる https://www.pasconet.co.jp/products/nutrition/"
+  },
+  {
+   "name": "ロカボスティックパン くるみ＆アマニ",
+   "maker": "敷島製パン（Pasco）",
+   "reason": "公式の栄養成分一覧に載らなくなった（2026-11-01確認）ため外した。期間限定・季節の商品の販売終了とみられる https://www.pasconet.co.jp/products/nutrition/"
+  },
+  {
+   "name": "厚ぎりメープルシュガートースト 2個入",
+   "maker": "敷島製パン（Pasco）",
+   "reason": "公式の栄養成分一覧に載らなくなった（2026-11-01確認）ため外した。期間限定・季節の商品の販売終了とみられる https://www.pasconet.co.jp/products/nutrition/"
+  },
+  {
+   "name": "国産小麦 全粒粉入りミニバゲット",
+   "maker": "敷島製パン（Pasco）",
+   "reason": "公式の栄養成分一覧に載らなくなった（2026-11-01確認）ため外した。期間限定・季節の商品の販売終了とみられる https://www.pasconet.co.jp/products/nutrition/"
+  },
+  {
+   "name": "自家製ソースのピザフォカッチャ 5個入",
+   "maker": "敷島製パン（Pasco）",
+   "reason": "公式の栄養成分一覧に載らなくなった（2026-11-01確認）ため外した。期間限定・季節の商品の販売終了とみられる https://www.pasconet.co.jp/products/nutrition/"
+  },
+  {
+   "name": "ごろグラ 華やぐアールグレイ 280g",
+   "maker": "日清シスコ",
+   "reason": "公式の商品ページがなくなった（HTTP 404、2026-11-01確認）ため外した。期間限定・季節の商品の販売終了とみられる https://www.nissin.com/jp/product/items/13436/"
+  },
+  {
+   "name": "日清の最強どん兵衛 博多ごぼ天うどん 103g(66g)",
+   "maker": "日清食品",
+   "reason": "公式の商品ページがなくなった（HTTP 404、2026-11-01確認）ため外した。期間限定・季節の商品の販売終了とみられる https://www.nissin.com/jp/product/items/13737/"
+  },
+  {
+   "name": "明星 らぁ麺や嶋 トリュフ香る白醤油らぁ麺 108g(70g)",
+   "maker": "明星食品",
+   "reason": "公式の商品ページがなくなった（HTTP 404、2026-11-01確認）ため外した。期間限定・季節の商品の販売終了とみられる https://www.myojofoods.co.jp/products/items/13759/"
+  },
+  {
+   "name": "明星 チャルメラ 油そばカップ 111g(90g)",
+   "maker": "明星食品",
+   "reason": "公式の商品ページがなくなった（HTTP 404、2026-11-01確認）ため外した。期間限定・季節の商品の販売終了とみられる https://www.myojofoods.co.jp/products/items/13805/"
+  },
+  {
+   "name": "明星 評判屋 味噌ラーメン ５食パック 85g(80g) ×5食",
+   "maker": "明星食品",
+   "reason": "公式の商品ページがなくなった（HTTP 404、2026-11-01確認）ため外した。期間限定・季節の商品の販売終了とみられる https://www.myojofoods.co.jp/products/items/13302/"
+  },
+  {
+   "name": "明星 評判屋 梅かつお塩焼そば 104g(90g)",
+   "maker": "明星食品",
+   "reason": "公式の商品ページがなくなった（HTTP 404、2026-11-01確認）ため外した。期間限定・季節の商品の販売終了とみられる https://www.myojofoods.co.jp/products/items/13758/"
+  },
+  {
+   "name": "じゅわっとキャラメルシュガーマーガリン",
+   "maker": "第一屋製パン",
+   "reason": "公式の栄養成分一覧に載らなくなった（2026-11-01確認）ため外した。期間限定・季節の商品の販売終了とみられる https://www.daiichipan.co.jp/products/nutrient/"
+  },
+  {
+   "name": "ポケモンシールホルダーセット2026年ハロウィン!（チョコ）",
+   "maker": "第一屋製パン",
+   "reason": "公式の栄養成分一覧に載らなくなった（2026-11-01確認）ため外した。期間限定・季節の商品の販売終了とみられる https://www.daiichipan.co.jp/products/nutrient/"
+  },
+  {
+   "name": "ポケモンシールホルダーセット2026年ハロウィン!（ミルク）",
+   "maker": "第一屋製パン",
+   "reason": "公式の栄養成分一覧に載らなくなった（2026-11-01確認）ため外した。期間限定・季節の商品の販売終了とみられる https://www.daiichipan.co.jp/products/nutrient/"
+  },
+  {
+   "name": "大きなデニッシュ 安納芋クリーム",
+   "maker": "第一屋製パン",
+   "reason": "公式の栄養成分一覧に載らなくなった（2026-11-01確認）ため外した。期間限定・季節の商品の販売終了とみられる https://www.daiichipan.co.jp/products/nutrient/"
   }
  ]
 }
