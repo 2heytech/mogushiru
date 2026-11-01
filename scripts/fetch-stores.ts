@@ -35,15 +35,23 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 async function get(url: string): Promise<string | null> {
   const path = cache ? join(cache, url.replace(/^https:\/\//, '').replace(/[^a-zA-Z0-9._-]/g, '_')) : ''
   if (path && existsSync(path)) return readFileSync(path, 'utf8')
-  await sleep(WAIT_MS)
-  const res = await fetch(url, { headers: { 'User-Agent': USER_AGENT } })
-  if (!res.ok) {
-    console.warn(`${url}: ${res.status}`)
-    return null
+  // 数時間かかるので、途中で接続が切れても止まらないよう、少し待って3回まで取り直す
+  for (let attempt = 1; ; attempt++) {
+    await sleep(WAIT_MS * attempt ** 2)
+    try {
+      const res = await fetch(url, { headers: { 'User-Agent': USER_AGENT } })
+      if (!res.ok) {
+        console.warn(`${url}: ${res.status}`)
+        return null
+      }
+      const text = await res.text()
+      if (path) writeFileSync(path, text)
+      return text
+    } catch (e) {
+      if (attempt >= 3) throw e
+      console.warn(`${url}: 接続が切れたので取り直します（${(e as Error).message}）`)
+    }
   }
-  const text = await res.text()
-  if (path) writeFileSync(path, text)
-  return text
 }
 
 async function seven(): Promise<StoreItem[]> {
