@@ -1,7 +1,7 @@
 {
  "store": "ファミリーマート",
  "site": "https://www.family.co.jp/",
- "fetchedAt": "2026-10-11",
+ "fetchedAt": "2026-11-01",
  "items": [
   {
    "store": "famima",
@@ -16,7 +16,7 @@
     "salt": 0.14
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -31,7 +31,7 @@
     "salt": 0
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -46,7 +46,7 @@
     "salt": 0.01
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -61,7 +61,7 @@
     "salt": 0.01
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -76,7 +76,7 @@
     "salt": 0
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -91,7 +91,7 @@
     "salt": 0
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -106,7 +106,7 @@
     "salt": 0.01
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -121,7 +121,7 @@
     "salt": 0.01
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -136,7 +136,7 @@
     "salt": 0.02
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -151,7 +151,7 @@
     "salt": 0.28
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -166,7 +166,7 @@
     "salt": 0.1
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -181,7 +181,7 @@
     "salt": 0
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -196,7 +196,7 @@
     "salt": 0.01
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -211,7 +211,7 @@
     "salt": 0.01
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -226,7 +226,7 @@
     "salt": 0.01
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -241,7 +241,7 @@
     "salt": 0.01
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -256,7 +256,7 @@
     "salt": 0.02
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -271,7 +271,7 @@
     "salt": 0.02
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -286,7 +286,7 @@
     "salt": 0.04
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -301,7 +301,7 @@
     "salt": 0.17
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -316,7 +316,7 @@
     "salt": 0.02
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -331,22 +331,22 @@
     "salt": 0.03
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
-   "code": "0211512",
-   "name": "ピーチフラッペ",
-   "url": "https://www.family.co.jp/goods/cafe/0211512.html",
+   "code": "0211475",
+   "name": "焼きいもバターシェイク",
+   "url": "https://www.family.co.jp/goods/cafe/0211475.html",
    "label": {
-    "energyKcal": 220,
-    "protein": 2.1,
-    "fat": 5.3,
-    "carb": 41.7,
-    "salt": 0.11
+    "energyKcal": 306,
+    "protein": 3.7,
+    "fat": 9.1,
+    "carb": 52.1,
+    "salt": 0.15
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -361,7 +361,7 @@
     "salt": 0.11
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -376,7 +376,7 @@
     "salt": 0.02
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -391,7 +391,7 @@
     "salt": 0.04
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -406,7 +406,7 @@
     "salt": 0.07
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -421,7 +421,7 @@
     "salt": 0.14
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -436,7 +436,7 @@
     "salt": 0.01
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -451,7 +451,7 @@
     "salt": 0.02
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -466,7 +466,7 @@
     "salt": 0.11
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -481,7 +481,7 @@
     "salt": 0.1
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -496,7 +496,7 @@
     "salt": 0.15
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -511,7 +511,7 @@
     "salt": 0.04
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -526,7 +526,7 @@
     "salt": 0.19
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -541,7 +541,7 @@
     "salt": 0.03
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -556,7 +556,22 @@
     "salt": 0.13
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
+  },
+  {
+   "store": "famima",
+   "code": "0231350",
+   "name": "やきいも",
+   "url": "https://www.family.co.jp/goods/friedfoods/0231350.html",
+   "label": {
+    "energyKcal": 151.2,
+    "protein": 1.4,
+    "fat": 0.2,
+    "carb": 39,
+    "salt": 0.04
+   },
+   "category": "side",
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -571,7 +586,7 @@
     "salt": 0.9
    },
    "category": "side",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -586,7 +601,7 @@
     "salt": 0.9
    },
    "category": "side",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -601,7 +616,7 @@
     "salt": 0.3
    },
    "category": "side",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -616,7 +631,7 @@
     "salt": 0.3
    },
    "category": "side",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -631,22 +646,22 @@
     "salt": 1.4
    },
    "category": "side",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
-   "code": "0240659",
-   "name": "極旨　黒豚まんチーズ",
-   "url": "https://www.family.co.jp/goods/chukaman/0240659.html",
+   "code": "0240673",
+   "name": "リュウジの至高のレシピ　とろたま牛すきまん",
+   "url": "https://www.family.co.jp/goods/chukaman/0240673.html",
    "label": {
-    "energyKcal": 267,
-    "protein": 10.3,
-    "fat": 9.6,
-    "carb": 34.9,
-    "salt": 1.4
+    "energyKcal": 230,
+    "protein": 7.4,
+    "fat": 7.7,
+    "carb": 32.8,
+    "salt": 1.3
    },
    "category": "side",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -661,7 +676,7 @@
     "salt": 1.6
    },
    "category": "side",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -676,7 +691,7 @@
     "salt": 1.4
    },
    "category": "side",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -691,7 +706,7 @@
     "salt": 0.6
    },
    "category": "side",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -706,7 +721,7 @@
     "salt": 1.8
    },
    "category": "side",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -721,7 +736,7 @@
     "salt": 1.8
    },
    "category": "side",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -736,67 +751,7 @@
     "salt": 1.3
    },
    "category": "side",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "0251518",
-   "name": "炭火焼きとり　もも（タレ）",
-   "url": "https://www.family.co.jp/goods/friedfoods/0251518.html",
-   "label": {
-    "energyKcal": 76.9,
-    "protein": 7.7,
-    "fat": 4,
-    "carb": 2.5,
-    "salt": 1.3
-   },
-   "category": "side",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "0251549",
-   "name": "炭火焼きとり　かわ（塩）",
-   "url": "https://www.family.co.jp/goods/friedfoods/0251549.html",
-   "label": {
-    "energyKcal": 131,
-    "protein": 5.7,
-    "fat": 11.1,
-    "carb": 2,
-    "salt": 0.9
-   },
-   "category": "side",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "0251600",
-   "name": "炭火焼きとり　もも（塩）",
-   "url": "https://www.family.co.jp/goods/friedfoods/0251600.html",
-   "label": {
-    "energyKcal": 83.2,
-    "protein": 8.1,
-    "fat": 5,
-    "carb": 1.6,
-    "salt": 1.3
-   },
-   "category": "side",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "0251617",
-   "name": "炭火焼きとり　かわ（タレ）",
-   "url": "https://www.family.co.jp/goods/friedfoods/0251617.html",
-   "label": {
-    "energyKcal": 159,
-    "protein": 5.9,
-    "fat": 13.2,
-    "carb": 4.3,
-    "salt": 0.8
-   },
-   "category": "side",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -811,7 +766,7 @@
     "salt": 0.6
    },
    "category": "side",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -826,7 +781,7 @@
     "salt": 0.7
    },
    "category": "side",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -841,22 +796,7 @@
     "salt": 1.2
    },
    "category": "side",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "0252508",
-   "name": "ファミチキ（ごま山椒味）",
-   "url": "https://www.family.co.jp/goods/friedfoods/0252508.html",
-   "label": {
-    "energyKcal": 254.8,
-    "protein": 13.5,
-    "fat": 14.3,
-    "carb": 17.9,
-    "salt": 1.9
-   },
-   "category": "side",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -871,7 +811,7 @@
     "salt": 1.1
    },
    "category": "side",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -886,22 +826,7 @@
     "salt": 1.3
    },
    "category": "side",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "0253888",
-   "name": "Ｗペッパーつくね串",
-   "url": "https://www.family.co.jp/goods/friedfoods/0253888.html",
-   "label": {
-    "energyKcal": 228,
-    "protein": 13.3,
-    "fat": 12,
-    "carb": 16.9,
-    "salt": 2
-   },
-   "category": "side",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -916,7 +841,67 @@
     "salt": 1.9
    },
    "category": "side",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
+  },
+  {
+   "store": "famima",
+   "code": "0254786",
+   "name": "ビッグ焼きとり　ももタレ",
+   "url": "https://www.family.co.jp/goods/friedfoods/0254786.html",
+   "label": {
+    "energyKcal": 135.7,
+    "protein": 12.6,
+    "fat": 8.2,
+    "carb": 2.9,
+    "salt": 2
+   },
+   "category": "side",
+   "fetchedAt": "2026-11-01"
+  },
+  {
+   "store": "famima",
+   "code": "0254809",
+   "name": "ビッグ焼きとり　もも塩",
+   "url": "https://www.family.co.jp/goods/friedfoods/0254809.html",
+   "label": {
+    "energyKcal": 126.8,
+    "protein": 13.3,
+    "fat": 7.4,
+    "carb": 1.9,
+    "salt": 1.7
+   },
+   "category": "side",
+   "fetchedAt": "2026-11-01"
+  },
+  {
+   "store": "famima",
+   "code": "0254816",
+   "name": "ビッグ焼きとり　かわタレ",
+   "url": "https://www.family.co.jp/goods/friedfoods/0254816.html",
+   "label": {
+    "energyKcal": 185.4,
+    "protein": 7.6,
+    "fat": 16.2,
+    "carb": 2.4,
+    "salt": 1.4
+   },
+   "category": "side",
+   "fetchedAt": "2026-11-01"
+  },
+  {
+   "store": "famima",
+   "code": "0254823",
+   "name": "ビッグ焼きとり　かわ塩",
+   "url": "https://www.family.co.jp/goods/friedfoods/0254823.html",
+   "label": {
+    "energyKcal": 188.6,
+    "protein": 7.5,
+    "fat": 17.1,
+    "carb": 1.2,
+    "salt": 1.1
+   },
+   "category": "side",
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -931,7 +916,7 @@
     "salt": 0.004
    },
    "category": "side",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -946,7 +931,7 @@
     "salt": 0
    },
    "category": "side",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -961,7 +946,7 @@
     "salt": 0.03
    },
    "category": "side",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -976,7 +961,7 @@
     "salt": 0.5
    },
    "category": "side",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -991,7 +976,7 @@
     "salt": 0.7
    },
    "category": "side",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -1006,7 +991,7 @@
     "salt": 0.8
    },
    "category": "side",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -1021,7 +1006,7 @@
     "salt": 0.7
    },
    "category": "side",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -1036,7 +1021,7 @@
     "salt": 1
    },
    "category": "side",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -1051,7 +1036,7 @@
     "salt": 0.3
    },
    "category": "side",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -1066,7 +1051,7 @@
     "salt": 0.1
    },
    "category": "side",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -1081,7 +1066,7 @@
     "salt": 0.7
    },
    "category": "side",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -1096,37 +1081,7 @@
     "salt": 0.2
    },
    "category": "side",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "0410076",
-   "name": "【関東の一部】大きなおむすび　鶏そぼろ",
-   "url": "https://www.family.co.jp/goods/omusubi/0410076.html",
-   "label": {
-    "energyKcal": 281,
-    "protein": 6,
-    "fat": 2.5,
-    "carb": 58.8,
-    "salt": 1.5
-   },
-   "category": "onigiri",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "0410113",
-   "name": "手巻　シーチキン®マヨネーズ",
-   "url": "https://www.family.co.jp/goods/omusubi/0410113.html",
-   "label": {
-    "energyKcal": 219,
-    "protein": 3.8,
-    "fat": 6,
-    "carb": 38,
-    "salt": 0.9
-   },
-   "category": "onigiri",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -1190,21 +1145,6 @@
   },
   {
    "store": "famima",
-   "code": "0411158",
-   "name": "【東京都の一部・神奈川県の一部】もち麦・スーパー大麦　枝豆チーズ",
-   "url": "https://www.family.co.jp/goods/omusubi/0411158.html",
-   "label": {
-    "energyKcal": 179,
-    "protein": 4.9,
-    "fat": 3.4,
-    "carb": 34.4,
-    "salt": 1
-   },
-   "category": "onigiri",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
    "code": "0411189",
    "name": "SPAM®むすび　ツナマヨネーズ",
    "url": "https://www.family.co.jp/goods/omusubi/0411189.html",
@@ -1217,6 +1157,21 @@
    },
    "category": "onigiri",
    "fetchedAt": "2026-10-11"
+  },
+  {
+   "store": "famima",
+   "code": "0411295",
+   "name": "焦がし醤油たれまぶし飯　国産海苔の佃煮おむすび",
+   "url": "https://www.family.co.jp/goods/omusubi/0411295.html",
+   "label": {
+    "energyKcal": 179,
+    "protein": 3.4,
+    "fat": 1,
+    "carb": 39.4,
+    "salt": 1.1
+   },
+   "category": "onigiri",
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -1295,21 +1250,6 @@
   },
   {
    "store": "famima",
-   "code": "0411615",
-   "name": "大きなおむすび　昆布とツナマヨネーズ",
-   "url": "https://www.family.co.jp/goods/omusubi/0411615.html",
-   "label": {
-    "energyKcal": 332,
-    "protein": 5.5,
-    "fat": 6.7,
-    "carb": 63.2,
-    "salt": 1.4
-   },
-   "category": "onigiri",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
    "code": "0411622",
    "name": "直巻　明太子マヨネーズ",
    "url": "https://www.family.co.jp/goods/omusubi/0411622.html",
@@ -1370,21 +1310,6 @@
   },
   {
    "store": "famima",
-   "code": "0411998",
-   "name": "ぼんご監修　大きなおむすび　まぐろたくあんと卵黄醤油だれ",
-   "url": "https://www.family.co.jp/goods/omusubi/0411998.html",
-   "label": {
-    "energyKcal": 300,
-    "protein": 6.1,
-    "fat": 3.3,
-    "carb": 62,
-    "salt": 1.1
-   },
-   "category": "onigiri",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
    "code": "0412018",
    "name": "高菜たくあんおむすび",
    "url": "https://www.family.co.jp/goods/omusubi/0412018.html",
@@ -1415,21 +1340,6 @@
   },
   {
    "store": "famima",
-   "code": "0412032",
-   "name": "具だくさん！だし玉子焼と明太子",
-   "url": "https://www.family.co.jp/goods/omusubi/0412032.html",
-   "label": {
-    "energyKcal": 202,
-    "protein": 4.7,
-    "fat": 2.2,
-    "carb": 41.3,
-    "salt": 0.9
-   },
-   "category": "onigiri",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
    "code": "0414005",
    "name": "【東北・関東】おむすびおかずセット（昆布・ツナマヨネーズ）",
    "url": "https://www.family.co.jp/goods/omusubi/0414005.html",
@@ -1438,21 +1348,6 @@
     "protein": 8.3,
     "fat": 9.7,
     "carb": 76.2,
-    "salt": 1.8
-   },
-   "category": "onigiri",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "0414142",
-   "name": "おむすび2個セット（鮭・ツナマヨネーズ）",
-   "url": "https://www.family.co.jp/goods/omusubi/0414142.html",
-   "label": {
-    "energyKcal": 349,
-    "protein": 5.9,
-    "fat": 5.3,
-    "carb": 69.9,
     "salt": 1.8
    },
    "category": "onigiri",
@@ -1520,33 +1415,18 @@
   },
   {
    "store": "famima",
-   "code": "0510189",
-   "name": "手巻寿司　シーチキンマヨネーズ",
-   "url": "https://www.family.co.jp/goods/sushi/0510189.html",
+   "code": "0510349",
+   "name": "チーズハンバーグ寿司",
+   "url": "https://www.family.co.jp/goods/sushi/0510349.html",
    "label": {
-    "energyKcal": 225,
-    "protein": 3.7,
-    "fat": 7.9,
-    "carb": 35.1,
-    "salt": 1.4
+    "energyKcal": 274,
+    "protein": 8.8,
+    "fat": 7.5,
+    "carb": 43.2,
+    "salt": 2.8
    },
    "category": "bento",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "0510318",
-   "name": "手巻寿司　サーモンたくあん（青まぜ）",
-   "url": "https://www.family.co.jp/goods/sushi/0510318.html",
-   "label": {
-    "energyKcal": 156,
-    "protein": 3.4,
-    "fat": 1.8,
-    "carb": 32.3,
-    "salt": 1.5
-   },
-   "category": "bento",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -1565,48 +1445,18 @@
   },
   {
    "store": "famima",
-   "code": "0510493",
-   "name": "ぱくっと寿司　ツナマヨカニカマ",
-   "url": "https://www.family.co.jp/goods/sushi/0510493.html",
+   "code": "0510547",
+   "name": "生ハム寿司",
+   "url": "https://www.family.co.jp/goods/sushi/0510547.html",
    "label": {
-    "energyKcal": 196,
-    "protein": 4.1,
-    "fat": 4.4,
-    "carb": 35.4,
-    "salt": 1.5
+    "energyKcal": 225,
+    "protein": 5.4,
+    "fat": 4.8,
+    "carb": 40.2,
+    "salt": 1.8
    },
    "category": "bento",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "0510530",
-   "name": "しめさば寿司",
-   "url": "https://www.family.co.jp/goods/sushi/0510530.html",
-   "label": {
-    "energyKcal": 192,
-    "protein": 5.3,
-    "fat": 1.9,
-    "carb": 38.6,
-    "salt": 1.2
-   },
-   "category": "bento",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "0510653",
-   "name": "手巻寿司　ねぎとろ（青まぜ）",
-   "url": "https://www.family.co.jp/goods/sushi/0510653.html",
-   "label": {
-    "energyKcal": 167,
-    "protein": 4.4,
-    "fat": 2,
-    "carb": 33.3,
-    "salt": 1.2
-   },
-   "category": "bento",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -1619,21 +1469,6 @@
     "fat": 1.8,
     "carb": 39.3,
     "salt": 1.4
-   },
-   "category": "bento",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "0510967",
-   "name": "ぱくっと寿司　とろたく",
-   "url": "https://www.family.co.jp/goods/sushi/0510967.html",
-   "label": {
-    "energyKcal": 176,
-    "protein": 4.1,
-    "fat": 2.1,
-    "carb": 35.6,
-    "salt": 1.7
    },
    "category": "bento",
    "fetchedAt": "2026-10-11"
@@ -1670,93 +1505,78 @@
   },
   {
    "store": "famima",
-   "code": "0515030",
-   "name": "ミニ助六寿司",
-   "url": "https://www.family.co.jp/goods/sushi/0515030.html",
-   "label": {
-    "energyKcal": 301,
-    "protein": 9.1,
-    "fat": 6.2,
-    "carb": 52.7,
-    "salt": 2
-   },
-   "category": "bento",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "0515047",
+   "code": "0515078",
    "name": "助六寿司",
-   "url": "https://www.family.co.jp/goods/sushi/0515047.html",
+   "url": "https://www.family.co.jp/goods/sushi/0515078.html",
    "label": {
-    "energyKcal": 513,
-    "protein": 16.1,
-    "fat": 11.2,
-    "carb": 87.9,
-    "salt": 3.5
+    "energyKcal": 477,
+    "protein": 13.7,
+    "fat": 10.2,
+    "carb": 83.9,
+    "salt": 3.6
    },
    "category": "bento",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
-   "code": "0515115",
-   "name": "いなり寿司5ヶ入",
-   "url": "https://www.family.co.jp/goods/sushi/0515115.html",
+   "code": "0515085",
+   "name": "ミニ助六寿司",
+   "url": "https://www.family.co.jp/goods/sushi/0515085.html",
    "label": {
-    "energyKcal": 474,
-    "protein": 15.3,
-    "fat": 13.6,
-    "carb": 73.1,
-    "salt": 2.8
+    "energyKcal": 290,
+    "protein": 8.8,
+    "fat": 6.9,
+    "carb": 48.8,
+    "salt": 2.2
    },
    "category": "bento",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
-   "code": "0515146",
+   "code": "0515153",
    "name": "いなり寿司3ヶ入",
-   "url": "https://www.family.co.jp/goods/sushi/0515146.html",
+   "url": "https://www.family.co.jp/goods/sushi/0515153.html",
    "label": {
-    "energyKcal": 302,
-    "protein": 9.9,
-    "fat": 7.8,
-    "carb": 48.3,
+    "energyKcal": 270,
+    "protein": 8.3,
+    "fat": 8,
+    "carb": 41.7,
     "salt": 1.8
    },
    "category": "bento",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
-   "code": "0515214",
-   "name": "いなり&おむすびセット",
-   "url": "https://www.family.co.jp/goods/sushi/0515214.html",
+   "code": "0515238",
+   "name": "【関東・東海】いなり&おむすびセット",
+   "url": "https://www.family.co.jp/goods/sushi/0515238.html",
    "label": {
-    "energyKcal": 544,
-    "protein": 14.3,
-    "fat": 18.3,
-    "carb": 81.5,
-    "salt": 3.4
+    "energyKcal": 489,
+    "protein": 14.1,
+    "fat": 15.8,
+    "carb": 74,
+    "salt": 3
    },
    "category": "bento",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
-   "code": "0614108",
-   "name": "30種類以上のスパイスが決め手のこだわりカレー",
-   "url": "https://www.family.co.jp/goods/obento/0614108.html",
+   "code": "0515412",
+   "name": "ミニいなり寿司5ヶ入",
+   "url": "https://www.family.co.jp/goods/sushi/0515412.html",
    "label": {
-    "energyKcal": 531,
-    "protein": 10.3,
-    "fat": 10.7,
-    "carb": 99.3,
-    "salt": 3.5
+    "energyKcal": 305,
+    "protein": 9.3,
+    "fat": 7.3,
+    "carb": 51,
+    "salt": 2
    },
    "category": "bento",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -1775,6 +1595,21 @@
   },
   {
    "store": "famima",
+   "code": "0614184",
+   "name": "リュウジの至高のレシピ　炙り豚生姜焼弁当",
+   "url": "https://www.family.co.jp/goods/obento/0614184.html",
+   "label": {
+    "energyKcal": 607,
+    "protein": 21.1,
+    "fat": 17.1,
+    "carb": 93.1,
+    "salt": 4.5
+   },
+   "category": "bento",
+   "fetchedAt": "2026-11-01"
+  },
+  {
+   "store": "famima",
    "code": "0614207",
    "name": "特製ダレの炙り焼牛カルビ重",
    "url": "https://www.family.co.jp/goods/obento/0614207.html",
@@ -1784,21 +1619,6 @@
     "fat": 21.7,
     "carb": 107.3,
     "salt": 2.8
-   },
-   "category": "bento",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "0616010",
-   "name": "【関東】炙り焼　鳥めし弁当（麦飯）",
-   "url": "https://www.family.co.jp/goods/obento/0616010.html",
-   "label": {
-    "energyKcal": 616,
-    "protein": 31.7,
-    "fat": 18.5,
-    "carb": 81.9,
-    "salt": 4.6
    },
    "category": "bento",
    "fetchedAt": "2026-10-11"
@@ -1817,6 +1637,21 @@
    },
    "category": "bento",
    "fetchedAt": "2026-10-11"
+  },
+  {
+   "store": "famima",
+   "code": "0616447",
+   "name": "【北海道・関東・東海】銀鮭幕の内弁当",
+   "url": "https://www.family.co.jp/goods/obento/0616447.html",
+   "label": {
+    "energyKcal": 436,
+    "protein": 14.7,
+    "fat": 11.6,
+    "carb": 68.9,
+    "salt": 2
+   },
+   "category": "bento",
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -1899,14 +1734,14 @@
    "name": "三元豚のロースかつ丼",
    "url": "https://www.family.co.jp/goods/obento/0730310.html",
    "label": {
-    "energyKcal": 633,
-    "protein": 22,
-    "fat": 23.6,
-    "carb": 84.1,
-    "salt": 3.6
+    "energyKcal": 683,
+    "protein": 19.4,
+    "fat": 27.7,
+    "carb": 90.4,
+    "salt": 3.5
    },
    "category": "bento",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -1919,21 +1754,6 @@
     "fat": 32.1,
     "carb": 90,
     "salt": 3.5
-   },
-   "category": "bento",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "0730433",
-   "name": "肉汁じゅわっと鉄板焼ハンバーグ弁当（香味醤油仕立て）",
-   "url": "https://www.family.co.jp/goods/obento/0730433.html",
-   "label": {
-    "energyKcal": 780,
-    "protein": 25.4,
-    "fat": 30.2,
-    "carb": 103.3,
-    "salt": 4.6
    },
    "category": "bento",
    "fetchedAt": "2026-10-11"
@@ -1955,48 +1775,33 @@
   },
   {
    "store": "famima",
-   "code": "0730990",
-   "name": "コク旨！パイコー飯（台湾風豚から揚げ）",
-   "url": "https://www.family.co.jp/goods/obento/0730990.html",
+   "code": "0730525",
+   "name": "鉄板焼ハンバーグ弁当（コク深デミソース）",
+   "url": "https://www.family.co.jp/goods/obento/0730525.html",
    "label": {
-    "energyKcal": 543,
-    "protein": 19.7,
-    "fat": 10.1,
-    "carb": 94.5,
-    "salt": 4.9
-   },
-   "category": "bento",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "0731027",
-   "name": "グリルチキン&スパイシーピラフ（麦入りごはん）",
-   "url": "https://www.family.co.jp/goods/obento/0731027.html",
-   "label": {
-    "energyKcal": 477,
-    "protein": 17.3,
-    "fat": 14.6,
-    "carb": 71.7,
+    "energyKcal": 771,
+    "protein": 23.4,
+    "fat": 32.1,
+    "carb": 98.8,
     "salt": 3.5
    },
    "category": "bento",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
-   "code": "0810043",
-   "name": "SUSURU TV.監修　北ノ醤油チーホー北ノ醤油ラーメン",
-   "url": "https://www.family.co.jp/goods/noodle/0810043.html",
+   "code": "0810029",
+   "name": "【北海道・東北・関東】らぁ麺Q監修　至高の一杯　煮干し醤油らぁ麺",
+   "url": "https://www.family.co.jp/goods/noodle/0810029.html",
    "label": {
-    "energyKcal": 583,
-    "protein": 27.1,
-    "fat": 21.5,
-    "carb": 72.5,
-    "salt": 7.8
+    "energyKcal": 472,
+    "protein": 19.1,
+    "fat": 16.3,
+    "carb": 64.1,
+    "salt": 4.6
    },
    "category": "noodle",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -2012,6 +1817,21 @@
    },
    "category": "noodle",
    "fetchedAt": "2026-10-11"
+  },
+  {
+   "store": "famima",
+   "code": "0810104",
+   "name": "【関東】横浜家系豚骨醤油ラーメン",
+   "url": "https://www.family.co.jp/goods/noodle/0810104.html",
+   "label": {
+    "energyKcal": 476,
+    "protein": 22.6,
+    "fat": 17.6,
+    "carb": 58.2,
+    "salt": 6.8
+   },
+   "category": "noodle",
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -2049,14 +1869,14 @@
    "name": "お手軽！冷しぶっかけそば",
    "url": "https://www.family.co.jp/goods/noodle/0810272.html",
    "label": {
-    "energyKcal": 246,
-    "protein": 11.4,
-    "fat": 4.2,
-    "carb": 42.3,
-    "salt": 2.8
+    "energyKcal": 223,
+    "protein": 10.8,
+    "fat": 3.8,
+    "carb": 37.8,
+    "salt": 2.9
    },
    "category": "noodle",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -2105,21 +1925,6 @@
   },
   {
    "store": "famima",
-   "code": "0812047",
-   "name": "【北海道・関東】こだわりだしのたぬきわかめうどん",
-   "url": "https://www.family.co.jp/goods/noodle/0812047.html",
-   "label": {
-    "energyKcal": 281,
-    "protein": 6.9,
-    "fat": 3.2,
-    "carb": 57,
-    "salt": 4.3
-   },
-   "category": "noodle",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
    "code": "0812122",
    "name": "一風堂監修　とんこつラーメン",
    "url": "https://www.family.co.jp/goods/noodle/0812122.html",
@@ -2135,48 +1940,48 @@
   },
   {
    "store": "famima",
-   "code": "0812160",
-   "name": "鶏と魚介の旨み　中華そば（醤油味）",
-   "url": "https://www.family.co.jp/goods/noodle/0812160.html",
+   "code": "0812283",
+   "name": "こだわりだしのかき揚げうどん",
+   "url": "https://www.family.co.jp/goods/noodle/0812283.html",
    "label": {
-    "energyKcal": 334,
-    "protein": 16.7,
-    "fat": 4.5,
-    "carb": 58.3,
-    "salt": 4.7
+    "energyKcal": 505,
+    "protein": 13.3,
+    "fat": 14.3,
+    "carb": 82.6,
+    "salt": 5.1
    },
    "category": "noodle",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
-   "code": "0812177",
-   "name": "ラーメン荘 歴史を刻め監修　旨辛豚ラーメン",
-   "url": "https://www.family.co.jp/goods/noodle/0812177.html",
+   "code": "0812320",
+   "name": "【関東・九州】まろやかなクリームで味わう　明太クリームうどん",
+   "url": "https://www.family.co.jp/goods/noodle/0812320.html",
    "label": {
-    "energyKcal": 907,
-    "protein": 29.1,
-    "fat": 42,
-    "carb": 105.8,
-    "salt": 6.4
+    "energyKcal": 436,
+    "protein": 13.2,
+    "fat": 11.3,
+    "carb": 71.4,
+    "salt": 3.7
    },
    "category": "noodle",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
-   "code": "0812764",
+   "code": "0812719",
    "name": "【東京都の一部・神奈川県の一部】8品目のナムルと野菜のビビン麺",
-   "url": "https://www.family.co.jp/goods/noodle/0812764.html",
+   "url": "https://www.family.co.jp/goods/noodle/0812719.html",
    "label": {
-    "energyKcal": 481,
-    "protein": 20.7,
-    "fat": 18.5,
-    "carb": 61,
-    "salt": 4.5
+    "energyKcal": 400,
+    "protein": 17.5,
+    "fat": 11.1,
+    "carb": 60.6,
+    "salt": 4.2
    },
    "category": "noodle",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -2189,36 +1994,6 @@
     "fat": 14.5,
     "carb": 73.3,
     "salt": 6.6
-   },
-   "category": "noodle",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "0813174",
-   "name": "豚骨醤油　家系ラーメン",
-   "url": "https://www.family.co.jp/goods/noodle/0813174.html",
-   "label": {
-    "energyKcal": 517,
-    "protein": 26.1,
-    "fat": 17.5,
-    "carb": 65.9,
-    "salt": 6.4
-   },
-   "category": "noodle",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "0815116",
-   "name": "【長野県・山梨県・静岡県（東部）】焼津産鰹節使用　まぜそば",
-   "url": "https://www.family.co.jp/goods/noodle/0815116.html",
-   "label": {
-    "energyKcal": 516,
-    "protein": 22.5,
-    "fat": 13.5,
-    "carb": 78.2,
-    "salt": 6
    },
    "category": "noodle",
    "fetchedAt": "2026-10-11"
@@ -2240,21 +2015,6 @@
   },
   {
    "store": "famima",
-   "code": "0820196",
-   "name": "ドーン！とにんにく　チーズ×チーズ×チーズ　カルボパスタ",
-   "url": "https://www.family.co.jp/goods/pasta/0820196.html",
-   "label": {
-    "energyKcal": 685,
-    "protein": 24,
-    "fat": 30.2,
-    "carb": 82,
-    "salt": 5
-   },
-   "category": "noodle",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
    "code": "0820363",
    "name": "ファミマ・ザ・ミートソース",
    "url": "https://www.family.co.jp/goods/pasta/0820363.html",
@@ -2270,48 +2030,18 @@
   },
   {
    "store": "famima",
-   "code": "0820400",
-   "name": "お手軽！明太子パスタ",
-   "url": "https://www.family.co.jp/goods/pasta/0820400.html",
+   "code": "0821506",
+   "name": "リュウジの至高のレシピ　ガリバタチキンパスタ",
+   "url": "https://www.family.co.jp/goods/pasta/0821506.html",
    "label": {
-    "energyKcal": 326,
-    "protein": 13.7,
-    "fat": 7,
-    "carb": 54.2,
-    "salt": 2.1
+    "energyKcal": 467,
+    "protein": 25.2,
+    "fat": 15.7,
+    "carb": 58.9,
+    "salt": 4.8
    },
    "category": "noodle",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "0820424",
-   "name": "お手軽！醤油とだしのペペロンチーノ",
-   "url": "https://www.family.co.jp/goods/pasta/0820424.html",
-   "label": {
-    "energyKcal": 302,
-    "protein": 12,
-    "fat": 9,
-    "carb": 44.5,
-    "salt": 4.3
-   },
-   "category": "noodle",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "0821001",
-   "name": "大盛　明太子スパゲティ",
-   "url": "https://www.family.co.jp/goods/pasta/0821001.html",
-   "label": {
-    "energyKcal": 625,
-    "protein": 23.4,
-    "fat": 18.1,
-    "carb": 95.8,
-    "salt": 7
-   },
-   "category": "noodle",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -2330,33 +2060,18 @@
   },
   {
    "store": "famima",
-   "code": "0821605",
-   "name": "ごま油香る　青ねぎと蒸し鶏のパスタ",
-   "url": "https://www.family.co.jp/goods/pasta/0821605.html",
+   "code": "0822701",
+   "name": "【東京都の一部・神奈川県の一部】生パスタ　霜降りひらたけ®と舞茸のきのこクリーム",
+   "url": "https://www.family.co.jp/goods/pasta/0822701.html",
    "label": {
-    "energyKcal": 516,
-    "protein": 23.3,
-    "fat": 17.8,
-    "carb": 67.7,
-    "salt": 4.7
+    "energyKcal": 491,
+    "protein": 17,
+    "fat": 18.7,
+    "carb": 67.9,
+    "salt": 2.6
    },
    "category": "noodle",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "0822749",
-   "name": "【東京都の一部・神奈川県の一部】冷製パスタ塩レモンソース生ハムとミニトマト",
-   "url": "https://www.family.co.jp/goods/pasta/0822749.html",
-   "label": {
-    "energyKcal": 397,
-    "protein": 12,
-    "fat": 13.4,
-    "carb": 59.1,
-    "salt": 6.4
-   },
-   "category": "noodle",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -2390,21 +2105,6 @@
   },
   {
    "store": "famima",
-   "code": "0823104",
-   "name": "大盛　豚肉とねぎの塩焼そば",
-   "url": "https://www.family.co.jp/goods/noodle/0823104.html",
-   "label": {
-    "energyKcal": 651,
-    "protein": 18.2,
-    "fat": 23.1,
-    "carb": 95.3,
-    "salt": 6.8
-   },
-   "category": "noodle",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
    "code": "0823111",
    "name": "海老の焼ビーフン",
    "url": "https://www.family.co.jp/goods/noodle/0823111.html",
@@ -2414,21 +2114,6 @@
     "fat": 6.8,
     "carb": 48.3,
     "salt": 3.4
-   },
-   "category": "noodle",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "0823227",
-   "name": "【関東の一部】ウスターソースが決め手　宇都宮焼そば",
-   "url": "https://www.family.co.jp/goods/noodle/0823227.html",
-   "label": {
-    "energyKcal": 640,
-    "protein": 22.2,
-    "fat": 19.5,
-    "carb": 96.6,
-    "salt": 6.3
    },
    "category": "noodle",
    "fetchedAt": "2026-10-11"
@@ -2450,48 +2135,18 @@
   },
   {
    "store": "famima",
-   "code": "0823241",
-   "name": "冷たい生パスタ　蒸し鶏と明太子",
-   "url": "https://www.family.co.jp/goods/pasta/0823241.html",
+   "code": "0823289",
+   "name": "ふんわりたまご　オムそば",
+   "url": "https://www.family.co.jp/goods/noodle/0823289.html",
    "label": {
-    "energyKcal": 279,
-    "protein": 13.9,
-    "fat": 2.1,
-    "carb": 52.5,
-    "salt": 3
+    "energyKcal": 655,
+    "protein": 18,
+    "fat": 28.7,
+    "carb": 83.6,
+    "salt": 6.2
    },
    "category": "noodle",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "0823272",
-   "name": "生パスタ　カルボナーラ",
-   "url": "https://www.family.co.jp/goods/pasta/0823272.html",
-   "label": {
-    "energyKcal": 515,
-    "protein": 21.6,
-    "fat": 18.3,
-    "carb": 67,
-    "salt": 3.2
-   },
-   "category": "noodle",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "0823296",
-   "name": "元祖スタミナ満点らーめん すず鬼監修　焼きスタ満",
-   "url": "https://www.family.co.jp/goods/noodle/0823296.html",
-   "label": {
-    "energyKcal": 870,
-    "protein": 29.1,
-    "fat": 32.4,
-    "carb": 118.9,
-    "salt": 8.4
-   },
-   "category": "noodle",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -2510,6 +2165,21 @@
   },
   {
    "store": "famima",
+   "code": "0823340",
+   "name": "生パスタ　濃い濃いカルボナーラ",
+   "url": "https://www.family.co.jp/goods/pasta/0823340.html",
+   "label": {
+    "energyKcal": 428,
+    "protein": 19.1,
+    "fat": 14.1,
+    "carb": 57.7,
+    "salt": 3.1
+   },
+   "category": "noodle",
+   "fetchedAt": "2026-11-01"
+  },
+  {
+   "store": "famima",
    "code": "0823364",
    "name": "麺のコシが決め手！ソース焼そば",
    "url": "https://www.family.co.jp/goods/noodle/0823364.html",
@@ -2519,21 +2189,6 @@
     "fat": 13.1,
     "carb": 86.6,
     "salt": 6.1
-   },
-   "category": "noodle",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "0827065",
-   "name": "【熊本うまかモン集合】味千拉麺監修　大盛　焼ラーメン（マー油仕立て）",
-   "url": "https://www.family.co.jp/goods/noodle/0827065.html",
-   "label": {
-    "energyKcal": 764,
-    "protein": 26,
-    "fat": 31.9,
-    "carb": 96.6,
-    "salt": 5.6
    },
    "category": "noodle",
    "fetchedAt": "2026-10-11"
@@ -2551,21 +2206,6 @@
     "salt": 3.7
    },
    "category": "noodle",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "0910088",
-   "name": "たまご焼きとハムサンド",
-   "url": "https://www.family.co.jp/goods/sandwich/0910088.html",
-   "label": {
-    "energyKcal": 261,
-    "protein": 11.1,
-    "fat": 11.1,
-    "carb": 29.8,
-    "salt": 1.7
-   },
-   "category": "sandwich",
    "fetchedAt": "2026-10-11"
   },
   {
@@ -2615,33 +2255,63 @@
   },
   {
    "store": "famima",
-   "code": "0912716",
-   "name": "【東京都の一部・神奈川県の一部】国産鶏むね肉と厚切りトマトゆで玉子のクラブハウスサンド",
-   "url": "https://www.family.co.jp/goods/sandwich/0912716.html",
+   "code": "0910590",
+   "name": "5種のフルーツミックスサンド",
+   "url": "https://www.family.co.jp/goods/sandwich/0910590.html",
    "label": {
-    "energyKcal": 231,
-    "protein": 12.5,
-    "fat": 8.4,
-    "carb": 27.4,
-    "salt": 1.8
+    "energyKcal": 239,
+    "protein": 4.3,
+    "fat": 10.9,
+    "carb": 31.6,
+    "salt": 0.5
    },
    "category": "sandwich",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
-   "code": "0912723",
-   "name": "【東京都の一部・神奈川県の一部】アボカド&ツナマカロニ　クリームチーズソース",
-   "url": "https://www.family.co.jp/goods/sandwich/0912723.html",
+   "code": "0910705",
+   "name": "【関東・東海・関西】スイートポテト&ホイップサンド",
+   "url": "https://www.family.co.jp/goods/sandwich/0910705.html",
    "label": {
-    "energyKcal": 268,
-    "protein": 9.6,
-    "fat": 16.3,
-    "carb": 22.5,
-    "salt": 1.4
+    "energyKcal": 292,
+    "protein": 5,
+    "fat": 12.4,
+    "carb": 40.9,
+    "salt": 0.7
    },
    "category": "sandwich",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
+  },
+  {
+   "store": "famima",
+   "code": "0912778",
+   "name": "【東京都の一部・神奈川県の一部】国産鶏むね肉と厚切りトマトゆで玉子のクラブハウスサンド",
+   "url": "https://www.family.co.jp/goods/sandwich/0912778.html",
+   "label": {
+    "energyKcal": 221,
+    "protein": 12,
+    "fat": 7.6,
+    "carb": 27.3,
+    "salt": 1.9
+   },
+   "category": "sandwich",
+   "fetchedAt": "2026-11-01"
+  },
+  {
+   "store": "famima",
+   "code": "0912808",
+   "name": "【東京都の一部・神奈川県の一部】3種のチーズを楽しむサンドイッチ",
+   "url": "https://www.family.co.jp/goods/sandwich/0912808.html",
+   "label": {
+    "energyKcal": 393,
+    "protein": 15.5,
+    "fat": 28.2,
+    "carb": 20.3,
+    "salt": 2.1
+   },
+   "category": "sandwich",
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -2664,14 +2334,14 @@
    "name": "チーズバーガー",
    "url": "https://www.family.co.jp/goods/sandwich/0920063.html",
    "label": {
-    "energyKcal": 283,
+    "energyKcal": 286,
     "protein": 13,
     "fat": 11,
-    "carb": 33.8,
+    "carb": 34.9,
     "salt": 2.4
    },
    "category": "sandwich",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -2690,18 +2360,48 @@
   },
   {
    "store": "famima",
-   "code": "0920209",
-   "name": "【関東・東海・関西】石窯パリジャン　ローストポーク&ローストチキン",
-   "url": "https://www.family.co.jp/goods/sandwich/0920209.html",
+   "code": "0920131",
+   "name": "石窯パリジャン2種ハム&マスカルポーネ",
+   "url": "https://www.family.co.jp/goods/sandwich/0920131.html",
    "label": {
-    "energyKcal": 227,
-    "protein": 12.8,
-    "fat": 3.6,
-    "carb": 36.8,
-    "salt": 1.3
+    "energyKcal": 247,
+    "protein": 10.3,
+    "fat": 7.6,
+    "carb": 35.2,
+    "salt": 1.7
    },
    "category": "sandwich",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
+  },
+  {
+   "store": "famima",
+   "code": "0920216",
+   "name": "エッグハンバーグマフィン",
+   "url": "https://www.family.co.jp/goods/sandwich/0920216.html",
+   "label": {
+    "energyKcal": 315,
+    "protein": 17.7,
+    "fat": 12.6,
+    "carb": 34.2,
+    "salt": 1.9
+   },
+   "category": "sandwich",
+   "fetchedAt": "2026-11-01"
+  },
+  {
+   "store": "famima",
+   "code": "0920223",
+   "name": "石窯パリジャンサンド（ハム&チーズ）",
+   "url": "https://www.family.co.jp/goods/sandwich/0920223.html",
+   "label": {
+    "energyKcal": 270,
+    "protein": 10.1,
+    "fat": 10.2,
+    "carb": 35.4,
+    "salt": 1.4
+   },
+   "category": "sandwich",
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -2735,51 +2435,6 @@
   },
   {
    "store": "famima",
-   "code": "0920278",
-   "name": "【関東・東海・関西】ホットドッグ",
-   "url": "https://www.family.co.jp/goods/sandwich/0920278.html",
-   "label": {
-    "energyKcal": 252,
-    "protein": 8.7,
-    "fat": 13,
-    "carb": 25.6,
-    "salt": 1.3
-   },
-   "category": "sandwich",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "0920490",
-   "name": "石窯パリジャンサンド（ハム&チーズ）",
-   "url": "https://www.family.co.jp/goods/sandwich/0920490.html",
-   "label": {
-    "energyKcal": 248,
-    "protein": 10.1,
-    "fat": 8.5,
-    "carb": 33.7,
-    "salt": 1.5
-   },
-   "category": "sandwich",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "0920513",
-   "name": "【関東・東海・関西】BBQポークのトルティーヤ",
-   "url": "https://www.family.co.jp/goods/sandwich/0920513.html",
-   "label": {
-    "energyKcal": 204,
-    "protein": 8.4,
-    "fat": 9.4,
-    "carb": 22.4,
-    "salt": 1.8
-   },
-   "category": "sandwich",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
    "code": "0922715",
    "name": "【東京都の一部・神奈川県の一部】たんぱく質が摂れる　国産鶏むね肉のメキシカンサラダラップ",
    "url": "https://www.family.co.jp/goods/sandwich/0922715.html",
@@ -2795,6 +2450,21 @@
   },
   {
    "store": "famima",
+   "code": "0922739",
+   "name": "【東京都の一部・神奈川県の一部】海老とアボカドのロールサンド",
+   "url": "https://www.family.co.jp/goods/sandwich/0922739.html",
+   "label": {
+    "energyKcal": 241,
+    "protein": 7,
+    "fat": 13.2,
+    "carb": 24.8,
+    "salt": 1.1
+   },
+   "category": "sandwich",
+   "fetchedAt": "2026-11-01"
+  },
+  {
+   "store": "famima",
    "code": "1022131",
    "name": "【関東・東海・九州】3種きのこのクリームスープ",
    "url": "https://www.family.co.jp/goods/deli/1022131.html",
@@ -2804,36 +2474,6 @@
     "fat": 10.5,
     "carb": 26.9,
     "salt": 2.1
-   },
-   "category": "side",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "1022162",
-   "name": "ゆず香る！旨塩スープ",
-   "url": "https://www.family.co.jp/goods/deli/1022162.html",
-   "label": {
-    "energyKcal": 63,
-    "protein": 5.3,
-    "fat": 2.9,
-    "carb": 4.9,
-    "salt": 3.6
-   },
-   "category": "side",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "1022209",
-   "name": "塩ちゃんこ鍋風スープ（うどん入り）",
-   "url": "https://www.family.co.jp/goods/deli/1022209.html",
-   "label": {
-    "energyKcal": 197,
-    "protein": 15.5,
-    "fat": 4.8,
-    "carb": 23.9,
-    "salt": 3.7
    },
    "category": "side",
    "fetchedAt": "2026-10-11"
@@ -2855,33 +2495,78 @@
   },
   {
    "store": "famima",
-   "code": "1022278",
-   "name": "【関東・東海・北陸】肉団子と野菜の四川風麻辣湯",
-   "url": "https://www.family.co.jp/goods/deli/1022278.html",
+   "code": "1022247",
+   "name": "【関東・東海・北陸】まろやかコク仕立て　ごま豆乳スープ",
+   "url": "https://www.family.co.jp/goods/deli/1022247.html",
    "label": {
-    "energyKcal": 165,
-    "protein": 9,
-    "fat": 5.9,
-    "carb": 20.5,
-    "salt": 4.4
+    "energyKcal": 207,
+    "protein": 12.1,
+    "fat": 11.1,
+    "carb": 16.4,
+    "salt": 3.2
    },
    "category": "side",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
-   "code": "1023015",
-   "name": "【東京都の一部・神奈川県の一部】国産鶏むね肉と小松菜の豆乳担担春雨スープ",
-   "url": "https://www.family.co.jp/goods/deli/1023015.html",
+   "code": "1022254",
+   "name": "【関東・東海】生姜香る具だくさん中華スープ",
+   "url": "https://www.family.co.jp/goods/deli/1022254.html",
    "label": {
-    "energyKcal": 403,
-    "protein": 18.4,
-    "fat": 27.4,
-    "carb": 23.1,
+    "energyKcal": 119,
+    "protein": 9.3,
+    "fat": 3.9,
+    "carb": 13.5,
+    "salt": 3.6
+   },
+   "category": "side",
+   "fetchedAt": "2026-11-01"
+  },
+  {
+   "store": "famima",
+   "code": "1023022",
+   "name": "【東京都の一部・神奈川県の一部】焼野菜の旨みを閉じ込めた食べるミネストローネ",
+   "url": "https://www.family.co.jp/goods/deli/1023022.html",
+   "label": {
+    "energyKcal": 172,
+    "protein": 9.1,
+    "fat": 5.2,
+    "carb": 25.8,
     "salt": 3.4
    },
    "category": "side",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
+  },
+  {
+   "store": "famima",
+   "code": "1023053",
+   "name": "【関東の一部】肉たっぷり　7種具材の豚汁",
+   "url": "https://www.family.co.jp/goods/deli/1023053.html",
+   "label": {
+    "energyKcal": 149,
+    "protein": 10.7,
+    "fat": 10,
+    "carb": 4.9,
+    "salt": 2.5
+   },
+   "category": "side",
+   "fetchedAt": "2026-11-01"
+  },
+  {
+   "store": "famima",
+   "code": "1023060",
+   "name": "【東京都の一部】野菜を味わう具だくさん豚汁",
+   "url": "https://www.family.co.jp/goods/deli/1023060.html",
+   "label": {
+    "energyKcal": 122,
+    "protein": 10.5,
+    "fat": 6.6,
+    "carb": 6.4,
+    "salt": 3.1
+   },
+   "category": "side",
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -2894,21 +2579,6 @@
     "fat": 13.5,
     "carb": 43,
     "salt": 2.2
-   },
-   "category": "side",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "1032468",
-   "name": "コーンクリームグラタン",
-   "url": "https://www.family.co.jp/goods/deli/1032468.html",
-   "label": {
-    "energyKcal": 312,
-    "protein": 12.9,
-    "fat": 9.2,
-    "carb": 46.2,
-    "salt": 2.7
    },
    "category": "side",
    "fetchedAt": "2026-10-11"
@@ -2930,33 +2600,33 @@
   },
   {
    "store": "famima",
-   "code": "1032482",
-   "name": "チーズに溺れた！タスケテたこ焼き",
-   "url": "https://www.family.co.jp/goods/deli/1032482.html",
+   "code": "1130041",
+   "name": "カニカマとキャベツのからしマヨサラダ",
+   "url": "https://www.family.co.jp/goods/sidedishes/1130041.html",
    "label": {
-    "energyKcal": 374,
-    "protein": 15.1,
-    "fat": 23.6,
-    "carb": 26.4,
-    "salt": 2.5
+    "energyKcal": 171,
+    "protein": 3.7,
+    "fat": 12.3,
+    "carb": 11.8,
+    "salt": 1.6
    },
    "category": "side",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
-   "code": "1032499",
-   "name": "ボロネーゼ風ラザニア",
-   "url": "https://www.family.co.jp/goods/deli/1032499.html",
+   "code": "1130058",
+   "name": "ふんわりオムレツ野菜とトマトのソース",
+   "url": "https://www.family.co.jp/goods/sidedishes/1130058.html",
    "label": {
-    "energyKcal": 307,
-    "protein": 13.8,
-    "fat": 14.5,
-    "carb": 31.4,
-    "salt": 3.3
+    "energyKcal": 184,
+    "protein": 6.3,
+    "fat": 13.1,
+    "carb": 10.4,
+    "salt": 1.3
    },
    "category": "side",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -2984,51 +2654,6 @@
     "fat": 3.8,
     "carb": 5,
     "salt": 1.3
-   },
-   "category": "side",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "1132489",
-   "name": "国産さばのおろしポン酢",
-   "url": "https://www.family.co.jp/goods/sidedishes/1132489.html",
-   "label": {
-    "energyKcal": 83,
-    "protein": 9.8,
-    "fat": 3.1,
-    "carb": 4.6,
-    "salt": 2.2
-   },
-   "category": "side",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "1132502",
-   "name": "冷たいまま食べるタルタルチキン南蛮",
-   "url": "https://www.family.co.jp/goods/sidedishes/1132502.html",
-   "label": {
-    "energyKcal": 281,
-    "protein": 13.3,
-    "fat": 17,
-    "carb": 19.3,
-    "salt": 1.9
-   },
-   "category": "side",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "1132526",
-   "name": "混ぜて食べるネバネバサラダ（ポン酢味）",
-   "url": "https://www.family.co.jp/goods/sidedishes/1132526.html",
-   "label": {
-    "energyKcal": 32,
-    "protein": 2,
-    "fat": 0.7,
-    "carb": 5.8,
-    "salt": 1.6
    },
    "category": "side",
    "fetchedAt": "2026-10-11"
@@ -3080,51 +2705,6 @@
   },
   {
    "store": "famima",
-   "code": "1132625",
-   "name": "蒸し鶏と塩昆布のやみつきキャベツ",
-   "url": "https://www.family.co.jp/goods/sidedishes/1132625.html",
-   "label": {
-    "energyKcal": 73,
-    "protein": 5.8,
-    "fat": 3.7,
-    "carb": 4.9,
-    "salt": 1.3
-   },
-   "category": "side",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "1132632",
-   "name": "コールスローサラダ",
-   "url": "https://www.family.co.jp/goods/sidedishes/1132632.html",
-   "label": {
-    "energyKcal": 137,
-    "protein": 2.7,
-    "fat": 9.6,
-    "carb": 11.1,
-    "salt": 1.3
-   },
-   "category": "side",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "1132755",
-   "name": "厚切りベーコンのポテトサラダ",
-   "url": "https://www.family.co.jp/goods/sidedishes/1132755.html",
-   "label": {
-    "energyKcal": 199,
-    "protein": 4.1,
-    "fat": 13.4,
-    "carb": 16.6,
-    "salt": 1.6
-   },
-   "category": "side",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
    "code": "1132786",
    "name": "食物繊維3.1gシャキシャキ根菜サラダ",
    "url": "https://www.family.co.jp/goods/sidedishes/1132786.html",
@@ -3155,18 +2735,18 @@
   },
   {
    "store": "famima",
-   "code": "1132908",
-   "name": "イカときゅうりのねぎ塩だれ",
-   "url": "https://www.family.co.jp/goods/sidedishes/1132908.html",
+   "code": "1132892",
+   "name": "コールスローサラダ",
+   "url": "https://www.family.co.jp/goods/sidedishes/1132892.html",
    "label": {
-    "energyKcal": 62,
-    "protein": 2.7,
-    "fat": 4,
-    "carb": 4.4,
+    "energyKcal": 123,
+    "protein": 1.6,
+    "fat": 9.3,
+    "carb": 9.4,
     "salt": 1.4
    },
    "category": "side",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -3200,21 +2780,6 @@
   },
   {
    "store": "famima",
-   "code": "1133028",
-   "name": "【東京都の一部・神奈川県の一部】国産ブロッコリーとケールのペペロンチーノ和え",
-   "url": "https://www.family.co.jp/goods/sidedishes/1133028.html",
-   "label": {
-    "energyKcal": 77,
-    "protein": 2.5,
-    "fat": 5.9,
-    "carb": 4.5,
-    "salt": 0.8
-   },
-   "category": "side",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
    "code": "1133035",
    "name": "【東京都の一部・神奈川県の一部】真だこと国産ブロッコリーのバジルサラダ",
    "url": "https://www.family.co.jp/goods/sidedishes/1133035.html",
@@ -3224,51 +2789,6 @@
     "fat": 6.4,
     "carb": 5.9,
     "salt": 0.9
-   },
-   "category": "side",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "1160529",
-   "name": "こだわり肉シュウマイ",
-   "url": "https://www.family.co.jp/goods/sidedishes/1160529.html",
-   "label": {
-    "energyKcal": 358,
-    "protein": 15.4,
-    "fat": 23.2,
-    "carb": 22.9,
-    "salt": 2.4
-   },
-   "category": "side",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "1160710",
-   "name": "冷し揚げ出し豆腐",
-   "url": "https://www.family.co.jp/goods/sidedishes/1160710.html",
-   "label": {
-    "energyKcal": 231,
-    "protein": 11.9,
-    "fat": 15.9,
-    "carb": 10.6,
-    "salt": 1.4
-   },
-   "category": "side",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "1160727",
-   "name": "旨さ痺れる逸品　四川風麻婆豆腐",
-   "url": "https://www.family.co.jp/goods/sidedishes/1160727.html",
-   "label": {
-    "energyKcal": 326,
-    "protein": 14.1,
-    "fat": 25.6,
-    "carb": 10.7,
-    "salt": 3.3
    },
    "category": "side",
    "fetchedAt": "2026-10-11"
@@ -3320,6 +2840,21 @@
   },
   {
    "store": "famima",
+   "code": "1160840",
+   "name": "こだわり肉シュウマイ",
+   "url": "https://www.family.co.jp/goods/sidedishes/1160840.html",
+   "label": {
+    "energyKcal": 379,
+    "protein": 15,
+    "fat": 24,
+    "carb": 26.6,
+    "salt": 2.2
+   },
+   "category": "side",
+   "fetchedAt": "2026-11-01"
+  },
+  {
+   "store": "famima",
    "code": "1160864",
    "name": "ささみ揚げ&ちくわ磯辺天",
    "url": "https://www.family.co.jp/goods/sidedishes/1160864.html",
@@ -3332,6 +2867,21 @@
    },
    "category": "side",
    "fetchedAt": "2026-10-11"
+  },
+  {
+   "store": "famima",
+   "code": "1160925",
+   "name": "揚げ出し豆腐",
+   "url": "https://www.family.co.jp/goods/sidedishes/1160925.html",
+   "label": {
+    "energyKcal": 232,
+    "protein": 12.5,
+    "fat": 14.4,
+    "carb": 13.9,
+    "salt": 1.5
+   },
+   "category": "side",
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -3425,21 +2975,6 @@
   },
   {
    "store": "famima",
-   "code": "1212105",
-   "name": "フレッシュ野菜サラダ",
-   "url": "https://www.family.co.jp/goods/salad/1212105.html",
-   "label": {
-    "energyKcal": 25,
-    "protein": 1.1,
-    "fat": 0.5,
-    "carb": 4.9,
-    "salt": 0.06
-   },
-   "category": "side",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
    "code": "1212297",
    "name": "サラダチキンのサラダ",
    "url": "https://www.family.co.jp/goods/salad/1212297.html",
@@ -3500,78 +3035,33 @@
   },
   {
    "store": "famima",
-   "code": "1212389",
-   "name": "ハムとマカロニのサラダ",
-   "url": "https://www.family.co.jp/goods/salad/1212389.html",
+   "code": "1212464",
+   "name": "5種野菜のまぜまぜサラダ",
+   "url": "https://www.family.co.jp/goods/salad/1212464.html",
    "label": {
-    "energyKcal": 126,
-    "protein": 6.4,
-    "fat": 6,
-    "carb": 12.5,
-    "salt": 1.3
+    "energyKcal": 74,
+    "protein": 2.1,
+    "fat": 3.8,
+    "carb": 9,
+    "salt": 1
    },
    "category": "side",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
-   "code": "1212396",
+   "code": "1212471",
    "name": "パリパリ麺サラダ",
-   "url": "https://www.family.co.jp/goods/salad/1212396.html",
+   "url": "https://www.family.co.jp/goods/salad/1212471.html",
    "label": {
-    "energyKcal": 253,
-    "protein": 6.5,
-    "fat": 13.8,
-    "carb": 27.6,
-    "salt": 2.3
+    "energyKcal": 263,
+    "protein": 6.3,
+    "fat": 14.8,
+    "carb": 27.5,
+    "salt": 2.2
    },
    "category": "side",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "1212457",
-   "name": "まいたけとベーコンのサラダ",
-   "url": "https://www.family.co.jp/goods/salad/1212457.html",
-   "label": {
-    "energyKcal": 125,
-    "protein": 3.2,
-    "fat": 10.2,
-    "carb": 5.7,
-    "salt": 0.9
-   },
-   "category": "side",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "1212488",
-   "name": "砕いて食べる！タコス風サラダ",
-   "url": "https://www.family.co.jp/goods/salad/1212488.html",
-   "label": {
-    "energyKcal": 190,
-    "protein": 6.5,
-    "fat": 11.8,
-    "carb": 15.9,
-    "salt": 1.6
-   },
-   "category": "side",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "1213027",
-   "name": "【東京都の一部・神奈川県の一部】グリルチキンとゆで玉子のファーマーズサラダ",
-   "url": "https://www.family.co.jp/goods/salad/1213027.html",
-   "label": {
-    "energyKcal": 232,
-    "protein": 15.5,
-    "fat": 15.3,
-    "carb": 9.1,
-    "salt": 1.6
-   },
-   "category": "side",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -3584,21 +3074,6 @@
     "fat": 15.3,
     "carb": 8.2,
     "salt": 3.8
-   },
-   "category": "side",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "1222227",
-   "name": "たんぱく質が摂れる！ローストチキンのパスタサラダ",
-   "url": "https://www.family.co.jp/goods/salad/1222227.html",
-   "label": {
-    "energyKcal": 240,
-    "protein": 15.2,
-    "fat": 5.5,
-    "carb": 33.9,
-    "salt": 2.6
    },
    "category": "side",
    "fetchedAt": "2026-10-11"
@@ -3620,258 +3095,63 @@
   },
   {
    "store": "famima",
-   "code": "1222340",
-   "name": "青じそ香る！たらこのパスタサラダ",
-   "url": "https://www.family.co.jp/goods/salad/1222340.html",
+   "code": "1222364",
+   "name": "たんぱく質が摂れる！ローストチキンのパスタサラダ",
+   "url": "https://www.family.co.jp/goods/salad/1222364.html",
    "label": {
-    "energyKcal": 234,
-    "protein": 8.7,
-    "fat": 8.9,
-    "carb": 30.7,
-    "salt": 2.3
+    "energyKcal": 246,
+    "protein": 15.2,
+    "fat": 5.5,
+    "carb": 35,
+    "salt": 3.3
    },
    "category": "side",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
-   "code": "1222357",
-   "name": "ねぎ塩チキンのパスタサラダ",
-   "url": "https://www.family.co.jp/goods/salad/1222357.html",
+   "code": "1222371",
+   "name": "甘辛唐揚げマヨパスタサラダ",
+   "url": "https://www.family.co.jp/goods/salad/1222371.html",
    "label": {
-    "energyKcal": 275,
-    "protein": 15.5,
-    "fat": 10.5,
-    "carb": 31.4,
-    "salt": 3.2
-   },
-   "category": "side",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "1222388",
-   "name": "ごま香る！担担風パスタサラダ",
-   "url": "https://www.family.co.jp/goods/salad/1222388.html",
-   "label": {
-    "energyKcal": 344,
-    "protein": 12.5,
-    "fat": 17.4,
+    "energyKcal": 305,
+    "protein": 11.7,
+    "fat": 12.9,
     "carb": 36.4,
-    "salt": 3.2
+    "salt": 2.9
    },
    "category": "side",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
-   "code": "n-【北海道・関東】具だくさん豚汁",
-   "name": "【北海道・関東】具だくさん豚汁",
-   "url": "https://www.family.co.jp/goods/safety/goods100.html",
-   "label": {
-    "energyKcal": 120,
-    "protein": 12,
-    "fat": 5.7,
-    "carb": 6.4,
-    "salt": 2.4
-   },
-   "category": "side",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "n-【東京都の一部・神奈川県の一部】ナンプラー香る5種の雑穀と野菜ライスサラダ",
-   "name": "【東京都の一部・神奈川県の一部】ナンプラー香る5種の雑穀と野菜ライスサラダ",
-   "url": "https://www.family.co.jp/goods/safety/goods080.html",
-   "label": {
-    "energyKcal": 183,
-    "protein": 5.9,
-    "fat": 4.9,
-    "carb": 31.2,
-    "salt": 2.5
-   },
-   "category": "side",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "n-【東京都の一部・神奈川県の一部】冷製　鶏むね肉と海老のトムヤムヌードル",
-   "name": "【東京都の一部・神奈川県の一部】冷製　鶏むね肉と海老のトムヤムヌードル",
-   "url": "https://www.family.co.jp/goods/safety/goods060.html",
-   "label": {
-    "energyKcal": 450,
-    "protein": 15.4,
-    "fat": 16,
-    "carb": 62.1,
-    "salt": 4
-   },
-   "category": "noodle",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "n-【東京都の一部・神奈川県の一部】国産鶏むね肉とゆで玉子のトーストサンド生鮮バジルのソースとチェダーチーズ",
-   "name": "【東京都の一部・神奈川県の一部】国産鶏むね肉とゆで玉子のトーストサンド生鮮バジルのソースとチェダーチーズ",
+   "code": "n-【関東・東海・関西】ホットドッグ",
+   "name": "【関東・東海・関西】ホットドッグ",
    "url": "https://www.family.co.jp/goods/safety/goods040.html",
    "label": {
-    "energyKcal": 288,
-    "protein": 20.1,
-    "fat": 13.7,
-    "carb": 22,
-    "salt": 1.5
+    "energyKcal": 250,
+    "protein": 8.9,
+    "fat": 12.5,
+    "carb": 26.1,
+    "salt": 1.4
    },
    "category": "sandwich",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
-   "code": "n-【熊本うまかモン集合】大きなおむすび　海苔佃煮",
-   "name": "【熊本うまかモン集合】大きなおむすび　海苔佃煮",
-   "url": "https://www.family.co.jp/goods/safety/goods010.html",
+   "code": "n-Ｗペッパーつくね串",
+   "name": "Ｗペッパーつくね串",
+   "url": "https://www.family.co.jp/goods/safety/friedfoods.html",
    "label": {
-    "energyKcal": 259,
-    "protein": 4.6,
-    "fat": 1.6,
-    "carb": 57.1,
+    "energyKcal": 228,
+    "protein": 13.3,
+    "fat": 12,
+    "carb": 16.9,
     "salt": 2
    },
-   "category": "onigiri",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "n-【熊本うまかモン集合】香味醤油ソースの鶏から揚げ弁当（黒マー油使用）",
-   "name": "【熊本うまかモン集合】香味醤油ソースの鶏から揚げ弁当（黒マー油使用）",
-   "url": "https://www.family.co.jp/goods/safety/goods020.html",
-   "label": {
-    "energyKcal": 656,
-    "protein": 25.8,
-    "fat": 18.6,
-    "carb": 97,
-    "salt": 3.9
-   },
-   "category": "bento",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "n-【関東、東海、中国・四国】梅と蒸し鶏のあったかそうめん",
-   "name": "【関東、東海、中国・四国】梅と蒸し鶏のあったかそうめん",
-   "url": "https://www.family.co.jp/goods/safety/goods060.html",
-   "label": {
-    "energyKcal": 158,
-    "protein": 6.3,
-    "fat": 3.2,
-    "carb": 26.8,
-    "salt": 3.4
-   },
-   "category": "noodle",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "n-【関東】具だくさん　野菜うどん",
-   "name": "【関東】具だくさん　野菜うどん",
-   "url": "https://www.family.co.jp/goods/safety/goods060.html",
-   "label": {
-    "energyKcal": 397,
-    "protein": 14.6,
-    "fat": 5.8,
-    "carb": 73.7,
-    "salt": 5.4
-   },
-   "category": "noodle",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "n-【関東の一部・関西】豚肉とあさりとキムチの旨辛スンドゥブスープ",
-   "name": "【関東の一部・関西】豚肉とあさりとキムチの旨辛スンドゥブスープ",
-   "url": "https://www.family.co.jp/goods/safety/goods100.html",
-   "label": {
-    "energyKcal": 152,
-    "protein": 11.1,
-    "fat": 9.2,
-    "carb": 6.5,
-    "salt": 3.5
-   },
    "category": "side",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "n-【関東の一部】参鶏湯風スープごはん",
-   "name": "【関東の一部】参鶏湯風スープごはん",
-   "url": "https://www.family.co.jp/goods/safety/goods100.html",
-   "label": {
-    "energyKcal": 252,
-    "protein": 14.2,
-    "fat": 4.6,
-    "carb": 41.1,
-    "salt": 2.7
-   },
-   "category": "side",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "n-【関東の一部】肉たっぷり　7種具材の豚汁",
-   "name": "【関東の一部】肉たっぷり　7種具材の豚汁",
-   "url": "https://www.family.co.jp/goods/safety/goods100.html",
-   "label": {
-    "energyKcal": 135,
-    "protein": 10.3,
-    "fat": 8.3,
-    "carb": 5.6,
-    "salt": 2.7
-   },
-   "category": "side",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "n-2種のきのこいなり寿司",
-   "name": "2種のきのこいなり寿司",
-   "url": "https://www.family.co.jp/goods/safety/goods030.html",
-   "label": {
-    "energyKcal": 180,
-    "protein": 4.3,
-    "fat": 3.7,
-    "carb": 32.8,
-    "salt": 1.4
-   },
-   "category": "bento",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "n-3色そぼろ&チキン南蛮弁当",
-   "name": "3色そぼろ&チキン南蛮弁当",
-   "url": "https://www.family.co.jp/goods/safety/goods020.html",
-   "label": {
-    "energyKcal": 780,
-    "protein": 26.3,
-    "fat": 31,
-    "carb": 100.3,
-    "salt": 4.6
-   },
-   "category": "bento",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "n-SPAM®むすび　スクランブルエッグ",
-   "name": "SPAM®むすび　スクランブルエッグ",
-   "url": "https://www.family.co.jp/goods/safety/goods010.html",
-   "label": {
-    "energyKcal": 323,
-    "protein": 8.5,
-    "fat": 12.3,
-    "carb": 45,
-    "salt": 1.4
-   },
-   "category": "onigiri",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -3886,7 +3166,7 @@
     "salt": 0.11
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -3901,7 +3181,7 @@
     "salt": 0.15
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -3916,7 +3196,7 @@
     "salt": 0.14
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -3931,7 +3211,7 @@
     "salt": 0.15
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -3946,7 +3226,7 @@
     "salt": 0.09
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -3961,7 +3241,7 @@
     "salt": 0.12
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -3976,7 +3256,7 @@
     "salt": 0.02
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -3991,7 +3271,7 @@
     "salt": 0.03
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -4006,7 +3286,7 @@
     "salt": 0.02
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -4021,7 +3301,7 @@
     "salt": 0.02
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -4036,7 +3316,7 @@
     "salt": 0.02
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -4051,7 +3331,7 @@
     "salt": 0.02
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -4066,7 +3346,7 @@
     "salt": 0.01
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -4081,7 +3361,7 @@
     "salt": 0.01
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -4096,82 +3376,7 @@
     "salt": 0
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "n-いぶりがっことチーズのポテトサラダ",
-   "name": "いぶりがっことチーズのポテトサラダ",
-   "url": "https://www.family.co.jp/goods/safety/goods090.html",
-   "label": {
-    "energyKcal": 224,
-    "protein": 2.8,
-    "fat": 16.8,
-    "carb": 16.6,
-    "salt": 1.4
-   },
-   "category": "side",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "n-エバラ監修　ファミチキ焼肉のたれ味",
-   "name": "エバラ監修　ファミチキ焼肉のたれ味",
-   "url": "https://www.family.co.jp/goods/safety/friedfoods.html",
-   "label": {
-    "energyKcal": 262.6,
-    "protein": 14.4,
-    "fat": 13.3,
-    "carb": 21.3,
-    "salt": 1.6
-   },
-   "category": "side",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "n-えびカツ（タルタルソース入り）",
-   "name": "えびカツ（タルタルソース入り）",
-   "url": "https://www.family.co.jp/goods/safety/friedfoods.html",
-   "label": {
-    "energyKcal": 258,
-    "protein": 3.8,
-    "fat": 18.4,
-    "carb": 19.2,
-    "salt": 1.2
-   },
-   "category": "side",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "n-おさつボール",
-   "name": "おさつボール",
-   "url": "https://www.family.co.jp/goods/safety/friedfoods.html",
-   "label": {
-    "energyKcal": 305,
-    "protein": 1.4,
-    "fat": 7.7,
-    "carb": 57.6,
-    "salt": 0.1
-   },
-   "category": "side",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "n-カニカマの寿司",
-   "name": "カニカマの寿司",
-   "url": "https://www.family.co.jp/goods/safety/goods030.html",
-   "label": {
-    "energyKcal": 227,
-    "protein": 4.3,
-    "fat": 5.7,
-    "carb": 40.1,
-    "salt": 2.1
-   },
-   "category": "bento",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -4186,7 +3391,7 @@
     "salt": 0.15
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -4201,7 +3406,7 @@
     "salt": 0.18
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -4216,7 +3421,7 @@
     "salt": 0.18
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -4231,7 +3436,7 @@
     "salt": 0.2
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -4246,7 +3451,7 @@
     "salt": 0.12
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -4261,7 +3466,7 @@
     "salt": 0.15
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -4276,7 +3481,7 @@
     "salt": 0
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -4291,52 +3496,7 @@
     "salt": 0.37
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "n-ごまだれサラダチキン",
-   "name": "ごまだれサラダチキン",
-   "url": "https://www.family.co.jp/goods/safety/goods090.html",
-   "label": {
-    "energyKcal": 121,
-    "protein": 12.5,
-    "fat": 5.9,
-    "carb": 5.5,
-    "salt": 1.3
-   },
-   "category": "side",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "n-さっぱり特製醤油スープ　6種具材の冷し中華",
-   "name": "さっぱり特製醤油スープ　6種具材の冷し中華",
-   "url": "https://www.family.co.jp/goods/safety/goods060.html",
-   "label": {
-    "energyKcal": 424,
-    "protein": 17.4,
-    "fat": 5.1,
-    "carb": 78.9,
-    "salt": 5.1
-   },
-   "category": "noodle",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "n-サンドおむすび　背徳チーズソース牛めし",
-   "name": "サンドおむすび　背徳チーズソース牛めし",
-   "url": "https://www.family.co.jp/goods/safety/goods010.html",
-   "label": {
-    "energyKcal": 284,
-    "protein": 7.7,
-    "fat": 6.2,
-    "carb": 49.9,
-    "salt": 1.7
-   },
-   "category": "onigiri",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -4351,22 +3511,7 @@
     "salt": 0.09
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "n-スパイス香る！ロースかつカレー",
-   "name": "スパイス香る！ロースかつカレー",
-   "url": "https://www.family.co.jp/goods/safety/goods020.html",
-   "label": {
-    "energyKcal": 670,
-    "protein": 15.1,
-    "fat": 27.9,
-    "carb": 90.9,
-    "salt": 4.2
-   },
-   "category": "bento",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -4381,7 +3526,7 @@
     "salt": 0.9
    },
    "category": "side",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -4396,37 +3541,7 @@
     "salt": 0.08
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "n-だしがじゅわ！明太マヨ厚焼き玉子",
-   "name": "だしがじゅわ！明太マヨ厚焼き玉子",
-   "url": "https://www.family.co.jp/goods/safety/goods090.html",
-   "label": {
-    "energyKcal": 180,
-    "protein": 11.7,
-    "fat": 12.2,
-    "carb": 6.1,
-    "salt": 1.9
-   },
-   "category": "side",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "n-だし香る！大盛とろーりたこ焼き",
-   "name": "だし香る！大盛とろーりたこ焼き",
-   "url": "https://www.family.co.jp/goods/safety/goods100.html",
-   "label": {
-    "energyKcal": 326,
-    "protein": 10.7,
-    "fat": 14.4,
-    "carb": 39.6,
-    "salt": 2.6
-   },
-   "category": "side",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -4441,67 +3556,7 @@
     "salt": 0.1
    },
    "category": "side",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "n-たんぱく質が摂れる！サラダチキンロール",
-   "name": "たんぱく質が摂れる！サラダチキンロール",
-   "url": "https://www.family.co.jp/goods/safety/goods040.html",
-   "label": {
-    "energyKcal": 303,
-    "protein": 24.9,
-    "fat": 10.4,
-    "carb": 29.6,
-    "salt": 2.3
-   },
-   "category": "sandwich",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "n-チーズソースまみれの塩ダレ豚焼肉丼",
-   "name": "チーズソースまみれの塩ダレ豚焼肉丼",
-   "url": "https://www.family.co.jp/goods/safety/goods020.html",
-   "label": {
-    "energyKcal": 661,
-    "protein": 18.9,
-    "fat": 22.9,
-    "carb": 95.4,
-    "salt": 2.9
-   },
-   "category": "bento",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "n-チキン南蛮巻（タルタルソース入り）",
-   "name": "チキン南蛮巻（タルタルソース入り）",
-   "url": "https://www.family.co.jp/goods/safety/goods030.html",
-   "label": {
-    "energyKcal": 304,
-    "protein": 8.2,
-    "fat": 8,
-    "carb": 50.2,
-    "salt": 2.8
-   },
-   "category": "bento",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "n-チョレギサラダ",
-   "name": "チョレギサラダ",
-   "url": "https://www.family.co.jp/goods/safety/goods080.html",
-   "label": {
-    "energyKcal": 77,
-    "protein": 2.6,
-    "fat": 5.9,
-    "carb": 4.6,
-    "salt": 1.4
-   },
-   "category": "side",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -4516,7 +3571,7 @@
     "salt": 0.2
    },
    "category": "side",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -4531,37 +3586,7 @@
     "salt": 0.3
    },
    "category": "side",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "n-ねぎたっぷり！豚肉そば",
-   "name": "ねぎたっぷり！豚肉そば",
-   "url": "https://www.family.co.jp/goods/safety/goods060.html",
-   "label": {
-    "energyKcal": 289,
-    "protein": 17.6,
-    "fat": 4.5,
-    "carb": 46,
-    "salt": 4.5
-   },
-   "category": "noodle",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "n-ねぎ塩チキン",
-   "name": "ねぎ塩チキン",
-   "url": "https://www.family.co.jp/goods/safety/goods090.html",
-   "label": {
-    "energyKcal": 124,
-    "protein": 14,
-    "fat": 6,
-    "carb": 3.9,
-    "salt": 1.1
-   },
-   "category": "side",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -4576,7 +3601,22 @@
     "salt": 0
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
+  },
+  {
+   "store": "famima",
+   "code": "n-ピーチフラッペ",
+   "name": "ピーチフラッペ",
+   "url": "https://www.family.co.jp/goods/safety/cafe.html",
+   "label": {
+    "energyKcal": 220,
+    "protein": 2.1,
+    "fat": 5.3,
+    "carb": 41.7,
+    "salt": 0.11
+   },
+   "category": "drink",
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -4591,7 +3631,22 @@
     "salt": 0.7
    },
    "category": "side",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
+  },
+  {
+   "store": "famima",
+   "code": "n-ファミチキ（ごま山椒味）",
+   "name": "ファミチキ（ごま山椒味）",
+   "url": "https://www.family.co.jp/goods/safety/friedfoods.html",
+   "label": {
+    "energyKcal": 254.8,
+    "protein": 13.5,
+    "fat": 14.3,
+    "carb": 17.9,
+    "salt": 1.9
+   },
+   "category": "side",
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -4606,22 +3661,22 @@
     "salt": 1.6
    },
    "category": "side",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
-   "code": "n-ファミマ・ザ・ナポリタン",
-   "name": "ファミマ・ザ・ナポリタン",
-   "url": "https://www.family.co.jp/goods/safety/goods070.html",
+   "code": "n-ファミチキ（ピッツァ味）",
+   "name": "ファミチキ（ピッツァ味）",
+   "url": "https://www.family.co.jp/goods/safety/friedfoods.html",
    "label": {
-    "energyKcal": 451,
-    "protein": 12.5,
-    "fat": 13.7,
-    "carb": 71.2,
-    "salt": 3.8
+    "energyKcal": 243.5,
+    "protein": 15.3,
+    "fat": 13,
+    "carb": 16.3,
+    "salt": 1.4
    },
-   "category": "noodle",
-   "fetchedAt": "2026-10-11"
+   "category": "side",
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -4636,7 +3691,7 @@
     "salt": 0.12
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -4651,7 +3706,7 @@
     "salt": 0.04
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -4666,7 +3721,7 @@
     "salt": 0.04
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -4681,7 +3736,7 @@
     "salt": 0.04
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -4696,7 +3751,7 @@
     "salt": 0.04
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -4711,7 +3766,7 @@
     "salt": 0.04
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -4726,7 +3781,7 @@
     "salt": 0.04
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -4741,7 +3796,7 @@
     "salt": 0.02
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -4756,37 +3811,7 @@
     "salt": 0.02
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "n-ふんわりオムレツきのこのデミソース",
-   "name": "ふんわりオムレツきのこのデミソース",
-   "url": "https://www.family.co.jp/goods/safety/goods090.html",
-   "label": {
-    "energyKcal": 194,
-    "protein": 7.4,
-    "fat": 13.5,
-    "carb": 11.2,
-    "salt": 1.2
-   },
-   "category": "side",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "n-ベーコンとほうれん草のトマトクリームドリア",
-   "name": "ベーコンとほうれん草のトマトクリームドリア",
-   "url": "https://www.family.co.jp/goods/safety/goods020.html",
-   "label": {
-    "energyKcal": 434,
-    "protein": 10.5,
-    "fat": 10.5,
-    "carb": 75.7,
-    "salt": 3
-   },
-   "category": "bento",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -4801,7 +3826,22 @@
     "salt": 0
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
+  },
+  {
+   "store": "famima",
+   "code": "n-ミルフィーユチキンカツ",
+   "name": "ミルフィーユチキンカツ",
+   "url": "https://www.family.co.jp/goods/safety/friedfoods.html",
+   "label": {
+    "energyKcal": 292.6,
+    "protein": 12.2,
+    "fat": 18.5,
+    "carb": 19.2,
+    "salt": 1.5
+   },
+   "category": "side",
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -4816,22 +3856,7 @@
     "salt": 0.09
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "n-もち麦　新生姜とわかめ",
-   "name": "もち麦　新生姜とわかめ",
-   "url": "https://www.family.co.jp/goods/safety/goods010.html",
-   "label": {
-    "energyKcal": 162,
-    "protein": 3.4,
-    "fat": 1.9,
-    "carb": 34.1,
-    "salt": 1.3
-   },
-   "category": "onigiri",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -4846,22 +3871,7 @@
     "salt": 0.27
    },
    "category": "drink",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "n-七味マヨで食べる！ちくわ磯辺天",
-   "name": "七味マヨで食べる！ちくわ磯辺天",
-   "url": "https://www.family.co.jp/goods/safety/goods090.html",
-   "label": {
-    "energyKcal": 367,
-    "protein": 12.1,
-    "fat": 22.4,
-    "carb": 29.8,
-    "salt": 3.1
-   },
-   "category": "side",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -4876,7 +3886,7 @@
     "salt": 0.3
    },
    "category": "side",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -4891,7 +3901,7 @@
     "salt": 0.1
    },
    "category": "side",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -4906,7 +3916,7 @@
     "salt": 0.4
    },
    "category": "side",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -4921,52 +3931,22 @@
     "salt": 0.1
    },
    "category": "side",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
-   "code": "n-大盛！野菜スティック（生七味マヨ）",
-   "name": "大盛！野菜スティック（生七味マヨ）",
-   "url": "https://www.family.co.jp/goods/safety/goods080.html",
-   "label": {
-    "energyKcal": 217,
-    "protein": 2,
-    "fat": 20.2,
-    "carb": 7.9,
-    "salt": 1.3
-   },
-   "category": "side",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "n-手巻寿司　三陸産めかぶとおくら納豆",
-   "name": "手巻寿司　三陸産めかぶとおくら納豆",
+   "code": "n-手巻寿司　青しそ納豆",
+   "name": "手巻寿司　青しそ納豆",
    "url": "https://www.family.co.jp/goods/safety/goods030.html",
    "label": {
-    "energyKcal": 158,
-    "protein": 3.9,
-    "fat": 1.5,
-    "carb": 32.7,
-    "salt": 1
-   },
-   "category": "bento",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "n-手巻寿司　唐揚マヨネーズ",
-   "name": "手巻寿司　唐揚マヨネーズ",
-   "url": "https://www.family.co.jp/goods/safety/goods030.html",
-   "label": {
-    "energyKcal": 219,
-    "protein": 4.6,
-    "fat": 5.9,
-    "carb": 37.2,
+    "energyKcal": 174,
+    "protein": 5.5,
+    "fat": 2.1,
+    "carb": 34.1,
     "salt": 1.3
    },
    "category": "bento",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -4981,22 +3961,22 @@
     "salt": 0.17
    },
    "category": "side",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
-   "code": "n-柚子胡椒香る鶏肉と野菜の和風スープ",
-   "name": "柚子胡椒香る鶏肉と野菜の和風スープ",
-   "url": "https://www.family.co.jp/goods/safety/goods100.html",
+   "code": "n-森永製菓監修バター香るホットケーキまん",
+   "name": "森永製菓監修バター香るホットケーキまん",
+   "url": "https://www.family.co.jp/goods/safety/chukaman.html",
    "label": {
-    "energyKcal": 80,
-    "protein": 10.5,
-    "fat": 3.3,
-    "carb": 3,
-    "salt": 2.7
+    "energyKcal": 179,
+    "protein": 3.1,
+    "fat": 5.3,
+    "carb": 29.8,
+    "salt": 0.3
    },
    "category": "side",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -5011,7 +3991,7 @@
     "salt": 0.3
    },
    "category": "side",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -5026,7 +4006,97 @@
     "salt": 1.3
    },
    "category": "side",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
+  },
+  {
+   "store": "famima",
+   "code": "n-極旨　黒豚まんチーズ",
+   "name": "極旨　黒豚まんチーズ",
+   "url": "https://www.family.co.jp/goods/safety/chukaman.html",
+   "label": {
+    "energyKcal": 267,
+    "protein": 10.3,
+    "fat": 9.6,
+    "carb": 34.9,
+    "salt": 1.4
+   },
+   "category": "side",
+   "fetchedAt": "2026-11-01"
+  },
+  {
+   "store": "famima",
+   "code": "n-炭火焼きとり　かわ（タレ）",
+   "name": "炭火焼きとり　かわ（タレ）",
+   "url": "https://www.family.co.jp/goods/safety/friedfoods.html",
+   "label": {
+    "energyKcal": 159,
+    "protein": 5.9,
+    "fat": 13.2,
+    "carb": 4.3,
+    "salt": 0.8
+   },
+   "category": "side",
+   "fetchedAt": "2026-11-01"
+  },
+  {
+   "store": "famima",
+   "code": "n-炭火焼きとり　かわ（塩）",
+   "name": "炭火焼きとり　かわ（塩）",
+   "url": "https://www.family.co.jp/goods/safety/friedfoods.html",
+   "label": {
+    "energyKcal": 131,
+    "protein": 5.7,
+    "fat": 11.1,
+    "carb": 2,
+    "salt": 0.9
+   },
+   "category": "side",
+   "fetchedAt": "2026-11-01"
+  },
+  {
+   "store": "famima",
+   "code": "n-炭火焼きとり　ハツ塩",
+   "name": "炭火焼きとり　ハツ塩",
+   "url": "https://www.family.co.jp/goods/safety/friedfoods.html",
+   "label": {
+    "energyKcal": 52,
+    "protein": 6.6,
+    "fat": 2.5,
+    "carb": 0.8,
+    "salt": 0.6
+   },
+   "category": "side",
+   "fetchedAt": "2026-11-01"
+  },
+  {
+   "store": "famima",
+   "code": "n-炭火焼きとり　もも（タレ）",
+   "name": "炭火焼きとり　もも（タレ）",
+   "url": "https://www.family.co.jp/goods/safety/friedfoods.html",
+   "label": {
+    "energyKcal": 76.9,
+    "protein": 7.7,
+    "fat": 4,
+    "carb": 2.5,
+    "salt": 1.3
+   },
+   "category": "side",
+   "fetchedAt": "2026-11-01"
+  },
+  {
+   "store": "famima",
+   "code": "n-炭火焼きとり　もも（塩）",
+   "name": "炭火焼きとり　もも（塩）",
+   "url": "https://www.family.co.jp/goods/safety/friedfoods.html",
+   "label": {
+    "energyKcal": 83.2,
+    "protein": 8.1,
+    "fat": 5,
+    "carb": 1.6,
+    "salt": 1.3
+   },
+   "category": "side",
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -5041,97 +4111,7 @@
     "salt": 1.3
    },
    "category": "side",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "n-牛肉と野菜の春雨炒め",
-   "name": "牛肉と野菜の春雨炒め",
-   "url": "https://www.family.co.jp/goods/safety/goods090.html",
-   "label": {
-    "energyKcal": 299,
-    "protein": 4.9,
-    "fat": 14.9,
-    "carb": 37.5,
-    "salt": 3.5
-   },
-   "category": "side",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "n-特製ソースで食べる　メンチカツ&コロッケ",
-   "name": "特製ソースで食べる　メンチカツ&コロッケ",
-   "url": "https://www.family.co.jp/goods/safety/goods090.html",
-   "label": {
-    "energyKcal": 441,
-    "protein": 10.5,
-    "fat": 24.6,
-    "carb": 46.5,
-    "salt": 2.5
-   },
-   "category": "side",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "n-生ペヤングソースやきそば",
-   "name": "生ペヤングソースやきそば",
-   "url": "https://www.family.co.jp/goods/safety/goods060.html",
-   "label": {
-    "energyKcal": 391,
-    "protein": 12,
-    "fat": 10,
-    "carb": 64.8,
-    "salt": 5.7
-   },
-   "category": "noodle",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "n-白だしあんで味わう　玉子あんかけうどん",
-   "name": "白だしあんで味わう　玉子あんかけうどん",
-   "url": "https://www.family.co.jp/goods/safety/goods060.html",
-   "label": {
-    "energyKcal": 333,
-    "protein": 11.1,
-    "fat": 3.1,
-    "carb": 66.6,
-    "salt": 4.3
-   },
-   "category": "noodle",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "n-石臼挽きそば粉の大盛冷しぶっかけそば",
-   "name": "石臼挽きそば粉の大盛冷しぶっかけそば",
-   "url": "https://www.family.co.jp/goods/safety/goods060.html",
-   "label": {
-    "energyKcal": 506,
-    "protein": 23.8,
-    "fat": 5.1,
-    "carb": 93.9,
-    "salt": 4.6
-   },
-   "category": "noodle",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "n-紅鮭ほぐしと生たらこおむすび",
-   "name": "紅鮭ほぐしと生たらこおむすび",
-   "url": "https://www.family.co.jp/goods/safety/goods010.html",
-   "label": {
-    "energyKcal": 184,
-    "protein": 5.4,
-    "fat": 1.6,
-    "carb": 37.2,
-    "salt": 1.6
-   },
-   "category": "onigiri",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
@@ -5146,52 +4126,22 @@
     "salt": 0.7
    },
    "category": "side",
-   "fetchedAt": "2026-10-11"
+   "fetchedAt": "2026-11-01"
   },
   {
    "store": "famima",
-   "code": "n-青磯海苔　あさり旨煮",
-   "name": "青磯海苔　あさり旨煮",
-   "url": "https://www.family.co.jp/goods/safety/goods010.html",
+   "code": "n-花椒の香りと2種の練り胡麻仕立て汁なし担担麺",
+   "name": "花椒の香りと2種の練り胡麻仕立て汁なし担担麺",
+   "url": "https://www.family.co.jp/goods/safety/goods060.html",
    "label": {
-    "energyKcal": 194,
-    "protein": 4.3,
-    "fat": 1.2,
-    "carb": 41.7,
-    "salt": 1.2
+    "energyKcal": 544,
+    "protein": 20.7,
+    "fat": 18.4,
+    "carb": 77.2,
+    "salt": 4.6
    },
-   "category": "onigiri",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "n-高リコピントマトとわかめのサラダ",
-   "name": "高リコピントマトとわかめのサラダ",
-   "url": "https://www.family.co.jp/goods/safety/goods080.html",
-   "label": {
-    "energyKcal": 41,
-    "protein": 2.8,
-    "fat": 0.7,
-    "carb": 7,
-    "salt": 2
-   },
-   "category": "side",
-   "fetchedAt": "2026-10-11"
-  },
-  {
-   "store": "famima",
-   "code": "n-鶏ハツ&キャベツ（塩だれ）",
-   "name": "鶏ハツ&キャベツ（塩だれ）",
-   "url": "https://www.family.co.jp/goods/safety/goods090.html",
-   "label": {
-    "energyKcal": 64,
-    "protein": 7.4,
-    "fat": 2.5,
-    "carb": 3.5,
-    "salt": 1.1
-   },
-   "category": "side",
-   "fetchedAt": "2026-10-11"
+   "category": "noodle",
+   "fetchedAt": "2026-11-01"
   }
  ]
 }

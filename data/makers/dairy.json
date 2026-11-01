@@ -11606,12 +11606,12 @@
    "basis": "1本(240ml)当たり",
    "servingAmount": 240,
    "servingUnit": "ml",
-   "energyKcal": 134,
-   "protein": 3.8,
+   "energyKcal": 144,
+   "protein": 4.9,
    "fat": 3.6,
-   "carb": 21.5,
-   "salt": 0.14,
-   "fetchedAt": "2026-10-14"
+   "carb": 22.9,
+   "salt": 0.17,
+   "fetchedAt": "2026-11-01"
   },
   {
    "jan": "maker-morinaga-lipton-10052",
@@ -11671,12 +11671,12 @@
    "basis": "1本(240ml)当たり",
    "servingAmount": 240,
    "servingUnit": "ml",
-   "energyKcal": 124,
-   "protein": 4.2,
-   "fat": 2.3,
-   "carb": 21.6,
-   "salt": 0.13,
-   "fetchedAt": "2026-10-14"
+   "energyKcal": 137,
+   "protein": 4.7,
+   "fat": 2.8,
+   "carb": 23.2,
+   "salt": 0.15,
+   "fetchedAt": "2026-11-01"
   },
   {
    "jan": "maker-morinaga-lipton-8298",
@@ -11777,22 +11777,6 @@
    "fetchedAt": "2026-10-14"
   },
   {
-   "jan": "maker-morinaga-morinaga-gyunyucocoa-9859",
-   "name": "森永 牛乳で飲むココア 240ml",
-   "maker": "森永乳業",
-   "category": "drink",
-   "url": "https://www.morinagamilk.co.jp/products/drink/morinaga_gyunyucocoa/9859.html",
-   "basis": "1本(240ml)当たり",
-   "servingAmount": 240,
-   "servingUnit": "ml",
-   "energyKcal": 176,
-   "protein": 5.4,
-   "fat": 5.7,
-   "carb": 25.7,
-   "salt": 0.19,
-   "fetchedAt": "2026-10-14"
-  },
-  {
    "jan": "maker-morinaga-eiyoumilk-9860",
    "name": "森永の栄養ミルク 125ml",
    "maker": "森永乳業",
@@ -11822,23 +11806,6 @@
    "fat": 3.1,
    "carb": 24.1,
    "salt": 0.12,
-   "fetchedAt": "2026-10-14"
-  },
-  {
-   "jan": "maker-morinaga-mammy-9765",
-   "name": "森永マミー 1日不足分の鉄分 240ml",
-   "maker": "森永乳業",
-   "category": "drink",
-   "url": "https://www.morinagamilk.co.jp/products/drink/mammy/9765.html",
-   "basis": "1本(240ml)当たり",
-   "servingAmount": 240,
-   "servingUnit": "ml",
-   "energyKcal": 165,
-   "protein": 3.1,
-   "fat": 0,
-   "carb": 41.1,
-   "salt": 0.23,
-   "fiber": 3.8,
    "fetchedAt": "2026-10-14"
   },
   {
@@ -16534,6 +16501,23 @@
    "fiber": 2.2,
    "fetchedAt": "2026-10-14",
    "note": "内容量: 200g、100g (label shared across sizes)"
+  },
+  {
+   "jan": "maker-morinaga-morinagamilkcocoa-10098",
+   "name": "森永 ミルクココア 240ml",
+   "maker": "森永乳業",
+   "category": "drink",
+   "url": "https://www.morinagamilk.co.jp/products/drink/morinagamilkcocoa/10098.html",
+   "basis": "1本(240ml)当たり",
+   "servingAmount": 240,
+   "servingUnit": "ml",
+   "energyKcal": 199,
+   "protein": 5.8,
+   "fat": 6.0,
+   "carb": 30.5,
+   "salt": 0.17,
+   "fetchedAt": "2026-11-01",
+   "note": "2026-11-01に公式の飲料一覧から追加。これまで載せていた「森永 牛乳で飲むココア 240ml」は公式ページがなくなった（HTTP 404）"
   }
  ],
  "notFound": [
@@ -16616,6 +16600,11 @@
    "name": "あづま食品 納豆全般",
    "maker": "あづま食品",
    "reason": "公式サイトのドメインを特定できず（azumafoods.co.jp は別会社のあづまフーズ、azumashokuhin.co.jp 等の候補はプロキシで接続不可）; 未収集"
+  },
+  {
+   "name": "森永マミー 1日不足分の鉄分 240ml",
+   "maker": "森永乳業",
+   "reason": "公式の商品ページがなくなった（HTTP 404、2026-11-01確認）ため外した。期間限定・季節の商品の販売終了とみられる https://www.morinagamilk.co.jp/products/drink/mammy/9765.html"
   }
  ]
 }
