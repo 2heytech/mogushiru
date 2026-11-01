@@ -94,6 +94,23 @@ async function famima(): Promise<StoreItem[]> {
     console.log(`ファミリーマート ${page}: ${found.length}品`)
     for (const item of found) items.push({ ...item, category: appCategory, fetchedAt })
   }
+  // 2026年11月から、おむすび・お弁当・サンドイッチ・めん・惣菜の成分一覧のページがほとんど空になった（各商品のページにも成分はない）。
+  // 前回取れた商品のうち、いまも商品一覧（https://www.family.co.jp/goods/omusubi.html など）に載っているものは、前回の値（取得日も前回のまま）で残す
+  const previousPath = 'data/raw/stores/famima.json'
+  if (!existsSync(previousPath)) return items
+  const codes = new Set(items.map((i) => i.code))
+  const previous = (JSON.parse(readFileSync(previousPath, 'utf8')) as { items: StoreItem[] }).items.filter((i) => !codes.has(i.code))
+  const onSale = new Map<string, Set<string>>()
+  for (const item of previous) {
+    const seg = item.url.match(/^https:\/\/www\.family\.co\.jp\/goods\/([a-z_]+)\/\d+\.html$/)?.[1]
+    if (!seg || seg === 'safety') continue
+    if (!onSale.has(seg)) {
+      const html = await get(`https://www.family.co.jp/goods/${seg}.html`)
+      onSale.set(seg, new Set([...(html ?? '').matchAll(new RegExp(`/goods/${seg}/(\\d+)\\.html`, 'g'))].map((m) => m[1])))
+    }
+    if (onSale.get(seg)!.has(item.code)) items.push(item)
+  }
+  console.log(`ファミリーマート 前回の値で残した品: ${items.length - codes.size}品`)
   return items
 }
 
