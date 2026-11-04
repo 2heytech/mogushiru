@@ -1,7 +1,58 @@
 # 郷土料理ごとの直し（キーは data/raw/maff-kyodo.json の id）
 # category / suggestedSlots: 料理名から推定した分類が合わないとき / servings: 人数 / exclude: 取り込まない理由
+# sauceShare: 煮汁・たれのうち食べる割合（砂糖・酒・みりん・調味料にだけかける）
+# ingredients: この料理だけの材料の直し（キーはページの材料名のまま）。food: 食品番号 / grams: 料理全体のグラム / skip: 数えない
 iwashi_dango_tottori: { category: main } # いわしのつみれ
 33_8_saitama: { category: main } # ゼリーフライ（おからのコロッケ）
 31_12_tochigi: { category: side } # ゆず巻き（漬物）
 32_25_gunma: { category: side }
 33_17_saitama: { category: side }
+
+# ---- 1人前が多すぎるもの（ページの材料表と照らして直した） ----
+# ページの「○人分」は作りやすい量や大盛りのことがあるので、ご飯ものは1人前を米75〜85g（ごはん約170〜190g。
+# ほかの料理のごはんと同じくらい）、おかず・お菓子はふつうの1皿の量にそろえて人数を決めた
+33_29_saitama: { servings: 6 } # 聖天ずし：4人分は米3合・いなり12個。1人前を2個（米75g）に
+kobuzushi_kochi: { servings: 12 } # こぶずし：4本（米900g）は切り分けて食べるので、米75gを1人前に
+30_21_fukushima: { category: staple, servings: 8 } # しんごろう：米4カップ（680g）で16本。1人前を2本（米85g）に
+29_4_akita: { servings: 10 } # だまこ鍋：米5合で5人分は1人茶碗2杯分。だまこを米75gにして10人分
+mitama_ishikawa: { category: staple, servings: 10 } # みたま（黒豆のおこわ）：もち米5カップ（850g）。1人前をもち米85gに
+41_4_okayama: { servings: 7 } # 蒜山おこわ：もち米4合と麦0.5合。1人前をもち米85gに
+41_7_okayama: { servings: 8 } # さわらのこうこずし：米4カップ（680g）。1人前を米85gに
+41_1_okayama: { servings: 5 } # まつりずし：米400g。1人前を米80gに
+kankan_zushi_kagawa: { servings: 20 } # カンカンずし：米1升（1.5kg）。1人前を米75gに
+inakazushi_kochi: { servings: 10 } # 田舎ずし：米5合（750g）。1人前を米75gに
+30_12_fukushima: { servings: 6 } # はらこ飯：米カップ3杯（510g）。1人前を米85gに
+kakimaze_mie: { category: staple, servings: 6 } # かきまぜ（ちらしずし）：米3合。1人前を米75gに
+kakke_aomori: { servings: 10 } # かっけ（そば粉の生地の鍋）：そば粉1kgで5人分は1人200g。手打ちそば1人前と同じ100gに
+kenojiru_aomori: # けの汁：凍み豆腐800gは戻した量、大豆は水煮か蒸し。具だけで5.6kgあるので、お椀1杯（具280gほど）にして20人分
+  servings: 20
+  ingredients: { 凍み豆腐: { food: "04087" }, 大豆（水煮または蒸し）: { food: "04028" } }
+iwashi_zushi_mie: { ingredients: { イワシ: { grams: 300 } } } # いわしずし：長さ10cmの小いわし20尾は、可食部で1尾15gほど（1尾50gで数えていた）
+maruyaki_saba_fukui: { ingredients: { マサバ: { grams: 175 } } } # 丸焼き鯖：1匹350gは頭・骨込み。さばの廃棄率50%で可食部175g
+47_6_okinawa: { servings: 7 } # ラフテー：豚三枚肉700g。1人前を100g（豚の角煮と同じ）に
+33_13_saitama: # 栗の渋皮煮：日もちするお菓子。栗1kgは鬼皮つき（可食部7割）。1人前を3個ほどに
+  category: snack
+  servings: 14
+  ingredients: { 栗（できれば大きい実がよい）: { grams: 700 } }
+37_17_toyama: # 焼き付け（よもぎのおやき）：【ごまみそ用】は作りやすい量の材料。使うのは大さじ2で、材料の「ごまみそ」で数える
+  category: snack
+  ingredients: { 【ごまみそ用】みそ: { skip: true }, 【ごまみそ用】砂糖: { skip: true }, 【ごまみそ用】ごま: { skip: true } }
+38_3_gifu: { category: snack, servings: 12 } # からすみ（米粉の蒸し菓子）：3本を4切れずつに
+yangome_chiba: { category: snack, servings: 10 } # ヤンゴメ：あずきと砂糖で甘く煮たお米のお菓子。1人前を米50gほどに
+
+# ---- 食塩が多すぎるもの ----
+tenyose_nagano: { category: snack, ingredients: { そうめん: { grams: 5 } } } # 天寄せ（寒天のお菓子）：そうめん10〜15本は飾り（1束50gで数えていた）
+shiromisonozoni_kyoto: { servings: 3 } # 白味噌の雑煮：ページも家庭で人数が違うとしている。丸餅1個・白味噌80gほどを1人前に
+semmaizuke_kyoto: { category: side, servings: 20, ingredients: { 塩: { grams: 6 } } } # 千枚漬け：かぶ1kg。漬物は1人前50g。下漬けの塩20gは出た水と捨てるので3割を数える
+44_2_tokushima: { ingredients: { 塩: { grams: 3 } } } # ボウゼの姿寿司：ふり塩（小さじ2〜3）は酢じめで大半が抜けるので、身に残る2割として3g
+jyabara_daikon_no_nimono_kumamoto: { servings: 6, sauceShare: 0.5 } # 蛇腹大根（煮物）：大根1本で3人分は1人333g。小鉢にして6人分。煮汁は半分ほど残る
+33_22_saitama: { category: side, servings: 8 } # 八ツ頭の茎の炒め煮：戻した茎500g。小鉢にして8人分
+funamiso_aichi: { servings: 8 } # ふな味噌：作りおきのおかず。1人前をふな60gに
+36_17_shizuoka: { sauceShare: 0.5, ingredients: { キンメ: { grams: 360 } } } # 金目の煮付け：1匹900gは頭・骨込み（可食部4割）。煮汁は半分ほど残る
+nishinnokobumaki_ishikawa: { sauceShare: 0.5 } # にしんの昆布まき：煮汁は半分ほど残る
+taraosa_oita: { sauceShare: 0.5 } # たらおさ：煮汁は半分ほど残る
+32_23_gunma: { sauceShare: 0.5 } # こんにゃく味噌おでん：みそだれは半分ほど残る
+misooden_aichi: { sauceShare: 0.5 } # 味噌おでん：みそだれと煮汁は半分ほど残る
+hasu_gyoden_shiga: { sauceShare: 0.5 } # はす魚田：みそだれは半分ほど残る
+40_18_hyogo: { sauceShare: 0.5 } # 味噌だれ餃子：たれは半分ほど残る
+37_22_toyama: { category: noodle } # 報恩講料理（白えびだしのそうめん）：そうめんの料理（汁も数えるので麺の扱いに）

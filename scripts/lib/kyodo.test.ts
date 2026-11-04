@@ -134,6 +134,22 @@ describe('郷土料理の換算', () => {
     expect(convertKyodo(recipe({ servings: '作りやすい分量', ingredients: [['卵', '1個']] }), index, foods)).toHaveProperty('error')
   })
 
+  it('料理ごとの直し：材料の食品・量を変え、煮汁・たれは食べる割合だけ数える', () => {
+    const res = convertKyodo(
+      recipe({ name: 'ねぎの味噌煮', ingredients: [['ねぎ', '20本'], ['卵', '2個'], ['【たれ用】卵', '1個'], ['赤味噌', '大さじ5']] }),
+      index,
+      foods,
+      { servings: 4, sauceShare: 0.5, ingredients: { ねぎ: { grams: 400 }, 卵: { food: '06226' }, '【たれ用】卵': { skip: true } } },
+    )
+    if ('error' in res) throw new Error(res.error)
+    // ねぎ 400g と「卵」を置き換えたねぎ 100g を4人で割る。赤味噌（調味料）は 90g の半分を4人で割る
+    expect(res.recipe.ingredients).toEqual([
+      { foodId: '06226', grams: 125 },
+      { foodId: '17046', grams: 11.3 },
+    ])
+    expect(res.notes).toContain('煮汁・たれは5割を食べるとして数えた')
+  })
+
   it('「12個分」は1個を1人前にする', () => {
     const res = convertKyodo(recipe({ name: 'たまごまんじゅう', servings: '2個分', ingredients: [['卵', '4個']] }), index, foods)
     if ('error' in res) throw new Error(res.error)

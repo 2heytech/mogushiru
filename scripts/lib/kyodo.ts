@@ -20,11 +20,17 @@ export type KyodoOverride = {
   suggestedSlots?: Slot[]
   exclude?: string // 取り込まない理由
   servings?: number // 人数をページと別に決めるとき
+  // 煮汁・たれのうち食べる割合（砂糖・酒・みりん・調味料にだけかける。煮付けやみそだれで鍋や皿に残る分を数えないため）
+  sauceShare?: number
+  // この料理だけの材料の直し（キーはページの材料名のまま）。food: 食品番号を変える / grams: 料理全体のグラム / skip: 数えない
+  ingredients?: Record<string, { food?: string; grams?: number; skip?: boolean }>
 }
 
 const SPOON: Record<string, number> = { 大さじ: 15, 小さじ: 5, カップ: 200, ml: 1, 合: 180 }
 // 調味料・油・香辛料は「適量」「少々」なら数えなくてよい（主な材料の量が不明なときだけ取り込まない）
 const MINOR_GROUPS = new Set(['14', '16', '17'])
+// 煮汁・たれになる食品群（砂糖・酒類・調味料）
+const SAUCE_GROUPS = new Set(['03', '16', '17'])
 
 export type ConvertResult = { recipe: RecipeInput; notes: string[] } | { error: string }
 
@@ -90,7 +96,10 @@ export function convertKyodo(
     if (!rawQty) continue // 見出し行
     const isFirst = first
     first = false
-    const rule = lookup(rawName, index)
+    const fix = override.ingredients?.[rawName]
+    if (fix?.skip) continue
+    const found = lookup(rawName, index)
+    const rule = fix?.food ? { ...found, names: [rawName], food: fix.food, unknown: false, skip: false } : found
     if (!rule) return { error: `材料が対応表にない（${rawName}）` }
     if (rule.skip) continue
     if (rule.unknown) {
@@ -105,7 +114,8 @@ export function convertKyodo(
     const minor = MINOR_GROUPS.has(food.group) || rule.pinch !== undefined
     const q = parseQuantity(rawQty)
     let g: number | null = null
-    if (!q) {
+    if (fix?.grams !== undefined) g = fix.grams
+    else if (!q) {
       if (minor) continue
       if (isFirst) return { error: `主な材料の分量が読めない（${rawName}: ${rawQty}）` }
       vague.push(rawName)
@@ -117,12 +127,14 @@ export function convertKyodo(
     else if (rule.pieces?.[q.unit] !== undefined) g = q.value * rule.pieces[q.unit]
     else if (SPOON[q.unit] !== undefined) g = q.value * SPOON[q.unit] * (rule.density ?? 1)
     if (g === null) return { error: `単位を換算できない（${rawName}: ${rawQty}）` }
+    if (override.sauceShare !== undefined && SAUCE_GROUPS.has(food.group)) g *= override.sauceShare
     if (!grams.has(food.id)) order.push(food.id)
     grams.set(food.id, (grams.get(food.id) ?? 0) + g)
   }
   if (!order.length) return { error: '材料がない' }
   if (vague.length > 1) return { error: `分量が読めない材料が多い（${vague.join('、')}）` }
   if (vague.length) notes.push(`分量が「適量」の${vague[0]}は数えていない`)
+  if (override.sauceShare !== undefined) notes.push(`煮汁・たれは${Math.round(override.sauceShare * 10)}割を食べるとして数えた`)
 
   // 1人前に割る。「12個分」は1個を1人前とし、軽いお菓子（60kcal未満）は2個にする
   let divisor = people ?? pieces!.count
