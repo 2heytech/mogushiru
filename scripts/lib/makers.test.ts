@@ -45,6 +45,11 @@ describe('toMakerProduct', () => {
     expect(p.nutrients.alcohol).toBe(4)
     expect(p.nutrients.salt).toBe(0)
   })
+  it('度数の書かれていないお酒はエネルギーからアルコール量を推定する', () => {
+    const p = toMakerProduct(label({ name: 'テストの日本酒 ライト', category: 'alcohol', basis: '100ml当たり', servingAmount: 100, servingUnit: 'ml', energyKcal: 53, protein: 0.2, fat: 0, carb: 0, salt: 0 }))!
+    expect(p.nutrients.alcohol).toBe(7.5)
+    expect(p.source.alcoholEstimated).toBe('energy')
+  })
   it('1Lの牛乳のような大きな容器の容量は1回分にしない', () => {
     const p = toMakerProduct(label({ name: '牛乳 1000ml', category: 'dairy', basis: '100ml当たり', servingAmount: 100, servingUnit: 'ml', energyKcal: 67, protein: 3.4, fat: 3.8, carb: 5.3, salt: 0.1 }))!
     expect(p.basis).toBe('100ml')

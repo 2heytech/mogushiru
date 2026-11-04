@@ -62,8 +62,19 @@ describe('Open Food Facts の変換', () => {
     const p = toProduct({ ...base, nutriments: { ...base.nutriments, 'energy-kcal_100g': 122.2222222 } }, '2026-10-10')!
     expect(p.nutrients.alcohol).toBe(0)
     expect(p.nutrients.energyKcal).toBe(122.2)
-    const beer = toProduct({ ...base, categories_tags: ['en:beers'] }, '2026-10-10')!
-    expect(beer.nutrients.alcohol).toBeNull()
+  })
+
+  it('度数の記載がないお酒はエネルギーから推定し、酒蒸し・料理酒などはお酒にしない', () => {
+    const beerNutrients = { 'energy-kcal_100g': 40, proteins_100g: 0.4, fat_100g: 0, carbohydrates_100g: 2.7, salt_100g: 0 }
+    const beer = toProduct({ ...base, categories_tags: ['en:beers'], nutriments: beerNutrients }, '2026-10-10')!
+    expect(beer.nutrients.alcohol).toBe(3.9)
+    expect(beer.source.alcoholEstimated).toBe('energy')
+    const cooking = toProduct({ ...base, product_name: '純米料理酒', categories_tags: [], nutriments: { ...beerNutrients, alcohol_100g: 80 } }, '2026-10-10')!
+    expect(cooking.category).toBe('seasoning')
+    expect(cooking.nutrients.alcohol).toBe(0)
+    const ale = toProduct({ ...base, product_name: 'テストのペールエール', categories_tags: [], nutriments: { ...beerNutrients, alcohol_100g: 5 } }, '2026-10-10')!
+    expect(ale.category).toBe('alcohol')
+    expect(ale.nutrients.alcohol).toBe(4)
   })
 })
 

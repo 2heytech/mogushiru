@@ -1,6 +1,7 @@
 // Open Food Facts の商品データ → アプリの Product に変換（純粋関数）
 import { NUTRIENT_KEYS, type Nutrients, type Product } from '../../src/domain/types'
 import { sodiumMgToSaltG } from '../../src/domain/nutrition'
+import { alcoholVolToG, estimateAlcohol, notDrinkCategory } from './alcohol'
 
 export type OffProduct = {
   code?: string
@@ -106,8 +107,11 @@ export function toProduct(p: OffProduct, fetchedAt: string): Product | null {
   const carb = g('carbohydrates')
   if ([energy, protein, fat, carb, salt].some((v) => v === null)) return null
 
-  const category = categorize(p.categories_tags, name)
   const alcohol = g('alcohol')
+  // 名前に「酒」が入る食品（酒蒸し・甘酒・料理酒など）はお酒にしない。カテゴリの分からない商品でも度数（1%以上）があればお酒
+  const found = categorize(p.categories_tags, name)
+  const notDrink = found === 'alcohol' ? notDrinkCategory(name) : null
+  const category = notDrink ?? (found === 'other' && alcohol !== null && alcohol >= 1 ? 'alcohol' : found)
   const nutrients = {} as Nutrients
   for (const k of NUTRIENT_KEYS) nutrients[k] = null
   Object.assign(nutrients, {
@@ -117,8 +121,8 @@ export function toProduct(p: OffProduct, fetchedAt: string): Product | null {
     carb,
     salt,
     fiber: g('fiber'),
-    // お酒以外でアルコールの記載がない商品は 0（成分表の「-」と同じ扱い）
-    alcohol: alcohol !== null ? alcoholVolToG(alcohol) : category === 'alcohol' ? null : 0,
+    // お酒以外でアルコールの記載がない商品は 0（成分表の「-」と同じ扱い）。料理酒などの度数はお酒としては数えない
+    alcohol: notDrink ? 0 : alcohol !== null ? alcoholVolToG(alcohol) : category === 'alcohol' ? null : 0,
     satFat: g('saturated-fat'),
     monoUnsatFat: g('monounsaturated-fat'),
     polyUnsatFat: g('polyunsaturated-fat'),
@@ -137,6 +141,10 @@ export function toProduct(p: OffProduct, fetchedAt: string): Product | null {
     // OFF の vitamin-a はレチノールとカロテンを区別しないので、レチノールは未収録（null）のまま
   })
   for (const k of NUTRIENT_KEYS) nutrients[k] = round(nutrients[k])
+  // 度数の記載がないお酒は、商品名の度数か表示のエネルギーから推定する
+  const basis = (p.product_quantity_unit ?? '').toLowerCase() === 'ml' ? '100ml' : '100g'
+  const estimate = category === 'alcohol' && nutrients.alcohol === null ? estimateAlcohol(name, nutrients, basis === '100ml' ? 100 : undefined) : null
+  if (estimate) nutrients.alcohol = estimate.grams
 
   const servingGrams = num(p.serving_quantity) ?? undefined
   return {
@@ -144,10 +152,15 @@ export function toProduct(p: OffProduct, fetchedAt: string): Product | null {
     name,
     brand: (p.brands ?? '').split(',')[0].trim(),
     category,
-    basis: (p.product_quantity_unit ?? '').toLowerCase() === 'ml' ? '100ml' : '100g',
+    basis,
     ...(servingGrams ? { servingGrams } : {}),
     nutrients,
-    source: { name: 'Open Food Facts', fetchedAt, ...(saltConverted ? { saltConverted } : {}) },
+    source: {
+      name: 'Open Food Facts',
+      fetchedAt,
+      ...(saltConverted ? { saltConverted } : {}),
+      ...(estimate && estimate.grams > 0 ? { alcoholEstimated: estimate.from } : {}),
+    },
   }
 }
 
@@ -157,6 +170,4 @@ const round = (v: number | null) => (v === null ? null : Number(v.toPrecision(4)
 const mgFromG = (v: number | null) => (v === null ? null : v * 1000)
 
 // OFF の alcohol は % vol。純アルコール量 g/100mL = 度数 × 0.8
-export function alcoholVolToG(percentVol: number): number {
-  return percentVol * 0.8
-}
+export { alcoholVolToG }

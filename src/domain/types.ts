@@ -110,7 +110,8 @@ export type Product = {
   // ユーザー登録：栄養成分表示を見てブラウザに保存した市販品（jan は "my-" で始まる）
   // コンビニの商品（jan は "seven-" などの店の略号と各社の商品番号）とメーカー公式サイトから取った商品は、
   // name に会社名、url に商品ページを持つ
-  source: { name: string; url?: string; fetchedAt: string; saltConverted?: boolean }
+  // alcoholEstimated: 表示にアルコール量がないお酒で、商品名の度数（name）か表示のエネルギー（energy）から求めた
+  source: { name: string; url?: string; fetchedAt: string; saltConverted?: boolean; alcoholEstimated?: 'name' | 'energy' }
 }
 
 // ブラウザに保存するもの

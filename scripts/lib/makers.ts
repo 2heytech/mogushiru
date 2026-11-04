@@ -2,7 +2,7 @@
 import { readdirSync, readFileSync } from 'node:fs'
 import { NUTRIENT_KEYS, type Nutrients, type Product } from '../../src/domain/types'
 import { sodiumMgToSaltG } from '../../src/domain/nutrition'
-import { alcoholVolToG } from './off'
+import { alcoholVolToG, estimateAlcohol, notDrinkCategory } from './alcohol'
 
 export type MakerLabel = {
   jan: string
@@ -58,6 +58,7 @@ export function containerMl(name: string): number | undefined {
 export function toMakerProduct(l: MakerLabel): Product | null {
   const salt = l.salt ?? (l.sodiumMg !== undefined ? sodiumMgToSaltG(l.sodiumMg) : l.category === 'alcohol' ? 0 : undefined)
   if (l.protein === undefined || l.fat === undefined || l.carb === undefined || salt === undefined) return null
+  const category = (l.category === 'alcohol' && notDrinkCategory(l.name)) || l.category
   const per100 = l.servingAmount !== undefined && l.servingUnit !== undefined
   const factor = per100 ? 100 / l.servingAmount! : 1
   const nutrients = {} as Nutrients
@@ -71,16 +72,21 @@ export function toMakerProduct(l: MakerLabel): Product | null {
     salt: scale(salt),
     fiber: scale(l.fiber),
     caffeine: scale(l.caffeineMg),
-    // ビールの度数（% vol）は100mL当たりの純アルコール量に。お酒以外は 0
-    alcohol: l.alcoholPercent !== undefined && l.servingUnit === 'ml' ? alcoholVolToG(l.alcoholPercent) : l.category === 'alcohol' ? null : 0,
   })
+  // ビールの度数（% vol）は100mL当たりの純アルコール量に。度数の書かれていないお酒は商品名の度数か表示のエネルギーから推定する。お酒以外は 0
+  const estimate =
+    category === 'alcohol' && !(l.alcoholPercent !== undefined && l.servingUnit === 'ml')
+      ? estimateAlcohol(l.name, nutrients, per100 && l.servingUnit === 'ml' ? 100 : undefined)
+      : null
+  nutrients.alcohol =
+    category !== 'alcohol' ? 0 : l.alcoholPercent !== undefined && l.servingUnit === 'ml' ? alcoholVolToG(l.alcoholPercent) : (estimate?.grams ?? null)
   const base = {
     jan: l.jan,
     name: l.name,
     brand: l.maker,
-    category: l.category,
+    category,
     nutrients,
-    source: { name: l.maker, url: l.url, fetchedAt: l.fetchedAt },
+    source: { name: l.maker, url: l.url, fetchedAt: l.fetchedAt, ...(estimate && estimate.grams > 0 ? { alcoholEstimated: estimate.from } : {}) },
   }
   if (!per100) return { ...base, basis: 'serving', servingLabel: l.basis.replace(/当[たり]+|あたり|（.*?）/g, '').trim() }
   // 飲み物・アイスは1本（1個）の容量、ほかは表示の量（100g当たりの表示なら100g）を1回分にする

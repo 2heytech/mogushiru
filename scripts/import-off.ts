@@ -26,7 +26,7 @@ writeFileSync(
       name: 'Open Food Facts',
       url: 'https://world.openfoodfacts.org/',
       license: 'Open Database License (ODbL) v1.0 / Database Contents License (DbCL) v1.0',
-      processing: '販売国に日本を含む商品から、日本語の商品名があり必須の栄養5項目が揃うものを抽出・整形（お酒以外でアルコールの記載がないものは 0 とする）',
+      processing: '販売国に日本を含む商品から、日本語の商品名があり必須の栄養5項目が揃うものを抽出・整形（お酒以外でアルコールの記載がないものは 0、度数の記載がないお酒は商品名の度数か表示のエネルギーから推定）',
       fetchedAt,
     },
     categories: { ...Object.fromEntries(PRODUCT_CATEGORIES.map((c) => [c.id, c.label])), other: 'その他' },

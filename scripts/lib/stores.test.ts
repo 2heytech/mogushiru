@@ -152,6 +152,29 @@ describe('labelBasis', () => {
   })
 })
 
+describe('toStoreProduct のお酒', () => {
+  const base = { store: 'topvalu' as const, code: '1', url: 'https://example.com', fetchedAt: '2026-11-04' }
+  it('度数のないお酒はエネルギーからアルコール量を推定し、推定したことを出典に残す', () => {
+    const p = toStoreProduct({ ...base, name: 'テストの缶チューハイ', category: 'alcohol', per: '1缶(350ml)当たり', label: { energyKcal: 195, protein: 0, fat: 0, carb: 2.8, salt: 0.1 } })
+    expect(p.basis).toBe('100ml')
+    // 100mL当たり 55.7kcal・炭水化物0.8g → 7.5g
+    expect(p.nutrients.alcohol).toBe(7.5)
+    expect(p.source.alcoholEstimated).toBe('energy')
+  })
+  it('商品名に度数があればそれを使う', () => {
+    const p = toStoreProduct({ ...base, name: 'テスト焼酎 25度', category: 'alcohol', per: '100ml当たり', label: { energyKcal: 141, protein: 0, fat: 0, carb: 0, salt: 0 } })
+    expect(p.nutrients.alcohol).toBe(20)
+    expect(p.source.alcoholEstimated).toBe('name')
+  })
+  it('お酒の売り場の酒蒸し・料理用の酒は食べ物・調味料にし、アルコールは 0', () => {
+    const food = toStoreProduct({ ...base, name: 'あさりの酒蒸し', category: 'alcohol', per: '可食部100g当たり', spec: '240g', label: { energyKcal: 72, protein: 7.3, fat: 0.6, carb: 9.5, salt: 2 } })
+    expect(food).toMatchObject({ category: 'side', servingGrams: 240 })
+    expect(food.nutrients.alcohol).toBe(0)
+    expect(food.source.alcoholEstimated).toBeUndefined()
+    expect(toStoreProduct({ ...base, name: '料理用日本酒', category: 'alcohol', per: '100ml当たり', label: { energyKcal: 79, protein: 0.6, fat: 0, carb: 0.5, salt: 0 } }).category).toBe('seasoning')
+  })
+})
+
 describe('isAmbiguousSevenItem', () => {
   it('表示の単位が書かれていないセブンプレミアムの加工品は除く', () => {
     expect(isAmbiguousSevenItem({ store: 'seven', name: '７プレミアム　ザ・ブリュー　３５０ｍｌ' })).toBe(true)
