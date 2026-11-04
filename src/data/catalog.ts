@@ -5,7 +5,14 @@ import { NUTRIENT_KEYS, type Dish, type Food, type MyDish, type Product } from '
 
 export type CatalogState =
   | { status: 'loading' }
-  | { status: 'ready'; catalog: Omit<Catalog, 'myDishes'>; productCategories: Record<string, string>; missing: string[] }
+  | {
+      status: 'ready'
+      catalog: Omit<Catalog, 'myDishes'>
+      productCategories: Record<string, string>
+      missing: string[]
+      // コンビニ・メーカーの商品（store-products.json、約8MB）を読み終えたか
+      storesLoaded: boolean
+    }
 
 async function loadJson<T>(path: string): Promise<T | null> {
   try {
@@ -17,36 +24,64 @@ async function loadJson<T>(path: string): Promise<T | null> {
   }
 }
 
-// 生成済みの配信用JSON（public/data）を読む。まだ生成されていないファイルは空として扱う
+// 画面を1回描いてから動かす（先に出した画面を待たせないように）
+function afterPaint(f: () => void) {
+  if (typeof requestAnimationFrame === 'function') requestAnimationFrame(() => setTimeout(f, 0))
+  else setTimeout(f, 0)
+}
+
+// 料理をえらぶ画面の検索で使う名前・よみ（pickerCards.ts の fields と同じもの）
+const productFields = (products: Iterable<Product>) => [...products].flatMap((x) => [x.name, x.brand])
+
+// 生成済みの配信用JSON（public/data）を読む。まだ生成されていないファイルは空として扱う。
+// コンビニ・メーカーの商品は大きいので、料理・食材などを先に出し、あとから足す（ダウンロードは同時に始める）
 export function useCatalog(): CatalogState {
   const [state, setState] = useState<CatalogState>({ status: 'loading' })
   useEffect(() => {
     let alive = true
-    let stopWarmUp = () => {}
+    const stops: (() => void)[] = []
+    // 読み込み（ダウンロード）は今すぐ始め、中身を読むのは料理・食材の画面を出したあとにする
+    const storesBlob = fetch('/data/store-products.json')
+      .then((res) => (res.ok ? res.blob() : null))
+      .catch(() => null)
     Promise.all([
       loadJson<{ dishes: Dish[] }>('/data/dishes.json'),
       loadJson<{ products: Product[]; categories?: Record<string, string> }>('/data/products.json'),
       loadJson<{ foods: Food[] }>('/data/foods.json'),
-      loadJson<{ products: Product[] }>('/data/store-products.json'),
-    ]).then(([d, p, f, s]) => {
+    ]).then(([d, p, f]) => {
       if (!alive) return
       const missing = [!d && '料理', !p && '市販品', !f && '食材'].filter((x): x is string => Boolean(x))
+      const others = p?.products ?? []
       const catalog = {
         dishes: new Map((d?.dishes ?? []).map((x) => [x.id, x])),
-        products: mergeProducts((s?.products ?? []).map(withNullNutrients), p?.products ?? []),
+        products: mergeProducts([], others),
         foods: new Map((f?.foods ?? []).map((x) => [x.id, x])),
       }
-      setState({ status: 'ready', missing, productCategories: p?.categories ?? {}, catalog })
-      // 料理をえらぶ画面の検索で使う名前・よみ（pickerCards.ts の fields と同じもの）
-      stopWarmUp = warmUpSearch([
-        ...[...catalog.dishes.values()].flatMap((x) => [x.name, x.kana]),
-        ...[...catalog.foods.values()].flatMap((x) => [x.displayName, x.kana, x.name]),
-        ...[...catalog.products.values()].flatMap((x) => [x.name, x.brand]),
-      ])
+      setState({ status: 'ready', missing, productCategories: p?.categories ?? {}, catalog, storesLoaded: false })
+      stops.push(
+        warmUpSearch([
+          ...[...catalog.dishes.values()].flatMap((x) => [x.name, x.kana]),
+          ...[...catalog.foods.values()].flatMap((x) => [x.displayName, x.kana, x.name]),
+          ...productFields(catalog.products.values()),
+        ]),
+      )
+      afterPaint(async () => {
+        const blob = await storesBlob
+        let s: { products: Product[] } | null = null
+        try {
+          s = blob ? (JSON.parse(await blob.text()) as { products: Product[] }) : null
+        } catch {
+          s = null
+        }
+        if (!alive) return
+        const official = (s?.products ?? []).map(withNullNutrients)
+        setState({ status: 'ready', missing, productCategories: p?.categories ?? {}, catalog: { ...catalog, products: mergeProducts(official, others) }, storesLoaded: true })
+        stops.push(warmUpSearch(productFields(official)))
+      })
     })
     return () => {
       alive = false
-      stopWarmUp()
+      stops.forEach((stop) => stop())
     }
   }, [])
   return state

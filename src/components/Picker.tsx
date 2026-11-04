@@ -39,6 +39,7 @@ export function Picker({
   slot,
   catalog,
   productCategories,
+  storesLoaded = true,
   showAlcohol,
   favoriteProductIds,
   onToggleFavorite,
@@ -51,6 +52,8 @@ export function Picker({
   slot: Slot
   catalog: Catalog
   productCategories: Record<string, string>
+  // コンビニ・メーカーの商品を読み終えたか（読み込み中はそう出す）
+  storesLoaded?: boolean
   showAlcohol: boolean
   favoriteProductIds: string[]
   onToggleFavorite: (jan: string) => void
@@ -205,6 +208,11 @@ export function Picker({
           >
             ＋ サプリを登録する
           </button>
+        )}
+        {!storesLoaded && (tab === 'product' || tab === 'myDish' || (tab === 'all' && query)) && (
+          <p className="mb-2 shrink-0 text-xs text-ink-soft" role="status">
+            コンビニ・メーカーの商品を読み込み中…
+          </p>
         )}
         <div ref={listRef} className="-mx-1 min-h-0 flex-1 overflow-y-auto px-1">
           {cards.length === 0 ? (
