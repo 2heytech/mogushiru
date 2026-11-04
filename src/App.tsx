@@ -141,11 +141,15 @@ export default function App() {
     () => (catalogState.status === 'ready' ? withMyData(catalogState.catalog, myDishes, myProducts) : null),
     [catalogState, myDishes, myProducts],
   )
+  // コンビニ・メーカーの商品はあとから読むので、読み終えるまでは「ない商品」と決めつけない
+  const storesLoaded = catalogState.status === 'ready' && catalogState.storesLoaded
   // データの更新でなくなった市販品などが1日の食事に残っていても、画面が止まらないように外して計算する
   const menu = useMemo(() => (catalog ? knownItemsOnly(storedMenu, catalog) : storedMenu), [catalog, storedMenu])
   useEffect(() => {
-    if (catalog && menu !== storedMenu) pruneMenu((m) => knownItemsOnly(m, catalog))
-  }, [catalog, menu, storedMenu, pruneMenu])
+    if (catalog && storesLoaded && menu !== storedMenu) pruneMenu((m) => knownItemsOnly(m, catalog))
+  }, [catalog, storesLoaded, menu, storedMenu, pruneMenu])
+  // 1日の食事にコンビニ・メーカーの商品が入っていれば、読み終えるまで待ってから出す（入っていなければすぐ出す）
+  const waitingForStores = Boolean(catalog) && !storesLoaded && menu !== storedMenu
   const totals = useMemo(() => (catalog ? menuTotals(menu, catalog) : null), [catalog, menu])
 
   function renderEditor(catalog: Catalog, { slot, uid }: { slot: Slot; uid: string }) {
@@ -304,7 +308,7 @@ export default function App() {
         <main>
           <RankingView catalog={catalog} targets={targets} prices={prices} />
         </main>
-      ) : catalog && totals ? (
+      ) : catalog && totals && !waitingForStores ? (
         <main className="space-y-4">
           {/* いちばん上に朝・昼・晩・その他、その下に情報 */}
           <SlotStrip
@@ -347,6 +351,7 @@ export default function App() {
           slot={pickerSlot}
           catalog={catalog}
           productCategories={catalogState.status === 'ready' ? catalogState.productCategories : {}}
+          storesLoaded={storesLoaded}
           showAlcohol={profile.age >= 20}
           favoriteProductIds={favoriteProductIds}
           onToggleFavorite={toggleFavoriteProduct}
@@ -379,7 +384,8 @@ export default function App() {
           catalog={catalog}
           onLoad={(m) => {
             // データの更新でなくなった料理があっても止まらないように外してから入れる
-            loadMenu(m.id, (x) => knownItemsOnly(x, catalog))
+            // コンビニ・メーカーの商品を読み終える前は外さない（読み終えたあとに外す）
+            loadMenu(m.id, storesLoaded ? (x) => knownItemsOnly(x, catalog) : undefined)
             setSavedDialog(null)
           }}
           onDelete={(m) => deleteMenu(m.id)}
