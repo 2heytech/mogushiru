@@ -39,6 +39,8 @@ type State = {
   removeItem: (slot: Slot, uid: string) => void
   moveItem: (from: Slot, to: Slot, uid: string) => void
   clearMenu: () => void
+  // 1日の食事から、なくなった料理・市販品などを外す（prepare が同じ menu を返せば何もしない）
+  pruneMenu: (prepare: (menu: DayMenu) => DayMenu) => void
   saveMyDish: (d: Omit<MyDish, 'id' | 'createdAt' | 'updatedAt'>) => MyDish
   updateMyDish: (id: string, patch: Partial<Pick<MyDish, 'name' | 'ingredients' | 'portion' | 'slots'>>) => void
   deleteMyDish: (id: string) => void
@@ -129,6 +131,11 @@ export const useAppStore = create<State>()(
           return { menu: { ...s.menu, [from]: s.menu[from].filter((i) => i.uid !== id), [to]: [...s.menu[to], item] } }
         }),
       clearMenu: () => set({ menu: emptyMenu() }),
+      pruneMenu: (prepare) =>
+        set((s) => {
+          const menu = prepare(s.menu)
+          return menu === s.menu ? s : { menu }
+        }),
       saveMyDish: (d) => {
         const now = new Date().toISOString()
         const dish: MyDish = { ...d, id: uid(), createdAt: now, updatedAt: now }

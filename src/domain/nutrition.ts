@@ -108,7 +108,8 @@ export type MenuTotals = {
 export const SUPPLEMENT_KINDS: readonly MenuItem['kind'][] = ['supplement']
 export const isSupplementItem = (item: MenuItem): boolean => SUPPLEMENT_KINDS.includes(item.kind)
 
-// データの更新でなくなった料理・市販品を外す（保存した1日の食事を呼び出すときに使う）
+// データの更新でなくなった料理・市販品を外す（保存した1日の食事を呼び出すとき・開いたときに使う）。
+// 外すものがなければ、渡された menu をそのまま返す
 export function knownItemsOnly(menu: DayMenu, catalog: Catalog): DayMenu {
   const known = (i: MenuItem) =>
     i.kind === 'dish'
@@ -118,6 +119,7 @@ export function knownItemsOnly(menu: DayMenu, catalog: Catalog): DayMenu {
         : i.kind === 'food'
           ? catalog.foods.has(i.refId)
           : catalog.products.has(i.refId)
+  if (Object.values(menu).every((items) => items.every(known))) return menu
   return Object.fromEntries(Object.entries(menu).map(([slot, items]) => [slot, items.filter(known)])) as DayMenu
 }
 

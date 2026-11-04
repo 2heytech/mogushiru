@@ -200,3 +200,22 @@ describe('カスタマイズした料理の区分', () => {
     expect(useAppStore.getState().myDishes[0].slots).toEqual(['breakfast', 'dinner'])
   })
 })
+
+describe('なくなった料理・市販品を1日の食事から外す', () => {
+  beforeEach(() => {
+    useAppStore.setState({ menu: emptyMenu() })
+    useAppStore.getState().addItem('lunch', { kind: 'product', refId: 'gone', portion: 1 })
+    useAppStore.getState().addItem('lunch', { kind: 'dish', refId: 'd1', portion: 1 })
+  })
+
+  it('prepare が返した1日の食事に置き換える', () => {
+    useAppStore.getState().pruneMenu((m) => ({ ...m, lunch: m.lunch.filter((i) => i.refId !== 'gone') }))
+    expect(useAppStore.getState().menu.lunch.map((i) => i.refId)).toEqual(['d1'])
+  })
+
+  it('prepare が同じ1日の食事を返したら書き換えない', () => {
+    const before = useAppStore.getState().menu
+    useAppStore.getState().pruneMenu((m) => m)
+    expect(useAppStore.getState().menu).toBe(before)
+  })
+})

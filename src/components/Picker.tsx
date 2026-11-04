@@ -75,13 +75,14 @@ export function Picker({
   const counts = useMemo(() => {
     if (!query) return null
     const filter = { catalog, slot, query, category: 'all', showAlcohol, favorites }
-    const all = buildCards('all', filter)
+    // 「すべて」タブでは一覧と同じものなので作り直さない（「すべて」には絞り込みがなく category はいつも 'all'）
+    const all = tab === 'all' ? cards : buildCards('all', filter)
     const n: Record<Tab, number> = { all: all.length, dish: 0, product: 0, food: 0, myDish: 0, supplement: 0 }
     for (const c of all) n[c.kind]++
     n.myDish = buildCards('myDish', filter).length
     n.dish = buildCards('dish', filter).length
     return n
-  }, [catalog, slot, query, showAlcohol, favorites])
+  }, [tab, cards, catalog, slot, query, showAlcohol, favorites])
   // コンビニ各社の商品があれば、お店ごとの絞り込みを出す
   const hasStore = useMemo(() => new Set([...catalog.products.values()].map(productStore)), [catalog])
   const hasKyodo = useMemo(() => [...catalog.dishes.values()].some((d) => d.source), [catalog])

@@ -1,6 +1,6 @@
 import type { Catalog } from '../domain/nutrition'
 import { FOOD_PORTION, isPopular, NOT_POPULAR, popularRank } from '../domain/popular'
-import { rankAcross, rankAndFilter } from '../domain/search'
+import { matcher, rankAcross, rankAndFilter } from '../domain/search'
 import { isSupplement, SUPPLEMENT_MAIN_KEYS } from '../domain/supplement'
 import { formatPortion, prioritizedIn } from '../domain/customize'
 import type { Ingredient, MenuItem, Product, Slot } from '../domain/types'
@@ -56,10 +56,12 @@ function entries(kind: Kind, { catalog, slot, query, category, showAlcohol, favo
             item: { kind: 'dish', refId: d.id, portion: 1 },
           },
         }))
-    case 'product':
+    case 'product': {
+      // 市販品は数が多いので、検索中は一致しないものをカードにする前に外す
+      const hit = matcher(query)
       // 同じ商品が古いJANでも入っていることがあるので1回だけ
       return [...new Set(catalog.products.values())]
-        .filter((p) => !isSupplement(p))
+        .filter((p) => !isSupplement(p) && hit(p.name, p.brand))
         .filter((p) => showAlcohol || p.category !== 'alcohol')
         .filter((p) =>
           category === 'favorite'
@@ -87,6 +89,7 @@ function entries(kind: Kind, { catalog, slot, query, category, showAlcohol, favo
             },
           }
         })
+    }
     case 'food':
       // 食材は数が多いので、検索前はその区分でよく食べられるものだけ出す。
       // 検索中は、どれかの区分でよく食べられる食材を同じ一致度の中で前に
