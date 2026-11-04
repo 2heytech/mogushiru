@@ -1,6 +1,7 @@
 // コンビニ各社・スーパー（トップバリュ）の公式サイトに載っている商品の栄養成分表示を読み取る
 // 取り込むのは商品名・内容量・価格・栄養成分の数値と出典URLだけ。写真や説明文は使わない
 import { NUTRIENT_KEYS, type Nutrients, type Product } from '../../src/domain/types'
+import { estimateAlcohol, notDrinkCategory } from './alcohol'
 
 export type StoreId = 'seven' | 'famima' | 'lawson' | 'topvalu'
 
@@ -439,6 +440,8 @@ export function toStoreProduct(item: StoreItem): Product {
   const basis = labelBasis(item.per)
   const factor = 'grams' in basis ? 100 / basis.grams : 1
   const scale = (v: number | undefined) => (v === undefined ? null : Number((v * factor).toPrecision(4)))
+  // お酒の売り場に並ぶ酒蒸し・料理酒などは、食べ物・調味料として扱う
+  const category = (item.category === 'alcohol' && notDrinkCategory(item.name)) || item.category
   const nutrients = {} as Nutrients
   for (const k of NUTRIENT_KEYS) nutrients[k] = null
   Object.assign(nutrients, {
@@ -448,22 +451,28 @@ export function toStoreProduct(item: StoreItem): Product {
     carb: scale(item.label.carb),
     salt: scale(item.label.salt),
     fiber: scale(item.label.fiber),
-    // お酒以外は 0（市販品の取り込みと同じ扱い）
-    alcohol: item.category === 'alcohol' ? null : 0,
   })
+  // 各社の表示にアルコール量はないので、お酒は商品名の度数か表示のエネルギーから推定する。お酒以外は 0
+  const alcohol = category === 'alcohol' ? estimateAlcohol(item.name, nutrients, 'grams' in basis && basis.unit === 'ml' ? 100 : undefined) : null
+  nutrients.alcohol = category === 'alcohol' ? (alcohol?.grams ?? null) : 0
   // 1回分の量：表示に書かれた量、なければ内容量（食べきりの大きさのものだけ）。
   // 食材・調味料・麺（乾麺など）は1袋で何回分にもなるので内容量は使わない
-  const whole = !['ingredient', 'seasoning', 'noodle', 'other'].includes(item.category)
+  const whole = !['ingredient', 'seasoning', 'noodle', 'other'].includes(category)
   const servingGrams = 'grams' in basis ? (basis.serving ?? (whole ? specAmount(item.spec) : undefined)) : undefined
   return {
     jan: `${item.store}-${item.code}`,
     name: item.name,
     brand: STORES[item.store].name,
-    category: item.category,
+    category,
     ...('grams' in basis
       ? { basis: basis.unit === 'ml' ? ('100ml' as const) : ('100g' as const), ...(servingGrams && servingGrams !== 100 ? { servingGrams } : {}) }
       : { basis: 'serving' as const, ...(basis.label ? { servingLabel: basis.label } : {}) }),
     nutrients,
-    source: { name: STORES[item.store].name, url: item.url, fetchedAt: item.fetchedAt },
+    source: {
+      name: STORES[item.store].name,
+      url: item.url,
+      fetchedAt: item.fetchedAt,
+      ...(alcohol && alcohol.grams > 0 ? { alcoholEstimated: alcohol.from } : {}),
+    },
   }
 }

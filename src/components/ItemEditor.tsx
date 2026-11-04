@@ -58,7 +58,15 @@ export function ItemEditor({
               <strong>{Math.round(v.energyKcal)} kcal</strong>
               <span className="ml-2 text-xs text-ink-soft">
                 P {v.protein.toFixed(1)} ・ F {v.fat.toFixed(1)} ・ C {v.carb.toFixed(1)} ・ 食塩 {v.salt.toFixed(1)}g
+                {v.alcohol >= 0.5 && ` ・ アルコール ${v.alcohol.toFixed(1)}g`}
               </span>
+            </p>
+          )}
+          {product?.source.alcoholEstimated && (
+            <p className="text-xs text-ink-soft">
+              {product.source.alcoholEstimated === 'name'
+                ? 'アルコール量は、商品名の度数から計算しました。'
+                : 'アルコール量は表示にないため、エネルギーからたんぱく質・脂質・炭水化物の分を引いて推定しました（目安）。'}
             </p>
           )}
           {product?.source.url && (
