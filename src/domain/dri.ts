@@ -94,8 +94,10 @@ export const CAFFEINE_MAX_ADULT = 400
 export const CAFFEINE_MAX_PER_KG_UNDER18 = 2.5
 export const CAFFEINE_MAX_PREGNANT = 200
 
+// 年齢区分は満年齢（整数）。「49.5」のような入力でも区分のすき間に落ちないよう、切り捨ててから探す
 export function pick<T extends AgeBand>(rows: T[], age: number): T {
-  const row = rows.find((r) => age >= r.min && age <= r.max)
+  const years = Math.floor(age)
+  const row = rows.find((r) => years >= r.min && years <= r.max)
   if (!row) throw new Error(`対応していない年齢: ${age}`)
   return row
 }

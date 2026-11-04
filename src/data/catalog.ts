@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { Catalog } from '../domain/nutrition'
+import { warmUpSearch } from '../domain/search'
 import { NUTRIENT_KEYS, type Dish, type Food, type MyDish, type Product } from '../domain/types'
 
 export type CatalogState =
@@ -21,6 +22,7 @@ export function useCatalog(): CatalogState {
   const [state, setState] = useState<CatalogState>({ status: 'loading' })
   useEffect(() => {
     let alive = true
+    let stopWarmUp = () => {}
     Promise.all([
       loadJson<{ dishes: Dish[] }>('/data/dishes.json'),
       loadJson<{ products: Product[]; categories?: Record<string, string> }>('/data/products.json'),
@@ -29,19 +31,22 @@ export function useCatalog(): CatalogState {
     ]).then(([d, p, f, s]) => {
       if (!alive) return
       const missing = [!d && '料理', !p && '市販品', !f && '食材'].filter((x): x is string => Boolean(x))
-      setState({
-        status: 'ready',
-        missing,
-        productCategories: p?.categories ?? {},
-        catalog: {
-          dishes: new Map((d?.dishes ?? []).map((x) => [x.id, x])),
-          products: mergeProducts((s?.products ?? []).map(withNullNutrients), p?.products ?? []),
-          foods: new Map((f?.foods ?? []).map((x) => [x.id, x])),
-        },
-      })
+      const catalog = {
+        dishes: new Map((d?.dishes ?? []).map((x) => [x.id, x])),
+        products: mergeProducts((s?.products ?? []).map(withNullNutrients), p?.products ?? []),
+        foods: new Map((f?.foods ?? []).map((x) => [x.id, x])),
+      }
+      setState({ status: 'ready', missing, productCategories: p?.categories ?? {}, catalog })
+      // 料理をえらぶ画面の検索で使う名前・よみ（pickerCards.ts の fields と同じもの）
+      stopWarmUp = warmUpSearch([
+        ...[...catalog.dishes.values()].flatMap((x) => [x.name, x.kana]),
+        ...[...catalog.foods.values()].flatMap((x) => [x.displayName, x.kana, x.name]),
+        ...[...catalog.products.values()].flatMap((x) => [x.name, x.brand]),
+      ])
     })
     return () => {
       alive = false
+      stopWarmUp()
     }
   }, [])
   return state

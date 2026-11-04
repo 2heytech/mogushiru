@@ -82,6 +82,14 @@ export type ProfileFocus = 'slotShare' | 'exercise'
 
 const numOrUndef = (s: string) => (s.trim() === '' || Number.isNaN(Number(s)) ? undefined : Number(s))
 
+// 身長・体重は任意。入れたときは、計算がおかしくならない範囲の数字だけ受け付ける
+const BODY_LIMIT = { heightCm: { min: 50, max: 250 }, weightKg: { min: 10, max: 300 } }
+const optionalWithin = (s: string, { min, max }: { min: number; max: number }) => {
+  if (s.trim() === '') return true
+  const v = numOrUndef(s)
+  return v !== undefined && v >= min && v <= max
+}
+
 export function ProfileDialog({
   profile,
   onSave,
@@ -115,13 +123,16 @@ export function ProfileDialog({
   const exerciseList = exercises.map(fromDraft)
   const exercisesOk = exerciseList.every((e) => e !== null)
   const validExercises = exerciseList.filter((e): e is Exercise => e !== null)
-  const valid = ageNum !== undefined && ageNum >= 1 && ageNum <= 120 && shareOk && exercisesOk
+  const heightOk = optionalWithin(height, BODY_LIMIT.heightCm)
+  const weightOk = optionalWithin(weight, BODY_LIMIT.weightKg)
+  const weightKg = weightOk ? numOrUndef(weight) : undefined
+  const valid = ageNum !== undefined && ageNum >= 1 && ageNum <= 120 && heightOk && weightOk && shareOk && exercisesOk
   const draft: Profile | null = valid
     ? {
         sex,
         age: ageNum,
         heightCm: numOrUndef(height),
-        weightKg: numOrUndef(weight),
+        weightKg,
         activity,
         goal,
         ...(sex === 'female' && menstruation !== undefined ? { menstruation } : {}),
@@ -135,7 +146,7 @@ export function ProfileDialog({
   const menstruationValue = menstruation ?? Math.max(ageNum ?? 0, MIN_SUPPORTED_AGE) < 50
   const preview = draft ? computeTargets(draft) : null
   const ageOk = ageNum !== undefined && ageNum >= 1 && ageNum <= 120
-  const basics: Profile | null = ageOk ? { sex, age: ageNum, weightKg: numOrUndef(weight), activity, goal, exercises: validExercises } : null
+  const basics: Profile | null = ageOk ? { sex, age: ageNum, weightKg, activity, goal, exercises: validExercises } : null
   const dayKcal = basics ? computeTargets(basics).energyKcal : null
   // 運動の1回あたりの消費は、入れた体重（なければ参照体重）で出す
   const energy = basics ? expenditure(basics) : null
@@ -172,6 +183,14 @@ export function ProfileDialog({
               <input className={field} inputMode="decimal" value={weight} onChange={(e) => setWeight(e.target.value)} placeholder="任意" />
             </label>
           </div>
+          {(!heightOk || !weightOk) && (
+            <p className="text-xs font-bold text-alert">
+              {!heightOk && `身長は${BODY_LIMIT.heightCm.min}〜${BODY_LIMIT.heightCm.max}cm`}
+              {!heightOk && !weightOk && '、'}
+              {!weightOk && `体重は${BODY_LIMIT.weightKg.min}〜${BODY_LIMIT.weightKg.max}kg`}
+              の数字で入れてください（空のままでもかまいません）
+            </p>
+          )}
           {ageNum !== undefined && ageNum < MIN_SUPPORTED_AGE && (
             <p className="text-xs text-ink-soft">※ {MIN_SUPPORTED_AGE}歳未満の方は、成長に必要な分を含めた計算に対応していないため、{MIN_SUPPORTED_AGE}歳の目安で表示します。</p>
           )}

@@ -151,6 +151,11 @@ describe('栄養計算', () => {
     const menu = { breakfast: [{ uid: '1', kind: 'food' as const, refId: '00001', portion: 100 }, { uid: '2', kind: 'food' as const, refId: 'gone', portion: 100 }], lunch: [], dinner: [], other: [] }
     expect(knownItemsOnly(menu, catalog).breakfast.map((i) => i.uid)).toEqual(['1'])
   })
+
+  it('外すものがなければ同じ1日の食事をそのまま返す（開くたびに書き直さないように）', () => {
+    const menu = { breakfast: [{ uid: '1', kind: 'food' as const, refId: '00001', portion: 100 }], lunch: [], dinner: [], other: [] }
+    expect(knownItemsOnly(menu, catalog)).toBe(menu)
+  })
 })
 
 describe('目標値', () => {
@@ -179,6 +184,13 @@ describe('目標値', () => {
     const kcal = (activity: 'normal' | 'high') => estimatedEnergy({ sex: 'female', age: 80, weightKg: 50, activity }).kcal
     expect(kcal('normal')).toBe(Math.round((20.7 * 50 * 1.7) / 10) * 10)
     expect(kcal('high')).toBe(kcal('normal'))
+  })
+
+  it('「49.5歳」のような年齢でも区分のすき間に落ちず、満年齢の区分で計算する', () => {
+    for (const age of [29.5, 49.5, 64.5, 74.5]) {
+      expect(() => computeTargets({ sex: 'female', age, activity: 'normal' })).not.toThrow()
+      expect(computeTargets({ sex: 'female', age, activity: 'normal' })).toEqual(computeTargets({ sex: 'female', age: Math.floor(age), activity: 'normal' }))
+    }
   })
 
   it('目標値は原典と照合済み', () => {

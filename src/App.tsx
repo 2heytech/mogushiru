@@ -102,7 +102,8 @@ export default function App() {
   const prices = usePrices()
   const [view, setView] = useView()
   const {
-    menu,
+    menu: storedMenu,
+    pruneMenu,
     myDishes,
     profile,
     profileSet,
@@ -135,7 +136,16 @@ export default function App() {
   // 市販品の登録（slot があれば登録後その区分に追加）・編集
   const [productForm, setProductForm] = useState<{ jan?: string; slot?: Slot; supplement?: boolean } | null>(null)
   const targets = useMemo(() => computeTargets(profile), [profile])
-  const catalog = catalogState.status === 'ready' ? withMyData(catalogState.catalog, myDishes, myProducts) : null
+  // 毎回作り直すと、料理をえらぶ画面で1品押すたびに市販品の一覧を全部作り直すことになるので、中身が変わったときだけ作る
+  const catalog = useMemo(
+    () => (catalogState.status === 'ready' ? withMyData(catalogState.catalog, myDishes, myProducts) : null),
+    [catalogState, myDishes, myProducts],
+  )
+  // データの更新でなくなった市販品などが1日の食事に残っていても、画面が止まらないように外して計算する
+  const menu = useMemo(() => (catalog ? knownItemsOnly(storedMenu, catalog) : storedMenu), [catalog, storedMenu])
+  useEffect(() => {
+    if (catalog && menu !== storedMenu) pruneMenu((m) => knownItemsOnly(m, catalog))
+  }, [catalog, menu, storedMenu, pruneMenu])
   const totals = useMemo(() => (catalog ? menuTotals(menu, catalog) : null), [catalog, menu])
 
   function renderEditor(catalog: Catalog, { slot, uid }: { slot: Slot; uid: string }) {

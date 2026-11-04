@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { matchRank, matches, normalizeForSearch, rankAcross, rankAndFilter } from './search'
+import { matcher, matchRank, matches, normalizeForSearch, rankAcross, rankAndFilter } from './search'
 
 describe('検索の正規化', () => {
   it('カタカナ・半角・空白の揺れを吸収する', () => {
@@ -12,6 +12,20 @@ describe('検索の正規化', () => {
     expect(matches('カラアゲ', '唐揚げ', 'からあげ')).toBe(true)
     expect(matches('すし', '唐揚げ', 'からあげ')).toBe(false)
     expect(matches('', '唐揚げ')).toBe(true)
+  })
+})
+
+describe('同じ検索語でたくさん調べる', () => {
+  it('matches と同じ結果になる（同じ名前を何度調べても変わらない）', () => {
+    const hit = matcher('ツナ')
+    for (let i = 0; i < 2; i++) {
+      expect(hit('ツナ缶（油漬）')).toBe(true)
+      expect(hit('ほうれんそう', 'ほうれんそう')).toBe(false)
+      expect(hit(undefined, 'かんづめ/つな')).toBe(true)
+    }
+  })
+  it('空の検索語はすべて一致', () => {
+    expect(matcher('  ')('なんでも')).toBe(true)
   })
 })
 
