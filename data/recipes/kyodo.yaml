@@ -445,18 +445,18 @@
   suggestedSlots: [breakfast, lunch, dinner]
   source: { label: "農林水産省「うちの郷土料理」", url: "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/29_4_akita.html", region: "秋田県" }
   ingredients:
-    - { foodId: "01083", grams: 150 } # こめ 水稲穀粒 精白米 うるち米
-    - { foodId: "11221", grams: 110 } # 鶏もも肉（皮つき）
-    - { foodId: "06084", grams: 30 } # ごぼう
-    - { foodId: "06117", grams: 40 } # せり 茎葉 生
-    - { foodId: "06226", grams: 40 } # 長ねぎ
-    - { foodId: "08016", grams: 50 } # しめじ
-    - { foodId: "02005", grams: 80 } # しらたき
-    - { foodId: "17019", grams: 180 } # かつおだし
-    - { foodId: "17024", grams: 180 } # 鶏がらだし
-    - { foodId: "17007", grams: 28.8 } # しょうゆ（濃口）
-    - { foodId: "17045", grams: 5.4 } # みそ（淡色辛みそ）
-    - { foodId: "16025", grams: 14.4 } # みりん
+    - { foodId: "01083", grams: 75 } # こめ 水稲穀粒 精白米 うるち米
+    - { foodId: "11221", grams: 55 } # 鶏もも肉（皮つき）
+    - { foodId: "06084", grams: 15 } # ごぼう
+    - { foodId: "06117", grams: 20 } # せり 茎葉 生
+    - { foodId: "06226", grams: 20 } # 長ねぎ
+    - { foodId: "08016", grams: 25 } # しめじ
+    - { foodId: "02005", grams: 40 } # しらたき
+    - { foodId: "17019", grams: 90 } # かつおだし
+    - { foodId: "17024", grams: 90 } # 鶏がらだし
+    - { foodId: "17007", grams: 14.4 } # しょうゆ（濃口）
+    - { foodId: "17045", grams: 2.7 } # みそ（淡色辛みそ）
+    - { foodId: "16025", grams: 7.2 } # みりん
 
 - id: kyodo-29-5-akita
   name: "納豆汁"
@@ -542,10 +542,10 @@
   suggestedSlots: [breakfast, lunch, dinner]
   source: { label: "農林水産省「うちの郷土料理」", url: "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/30_12_fukushima.html", region: "福島県" }
   ingredients:
-    - { foodId: "01083", grams: 127.5 } # こめ 水稲穀粒 精白米 うるち米
-    - { foodId: "10140", grams: 50 } # さけ・ます しろさけ イクラ
-    - { foodId: "16001", grams: 16.7 } # 日本酒
-    - { foodId: "17007", grams: 30 } # しょうゆ（濃口）
+    - { foodId: "01083", grams: 85 } # こめ 水稲穀粒 精白米 うるち米
+    - { foodId: "10140", grams: 33.3 } # さけ・ます しろさけ イクラ
+    - { foodId: "16001", grams: 11.1 } # 日本酒
+    - { foodId: "17007", grams: 20 } # しょうゆ（濃口）
 
 - id: kyodo-30-16-fukushima
   name: "あんぽ柿のなます"
@@ -612,15 +612,15 @@
 - id: kyodo-30-21-fukushima
   name: "しんごろう"
   kana: "福島 福島県"
-  category: main
-  suggestedSlots: [lunch, dinner]
+  category: staple
+  suggestedSlots: [breakfast, lunch, dinner]
   source: { label: "農林水産省「うちの郷土料理」", url: "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/30_21_fukushima.html", region: "福島県" }
   ingredients:
-    - { foodId: "01083", grams: 170 } # こめ 水稲穀粒 精白米 うるち米
-    - { foodId: "05004", grams: 30 } # えごま 乾
-    - { foodId: "03003", grams: 30 } # 砂糖（上白糖）
-    - { foodId: "17045", grams: 30 } # みそ（淡色辛みそ）
-    - { foodId: "16001", grams: 11.3 } # 日本酒
+    - { foodId: "01083", grams: 85 } # こめ 水稲穀粒 精白米 うるち米
+    - { foodId: "05004", grams: 15 } # えごま 乾
+    - { foodId: "03003", grams: 15 } # 砂糖（上白糖）
+    - { foodId: "17045", grams: 15 } # みそ（淡色辛みそ）
+    - { foodId: "16001", grams: 5.6 } # 日本酒
 
 # 分量が「適量」のきくらげは数えていない
 - id: kyodo-30-22-fukushima
@@ -1326,6 +1326,7 @@
     - { foodId: "03003", grams: 4.5 } # 砂糖（上白糖）
     - { foodId: "17045", grams: 4.5 } # みそ（淡色辛みそ）
 
+# 煮汁・たれは5割を食べるとして数えた
 - id: kyodo-32-23-gunma
   name: "こんにゃく味噌おでん"
   kana: "こんにゃくみそおでん 群馬 群馬県"
@@ -1334,10 +1335,10 @@
   source: { label: "農林水産省「うちの郷土料理」", url: "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/32_23_gunma.html", region: "群馬県" }
   ingredients:
     - { foodId: "02003", grams: 62.5 } # こんにゃく
-    - { foodId: "17045", grams: 45 } # みそ（淡色辛みそ）
-    - { foodId: "03003", grams: 27 } # 砂糖（上白糖）
-    - { foodId: "16001", grams: 37.5 } # 日本酒
-    - { foodId: "16025", grams: 45 } # みりん
+    - { foodId: "17045", grams: 22.5 } # みそ（淡色辛みそ）
+    - { foodId: "03003", grams: 13.5 } # 砂糖（上白糖）
+    - { foodId: "16001", grams: 18.8 } # 日本酒
+    - { foodId: "16025", grams: 22.5 } # みりん
 
 - id: kyodo-32-24-gunma
   name: "こしね汁"
@@ -1520,13 +1521,13 @@
 - id: kyodo-33-13-saitama
   name: "栗の渋皮煮"
   kana: "くりのしぶかわに 埼玉 埼玉県"
-  category: main
-  suggestedSlots: [lunch, dinner]
+  category: snack
+  suggestedSlots: [other]
   source: { label: "農林水産省「うちの郷土料理」", url: "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/33_13_saitama.html", region: "埼玉県" }
   ingredients:
-    - { foodId: "05010", grams: 250 } # くり 日本ぐり 生
-    - { foodId: "03003", grams: 112.5 } # 砂糖（上白糖）
-    - { foodId: "17012", grams: 1.5 } # 食塩
+    - { foodId: "05010", grams: 50 } # くり 日本ぐり 生
+    - { foodId: "03003", grams: 32.1 } # 砂糖（上白糖）
+    - { foodId: "17012", grams: 0.4 } # 食塩
 
 - id: kyodo-33-14-saitama
   name: "つみっこ"
@@ -1596,15 +1597,15 @@
 - id: kyodo-33-22-saitama
   name: "八ツ頭の茎の炒め煮"
   kana: "やつがしらのくきのいために 埼玉 埼玉県"
-  category: main
-  suggestedSlots: [lunch, dinner]
+  category: side
+  suggestedSlots: [breakfast, lunch, dinner]
   source: { label: "農林水産省「うちの郷土料理」", url: "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/33_22_saitama.html", region: "埼玉県" }
   ingredients:
-    - { foodId: "06112", grams: 125 } # ずいき 干しずいき ゆで
-    - { foodId: "14006", grams: 20 } # サラダ油
-    - { foodId: "03003", grams: 15 } # 砂糖（上白糖）
-    - { foodId: "17007", grams: 36 } # しょうゆ（濃口）
-    - { foodId: "16025", grams: 15 } # みりん
+    - { foodId: "06112", grams: 62.5 } # ずいき 干しずいき ゆで
+    - { foodId: "14006", grams: 10 } # サラダ油
+    - { foodId: "03003", grams: 7.5 } # 砂糖（上白糖）
+    - { foodId: "17007", grams: 18 } # しょうゆ（濃口）
+    - { foodId: "16025", grams: 7.5 } # みりん
 
 # 1人前は1個
 - id: kyodo-33-23-saitama
@@ -1638,17 +1639,17 @@
   suggestedSlots: [breakfast, lunch, dinner]
   source: { label: "農林水産省「うちの郷土料理」", url: "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/33_29_saitama.html", region: "埼玉県" }
   ingredients:
-    - { foodId: "01083", grams: 112.5 } # こめ 水稲穀粒 精白米 うるち米
-    - { foodId: "17015", grams: 15 } # 酢（穀物酢）
-    - { foodId: "03003", grams: 15 } # 砂糖（上白糖）
-    - { foodId: "17012", grams: 0.5 } # 食塩
-    - { foodId: "04040", grams: 120 } # 油揚げ
-    - { foodId: "17007", grams: 20 } # しょうゆ（濃口）
-    - { foodId: "16025", grams: 7.5 } # みりん
-    - { foodId: "16001", grams: 5 } # 日本酒
-    - { foodId: "06056", grams: 10 } # かんぴょう 乾
-    - { foodId: "09004", grams: 1.5 } # 焼きのり
-    - { foodId: "10448", grams: 5 } # たら 加工品 桜でんぶ
+    - { foodId: "01083", grams: 75 } # こめ 水稲穀粒 精白米 うるち米
+    - { foodId: "17015", grams: 10 } # 酢（穀物酢）
+    - { foodId: "03003", grams: 10 } # 砂糖（上白糖）
+    - { foodId: "17012", grams: 0.3 } # 食塩
+    - { foodId: "04040", grams: 80 } # 油揚げ
+    - { foodId: "17007", grams: 13.3 } # しょうゆ（濃口）
+    - { foodId: "16025", grams: 5 } # みりん
+    - { foodId: "16001", grams: 3.3 } # 日本酒
+    - { foodId: "06056", grams: 6.7 } # かんぴょう 乾
+    - { foodId: "09004", grams: 1 } # 焼きのり
+    - { foodId: "10448", grams: 3.3 } # たら 加工品 桜でんぶ
 
 - id: kyodo-33-3-saitama
   name: "冷や汁（埼玉県）"
@@ -2320,6 +2321,7 @@
     - { foodId: "16025", grams: 3.6 } # みりん
     - { foodId: "16001", grams: 6 } # 日本酒
 
+# 煮汁・たれは5割を食べるとして数えた
 - id: kyodo-36-17-shizuoka
   name: "金目の煮付け"
   kana: "きんめのにつけ 静岡 静岡県"
@@ -2327,11 +2329,11 @@
   suggestedSlots: [lunch, dinner]
   source: { label: "農林水産省「うちの郷土料理」", url: "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/36_17_shizuoka.html", region: "静岡県" }
   ingredients:
-    - { foodId: "10116", grams: 225 } # きんめだい 生
+    - { foodId: "10116", grams: 90 } # きんめだい 生
     - { foodId: "06084", grams: 50 } # ごぼう
-    - { foodId: "16001", grams: 25 } # 日本酒
-    - { foodId: "03003", grams: 20 } # 砂糖（上白糖）
-    - { foodId: "17007", grams: 39 } # しょうゆ（濃口）
+    - { foodId: "16001", grams: 12.5 } # 日本酒
+    - { foodId: "03003", grams: 10 } # 砂糖（上白糖）
+    - { foodId: "17007", grams: 19.5 } # しょうゆ（濃口）
 
 - id: kyodo-36-19-shizuoka
   name: "切り干しいも"
@@ -2631,17 +2633,14 @@
 - id: kyodo-37-17-toyama
   name: "焼き付け"
   kana: "やきつけ 富山 富山県"
-  category: main
-  suggestedSlots: [lunch, dinner]
+  category: snack
+  suggestedSlots: [other]
   source: { label: "農林水産省「うちの郷土料理」", url: "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/37_17_toyama.html", region: "富山県" }
   ingredients:
     - { foodId: "01120", grams: 75 } # こめ もち米製品 白玉粉
     - { foodId: "06301", grams: 40 } # よもぎ 葉 生
     - { foodId: "14006", grams: 3 } # サラダ油
     - { foodId: "17122", grams: 9 } # ごまみそ
-    - { foodId: "17045", grams: 4.5 } # みそ（淡色辛みそ）
-    - { foodId: "03003", grams: 4.5 } # 砂糖（上白糖）
-    - { foodId: "05017", grams: 75 } # ごま 乾
 
 - id: kyodo-37-18-toyama
   name: "ぶりしゃぶ"
@@ -2714,7 +2713,7 @@
 - id: kyodo-37-22-toyama
   name: "報恩講料理"
   kana: "ほうおんこうりょうり 富山 富山県"
-  category: main
+  category: noodle
   suggestedSlots: [lunch, dinner]
   source: { label: "農林水産省「うちの郷土料理」", url: "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/37_22_toyama.html", region: "富山県" }
   ingredients:
@@ -3132,18 +3131,17 @@
   ingredients:
     - { foodId: "10021", grams: 50 } # あゆ 天然 生
 
-# 1人前は1本
 - id: kyodo-38-3-gifu
   name: "からすみ"
   kana: "岐阜 岐阜県"
-  category: main
-  suggestedSlots: [lunch, dinner]
+  category: snack
+  suggestedSlots: [other]
   source: { label: "農林水産省「うちの郷土料理」", url: "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/38_3_gifu.html", region: "岐阜県" }
   ingredients:
-    - { foodId: "01114", grams: 110 } # こめ うるち米製品 上新粉
-    - { foodId: "06301", grams: 43.3 } # よもぎ 葉 生
-    - { foodId: "03003", grams: 66.7 } # 砂糖（上白糖）
-    - { foodId: "03001", grams: 33.3 } # 黒砂糖
+    - { foodId: "01114", grams: 27.5 } # こめ うるち米製品 上新粉
+    - { foodId: "06301", grams: 10.8 } # よもぎ 葉 生
+    - { foodId: "03003", grams: 16.7 } # 砂糖（上白糖）
+    - { foodId: "03001", grams: 8.3 } # 黒砂糖
 
 - id: kyodo-38-4-gifu
   name: "鮎ぞうすい"
@@ -3570,6 +3568,7 @@
     - { foodId: "16025", grams: 6 } # みりん
     - { foodId: "16001", grams: 5 } # 日本酒
 
+# 煮汁・たれは5割を食べるとして数えた
 - id: kyodo-40-18-hyogo
   name: "味噌だれ餃子"
   kana: "みそだれぎょうざ 兵庫 兵庫県"
@@ -3578,11 +3577,11 @@
   source: { label: "農林水産省「うちの郷土料理」", url: "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/40_18_hyogo.html", region: "兵庫県" }
   ingredients:
     - { foodId: "18002", grams: 125 } # 中国料理 点心類 ぎょうざ
-    - { foodId: "17045", grams: 13.5 } # みそ（淡色辛みそ）
-    - { foodId: "17007", grams: 13.5 } # しょうゆ（濃口）
-    - { foodId: "17015", grams: 11.3 } # 酢（穀物酢）
-    - { foodId: "03003", grams: 2.3 } # 砂糖（上白糖）
-    - { foodId: "17006", grams: 3 } # 辛味調味料 ラー油
+    - { foodId: "17045", grams: 6.8 } # みそ（淡色辛みそ）
+    - { foodId: "17007", grams: 6.8 } # しょうゆ（濃口）
+    - { foodId: "17015", grams: 5.6 } # 酢（穀物酢）
+    - { foodId: "03003", grams: 1.1 } # 砂糖（上白糖）
+    - { foodId: "17006", grams: 1.5 } # 辛味調味料 ラー油
 
 # 分量が「適量」の紅ショウガは数えていない
 - id: kyodo-40-20-hyogo
@@ -3961,23 +3960,23 @@
   suggestedSlots: [breakfast, lunch, dinner]
   source: { label: "農林水産省「うちの郷土料理」", url: "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/41_1_okayama.html", region: "岡山県" }
   ingredients:
-    - { foodId: "01083", grams: 100 } # こめ 水稲穀粒 精白米 うるち米
-    - { foodId: "10171", grams: 80 } # さわら 生
-    - { foodId: "03003", grams: 9 } # 砂糖（上白糖）
-    - { foodId: "17012", grams: 2.3 } # 食塩
-    - { foodId: "17015", grams: 11.3 } # 酢（穀物酢）
-    - { foodId: "10329", grams: 20 } # えび（ブラックタイガー）
-    - { foodId: "10362", grams: 18.8 } # ゆでだこ
-    - { foodId: "10318", grams: 15 } # さるぼう 味付け缶詰
-    - { foodId: "10015", grams: 30 } # あなご 生
-    - { foodId: "06317", grams: 20 } # れんこん
-    - { foodId: "04042", grams: 5 } # だいず 凍り豆腐 乾
-    - { foodId: "06150", grams: 15 } # たけのこ 若茎 ゆで
-    - { foodId: "06084", grams: 37.5 } # ごぼう
-    - { foodId: "06256", grams: 10 } # ふき 葉柄 生
-    - { foodId: "08013", grams: 4.5 } # しいたけ 乾しいたけ 乾
-    - { foodId: "12004", grams: 25 } # 卵（生）
-    - { foodId: "06020", grams: 7.5 } # さやえんどう 若ざや 生
+    - { foodId: "01083", grams: 80 } # こめ 水稲穀粒 精白米 うるち米
+    - { foodId: "10171", grams: 64 } # さわら 生
+    - { foodId: "03003", grams: 7.2 } # 砂糖（上白糖）
+    - { foodId: "17012", grams: 1.8 } # 食塩
+    - { foodId: "17015", grams: 9 } # 酢（穀物酢）
+    - { foodId: "10329", grams: 16 } # えび（ブラックタイガー）
+    - { foodId: "10362", grams: 15 } # ゆでだこ
+    - { foodId: "10318", grams: 12 } # さるぼう 味付け缶詰
+    - { foodId: "10015", grams: 24 } # あなご 生
+    - { foodId: "06317", grams: 16 } # れんこん
+    - { foodId: "04042", grams: 4 } # だいず 凍り豆腐 乾
+    - { foodId: "06150", grams: 12 } # たけのこ 若茎 ゆで
+    - { foodId: "06084", grams: 30 } # ごぼう
+    - { foodId: "06256", grams: 8 } # ふき 葉柄 生
+    - { foodId: "08013", grams: 3.6 } # しいたけ 乾しいたけ 乾
+    - { foodId: "12004", grams: 20 } # 卵（生）
+    - { foodId: "06020", grams: 6 } # さやえんどう 若ざや 生
 
 - id: kyodo-41-20-okayama
   name: "デミかつ丼"
@@ -4118,21 +4117,21 @@
   suggestedSlots: [breakfast, lunch, dinner]
   source: { label: "農林水産省「うちの郷土料理」", url: "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/41_4_okayama.html", region: "岡山県" }
   ingredients:
-    - { foodId: "01151", grams: 150 } # こめ 水稲穀粒 精白米 もち米
-    - { foodId: "01006", grams: 18.8 } # おおむぎ 押麦 乾
-    - { foodId: "11221", grams: 20 } # 鶏もも肉（皮つき）
-    - { foodId: "06214", grams: 20 } # にんじん
-    - { foodId: "05010", grams: 75 } # くり 日本ぐり 生
-    - { foodId: "06010", grams: 10 } # いんげんまめ さやいんげん 若ざや 生
-    - { foodId: "14006", grams: 6 } # サラダ油
-    - { foodId: "06084", grams: 20 } # ごぼう
-    - { foodId: "06256", grams: 20 } # ふき 葉柄 生
-    - { foodId: "08013", grams: 0.3 } # しいたけ 乾しいたけ 乾
-    - { foodId: "04040", grams: 7.5 } # 油揚げ
-    - { foodId: "16025", grams: 3 } # みりん
-    - { foodId: "03003", grams: 2.3 } # 砂糖（上白糖）
-    - { foodId: "17007", grams: 6 } # しょうゆ（濃口）
-    - { foodId: "17012", grams: 3 } # 食塩
+    - { foodId: "01151", grams: 85.7 } # こめ 水稲穀粒 精白米 もち米
+    - { foodId: "01006", grams: 10.7 } # おおむぎ 押麦 乾
+    - { foodId: "11221", grams: 11.4 } # 鶏もも肉（皮つき）
+    - { foodId: "06214", grams: 11.4 } # にんじん
+    - { foodId: "05010", grams: 42.9 } # くり 日本ぐり 生
+    - { foodId: "06010", grams: 5.7 } # いんげんまめ さやいんげん 若ざや 生
+    - { foodId: "14006", grams: 3.4 } # サラダ油
+    - { foodId: "06084", grams: 11.4 } # ごぼう
+    - { foodId: "06256", grams: 11.4 } # ふき 葉柄 生
+    - { foodId: "08013", grams: 0.1 } # しいたけ 乾しいたけ 乾
+    - { foodId: "04040", grams: 4.3 } # 油揚げ
+    - { foodId: "16025", grams: 1.7 } # みりん
+    - { foodId: "03003", grams: 1.3 } # 砂糖（上白糖）
+    - { foodId: "17007", grams: 3.4 } # しょうゆ（濃口）
+    - { foodId: "17012", grams: 1.7 } # 食塩
 
 # 1人前は1個
 - id: kyodo-41-5-okayama
@@ -4180,14 +4179,14 @@
   suggestedSlots: [breakfast, lunch, dinner]
   source: { label: "農林水産省「うちの郷土料理」", url: "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/41_7_okayama.html", region: "岡山県" }
   ingredients:
-    - { foodId: "01083", grams: 170 } # こめ 水稲穀粒 精白米 うるち米
-    - { foodId: "09017", grams: 0.8 } # まこんぶ 素干し 乾
-    - { foodId: "17015", grams: 43.8 } # 酢（穀物酢）
-    - { foodId: "03003", grams: 7.9 } # 砂糖（上白糖）
-    - { foodId: "17012", grams: 2.3 } # 食塩
-    - { foodId: "10171", grams: 50 } # さわら 生
-    - { foodId: "06138", grams: 25 } # たくあん
-    - { foodId: "06023", grams: 15 } # えんどう グリンピース 生
+    - { foodId: "01083", grams: 85 } # こめ 水稲穀粒 精白米 うるち米
+    - { foodId: "09017", grams: 0.4 } # まこんぶ 素干し 乾
+    - { foodId: "17015", grams: 21.9 } # 酢（穀物酢）
+    - { foodId: "03003", grams: 3.9 } # 砂糖（上白糖）
+    - { foodId: "17012", grams: 1.1 } # 食塩
+    - { foodId: "10171", grams: 25 } # さわら 生
+    - { foodId: "06138", grams: 12.5 } # たくあん
+    - { foodId: "06023", grams: 7.5 } # えんどう グリンピース 生
 
 - id: kyodo-41-8-okayama
   name: "くさぎ菜のかけめし"
@@ -5269,7 +5268,7 @@
   source: { label: "農林水産省「うちの郷土料理」", url: "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/44_2_tokushima.html", region: "徳島県" }
   ingredients:
     - { foodId: "10041", grams: 120 } # いぼだい 生
-    - { foodId: "17012", grams: 5.3 } # 食塩
+    - { foodId: "17012", grams: 2.3 } # 食塩
     - { foodId: "17015", grams: 80 } # 酢（穀物酢）
     - { foodId: "01083", grams: 75 } # こめ 水稲穀粒 精白米 うるち米
     - { foodId: "03003", grams: 6.8 } # 砂糖（上白糖）
@@ -6350,10 +6349,10 @@
   suggestedSlots: [lunch, dinner]
   source: { label: "農林水産省「うちの郷土料理」", url: "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/47_6_okinawa.html", region: "沖縄県" }
   ingredients:
-    - { foodId: "11129", grams: 175 } # 豚ばら肉
-    - { foodId: "16060", grams: 50 } # 蒸留酒 しょうちゅう 泡盛
-    - { foodId: "03003", grams: 15 } # 砂糖（上白糖）
-    - { foodId: "17007", grams: 20 } # しょうゆ（濃口）
+    - { foodId: "11129", grams: 100 } # 豚ばら肉
+    - { foodId: "16060", grams: 28.6 } # 蒸留酒 しょうちゅう 泡盛
+    - { foodId: "03003", grams: 8.6 } # 砂糖（上白糖）
+    - { foodId: "17007", grams: 11.4 } # しょうゆ（濃口）
 
 - id: kyodo-47-7-okinawa
   name: "ターンムディンガク"
@@ -7607,12 +7606,12 @@
   suggestedSlots: [lunch, dinner]
   source: { label: "農林水産省「うちの郷土料理」", url: "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/funamiso_aichi.html", region: "愛知県" }
   ingredients:
-    - { foodId: "10238", grams: 120 } # ふな 生
-    - { foodId: "04023", grams: 37.5 } # だいず 全粒・全粒製品 全粒 黄大豆 国産 乾
-    - { foodId: "17046", grams: 45 } # 米みそ 赤色辛みそ
-    - { foodId: "03003", grams: 17.5 } # 砂糖（上白糖）
-    - { foodId: "16025", grams: 6.8 } # みりん
-    - { foodId: "06103", grams: 3.8 } # しょうが
+    - { foodId: "10238", grams: 60 } # ふな 生
+    - { foodId: "04023", grams: 18.8 } # だいず 全粒・全粒製品 全粒 黄大豆 国産 乾
+    - { foodId: "17046", grams: 22.5 } # 米みそ 赤色辛みそ
+    - { foodId: "03003", grams: 8.8 } # 砂糖（上白糖）
+    - { foodId: "16025", grams: 3.4 } # みりん
+    - { foodId: "06103", grams: 1.9 } # しょうが
 
 - id: kyodo-funayaki-fukuoka
   name: "ふなやき"
@@ -8245,6 +8244,7 @@
     - { foodId: "03003", grams: 2.3 } # 砂糖（上白糖）
     - { foodId: "16025", grams: 1.5 } # みりん
 
+# 煮汁・たれは5割を食べるとして数えた
 - id: kyodo-hasu-gyoden-shiga
   name: "はす魚田"
   kana: "はすぎょでん 滋賀 滋賀県"
@@ -8253,8 +8253,8 @@
   source: { label: "農林水産省「うちの郷土料理」", url: "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/hasu_gyoden_shiga.html", region: "滋賀県" }
   ingredients:
     - { foodId: "10075", grams: 50 } # おいかわ 生
-    - { foodId: "17045", grams: 40 } # みそ（淡色辛みそ）
-    - { foodId: "03003", grams: 17.5 } # 砂糖（上白糖）
+    - { foodId: "17045", grams: 20 } # みそ（淡色辛みそ）
+    - { foodId: "03003", grams: 8.8 } # 砂糖（上白糖）
     - { foodId: "12010", grams: 8.5 } # 鶏卵 卵黄 生
 
 - id: kyodo-hatto-jiru-miyagi
@@ -8893,20 +8893,20 @@
   suggestedSlots: [breakfast, lunch, dinner]
   source: { label: "農林水産省「うちの郷土料理」", url: "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/inakazushi_kochi.html", region: "高知県" }
   ingredients:
-    - { foodId: "01083", grams: 150 } # こめ 水稲穀粒 精白米 うるち米
-    - { foodId: "17015", grams: 24 } # 酢（穀物酢）
-    - { foodId: "07143", grams: 11 } # かんきつ ゆず 果汁 生
-    - { foodId: "03003", grams: 35 } # 砂糖（上白糖）
-    - { foodId: "17012", grams: 3 } # 食塩
-    - { foodId: "06103", grams: 7 } # しょうが
-    - { foodId: "05018", grams: 3.6 } # いりごま
-    - { foodId: "06149", grams: 40 } # たけのこ 若茎 生
-    - { foodId: "17007", grams: 16.8 } # しょうゆ（濃口）
-    - { foodId: "16025", grams: 9.6 } # みりん
-    - { foodId: "06109", grams: 8 } # ずいき 生ずいき 生
-    - { foodId: "06280", grams: 15 } # みょうが 花穂 生
-    - { foodId: "02003", grams: 50 } # こんにゃく
-    - { foodId: "08039", grams: 20 } # しいたけ
+    - { foodId: "01083", grams: 75 } # こめ 水稲穀粒 精白米 うるち米
+    - { foodId: "17015", grams: 12 } # 酢（穀物酢）
+    - { foodId: "07143", grams: 5.5 } # かんきつ ゆず 果汁 生
+    - { foodId: "03003", grams: 17.5 } # 砂糖（上白糖）
+    - { foodId: "17012", grams: 1.5 } # 食塩
+    - { foodId: "06103", grams: 3.5 } # しょうが
+    - { foodId: "05018", grams: 1.8 } # いりごま
+    - { foodId: "06149", grams: 20 } # たけのこ 若茎 生
+    - { foodId: "17007", grams: 8.4 } # しょうゆ（濃口）
+    - { foodId: "16025", grams: 4.8 } # みりん
+    - { foodId: "06109", grams: 4 } # ずいき 生ずいき 生
+    - { foodId: "06280", grams: 7.5 } # みょうが 花穂 生
+    - { foodId: "02003", grams: 25 } # こんにゃく
+    - { foodId: "08039", grams: 10 } # しいたけ
 
 # 1人前は1個
 - id: kyodo-inari-zushi-aomori
@@ -9160,7 +9160,7 @@
   suggestedSlots: [breakfast, lunch, dinner]
   source: { label: "農林水産省「うちの郷土料理」", url: "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/iwashi_zushi_mie.html", region: "三重県" }
   ingredients:
-    - { foodId: "10047", grams: 250 } # まいわし 生
+    - { foodId: "10047", grams: 75 } # まいわし 生
     - { foodId: "17015", grams: 12.5 } # 酢（穀物酢）
     - { foodId: "01083", grams: 112.5 } # こめ 水稲穀粒 精白米 うるち米
     - { foodId: "06103", grams: 3.8 } # しょうが
@@ -9345,20 +9345,21 @@
     - { foodId: "17015", grams: 3.8 } # 酢（穀物酢）
     - { foodId: "05018", grams: 1.1 } # いりごま
 
+# 煮汁・たれは5割を食べるとして数えた
 - id: kyodo-jyabara-daikon-no-nimono-kumamoto
   name: "蛇腹大根"
   kana: "房切り大根）の煮物（じゃばらだいこん（ふさきりだいこん）のにもの 熊本 熊本県"
-  category: main
-  suggestedSlots: [lunch, dinner]
+  category: side
+  suggestedSlots: [breakfast, lunch, dinner]
   source: { label: "農林水産省「うちの郷土料理」", url: "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/jyabara_daikon_no_nimono_kumamoto.html", region: "熊本県" }
   ingredients:
-    - { foodId: "06134", grams: 333.3 } # だいこん
-    - { foodId: "08039", grams: 15 } # しいたけ
-    - { foodId: "06214", grams: 25 } # にんじん
-    - { foodId: "06226", grams: 16.7 } # 長ねぎ
-    - { foodId: "12004", grams: 33.3 } # 卵（生）
-    - { foodId: "17007", grams: 40 } # しょうゆ（濃口）
-    - { foodId: "03003", grams: 4.5 } # 砂糖（上白糖）
+    - { foodId: "06134", grams: 166.7 } # だいこん
+    - { foodId: "08039", grams: 7.5 } # しいたけ
+    - { foodId: "06214", grams: 12.5 } # にんじん
+    - { foodId: "06226", grams: 8.3 } # 長ねぎ
+    - { foodId: "12004", grams: 16.7 } # 卵（生）
+    - { foodId: "17007", grams: 10 } # しょうゆ（濃口）
+    - { foodId: "03003", grams: 1.1 } # 砂糖（上白糖）
 
 - id: kyodo-jyune-mochi-aomori
   name: "じゅね餅"
@@ -9556,23 +9557,23 @@
 - id: kyodo-kakimaze-mie
   name: "かきまぜ（三重県）"
   kana: "三重 三重県"
-  category: main
-  suggestedSlots: [lunch, dinner]
+  category: staple
+  suggestedSlots: [breakfast, lunch, dinner]
   source: { label: "農林水産省「うちの郷土料理」", url: "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/kakimaze_mie.html", region: "三重県" }
   ingredients:
-    - { foodId: "01083", grams: 112.5 } # こめ 水稲穀粒 精白米 うるち米
-    - { foodId: "06010", grams: 13.8 } # いんげんまめ さやいんげん 若ざや 生
-    - { foodId: "06214", grams: 17.5 } # にんじん
-    - { foodId: "17015", grams: 17.5 } # 酢（穀物酢）
-    - { foodId: "03003", grams: 15.8 } # 砂糖（上白糖）
-    - { foodId: "17012", grams: 3 } # 食塩
-    - { foodId: "08013", grams: 2.5 } # しいたけ 乾しいたけ 乾
-    - { foodId: "04040", grams: 3.8 } # 油揚げ
-    - { foodId: "06084", grams: 10 } # ごぼう
-    - { foodId: "04042", grams: 5 } # だいず 凍り豆腐 乾
-    - { foodId: "16001", grams: 3.8 } # 日本酒
-    - { foodId: "17007", grams: 18 } # しょうゆ（濃口）
-    - { foodId: "10090", grams: 7.5 } # かつお 加工品 なまり節
+    - { foodId: "01083", grams: 75 } # こめ 水稲穀粒 精白米 うるち米
+    - { foodId: "06010", grams: 9.2 } # いんげんまめ さやいんげん 若ざや 生
+    - { foodId: "06214", grams: 11.7 } # にんじん
+    - { foodId: "17015", grams: 11.7 } # 酢（穀物酢）
+    - { foodId: "03003", grams: 10.5 } # 砂糖（上白糖）
+    - { foodId: "17012", grams: 2 } # 食塩
+    - { foodId: "08013", grams: 1.7 } # しいたけ 乾しいたけ 乾
+    - { foodId: "04040", grams: 2.5 } # 油揚げ
+    - { foodId: "06084", grams: 6.7 } # ごぼう
+    - { foodId: "04042", grams: 3.3 } # だいず 凍り豆腐 乾
+    - { foodId: "16001", grams: 2.5 } # 日本酒
+    - { foodId: "17007", grams: 12 } # しょうゆ（濃口）
+    - { foodId: "10090", grams: 5 } # かつお 加工品 なまり節
 
 - id: kyodo-kakinamasu-shimane
   name: "柿なます（島根県）"
@@ -9609,12 +9610,12 @@
   suggestedSlots: [lunch, dinner]
   source: { label: "農林水産省「うちの郷土料理」", url: "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/kakke_aomori.html", region: "青森県" }
   ingredients:
-    - { foodId: "01122", grams: 200 } # そば そば粉 全層粉
-    - { foodId: "17012", grams: 3.6 } # 食塩
-    - { foodId: "06134", grams: 100 } # だいこん
-    - { foodId: "04032", grams: 60 } # 木綿豆腐
-    - { foodId: "06223", grams: 1 } # にんにく
-    - { foodId: "17045", grams: 10.8 } # みそ（淡色辛みそ）
+    - { foodId: "01122", grams: 100 } # そば そば粉 全層粉
+    - { foodId: "17012", grams: 1.8 } # 食塩
+    - { foodId: "06134", grams: 50 } # だいこん
+    - { foodId: "04032", grams: 30 } # 木綿豆腐
+    - { foodId: "06223", grams: 0.5 } # にんにく
+    - { foodId: "17045", grams: 5.4 } # みそ（淡色辛みそ）
 
 - id: kyodo-kamonasunodengaku-kyoto
   name: "賀茂なすの田楽"
@@ -9647,12 +9648,12 @@
   suggestedSlots: [breakfast, lunch, dinner]
   source: { label: "農林水産省「うちの郷土料理」", url: "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/kankan_zushi_kagawa.html", region: "香川県" }
   ingredients:
-    - { foodId: "01083", grams: 150 } # こめ 水稲穀粒 精白米 うるち米
-    - { foodId: "17015", grams: 20 } # 酢（穀物酢）
-    - { foodId: "17012", grams: 3 } # 食塩
-    - { foodId: "03003", grams: 20 } # 砂糖（上白糖）
-    - { foodId: "16025", grams: 6 } # みりん
-    - { foodId: "10171", grams: 100 } # さわら 生
+    - { foodId: "01083", grams: 75 } # こめ 水稲穀粒 精白米 うるち米
+    - { foodId: "17015", grams: 10 } # 酢（穀物酢）
+    - { foodId: "17012", grams: 1.5 } # 食塩
+    - { foodId: "03003", grams: 10 } # 砂糖（上白糖）
+    - { foodId: "16025", grams: 3 } # みりん
+    - { foodId: "10171", grams: 50 } # さわら 生
 
 # 1人前は2個
 - id: kyodo-kankoro-ehime
@@ -9912,16 +9913,16 @@
   suggestedSlots: [breakfast, lunch, dinner]
   source: { label: "農林水産省「うちの郷土料理」", url: "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/kenojiru_aomori.html", region: "青森県" }
   ingredients:
-    - { foodId: "06134", grams: 200 } # だいこん
-    - { foodId: "06214", grams: 60 } # にんじん
-    - { foodId: "06084", grams: 35 } # ごぼう
-    - { foodId: "06324", grams: 50 } # わらび 生わらび 生
-    - { foodId: "06256", grams: 60 } # ふき 葉柄 生
-    - { foodId: "04040", grams: 15 } # 油揚げ
-    - { foodId: "04042", grams: 80 } # だいず 凍り豆腐 乾
-    - { foodId: "04023", grams: 60 } # だいず 全粒・全粒製品 全粒 黄大豆 国産 乾
-    - { foodId: "09017", grams: 1.5 } # まこんぶ 素干し 乾
-    - { foodId: "17046", grams: 40 } # 米みそ 赤色辛みそ
+    - { foodId: "06134", grams: 100 } # だいこん
+    - { foodId: "06214", grams: 30 } # にんじん
+    - { foodId: "06084", grams: 17.5 } # ごぼう
+    - { foodId: "06324", grams: 25 } # わらび 生わらび 生
+    - { foodId: "06256", grams: 30 } # ふき 葉柄 生
+    - { foodId: "04040", grams: 7.5 } # 油揚げ
+    - { foodId: "04087", grams: 40 } # だいず 凍り豆腐 水煮
+    - { foodId: "04028", grams: 30 } # だいず 全粒・全粒製品 水煮缶詰 黄大豆
+    - { foodId: "09017", grams: 0.8 } # まこんぶ 素干し 乾
+    - { foodId: "17046", grams: 20 } # 米みそ 赤色辛みそ
 
 - id: kyodo-kensan-yaki-niigata
   name: "けんさん焼き"
@@ -10141,7 +10142,6 @@
     - { foodId: "17007", grams: 20 } # しょうゆ（濃口）
     - { foodId: "16025", grams: 20 } # みりん
 
-# 1人前は1本
 - id: kyodo-kobuzushi-kochi
   name: "こぶずし"
   kana: "高知 高知県"
@@ -10149,14 +10149,13 @@
   suggestedSlots: [breakfast, lunch, dinner]
   source: { label: "農林水産省「うちの郷土料理」", url: "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/kobuzushi_kochi.html", region: "高知県" }
   ingredients:
-    - { foodId: "01083", grams: 225 } # こめ 水稲穀粒 精白米 うるち米
-    - { foodId: "17015", grams: 32.5 } # 酢（穀物酢）
-    - { foodId: "03003", grams: 31.5 } # 砂糖（上白糖）
-    - { foodId: "17012", grams: 5 } # 食塩
-    - { foodId: "06103", grams: 12.5 } # しょうが
-    - { foodId: "05017", grams: 4.5 } # ごま 乾
-    - { foodId: "09017", grams: 5 } # まこんぶ 素干し 乾
-    - { foodId: "06172", grams: 0.1 } # とうがらし 果実 乾
+    - { foodId: "01083", grams: 75 } # こめ 水稲穀粒 精白米 うるち米
+    - { foodId: "17015", grams: 10.8 } # 酢（穀物酢）
+    - { foodId: "03003", grams: 10.5 } # 砂糖（上白糖）
+    - { foodId: "17012", grams: 1.7 } # 食塩
+    - { foodId: "06103", grams: 4.2 } # しょうが
+    - { foodId: "05017", grams: 1.5 } # ごま 乾
+    - { foodId: "09017", grams: 1.7 } # まこんぶ 素干し 乾
 
 - id: kyodo-kofuku-mame-shiga
   name: "幸福豆"
@@ -10614,7 +10613,7 @@
   suggestedSlots: [lunch, dinner]
   source: { label: "農林水産省「うちの郷土料理」", url: "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/maruyaki_saba_fukui.html", region: "福井県" }
   ingredients:
-    - { foodId: "10154", grams: 350 } # さば（生）
+    - { foodId: "10154", grams: 175 } # さば（生）
 
 - id: kyodo-masunoankake-yamagata
   name: "鱒のあんかけ"
@@ -10842,6 +10841,7 @@
     - { foodId: "10379", grams: 20 } # かまぼこ
     - { foodId: "06226", grams: 10 } # 長ねぎ
 
+# 煮汁・たれは5割を食べるとして数えた
 - id: kyodo-misooden-aichi
   name: "味噌おでん"
   kana: "みそおでん 愛知 愛知県"
@@ -10854,22 +10854,22 @@
     - { foodId: "02003", grams: 62.5 } # こんにゃく
     - { foodId: "04038", grams: 75 } # だいず 焼き豆腐
     - { foodId: "10381", grams: 30 } # ちくわ
-    - { foodId: "17046", grams: 20 } # 米みそ 赤色辛みそ
-    - { foodId: "03003", grams: 9 } # 砂糖（上白糖）
-    - { foodId: "16025", grams: 13.5 } # みりん
+    - { foodId: "17046", grams: 10 } # 米みそ 赤色辛みそ
+    - { foodId: "03003", grams: 4.5 } # 砂糖（上白糖）
+    - { foodId: "16025", grams: 6.8 } # みりん
     - { foodId: "05017", grams: 2.3 } # ごま 乾
-    - { foodId: "17008", grams: 15 } # うすくちしょうゆ
+    - { foodId: "17008", grams: 7.5 } # うすくちしょうゆ
 
 - id: kyodo-mitama-ishikawa
   name: "みたま"
   kana: "石川 石川県"
-  category: main
-  suggestedSlots: [lunch, dinner]
+  category: staple
+  suggestedSlots: [breakfast, lunch, dinner]
   source: { label: "農林水産省「うちの郷土料理」", url: "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/mitama_ishikawa.html", region: "石川県" }
   ingredients:
-    - { foodId: "01151", grams: 212.5 } # こめ 水稲穀粒 精白米 もち米
-    - { foodId: "04077", grams: 35 } # だいず 全粒・全粒製品 全粒 黒大豆 国産 乾
-    - { foodId: "17012", grams: 1.5 } # 食塩
+    - { foodId: "01151", grams: 85 } # こめ 水稲穀粒 精白米 もち米
+    - { foodId: "04077", grams: 14 } # だいず 全粒・全粒製品 全粒 黒大豆 国産 乾
+    - { foodId: "17012", grams: 0.6 } # 食塩
 
 # 1人前は1個
 - id: kyodo-mitori-manjyu-fukuoka
@@ -11425,6 +11425,7 @@
     - { foodId: "16001", grams: 7.5 } # 日本酒
     - { foodId: "16025", grams: 9 } # みりん
 
+# 煮汁・たれは5割を食べるとして数えた
 - id: kyodo-nishinnokobumaki-ishikawa
   name: "にしんの昆布まき"
   kana: "にしんのこぶまき 石川 石川県"
@@ -11435,11 +11436,11 @@
     - { foodId: "09017", grams: 15 } # まこんぶ 素干し 乾
     - { foodId: "06056", grams: 12 } # かんぴょう 乾
     - { foodId: "10219", grams: 45 } # にしん 身欠きにしん
-    - { foodId: "16001", grams: 33.3 } # 日本酒
-    - { foodId: "03003", grams: 18 } # 砂糖（上白糖）
-    - { foodId: "17007", grams: 31.5 } # しょうゆ（濃口）
-    - { foodId: "16025", grams: 30 } # みりん
-    - { foodId: "17015", grams: 7.5 } # 酢（穀物酢）
+    - { foodId: "16001", grams: 16.7 } # 日本酒
+    - { foodId: "03003", grams: 9 } # 砂糖（上白糖）
+    - { foodId: "17007", grams: 15.8 } # しょうゆ（濃口）
+    - { foodId: "16025", grams: 15 } # みりん
+    - { foodId: "17015", grams: 3.8 } # 酢（穀物酢）
 
 - id: kyodo-niwatorijiru-oita
   name: "鶏汁"
@@ -12506,16 +12507,16 @@
 - id: kyodo-semmaizuke-kyoto
   name: "千枚漬け"
   kana: "せんまいづけ 京都 京都府"
-  category: main
-  suggestedSlots: [lunch, dinner]
+  category: side
+  suggestedSlots: [breakfast, lunch, dinner]
   source: { label: "農林水産省「うちの郷土料理」", url: "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/semmaizuke_kyoto.html", region: "京都府" }
   ingredients:
-    - { foodId: "06038", grams: 250 } # かぶ 根 皮なし 生
-    - { foodId: "17012", grams: 5 } # 食塩
-    - { foodId: "09017", grams: 11.3 } # まこんぶ 素干し 乾
-    - { foodId: "17015", grams: 50 } # 酢（穀物酢）
-    - { foodId: "03003", grams: 22.5 } # 砂糖（上白糖）
-    - { foodId: "16025", grams: 12 } # みりん
+    - { foodId: "06038", grams: 50 } # かぶ 根 皮なし 生
+    - { foodId: "17012", grams: 0.3 } # 食塩
+    - { foodId: "09017", grams: 2.3 } # まこんぶ 素干し 乾
+    - { foodId: "17015", grams: 10 } # 酢（穀物酢）
+    - { foodId: "03003", grams: 4.5 } # 砂糖（上白糖）
+    - { foodId: "16025", grams: 2.4 } # みりん
 
 - id: kyodo-senbei-jiru-aomori
   name: "せんべい汁"
@@ -12747,11 +12748,11 @@
   suggestedSlots: [breakfast, lunch, dinner]
   source: { label: "農林水産省「うちの郷土料理」", url: "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/shiromisonozoni_kyoto.html", region: "京都府" }
   ingredients:
-    - { foodId: "02015", grams: 100 } # さといも やつがしら 球茎 生
-    - { foodId: "06134", grams: 25 } # だいこん
-    - { foodId: "01117", grams: 75 } # もち
-    - { foodId: "17021", grams: 300 } # だし（かつお・昆布）
-    - { foodId: "17044", grams: 125 } # 米みそ 甘みそ
+    - { foodId: "02015", grams: 66.7 } # さといも やつがしら 球茎 生
+    - { foodId: "06134", grams: 16.7 } # だいこん
+    - { foodId: "01117", grams: 50 } # もち
+    - { foodId: "17021", grams: 200 } # だし（かつお・昆布）
+    - { foodId: "17044", grams: 83.3 } # 米みそ 甘みそ
 
 - id: kyodo-shishamonokanroni-hokkaido
   name: "ししゃもの甘露煮"
@@ -13450,6 +13451,7 @@
     - { foodId: "16001", grams: 10 } # 日本酒
     - { foodId: "14006", grams: 1.2 } # サラダ油
 
+# 煮汁・たれは5割を食べるとして数えた
 - id: kyodo-taraosa-oita
   name: "たらおさ"
   kana: "大分 大分県"
@@ -13458,22 +13460,22 @@
   source: { label: "農林水産省「うちの郷土料理」", url: "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/taraosa_oita.html", region: "大分県" }
   ingredients:
     - { foodId: "10209", grams: 50 } # たら まだら 干しだら
-    - { foodId: "17007", grams: 22.5 } # しょうゆ（濃口）
-    - { foodId: "03003", grams: 11.3 } # 砂糖（上白糖）
-    - { foodId: "16001", grams: 15 } # 日本酒
-    - { foodId: "16025", grams: 18 } # みりん
+    - { foodId: "17007", grams: 11.3 } # しょうゆ（濃口）
+    - { foodId: "03003", grams: 5.6 } # 砂糖（上白糖）
+    - { foodId: "16001", grams: 7.5 } # 日本酒
+    - { foodId: "16025", grams: 9 } # みりん
     - { foodId: "06172", grams: 0.1 } # とうがらし 果実 乾
 
 - id: kyodo-tenyose-nagano
   name: "天寄せ"
   kana: "てんよせ 長野 長野県"
-  category: main
-  suggestedSlots: [lunch, dinner]
+  category: snack
+  suggestedSlots: [other]
   source: { label: "農林水産省「うちの郷土料理」", url: "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/tenyose_nagano.html", region: "長野県" }
   ingredients:
     - { foodId: "09027", grams: 2 } # てんぐさ 角寒天
     - { foodId: "03003", grams: 25 } # 砂糖（上白糖）
-    - { foodId: "01043", grams: 156.3 } # こむぎ そうめん・ひやむぎ 乾
+    - { foodId: "01043", grams: 1.3 } # こむぎ そうめん・ひやむぎ 乾
 
 - id: kyodo-teppai-kagawa
   name: "てっぱい"
@@ -14091,13 +14093,13 @@
 - id: kyodo-yangome-chiba
   name: "ヤンゴメ"
   kana: "千葉 千葉県"
-  category: main
-  suggestedSlots: [lunch, dinner]
+  category: snack
+  suggestedSlots: [other]
   source: { label: "農林水産省「うちの郷土料理」", url: "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/yangome_chiba.html", region: "千葉県" }
   ingredients:
-    - { foodId: "01083", grams: 102 } # こめ 水稲穀粒 精白米 うるち米
-    - { foodId: "04001", grams: 64 } # あずき 全粒 乾
-    - { foodId: "03003", grams: 48 } # 砂糖（上白糖）
+    - { foodId: "01083", grams: 51 } # こめ 水稲穀粒 精白米 うるち米
+    - { foodId: "04001", grams: 32 } # あずき 全粒 乾
+    - { foodId: "03003", grams: 24 } # 砂糖（上白糖）
 
 - id: kyodo-yoshida-no-udon-yama-nashi
   name: "吉田のうどん"
