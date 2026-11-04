@@ -1,9 +1,14 @@
-import { answer, useConfirmStore } from './confirm'
+import { answer, useConfirmStore, type ConfirmRequest } from './confirm'
+import { useDismiss } from './useDismiss'
 
 // App の最後に1つだけ置く。ほかのダイアログより手前に出す
 export function ConfirmHost() {
   const request = useConfirmStore((s) => s.request)
-  if (!request) return null
+  return request ? <ConfirmBox request={request} /> : null
+}
+
+function ConfirmBox({ request }: { request: ConfirmRequest }) {
+  useDismiss(() => answer(false))
   return (
     <div className="fixed inset-0 z-30 flex items-center justify-center bg-ink/30 px-4" onClick={() => answer(false)}>
       <div
@@ -12,7 +17,6 @@ export function ConfirmHost() {
         aria-label={request.message}
         className="w-full max-w-sm rounded-[var(--radius-card)] bg-cream p-5 shadow-xl"
         onClick={(e) => e.stopPropagation()}
-        onKeyDown={(e) => e.key === 'Escape' && answer(false)}
       >
         <p className="text-base leading-relaxed">{request.message}</p>
         <div className="mt-5 flex gap-2">
