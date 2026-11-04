@@ -77,6 +77,17 @@ describe('目安・上限との比較', () => {
     const other = Object.fromEntries(nutrientChecks(totals({ salt: 0.1 }), targets, 'other').map((c) => [c.key, c]))
     expect(other.vitaminC.status).toBe('info')
   })
+
+  it('その他の区分のとりすぎは1日の目安と比べる（お菓子ひとつで「こえ」にしない）', () => {
+    // 飽和脂肪酸 8g（チョコレート半分ほど）は1日の目安の半分ほど
+    const satFat = nutrientChecks(totals({ satFat: 8, salt: 0.2 }), targets, 'other').find((c) => c.key === 'satFat')!
+    expect(satFat.perDay).toBe(true)
+    expect(satFat.goal).toBe(targets.satFatMaxG)
+    expect(satFat.status).toBe('ok')
+    const lunch = nutrientChecks(totals({ satFat: 8 }), targets, 'lunch').find((c) => c.key === 'satFat')!
+    expect(lunch.perDay).toBe(false)
+    expect(lunch.status).toBe('over')
+  })
 })
 
 describe('PFCの理想と実績の差', () => {

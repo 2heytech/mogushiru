@@ -58,7 +58,7 @@ function goalText(c: NutrientCheck, perSlot: boolean): string {
   if (c.target.kind === 'none' || c.goal === null) return ''
   const value = `${fmt(c.key, c.goal)}${unit}`
   if (c.target.kind === 'max' && c.target.basis === '耐容上限量') return `上限 ${value}`
-  if (c.target.kind === 'max') return `${DAILY_ONLY.includes(c.key) ? '1日' : perSlot ? '目安' : c.target.basis} ${value}${LIMIT_WORD[c.key] ?? ''}`
+  if (c.target.kind === 'max') return `${perSlot ? (c.perDay ? '1日' : '目安') : DAILY_ONLY.includes(c.key) ? '1日' : c.target.basis} ${value}${LIMIT_WORD[c.key] ?? ''}`
   return `${perSlot ? '目安' : c.target.basis} ${value}`
 }
 

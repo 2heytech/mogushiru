@@ -37,6 +37,8 @@ export type NutrientCheck = {
   target: NutrientTarget
   // 比べる量（区分のときは1日の目安を区分の割合で配分した量）。基準がなければ null
   goal: number | null
+  // goal が1日の値か（1日の合計、アルコール・カフェイン・耐容上限量、その他の区分のとりすぎ）
+  perDay: boolean
   // 耐容上限量（1日の値。区分でもこの値と比べる）
   upper: number | null
   // 耐容上限量と比べる量。upperScope が 'supplement' ならサプリの分だけ
@@ -75,12 +77,13 @@ export function judge(
 // アルコール・カフェインは1日の量の目安なので、区分に分けず1日の値のまま比べる。
 // 耐容上限量も1日の値のまま比べる（1食でこえれば1日でもこえる）。
 // その他（間食・飲み物）は少なくても問題にしないので、とりたい栄養素の不足は判定しない。
+// とりすぎ（食塩・飽和脂肪酸）も区分の割合（1割ほど）ではお菓子ひとつでこえてしまうので、1日の目安と比べる。
 // supplement はサプリの分だけの合計。サプリ分だけにかかる耐容上限量（マグネシウムなど）はこれと比べ、
 // 渡さなければその上限は判定しない（区分カード）
 export function nutrientChecks(totals: NutrientTotals, targets: Targets, slot?: Slot, supplement?: NutrientTotals): NutrientCheck[] {
   return CHECKED_NUTRIENTS.map((key) => {
     const target = targets.nutrients[key]
-    const daily = DAILY_ONLY.includes(key) || (target.kind === 'max' && target.basis === '耐容上限量')
+    const daily = DAILY_ONLY.includes(key) || (target.kind === 'max' && (target.basis === '耐容上限量' || slot === 'other'))
     const share = slot && !daily ? targets.slotShare[slot] : 1
     const goal = target.kind === 'none' ? null : target.value * share
     const scope = upperScopeOf(target)
@@ -92,6 +95,7 @@ export function nutrientChecks(totals: NutrientTotals, targets: Targets, slot?: 
       amount,
       target,
       goal,
+      perDay: !slot || daily,
       upper,
       upperScope: scope,
       upperAmount,

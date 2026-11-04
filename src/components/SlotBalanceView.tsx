@@ -37,7 +37,8 @@ export function SlotBalanceView({ totals, slot, targets, alerts }: { totals: Nut
   const kcal = pfcKcal(v)
   const max = b.targetKcal * 2
   const checks = nutrientChecks(totals, targets, slot)
-  const saltGoal = checks.find((c) => c.key === 'salt')!.goal!
+  const salt = checks.find((c) => c.key === 'salt')!
+  const saltGoal = salt.goal!
   return (
     <div className="mt-3 space-y-2 rounded-2xl bg-cream/70 p-3 text-xs">
       <Metric slot={slot} mood={moods.energy} what="カロリー">
@@ -76,7 +77,7 @@ export function SlotBalanceView({ totals, slot, targets, alerts }: { totals: Nut
         </Metric>
       )}
       <p className="flex flex-wrap gap-1.5 pl-12 tabular-nums">
-        <Chip label="食塩" value={`${v.salt.toFixed(1)}g`} sub={`目安 ${saltGoal.toFixed(1)}g`} warn={v.salt >= saltGoal} />
+        <Chip label="食塩" value={`${v.salt.toFixed(1)}g`} sub={`${salt.perDay ? '1日' : '目安'} ${saltGoal.toFixed(1)}g`} warn={v.salt >= saltGoal} />
         {v.alcohol >= 0.5 && <Chip label="アルコール" value={`${Math.round(v.alcohol)}g`} sub={`1日 ${targets.alcoholRiskG}g未満`} warn={v.alcohol >= targets.alcoholRiskG} />}
         <Chip label="不飽和脂肪酸" value={`${(v.monoUnsatFat + v.polyUnsatFat).toFixed(1)}g`} />
       </p>

@@ -1,5 +1,6 @@
 import type { Catalog } from '../domain/nutrition'
 import { FOOD_PORTION, isPopular, NOT_POPULAR, popularRank } from '../domain/popular'
+import { representativeProducts } from '../domain/productGroups'
 import { matcher, rankAcross, rankAndFilter } from '../domain/search'
 import { isSupplement, SUPPLEMENT_MAIN_KEYS } from '../domain/supplement'
 import { formatPortion, prioritizedIn } from '../domain/customize'
@@ -59,8 +60,8 @@ function entries(kind: Kind, { catalog, slot, query, category, showAlcohol, favo
     case 'product': {
       // 市販品は数が多いので、検索中は一致しないものをカードにする前に外す
       const hit = matcher(query)
-      // 同じ商品が古いJANでも入っていることがあるので1回だけ
-      return [...new Set(catalog.products.values())]
+      // 同じ商品が古いJANでも入っていることがあるので1回だけ。箱売りや地域違いの同じ名前の商品は1品にまとめる
+      const found = [...new Set(catalog.products.values())]
         .filter((p) => !isSupplement(p) && hit(p.name, p.brand))
         .filter((p) => showAlcohol || p.category !== 'alcohol')
         .filter((p) =>
@@ -72,6 +73,7 @@ function entries(kind: Kind, { catalog, slot, query, category, showAlcohol, favo
               ? Boolean(query) || !PRODUCT_CATEGORY_LAST.includes(p.category)
               : p.category === category,
         )
+      return representativeProducts(found)
         .map((p) => {
           // 1食量が分かれば1食分、分からなければ100g(mL)で追加する
           const grams = p.servingGrams ?? 100
