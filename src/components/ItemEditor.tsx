@@ -4,6 +4,7 @@ import { supplementLines } from './labels'
 import type { MenuItem } from '../domain/types'
 import { itemName } from './itemName'
 import { PortionEditor } from './PortionEditor'
+import { useDismiss } from './useDismiss'
 
 // 市販品・食材の編集（量・お気に入り）。料理は材料まで変えられる Customizer で開く
 export function ItemEditor({
@@ -26,6 +27,7 @@ export function ItemEditor({
   onRemove: () => void
   onClose: () => void
 }) {
+  useDismiss(onClose)
   const v = itemTotals(item, catalog).values
   const name = itemName(item, catalog)
   const product = item.kind === 'product' || item.kind === 'supplement' ? catalog.products.get(item.refId) : undefined

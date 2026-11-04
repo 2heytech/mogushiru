@@ -5,6 +5,7 @@ import type { SavedMenu } from '../store/useAppStore'
 import { confirmDialog } from './confirm'
 import { defaultMenuName } from './menuName'
 import { UiIcon } from './UiIcon'
+import { useDismiss } from './useDismiss'
 
 const itemCount = (menu: DayMenu) => SLOTS.reduce((n, s) => n + menu[s].length, 0)
 
@@ -54,6 +55,7 @@ const dateLabel = (iso: string) => {
 }
 
 function Sheet({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
+  useDismiss(onClose)
   return (
     <div className="fixed inset-0 z-20 flex items-end bg-ink/30 md:items-center md:justify-center" onClick={onClose}>
       <div

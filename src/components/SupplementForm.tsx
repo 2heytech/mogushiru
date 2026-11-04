@@ -12,6 +12,7 @@ import {
 import type { NutrientKey, Product } from '../domain/types'
 import { nutrientInfo } from './labels'
 import type { MyProductInput } from '../store/useAppStore'
+import { useDismiss } from './useDismiss'
 
 const num = (s: string) => (s.trim() === '' || Number.isNaN(Number(s)) || Number(s) < 0 ? null : Number(s))
 // 0 は「入っていない」なので空欄で見せる
@@ -29,6 +30,7 @@ export function SupplementForm({
   onDelete?: () => void
   onClose: () => void
 }) {
+  useDismiss(onClose)
   const [name, setName] = useState(initial?.name ?? '')
   const [brand, setBrand] = useState(initial?.brand ?? '')
   const [servingLabel, setServingLabel] = useState(initial?.servingLabel ?? '')

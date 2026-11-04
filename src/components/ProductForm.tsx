@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { NUTRIENT_KEYS, type Nutrients, type Product } from '../domain/types'
 import type { MyProductInput } from '../store/useAppStore'
+import { useDismiss } from './useDismiss'
 
 type Basis = Product['basis']
 
@@ -35,6 +36,7 @@ export function ProductForm({
   onDelete?: () => void
   onClose: () => void
 }) {
+  useDismiss(onClose)
   const [name, setName] = useState(initial?.name ?? '')
   const [brand, setBrand] = useState(initial?.brand ?? '')
   const [basis, setBasis] = useState<Basis>(initial?.basis ?? 'serving')

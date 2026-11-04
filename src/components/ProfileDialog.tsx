@@ -7,6 +7,7 @@ import { SLOTS, type Activity, type Exercise, type Goal, type Profile, type Sex,
 import { ExerciseEditor } from './ExerciseEditor'
 import { fromDraft, toDraft, type ExerciseDraft } from './exerciseDraft'
 import { SLOT_LABEL } from './labels'
+import { useDismiss } from './useDismiss'
 
 // 運動を入れたときは、運動の分は別に足すので「高い」から運動習慣を外す
 const activityOptions = (withExercise: boolean): { id: Activity; label: string; desc: string }[] => [
@@ -102,6 +103,7 @@ export function ProfileDialog({
   // 'slotShare'・'exercise' のときはその欄までスクロールして開く
   focus?: ProfileFocus
 }) {
+  useDismiss(onClose)
   const [sex, setSex] = useState<Sex>(profile.sex)
   const [age, setAge] = useState(String(profile.age))
   const [height, setHeight] = useState(profile.heightCm ? String(profile.heightCm) : '')
@@ -237,7 +239,8 @@ export function ProfileDialog({
             </p>
           )}
         </div>
-        <div className="mt-5 flex gap-2">
+        {/* 保存・キャンセルは、長い入力欄をスクロールしても画面の下に出しておく */}
+        <div className="sticky -bottom-5 -mx-5 -mb-5 mt-5 flex gap-2 border-t border-ink/5 bg-cream px-5 pt-3 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
           <button type="button" onClick={onClose} className="min-h-11 flex-1 rounded-full bg-white">
             キャンセル
           </button>

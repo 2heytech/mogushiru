@@ -4,6 +4,7 @@ import { ingredientsTotals, scaleTotals } from '../domain/nutrition'
 import { rankAndFilter } from '../domain/search'
 import { SLOTS, type DishSource, type Food, type Ingredient, type Slot } from '../domain/types'
 import { SLOT_LABEL } from './labels'
+import { useDismiss } from './useDismiss'
 
 const SUGGEST_LIMIT = 8
 const ADD_GRAMS = 50
@@ -110,6 +111,7 @@ export function Customizer({
   onSave: (name: string, ingredients: Ingredient[], portion: number, slots: Slot[]) => void
   onClose: () => void
 }) {
+  useDismiss(onClose)
   const [rows, setRows] = useState<Row[]>(() => toRows(initial))
   const [portion, setPortion] = useState(initialPortion)
   const [slots, setSlots] = useState<Slot[]>(initialSlots)
@@ -301,7 +303,12 @@ export function Customizer({
                 onClick={() => onApply(result, portion)}
                 className="min-h-11 flex-1 rounded-full bg-white text-sm font-bold text-coral disabled:opacity-50"
               >
-                {applyLabel}
+                {/* 「この1日の食事に／反映」の区切りでだけ折り返す（「反／映」で折れないように） */}
+                {applyLabel.split(/(?<=に)/).map((part) => (
+                  <span key={part} className="inline-block">
+                    {part}
+                  </span>
+                ))}
               </button>
             )}
             <button

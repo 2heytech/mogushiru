@@ -48,6 +48,8 @@ export function RankingView({ catalog, targets, prices }: { catalog: Catalog; ta
   const [familiarOnly, setFamiliarOnly] = useState(true)
   const [query, setQuery] = useState('')
   const [limit, setLimit] = useState(PAGE)
+  // スマホでは「くらべ方・種類・検索」を畳み、成分をえらんだらすぐ結果が見えるようにする（PCは常にひらく）
+  const [filtersOpen, setFiltersOpen] = useState(false)
 
   const familiar = useMemo(() => familiarFoodIds(catalog), [catalog])
   const metrics = RANKING_METRICS.filter((m) => m.key !== 'per100yen' || prices.size > 0).filter((m) => !(m.key === 'per100kcal' && nutrient === 'energyKcal'))
@@ -66,6 +68,14 @@ export function RankingView({ catalog, targets, prices }: { catalog: Catalog; ta
   const unitSuffix: Record<RankingMetric, string> = { serving: '/1回', per100g: '/100g', per100kcal: '/100kcal', per100yen: '/100円' }
 
   const reset = () => setLimit(PAGE)
+  const filterSummary = [
+    metrics.find((m) => m.key === activeMetric)?.label,
+    group ? FOOD_GROUP_LABEL[group] : '全種類',
+    query && `「${query}」`,
+    !familiarOnly && 'すべての食品',
+  ]
+    .filter(Boolean)
+    .join('・')
 
   return (
     <section aria-labelledby="ranking-title" className="space-y-4">
@@ -77,7 +87,7 @@ export function RankingView({ catalog, targets, prices }: { catalog: Catalog; ta
         </p>
       </div>
 
-      <div className="space-y-3 rounded-[var(--radius-card)] bg-white/70 p-4 shadow-sm">
+      <div className="flex flex-col gap-3 rounded-[var(--radius-card)] bg-white/70 p-4 shadow-sm">
         <div>
           <p className="mb-1.5 text-xs font-bold text-ink-soft">成分</p>
           <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1 sm:flex-wrap">
@@ -88,43 +98,58 @@ export function RankingView({ catalog, targets, prices }: { catalog: Catalog; ta
             ))}
           </div>
         </div>
-        <div>
-          <p className="mb-1.5 text-xs font-bold text-ink-soft">くらべ方</p>
-          <div className="flex flex-wrap gap-1.5">
-            {metrics.map((m) => (
-              <Chip key={m.key} active={m.key === activeMetric} onClick={() => (setMetric(m.key), reset())}>
-                {m.label}
-              </Chip>
-            ))}
+        <button
+          type="button"
+          aria-expanded={filtersOpen}
+          aria-controls="ranking-filters"
+          onClick={() => setFiltersOpen(!filtersOpen)}
+          className="flex min-h-10 w-full items-center gap-2 rounded-full bg-cream px-4 text-left text-sm sm:hidden"
+        >
+          <span className="shrink-0 font-bold">しぼりこみ</span>
+          <span className="min-w-0 flex-1 truncate text-xs text-ink-soft">{filterSummary}</span>
+          <span aria-hidden className={`shrink-0 text-xs transition ${filtersOpen ? 'rotate-180' : ''}`}>
+            ▼
+          </span>
+        </button>
+        <div id="ranking-filters" className={`space-y-3 sm:block ${filtersOpen ? '' : 'hidden'}`}>
+          <div>
+            <p className="mb-1.5 text-xs font-bold text-ink-soft">くらべ方</p>
+            <div className="flex flex-wrap gap-1.5">
+              {metrics.map((m) => (
+                <Chip key={m.key} active={m.key === activeMetric} onClick={() => (setMetric(m.key), reset())}>
+                  {m.label}
+                </Chip>
+              ))}
+            </div>
+            <p className="mt-1.5 text-xs text-ink-soft">{metrics.find((m) => m.key === activeMetric)?.hint}</p>
           </div>
-          <p className="mt-1.5 text-xs text-ink-soft">{metrics.find((m) => m.key === activeMetric)?.hint}</p>
-        </div>
-        <div>
-          <p className="mb-1.5 text-xs font-bold text-ink-soft">食品の種類</p>
-          <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1 sm:flex-wrap">
-            <Chip active={group === null} onClick={() => (setGroup(null), reset())}>
-              すべて
-            </Chip>
-            {FOOD_GROUPS.map(([id, label]) => (
-              <Chip key={id} active={group === id} onClick={() => (setGroup(id), reset())}>
-                {label}
+          <div>
+            <p className="mb-1.5 text-xs font-bold text-ink-soft">食品の種類</p>
+            <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1 sm:flex-wrap">
+              <Chip active={group === null} onClick={() => (setGroup(null), reset())}>
+                すべて
               </Chip>
-            ))}
+              {FOOD_GROUPS.map(([id, label]) => (
+                <Chip key={id} active={group === id} onClick={() => (setGroup(id), reset())}>
+                  {label}
+                </Chip>
+              ))}
+            </div>
           </div>
-        </div>
-        <div className="flex flex-wrap items-center gap-3">
-          <input
-            type="search"
-            value={query}
-            onChange={(e) => (setQuery(e.target.value), reset())}
-            placeholder="食品名でしぼる"
-            aria-label="食品名でしぼる"
-            className="min-h-10 min-w-0 flex-1 rounded-full bg-white px-4 text-sm shadow-sm outline-coral"
-          />
-          <label className="flex min-h-10 items-center gap-2 text-sm">
-            <input type="checkbox" checked={familiarOnly} onChange={(e) => (setFamiliarOnly(e.target.checked), reset())} className="h-4 w-4 accent-coral" />
-            よく使う食品だけ
-          </label>
+          <div className="flex flex-wrap items-center gap-3">
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => (setQuery(e.target.value), reset())}
+              placeholder="食品名でしぼる"
+              aria-label="食品名でしぼる"
+              className="min-h-10 min-w-0 flex-1 rounded-full bg-white px-4 text-sm shadow-sm outline-coral"
+            />
+            <label className="flex min-h-10 items-center gap-2 text-sm">
+              <input type="checkbox" checked={familiarOnly} onChange={(e) => (setFamiliarOnly(e.target.checked), reset())} className="h-4 w-4 accent-coral" />
+              よく使う食品だけ
+            </label>
+          </div>
         </div>
       </div>
 
