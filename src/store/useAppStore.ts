@@ -51,6 +51,8 @@ type State = {
   saveMenu: (name: string) => void
   // 呼び出すと今の1日の食事を置き換える。prepare でなくなった料理を外すなどしてから入れる
   loadMenu: (id: string, prepare?: (menu: DayMenu) => DayMenu) => void
+  // 理想の献立など、外から作った1日の食事で置き換える（項目の uid は付け直す）
+  replaceMenu: (menu: DayMenu) => void
   deleteMenu: (id: string) => void
 }
 
@@ -184,6 +186,8 @@ export const useAppStore = create<State>()(
         const m = get().savedMenus.find((x) => x.id === id)
         if (m) set({ menu: prepare(structuredClone(m.menu)) })
       },
+      replaceMenu: (menu) =>
+        set({ menu: Object.fromEntries(Object.entries(menu).map(([slot, items]) => [slot, items.map((i) => ({ ...i, uid: uid() }))])) as DayMenu }),
       deleteMenu: (id) => set((s) => ({ savedMenus: s.savedMenus.filter((m) => m.id !== id) })),
     }),
     {

@@ -1,8 +1,11 @@
 import { useState, type ReactNode } from 'react'
+import type { IdealMenu } from '../domain/idealMenus'
 import { knownItemsOnly, menuTotals, type Catalog } from '../domain/nutrition'
+import type { Targets } from '../domain/targets'
 import { SLOTS, type DayMenu } from '../domain/types'
 import type { SavedMenu } from '../store/useAppStore'
 import { confirmDialog } from './confirm'
+import { IdealMenuList } from './IdealMenus'
 import { defaultMenuName } from './menuName'
 import { UiIcon } from './UiIcon'
 import { useDismiss } from './useDismiss'
@@ -11,7 +14,7 @@ const itemCount = (menu: DayMenu) => SLOTS.reduce((n, s) => n + menu[s].length, 
 
 const BUTTON = 'flex min-h-10 items-center gap-1.5 rounded-full bg-white pl-2 pr-3.5 text-sm shadow-sm disabled:opacity-40'
 
-// 1日の食事の上に並べる「保存」「呼び出し」「リセット」
+// 1日の食事の上に並べる「保存」「呼び出し」「リセット」。呼び出しは理想の献立もあるので、いつでも押せる
 export function MenuActions({
   menu,
   savedCount,
@@ -31,7 +34,7 @@ export function MenuActions({
       <button type="button" onClick={onOpenSave} disabled={empty} aria-haspopup="dialog" className={BUTTON}>
         <UiIcon name="save" className="h-6 w-6 shrink-0" />保存
       </button>
-      <button type="button" onClick={onOpenLoad} disabled={savedCount === 0} aria-haspopup="dialog" className={BUTTON}>
+      <button type="button" onClick={onOpenLoad} aria-haspopup="dialog" className={BUTTON}>
         <UiIcon name="load" className="h-6 w-6 shrink-0" />呼び出し
         {savedCount > 0 && <span className="rounded-full bg-cream px-1.5 text-xs tabular-nums text-ink-soft">{savedCount}</span>}
       </button>
@@ -124,32 +127,72 @@ export function SaveMenuDialog({ saved, onSave, onClose }: { saved: SavedMenu[];
   )
 }
 
-// 保存した1日の食事を呼び出す・削除する
+export type LoadTab = 'ideal' | 'saved'
+
+// 理想の献立と、保存した1日の食事を呼び出す（保存したものは削除もできる）
 export function LoadMenuDialog({
   menu,
   saved,
   catalog,
+  targets,
+  initialTab,
   onLoad,
+  onLoadIdeal,
   onDelete,
   onClose,
 }: {
   menu: DayMenu
   saved: SavedMenu[]
   catalog: Catalog
+  targets: Targets
+  initialTab?: LoadTab
   onLoad: (m: SavedMenu) => void
+  onLoadIdeal: (ideal: IdealMenu, menu: DayMenu) => void
   onDelete: (m: SavedMenu) => void
   onClose: () => void
 }) {
+  // 保存したものがあればそちらから、なければ理想の献立から見せる
+  const [tab, setTab] = useState<LoadTab>(initialTab ?? (saved.length > 0 ? 'saved' : 'ideal'))
   const empty = itemCount(menu) === 0
+  const confirmReplace = async (name: string) => empty || (await confirmDialog(`いまの1日の食事を「${name}」に置き換えますか？`, { okLabel: '呼び出す' }))
   const summary = (m: SavedMenu) => {
     const known = knownItemsOnly(m.menu, catalog)
     return { count: itemCount(known), kcal: Math.round(menuTotals(known, catalog).day.values.energyKcal) }
   }
+  const tabs: { key: LoadTab; label: string; count?: number }[] = [
+    { key: 'ideal', label: '理想の献立' },
+    { key: 'saved', label: '保存した食事', count: saved.length },
+  ]
   return (
     <Sheet title="1日の食事を呼び出し" onClose={onClose}>
-      <p className="mb-4 text-xs text-ink-soft">呼び出すと、いまの1日の食事と置き換わります。</p>
-      {saved.length === 0 ? (
-        <p className="rounded-2xl bg-white/60 px-4 py-3 text-sm text-ink-soft">まだありません</p>
+      <p className="mb-3 text-xs text-ink-soft">呼び出すと、いまの1日の食事と置き換わります。</p>
+      <div role="tablist" aria-label="呼び出すもの" className="mb-3 flex gap-1 rounded-full bg-white/70 p-1">
+        {tabs.map((t) => (
+          <button
+            key={t.key}
+            type="button"
+            role="tab"
+            aria-selected={tab === t.key}
+            onClick={() => setTab(t.key)}
+            className={`flex min-h-10 flex-1 items-center justify-center gap-1 rounded-full text-sm whitespace-nowrap transition ${
+              tab === t.key ? 'bg-white font-bold text-ink shadow-sm' : 'text-ink-soft'
+            }`}
+          >
+            {t.label}
+            {t.count !== undefined && t.count > 0 && <span className="rounded-full bg-cream px-1.5 text-xs font-normal tabular-nums text-ink-soft">{t.count}</span>}
+          </button>
+        ))}
+      </div>
+      {tab === 'ideal' ? (
+        <IdealMenuList
+          catalog={catalog}
+          targets={targets}
+          onLoad={async (ideal, m) => {
+            if (await confirmReplace(ideal.name)) onLoadIdeal(ideal, m)
+          }}
+        />
+      ) : saved.length === 0 ? (
+        <p className="rounded-2xl bg-white/60 px-4 py-3 text-sm text-ink-soft">まだありません。1日の食事を「保存」すると、ここから呼び出せます。</p>
       ) : (
         <ul className="space-y-2">
           {saved.map((m) => {
@@ -165,8 +208,7 @@ export function LoadMenuDialog({
                 <button
                   type="button"
                   onClick={async () => {
-                    if (!empty && !(await confirmDialog(`いまの1日の食事を「${m.name}」に置き換えますか？`, { okLabel: '呼び出す' }))) return
-                    onLoad(m)
+                    if (await confirmReplace(m.name)) onLoad(m)
                   }}
                   className="min-h-10 shrink-0 rounded-full bg-coral px-3.5 text-sm font-bold text-white"
                 >
