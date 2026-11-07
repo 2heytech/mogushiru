@@ -125,10 +125,12 @@ export default function App() {
     savedMenus,
     saveMenu,
     loadMenu,
+    replaceMenu,
     deleteMenu,
     clearMenu,
   } = useAppStore()
-  const [savedDialog, setSavedDialog] = useState<'save' | 'load' | null>(null)
+  // 'ideal' は呼び出しを理想の献立のタブで開く
+  const [savedDialog, setSavedDialog] = useState<'save' | 'load' | 'ideal' | null>(null)
   const [profileOpen, setProfileOpen] = useState(false)
   const [profileFocus, setProfileFocus] = useState<ProfileFocus | undefined>()
   const [pickerSlot, setPickerSlot] = useState<Slot | null>(null)
@@ -340,6 +342,7 @@ export default function App() {
               setProfileOpen(true)
             }}
             onEditProfile={() => setProfileOpen(true)}
+            onOpenIdeal={() => setSavedDialog('ideal')}
           />
         </main>
       ) : (
@@ -377,11 +380,17 @@ export default function App() {
         />
       )}
 
-      {catalog && savedDialog === 'load' && (
+      {catalog && (savedDialog === 'load' || savedDialog === 'ideal') && (
         <LoadMenuDialog
           menu={menu}
           saved={savedMenus}
           catalog={catalog}
+          targets={targets}
+          initialTab={savedDialog === 'ideal' ? 'ideal' : undefined}
+          onLoadIdeal={(_, m) => {
+            replaceMenu(m)
+            setSavedDialog(null)
+          }}
           onLoad={(m) => {
             // データの更新でなくなった料理があっても止まらないように外してから入れる
             // コンビニ・メーカーの商品を読み終える前は外さない（読み終えたあとに外す）

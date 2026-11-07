@@ -108,6 +108,7 @@ export function DayInfo({
   onEditSlotShare,
   onEditExercise,
   onEditProfile,
+  onOpenIdeal,
 }: {
   totals: MenuTotals
   targets: Targets
@@ -115,6 +116,8 @@ export function DayInfo({
   onEditSlotShare?: () => void
   onEditExercise?: () => void
   onEditProfile?: () => void
+  // 1日の食事が空のとき、理想の献立から始められるようにする
+  onOpenIdeal?: () => void
 }) {
   const [tab, setTab] = useState<InfoTab>('summary')
   const energy = expenditure(profile)
@@ -171,7 +174,14 @@ export function DayInfo({
               <h2 className="hidden font-bold lg:block">まとめ</h2>
               <div className="flex items-center gap-3">
                 <BowlMogu slot="dinner" mood={bowlMood} className="h-16 w-16 shrink-0" label={`モグは${MOOD_LABEL[bowlMood]}`} />
-                <p className="rounded-2xl bg-white px-4 py-2 text-sm shadow-sm">{message}</p>
+                <div className="space-y-2">
+                  <p className="rounded-2xl bg-white px-4 py-2 text-sm shadow-sm">{message}</p>
+                  {v.energyKcal === 0 && onOpenIdeal && (
+                    <button type="button" onClick={onOpenIdeal} className="min-h-9 rounded-full bg-coral px-3.5 text-sm font-bold text-white shadow-sm">
+                      理想の献立から始める
+                    </button>
+                  )}
+                </div>
               </div>
               <EnergyGauge value={v.energyKcal} target={targets.energyKcal} />
               <SlotShare totals={totals} targets={targets} onEdit={onEditSlotShare} />
