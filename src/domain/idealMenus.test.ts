@@ -32,6 +32,16 @@ describe('理想の献立', () => {
           expect(jan ? catalog.products.has(jan) : catalog.dishes.has(typeof x === 'string' ? x : x[0]), `${m.id} ${x}`).toBe(true)
         }
       expect(idealMenuAvailable(m, catalog), m.id).toBe(true)
+      for (const x of Object.values(m.extras).flat()) expect(catalog.dishes.has(typeof x === 'string' ? x : x[0]), `${m.id} 足す一品 ${x}`).toBe(true)
+    }
+  })
+
+  it('足す一品は、同じ献立の料理と重ならない', () => {
+    for (const m of IDEAL_MENUS) {
+      const idOf = (x: string | [string, ...number[]]) => (typeof x === 'string' ? x : x[0])
+      const base = new Set(SLOTS.flatMap((slot) => m.slots[slot]).map(idOf))
+      const extras = Object.values(m.extras).flat().map(idOf)
+      expect(extras.filter((id, i) => base.has(id) || extras.indexOf(id) !== i), m.id).toEqual([])
     }
   })
 
@@ -79,6 +89,16 @@ describe('理想の献立', () => {
     }
   })
 
+  // ごはん2人前のような量にはせず、足りない分は足す一品で補う
+  it('女性30〜49歳・ふつう（プロフィール未入力の目安）では、ごはんなど主食は1.3人前まで', () => {
+    const t = computeTargets({ sex: 'female', age: 35, activity: 'normal' })
+    for (const m of IDEAL_MENUS) {
+      const menu = adjustIdealMenu(m, catalog, t)
+      for (const slot of SLOTS)
+        for (const item of menu[slot]) if (menuItemRole(item, catalog) === 'staple') expect(item.portion, `${m.id} ${item.refId}`).toBeLessThanOrEqual(1.3)
+    }
+  })
+
   it('体重を減らす・増やす目標でも、カロリーは目安の±5%に収まる', () => {
     for (const [profile, goal] of [
       [{ sex: 'female', age: 35, activity: 'low' }, 'lose'],
@@ -92,7 +112,7 @@ describe('理想の献立', () => {
     }
   })
 
-  it('量は0.1人前きざみで、主食は小盛り〜大盛り・おかずは控えめ〜多め・果物や牛乳・市販品は1個ずつ', () => {
+  it('量は0.1人前きざみで、主食は小盛り〜大盛り（1.5人前まで）・おかずは控えめ〜多め・果物や牛乳は1個', () => {
     for (const profile of PROFILES) {
       const t = computeTargets(profile)
       for (const m of IDEAL_MENUS) {
@@ -101,14 +121,14 @@ describe('理想の献立', () => {
           for (const item of menu[slot]) {
             const role = menuItemRole(item, catalog)
             expect(Math.round(item.portion * 10) / 10).toBe(item.portion)
-            if (role === 'fixed') expect([1, 2]).toContain(item.portion)
+            if (role === 'fixed') expect(item.portion, `${m.id} ${item.refId}`).toBe(1)
             if (role === 'count') expect(item.portion).toBeGreaterThan(0)
             // 1個・1食で表示の市販品（おにぎり・サラダなど）は個数
             if (item.kind === 'product' && products.get(item.refId)!.basis === 'serving') expect(Number.isInteger(item.portion), item.refId).toBe(true)
             if (role === 'dish') expect(item.portion).toBeGreaterThanOrEqual(0.7)
             if (role === 'dish') expect(item.portion).toBeLessThanOrEqual(1.5)
             if (role === 'staple') expect(item.portion).toBeGreaterThanOrEqual(0.5)
-            if (role === 'staple') expect(item.portion).toBeLessThanOrEqual(3)
+            if (role === 'staple') expect(item.portion, `${m.id} ${label(profile)} ${item.refId}`).toBeLessThanOrEqual(1.5)
           }
       }
     }
