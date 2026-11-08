@@ -5,13 +5,16 @@
 //   1. おかず・汁物は、1日の目安と献立を組んだ目安（2,000kcal）の比の平方根の割合で控えめに増減する（0.8〜1.15人前）。
 //      食塩の目安は女性6.5g・男性7.5gと、カロリーほどには違わないので、おかずを増やしすぎない
 //   2. ごはん・パン・麺・丼で、朝・昼・晩それぞれの目安カロリー（1日の目安 × プロフィールの配分）に合わせる
-//      （食事バランスガイドと同じく、エネルギーの調整は主食の量で行う。おかずのビタミン・ミネラルを減らしすぎないように）
-//   3. 果物・牛乳・ヨーグルト・納豆・卵など1個・1杯で数えるものはそのまま（ごはんだけでは足りないときに、2個・2杯までふやす）
+//      （食事バランスガイドと同じく、エネルギーの調整は主食の量で行う。おかずのビタミン・ミネラルを減らしすぎないように）。
+//      ただし大盛り（1.5人前）まで。2人前のような食べ方は自然でないので、
+//   3. 足りない分は、献立ごとに決めた「足す一品」（ゆで卵・冷奴・焼き芋・おにぎりなど）で補う。
+//      ごはんが1.2人前を大きくこえるときも一品を足して、ごはんをふつうの量に近づける。
+//      果物・牛乳・ヨーグルト・納豆・卵など1個・1杯で数えるものは1個のまま（2個にはしない）
 //   4. それでもPFCが目標の範囲を外れる・食塩や飽和脂肪酸が目安をこえるときは、0.1人前ずつ動かして直す
 //   配分が0%の区分（朝食をとらない設定など）は空にして、その分をほかの区分に回す
 //
 // 市販品（コンビニ・メーカーの商品）も入れられる。量は献立に書いた1個・1パック（1杯）のままにして、
-// ごはんだけでは1日のカロリーやPFCが合わないとき（たくさん食べる人など）だけ、おにぎり・パンを1個ふやす・へらす、
+// ごはんだけでは1日のカロリーやPFCが合わないときだけ、おにぎり・パンを1個へらす（小食の人）、
 // フルグラ・冷凍ギョーザなどグラムで数える商品を刻みずつ増減する（サラダなどほかの商品は献立の量のまま）。
 // ごはんのない区分（コンビニのお昼、フルグラの朝など）は、その区分が目安から2割外れないように
 // それらや果物・牛乳を1個・1杯ずつ動かし、そのぶんほかの区分のごはんを配り直す
@@ -41,6 +44,9 @@ export type IdealMenu = {
   // 栄養のポイント
   point: string
   slots: Record<Slot, IdealMenuItem[]>
+  // たくさん食べる人に足す一品（区分ごと）。ごはんを増やしすぎないように、足りない分はここから書いた順に1人前ずつ足す。
+  // たくさん食べる人は食塩の目安がいちばん厳しいので、食塩の少ないものから並べる。小食の人やふつうの量の人では使わないこともある
+  extras: Partial<Record<Slot, IdealMenuItem[]>>
 }
 
 export const IDEAL_MENUS: IdealMenu[] = [
@@ -55,6 +61,7 @@ export const IDEAL_MENUS: IdealMenu[] = [
       dinner: ['rice', 'gindara-saikyoyaki', 'ready-atsuage', 'nimame'],
       other: ['sweets-yogurt-sweet', 'banana'],
     },
+    extras: { breakfast: ['milk', 'fruit-grape', 'boiled-egg'], lunch: ['apple', 'hiyayakko'], dinner: ['ready-imo-tempura', 'yasai-corn', 'mikan', 'yasai-kabocha-ni'], other: ['sweets-yakiimo', 'sweets-mixed-nuts', 'onigiri-salmon'] },
   },
   {
     id: 'bread',
@@ -67,6 +74,7 @@ export const IDEAL_MENUS: IdealMenu[] = [
       dinner: ['rice', 'ready-aji-fry', 'hiyayakko', 'nimame'],
       other: ['milk', 'apple'],
     },
+    extras: { breakfast: ['orange-juice', 'boiled-egg'], lunch: ['ready-fries', 'fruit-kiwi', 'coleslaw'], dinner: ['yasai-corn', 'yasai-kabocha-ni', 'yasai-edamame'], other: ['sweets-yakiimo', 'sweets-mixed-nuts', 'onigiri-salmon'] },
   },
   {
     id: 'sashimi',
@@ -79,6 +87,7 @@ export const IDEAL_MENUS: IdealMenu[] = [
       dinner: ['rice', 'sashimi-tai', 'ready-atsuage', 'onyasai'],
       other: ['sweets-yogurt-sweet', 'fruit-orange'],
     },
+    extras: { breakfast: ['banana', 'milk', 'ready-natto'], lunch: ['apple', 'nimame'], dinner: ['ready-imo-tempura', 'yasai-corn', 'fruit-grape', 'yasai-edamame'], other: ['sweets-yakiimo', 'sweets-mixed-nuts', 'onigiri-salmon'] },
   },
   {
     id: 'chuka',
@@ -91,6 +100,7 @@ export const IDEAL_MENUS: IdealMenu[] = [
       dinner: ['rice', 'mapo-tofu', 'ohitashi-chingensai'],
       other: ['sweets-yogurt-sweet', 'sweets-mixed-nuts'],
     },
+    extras: { breakfast: ['milk', 'apple'], lunch: ['fruit-kiwi', 'nimame'], dinner: ['yasai-corn', 'fruit-pineapple', 'yasai-edamame'], other: ['sweets-yakiimo', 'onigiri-salmon'] },
   },
   {
     id: 'nabe',
@@ -103,6 +113,7 @@ export const IDEAL_MENUS: IdealMenu[] = [
       dinner: ['mugi-rice', 'mizutaki', 'yasai-kabocha-ni'],
       other: ['sweets-yogurt-sweet', 'fruit-kiwi'],
     },
+    extras: { breakfast: ['banana', 'milk', 'ready-natto'], lunch: ['nimame', 'ready-imo-tempura', 'apple', 'hiyayakko'], dinner: ['yasai-corn', 'fruit-grape', 'yasai-edamame'], other: ['sweets-yakiimo', 'sweets-mixed-nuts', 'onigiri-salmon'] },
   },
   // ここから市販品を使う献立。コンビニの商品は毎月のデータ更新でなくなることがあるので、テストで確かめる
   {
@@ -116,6 +127,7 @@ export const IDEAL_MENUS: IdealMenu[] = [
       dinner: ['rice', 'grilled-mackerel', 'ohitashi-komatsuna', 'nimame'],
       other: ['sweets-mixed-nuts'],
     },
+    extras: { breakfast: ['milk', 'fruit-grape'], lunch: ['boiled-egg', 'onigiri-salmon', 'banana'], dinner: ['yasai-corn', 'ready-imo-tempura', 'apple', 'hiyayakko'], other: ['drink-soy-milk', 'sweets-yakiimo'] },
   },
   {
     id: 'frugra-gyoza',
@@ -129,6 +141,7 @@ export const IDEAL_MENUS: IdealMenu[] = [
       dinner: ['rice', ['product:4901001567775', 138, 23], 'namul', 'hiyayakko'],
       other: ['sweets-yogurt-sweet', 'fruit-kiwi'],
     },
+    extras: { breakfast: ['boiled-egg', 'orange-juice'], lunch: ['nimame', 'apple', 'ready-imo-tempura'], dinner: ['yasai-corn', 'fruit-pineapple', 'yasai-edamame'], other: ['sweets-yakiimo', 'sweets-mixed-nuts', 'onigiri-salmon'] },
   },
 ]
 
@@ -147,9 +160,11 @@ export const idealMenuAvailable = (menu: IdealMenu, catalog: Catalog): boolean =
 
 export const idealMenuHasProducts = (menu: IdealMenu): boolean => SLOTS.some((slot) => menu.slots[slot].some((x) => idealProductJan(x) !== null))
 
-// 量の調整のしかた。staple は主食（ごはん・パン・麺・丼）、dish はおかず・汁物、fixed は1個・1杯で数えるもの、
-// count は市販品（おにぎりは1個ずつ、グラムの商品は刻みずつ増減する）。fixed の料理も、直す段階では1個ずつ2個までふやせる
+// 量の調整のしかた。staple は主食（ごはん・パン・麺・丼）、dish はおかず・汁物、fixed は1個・1杯で数えるもの（1個のまま）、
+// count は市販品（おにぎりは1個ずつ、グラムの商品は刻みずつ増減する）
 export type PortionRole = 'staple' | 'dish' | 'fixed' | 'count'
+// 献立の中での役割。extra は足す一品（0 か献立の量）
+type LineRole = PortionRole | 'extra'
 
 // 1個・1パックで数えるおかず
 const FIXED_DISHES = new Set(['ready-natto', 'boiled-egg', 'fried-egg', 'yasai-umeboshi'])
@@ -172,19 +187,21 @@ export function portionRole(dish: Dish): PortionRole {
 }
 
 // 人前の範囲。主食は小盛り〜大盛り、おかずは少し控えめ〜少し多め
-const BOUNDS: Record<Exclude<PortionRole, 'count'>, [number, number]> = { staple: [0.5, 3], dish: [0.7, 1.5], fixed: [1, 1] }
-// 白いごはん・麦ごはん・玄米ごはんは丼に大盛りくらい（3人前）まで増やせる（たくさん食べる人は塩分の少ないごはんで補う）。
-// パン・おにぎり・麺・丼などは1.5人前まで（パンや麺は塩を含み、たくさん食べる人で食塩がふえすぎるため）。
-// 足りない分は、ほかの区分のごはんで補う
-const PLAIN_RICE = new Set(['rice', 'mugi-rice', 'genmai-rice', 'zakkoku-rice'])
-export const stapleBounds = (dish: Dish): [number, number] => [0.5, PLAIN_RICE.has(dish.id) ? 3 : 1.5]
-// 市販品の量の範囲。おにぎり・食パンなど個数で数える主食は1個ふやす・へらす（1個は残す）。
+const BOUNDS: Record<Exclude<PortionRole, 'count'>, [number, number]> = { staple: [0.5, 1.5], dish: [0.7, 1.5], fixed: [1, 1] }
+// ごはん・パン・丼・麺は大盛り（1.5人前）まで。足りない分は足す一品で補う
+export const stapleBounds = (_dish: Dish): [number, number] => BOUNDS.staple
+// ごはんがこれをこえるときは、足す一品でごはんをへらす（ふつうの量の範囲）。こえた分の2乗 × STAPLE_WEIGHT を損とする
+const STAPLE_COMFORT = 1.2
+const STAPLE_WEIGHT = 10
+// 足す一品1品ぶんの損（violation の単位）。ごはんが1.4人前くらいまでなら、一品は足さずにごはんで合わせる
+const EXTRA_COST = 0.5
+// 市販品の量の範囲。おにぎり・食パンなど個数で数える主食は、小食の人なら1個へらす（1個は残す）。ふやすことはしない（ごはんと同じく、足す一品で補う）。
 // サラダなどほかの1個・1食の商品は献立の量のまま（2個買うことはあまりないので）。
 // グラムの商品は献立のグラムの2倍まで。刻み（step）があれば、刻み2つ分へらし・4つ分ふやすまで（ギョーザ6個なら4〜10個）
 const COUNTED_STAPLES = new Set(['onigiri', 'bread'])
 export function productBounds(product: Product, base: number, step = base): [number, number] {
   if (product.basis !== 'serving') return step >= base ? [base, base * 2] : [Math.max(step, base - 2 * step), base + 4 * step]
-  return COUNTED_STAPLES.has(product.category) ? [Math.max(1, base - 1), base + 1] : [base, base]
+  return COUNTED_STAPLES.has(product.category) ? [Math.max(1, base - 1), base] : [base, base]
 }
 const boundsOf = (l: Line): [number, number] =>
   l.role === 'staple'
@@ -192,8 +209,10 @@ const boundsOf = (l: Line): [number, number] =>
     : l.role === 'count'
       ? l.product
         ? productBounds(l.product, l.base, stepOf(l))
-        : [l.base, l.base + 1]
-      : BOUNDS[l.role]
+        : [l.base, l.base]
+      : l.role === 'extra'
+        ? [0, l.base]
+        : BOUNDS[l.role]
 
 // 1日の食事の項目の量の調整のしかた（テスト・表示用）
 export function menuItemRole(item: MenuItem, catalog: Catalog): PortionRole {
@@ -214,15 +233,21 @@ const drift = (ls: Line[]) => ls.reduce((a, l) => a + Math.abs(l.portion - l.bas
 const roundFor = (l: Line, v: number) => (l.role === 'count' ? round1(Math.round(v / stepOf(l)) * stepOf(l)) : round1(v))
 
 // dish か product のどちらか。kcal は portion 1 当たり（グラムで数える市販品は1g当たり）。step はグラムの商品の刻み
-type Line = { slot: Slot; dish?: Dish; product?: Product; kcal: number; base: number; portion: number; role: PortionRole; step?: number }
+type Line = { slot: Slot; dish?: Dish; product?: Product; kcal: number; base: number; portion: number; role: LineRole; step?: number }
+
+// 足す一品は uid でわかるようにする（一覧で「＋」をつける）
+const EXTRA_UID = 'ideal-extra-'
+export const isIdealExtra = (item: MenuItem): boolean => item.uid.startsWith(EXTRA_UID)
 
 const toMenu = (lines: Line[]): DayMenu => {
   const menu: DayMenu = { breakfast: [], lunch: [], dinner: [], other: [] }
   lines.forEach((l, i) =>
+    // 使わなかった足す一品（0人前）は入れない
+    l.portion > 0 &&
     menu[l.slot].push(
       l.dish
-        ? { uid: `ideal-${i}`, kind: 'dish', refId: l.dish.id, portion: l.portion }
-        : { uid: `ideal-${i}`, kind: 'product', refId: l.product!.jan, portion: l.portion },
+        ? { uid: `${l.role === 'extra' ? EXTRA_UID : 'ideal-'}${i}`, kind: 'dish', refId: l.dish.id, portion: l.portion }
+        : { uid: `${l.role === 'extra' ? EXTRA_UID : 'ideal-'}${i}`, kind: 'product', refId: l.product!.jan, portion: l.portion },
     ),
   )
   return menu
@@ -241,7 +266,7 @@ function toLine(slot: Slot, x: IdealMenuItem, catalog: Catalog): Line | null {
   const dish = catalog.dishes.get(itemId(x))
   if (!dish) return null
   const base = itemPortion(x) ?? 1
-  // 1個・1杯で数える料理（果物・牛乳など）は、市販品と同じく1個ずつ動かす
+  // 1個・1杯で数える料理（果物・牛乳など）は、市販品と同じく1個で数える
   const role = portionRole(dish)
   return { slot, dish, kcal: dish.nutrients.energyKcal ?? 0, base, portion: base, role: role === 'fixed' ? 'count' : role }
 }
@@ -270,13 +295,16 @@ function violation(
     const err = Math.abs(t.bySlot[slot].values.energyKcal - goal) / goal
     score += Math.max(0, err - 0.15) ** 2 * 1e3
   }
-  // ごはんのない区分は、画面で「少なめ」「多め」と出ない ±19% まで
-  for (const slot of ['breakfast', 'lunch', 'dinner'] as const) {
+  // ごはんのない区分は、画面で「少なめ」「多め」と出ない ±19% まで。その他（間食）は多めにならないように
+  for (const slot of SLOTS) {
     const goal = fixedTargets[slot]
     if (!goal) continue
-    const err = Math.abs(t.bySlot[slot].values.energyKcal - goal) / goal
+    const kcal = t.bySlot[slot].values.energyKcal
+    const err = slot === 'other' ? Math.max(0, kcal - goal) / goal : Math.abs(kcal - goal) / goal
     score += Math.max(0, err - SLOT_ENERGY_TOLERANCE + 0.01) ** 2 * 1e3
   }
+  // ごはんはふつうの量（1.2人前）まで。こえる分は足す一品で補いたい
+  for (const l of lines) if (l.role === 'staple') score += Math.max(0, l.portion - STAPLE_COMFORT) ** 2 * STAPLE_WEIGHT
   // PFCは目標の範囲の内側 0.5% ポイントまで
   const ratio = pfcRatio(v)
   if (ratio) {
@@ -305,6 +333,11 @@ export function planIdealMenu(menu: IdealMenu, catalog: Catalog, targets: Target
     for (const x of menu.slots[slot]) {
       const line = toLine(slot, x, catalog)
       if (line) lines.push(line)
+    }
+    // 足す一品は 0人前（使わない）から始める
+    for (const x of menu.extras[slot] ?? []) {
+      const line = toLine(slot, x, catalog)
+      if (line) lines.push({ ...line, role: 'extra', portion: 0 })
     }
   }
   const kcalOf = (l: Line, portion = l.portion) => l.kcal * portion
@@ -348,47 +381,58 @@ export function planIdealMenu(menu: IdealMenu, catalog: Catalog, targets: Target
   }
   let goals = distribute()
 
-  // 3. 主食のない朝・昼・晩（コンビニのお昼など）は、市販品や果物・牛乳を1個ずつ動かして区分の目安に近づける。
-  //    動かすたびに 2. をやりなおして、ほかの区分のごはんで1日のカロリーを合わせる
-  const fixedSlots = (['breakfast', 'lunch', 'dinner'] as const).filter((s) => !flexible.includes(s) && lines.some((l) => l.slot === s))
+  // 3. ごはんだけでは目安に合わない（ごはんが多すぎる・少なすぎる、主食のない区分のカロリーが外れる）ときに、
+  //    足す一品を足す・やめる、主食のない区分の市販品を1個ずつ動かす。動かすたびに 2. をやりなおして、
+  //    ほかの区分のごはんで1日のカロリーを合わせる。一品を足すのは本当に要るときだけ（1品ごとに少し損とする）
+  const fixedSlots = SLOTS.filter((s) => !flexible.includes(s) && lines.some((l) => l.slot === s))
   const fixedTargets: Partial<Record<Slot, number>> = {}
   // 画面の区分の目安（slotBalance）と同じく10kcal単位に丸める
   for (const slot of fixedSlots) fixedTargets[slot] = Math.round((targets.energyKcal * share[slot]) / 10) * 10
   const evaluate = () => violation(lines, catalog, targets, goals, fixedTargets)
-  const movable = lines.filter((l) => l.role === 'count' && fixedSlots.includes(l.slot as (typeof fixedSlots)[number]))
+  const movable = lines.filter((l) => l.role === 'count' && fixedSlots.includes(l.slot) && l.slot !== 'other')
+  const extras = lines.filter((l) => l.role === 'extra')
+  const cost = () => evaluate() + drift(movable) + extras.filter((l) => l.portion > 0).length * EXTRA_COST
   let score = repair ? evaluate() : 0
+  let total = repair ? cost() : 0
   let repairs = 0
-  for (let step = 0; step < 20 && score > 0 && movable.length > 0; step++) {
-    let best: { line: Line; portion: number; score: number } | null = null
-    for (const line of movable) {
-      for (const sign of [-1, 1]) {
-        const portion = roundFor(line, line.portion + sign * stepOf(line))
-        const [lo, hi] = boundsOf(line)
-        if (portion < lo || portion > hi) continue
-        const saved = lines.map((l) => l.portion)
-        line.portion = portion
-        goals = distribute()
-        // 食塩が目安ぎりぎりになる手はとらない（区分のカロリーより食塩を守る）
-        const salty = sign > 0 && saltOf(lines, catalog) > targets.saltMax - 0.2
-        const s = evaluate() + drift(movable)
-        lines.forEach((l, i) => (l.portion = saved[i]))
-        if (!salty && s < score && (!best || s < best.score)) best = { line, portion, score: s }
-      }
+  for (let step = 0; repair && step < 30; step++) {
+    let best: { line: Line; portion: number; total: number } | null = null
+    const moves: [Line, number][] = [
+      ...movable.flatMap((l) => [-1, 1].map((sign): [Line, number] => [l, roundFor(l, l.portion + sign * stepOf(l))])),
+      // 足す一品は区分ごとに書いた順に（食塩の少ないものから）。次に足せるのは、まだ使っていない最初の1品
+      ...SLOTS.flatMap((slot): [Line, number][] => {
+        const next = extras.find((l) => l.slot === slot && l.portion === 0)
+        return next ? [[next, next.base]] : []
+      }),
+    ]
+    for (const [line, portion] of moves) {
+      const [lo, hi] = boundsOf(line)
+      if (portion < lo || portion > hi) continue
+      const saved = lines.map((l) => l.portion)
+      const more = portion > line.portion
+      line.portion = portion
+      goals = distribute()
+      // 食塩が目安ぎりぎりになる手はとらない（区分のカロリーより食塩を守る）
+      const salty = more && saltOf(lines, catalog) > targets.saltMax - 0.2
+      const s = cost()
+      lines.forEach((l, i) => (l.portion = saved[i]))
+      if (!salty && s < total - 1e-9 && (!best || s < best.total)) best = { line, portion, total: s }
     }
     goals = distribute()
     if (!best) break
     best.line.portion = best.portion
     goals = distribute()
-    score = evaluate()
+    total = cost()
     repairs++
   }
+  score = repair ? evaluate() : 0
 
   // 4. 目安から外れていれば 0.1人前ずつ直す（いちばんよくなる1手を選ぶのをくり返す）。
   // 同じ区分の主食（ごはんとおかゆなど）はいっしょに動かして、片方だけ大盛りにならないようにする。
   // 市販品（おにぎりなど）は1個ずつ別々に動かす
   const groups: Line[][] = []
   for (const l of lines) {
-    if (l.role === 'fixed') continue
+    if (l.role === 'fixed' || l.role === 'extra') continue
     const same = l.role === 'staple' ? groups.find((g) => g[0].role === 'staple' && g[0].slot === l.slot) : undefined
     if (same) same.push(l)
     else groups.push([l])
@@ -402,9 +446,11 @@ export function planIdealMenu(menu: IdealMenu, catalog: Catalog, targets: Target
         if (next.some((p, i) => p < boundsOf(group[i])[0] || p > boundsOf(group[i])[1])) continue
         const prev = group.map((l) => l.portion)
         group.forEach((l, i) => (l.portion = next[i]))
+        // 食塩が目安をこえそうになる手はとらない（カロリーが足りなくても、食塩を守る）
+        const salty = d > 0 && saltOf(lines, catalog) > targets.saltMax - 0.1
         const s = evaluate() + drift(group)
         group.forEach((l, i) => (l.portion = prev[i]))
-        if (s < score && (!best || s < best.score)) best = { group, d, score: s }
+        if (!salty && s < score && (!best || s < best.score)) best = { group, d, score: s }
       }
     }
     if (!best) break

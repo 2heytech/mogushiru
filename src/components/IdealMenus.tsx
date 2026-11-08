@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { IDEAL_MENUS, adjustIdealMenu, idealMenuAvailable, idealMenuHasProducts, summarizeIdealMenu, type IdealMenu } from '../domain/idealMenus'
+import { IDEAL_MENUS, adjustIdealMenu, idealMenuAvailable, idealMenuHasProducts, isIdealExtra, summarizeIdealMenu, type IdealMenu } from '../domain/idealMenus'
 import { WANT_NUTRIENTS } from '../domain/nutrientChecks'
 import type { Catalog } from '../domain/nutrition'
 import type { Targets } from '../domain/targets'
@@ -36,7 +36,8 @@ export function IdealMenuList({
   return (
     <>
       <p className="mb-3 text-xs leading-relaxed text-ink-soft">
-        朝・昼・晩で自然な組み合わせになり、栄養の目安がそろう1日の食事です。プロフィールの目安（{targets.energyKcal.toLocaleString()} kcal）に合わせて、ごはん・パン・麺を中心に量を変えて入れます。
+        朝・昼・晩で自然な組み合わせになり、栄養の目安がそろう1日の食事です。プロフィールの目安（{targets.energyKcal.toLocaleString()} kcal）に合わせて、ごはん・パン・麺を中心に量を変えて入れます。ごはんは大盛りまでにして、足りない分は
+        <span className="font-bold text-coral">＋</span>の一品を足します。
       </p>
       <ul className="space-y-2">
         {prepared.map((p) => {
@@ -87,6 +88,11 @@ export function IdealMenuList({
                           return (
                             <span key={item.uid}>
                               {i > 0 && '・'}
+                              {isIdealExtra(item) && (
+                                <span className="font-bold text-coral" aria-label="足した一品">
+                                  ＋
+                                </span>
+                              )}
                               {brand && <span className="text-ink-soft">{brand}の</span>}
                               {itemName(item, catalog)}
                               {portion && <span className="text-ink-soft tabular-nums">{portion}</span>}
