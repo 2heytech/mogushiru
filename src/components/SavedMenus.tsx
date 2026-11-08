@@ -135,6 +135,7 @@ export function LoadMenuDialog({
   saved,
   catalog,
   targets,
+  storesLoaded,
   initialTab,
   onLoad,
   onLoadIdeal,
@@ -145,6 +146,8 @@ export function LoadMenuDialog({
   saved: SavedMenu[]
   catalog: Catalog
   targets: Targets
+  // コンビニ・メーカーの商品を読み終えたか（市販品を使う理想の献立で使う）
+  storesLoaded: boolean
   initialTab?: LoadTab
   onLoad: (m: SavedMenu) => void
   onLoadIdeal: (ideal: IdealMenu, menu: DayMenu) => void
@@ -187,6 +190,7 @@ export function LoadMenuDialog({
         <IdealMenuList
           catalog={catalog}
           targets={targets}
+          storesLoaded={storesLoaded}
           onLoad={async (ideal, m) => {
             if (await confirmReplace(ideal.name)) onLoadIdeal(ideal, m)
           }}
