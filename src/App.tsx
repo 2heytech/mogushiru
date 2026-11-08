@@ -386,6 +386,7 @@ export default function App() {
           saved={savedMenus}
           catalog={catalog}
           targets={targets}
+          storesLoaded={storesLoaded}
           initialTab={savedDialog === 'ideal' ? 'ideal' : undefined}
           onLoadIdeal={(_, m) => {
             replaceMenu(m)
