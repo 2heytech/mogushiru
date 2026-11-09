@@ -2,10 +2,11 @@ import { useState, type ReactNode } from 'react'
 import type { IdealMenu } from '../domain/idealMenus'
 import { knownItemsOnly, menuTotals, type Catalog } from '../domain/nutrition'
 import type { Targets } from '../domain/targets'
-import { SLOTS, type DayMenu } from '../domain/types'
+import { SLOTS, type DayMenu, type MenuItem, type Slot } from '../domain/types'
 import type { SavedMenu } from '../store/useAppStore'
 import { confirmDialog } from './confirm'
 import { IdealMenuList } from './IdealMenus'
+import { SLOT_LABEL } from './labels'
 import { defaultMenuName } from './menuName'
 import { UiIcon } from './UiIcon'
 import { useDismiss } from './useDismiss'
@@ -139,6 +140,7 @@ export function LoadMenuDialog({
   initialTab,
   onLoad,
   onLoadIdeal,
+  onLoadIdealSlot,
   onDelete,
   onClose,
 }: {
@@ -151,6 +153,8 @@ export function LoadMenuDialog({
   initialTab?: LoadTab
   onLoad: (m: SavedMenu) => void
   onLoadIdeal: (ideal: IdealMenu, menu: DayMenu) => void
+  // 毎食バランスの献立から、朝・昼・晩のどれか1食だけ入れる
+  onLoadIdealSlot: (ideal: IdealMenu, slot: Slot, items: MenuItem[]) => void
   onDelete: (m: SavedMenu) => void
   onClose: () => void
 }) {
@@ -168,7 +172,7 @@ export function LoadMenuDialog({
   ]
   return (
     <Sheet title="1日の食事を呼び出し" onClose={onClose}>
-      <p className="mb-3 text-xs text-ink-soft">呼び出すと、いまの1日の食事と置き換わります。</p>
+      <p className="mb-3 text-xs text-ink-soft">呼び出すと、いまの1日の食事と置き換わります（1食だけ呼び出したときは、その区分だけ）。</p>
       <div role="tablist" aria-label="呼び出すもの" className="mb-3 flex gap-1 rounded-full bg-white/70 p-1">
         {tabs.map((t) => (
           <button
@@ -193,6 +197,11 @@ export function LoadMenuDialog({
           storesLoaded={storesLoaded}
           onLoad={async (ideal, m) => {
             if (await confirmReplace(ideal.name)) onLoadIdeal(ideal, m)
+          }}
+          onLoadSlot={async (ideal, slot, items) => {
+            const label = SLOT_LABEL[slot]
+            if (menu[slot].length === 0 || (await confirmDialog(`いまの${label}の食事を「${ideal.name}」の${label}ごはんに置き換えますか？`, { okLabel: '呼び出す' })))
+              onLoadIdealSlot(ideal, slot, items)
           }}
         />
       ) : saved.length === 0 ? (

@@ -126,6 +126,7 @@ export default function App() {
     saveMenu,
     loadMenu,
     replaceMenu,
+    replaceSlot,
     deleteMenu,
     clearMenu,
   } = useAppStore()
@@ -390,6 +391,10 @@ export default function App() {
           initialTab={savedDialog === 'ideal' ? 'ideal' : undefined}
           onLoadIdeal={(_, m) => {
             replaceMenu(m)
+            setSavedDialog(null)
+          }}
+          onLoadIdealSlot={(_, slot, items) => {
+            replaceSlot(slot, items)
             setSavedDialog(null)
           }}
           onLoad={(m) => {
