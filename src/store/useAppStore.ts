@@ -53,6 +53,8 @@ type State = {
   loadMenu: (id: string, prepare?: (menu: DayMenu) => DayMenu) => void
   // 理想の献立など、外から作った1日の食事で置き換える（項目の uid は付け直す）
   replaceMenu: (menu: DayMenu) => void
+  // 1つの区分だけ置き換える（理想の献立から1食だけ呼び出すときなど。uid は付け直す）
+  replaceSlot: (slot: Slot, items: MenuItem[]) => void
   deleteMenu: (id: string) => void
 }
 
@@ -188,6 +190,7 @@ export const useAppStore = create<State>()(
       },
       replaceMenu: (menu) =>
         set({ menu: Object.fromEntries(Object.entries(menu).map(([slot, items]) => [slot, items.map((i) => ({ ...i, uid: uid() }))])) as DayMenu }),
+      replaceSlot: (slot, items) => set((s) => ({ menu: { ...s.menu, [slot]: items.map((i) => ({ ...i, uid: uid() })) } })),
       deleteMenu: (id) => set((s) => ({ savedMenus: s.savedMenus.filter((m) => m.id !== id) })),
     }),
     {

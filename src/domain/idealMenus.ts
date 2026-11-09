@@ -36,9 +36,17 @@ export const idealProductJan = (x: IdealMenuItem): string | null => {
   return id.startsWith(PRODUCT_PREFIX) ? id.slice(PRODUCT_PREFIX.length) : null
 }
 
+// day：1日の合計でバランスをとる（軽い朝ごはんと、しっかりした晩ごはんなど）。
+// meal：朝・昼・晩のどれも、1食だけで区分の目安（カロリー・PFC・食塩・飽和脂肪酸）に収まる。1食だけ呼び出してもよい
+export type IdealBalance = 'day' | 'meal'
+export const IDEAL_GENRES = ['和食', '洋食', '中華', 'イタリアン', '韓国', 'エスニック', '沖縄', '市販品'] as const
+export type IdealGenre = (typeof IDEAL_GENRES)[number]
+
 export type IdealMenu = {
   id: string
   name: string
+  balance: IdealBalance
+  genre: IdealGenre
   // 献立のようす（一覧に出すひとこと）
   lead: string
   // 栄養のポイント
@@ -52,6 +60,8 @@ export type IdealMenu = {
 export const IDEAL_MENUS: IdealMenu[] = [
   {
     id: 'washoku',
+    balance: 'day',
+    genre: '和食',
     name: '和食の定番',
     lead: '納豆と玄米の朝、サーモン丼の昼、銀だらの西京焼きの晩',
     point: '魚と大豆でたんぱく質。玄米・枝豆・煮豆で食物繊維',
@@ -65,6 +75,8 @@ export const IDEAL_MENUS: IdealMenu[] = [
   },
   {
     id: 'bread',
+    balance: 'day',
+    genre: '洋食',
     name: 'パンの朝ごはん',
     lead: 'ジャムトーストと目玉焼きの朝、ロコモコの昼、あじフライの晩',
     point: 'ヨーグルト・牛乳・冷奴でカルシウム。卵とあじでビタミンD',
@@ -78,6 +90,8 @@ export const IDEAL_MENUS: IdealMenu[] = [
   },
   {
     id: 'sashimi',
+    balance: 'day',
+    genre: '和食',
     name: 'お刺身の晩ごはん',
     lead: '卵焼きの朝、ヒレカツ定食の昼、たいのお刺身の晩',
     point: 'ヒレカツの豚肉でビタミンB1。小松菜と厚揚げでカルシウムと鉄',
@@ -91,6 +105,8 @@ export const IDEAL_MENUS: IdealMenu[] = [
   },
   {
     id: 'chuka',
+    balance: 'day',
+    genre: '中華',
     name: '中華の晩ごはん',
     lead: 'スクランブルエッグの朝、鉄火丼の昼、麻婆豆腐の晩',
     point: 'まぐろと豆腐でたんぱく質。ナッツでビタミンE、青菜でビタミンC',
@@ -104,6 +120,8 @@ export const IDEAL_MENUS: IdealMenu[] = [
   },
   {
     id: 'nabe',
+    balance: 'day',
+    genre: '和食',
     name: '鍋の晩ごはん',
     lead: '紅ざけの朝、ぶりの照り焼きの昼、水炊きの晩',
     point: '紅ざけとぶりでビタミンDとn-3系脂肪酸。鍋で野菜がたっぷり',
@@ -115,9 +133,154 @@ export const IDEAL_MENUS: IdealMenu[] = [
     },
     extras: { breakfast: ['banana', 'milk', 'ready-natto'], lunch: ['nimame', 'ready-imo-tempura', 'apple', 'hiyayakko'], dinner: ['yasai-corn', 'fruit-grape', 'yasai-edamame'], other: ['sweets-yakiimo', 'sweets-mixed-nuts', 'onigiri-salmon'] },
   },
+  {
+    id: 'italian',
+    balance: 'day',
+    genre: 'イタリアン',
+    name: 'イタリアンの1日',
+    lead: 'ゆで卵とジャムトーストの朝、マルゲリータの昼、リゾットと鶏むね肉のソテーの晩',
+    point: 'ピザのチーズと豆乳でカルシウム。鶏むね肉と卵でたんぱく質、野菜ジュースと温野菜でビタミン',
+    slots: {
+      breakfast: ['bread-jam-toast', 'boiled-egg', 'sweets-yogurt-sweet', 'fruit-orange', 'drink-vegetable-juice'],
+      lunch: ['pizza-margherita', 'yasai-tomato', 'fruit-grape'],
+      dinner: ['risotto', 'grill-chicken-breast', 'onyasai'],
+      other: ['drink-soy-milk', 'fruit-kiwi'],
+    },
+    // ピザとリゾットは食塩が多めなので、たくさん食べる人には食塩のない一品を多めに用意する
+    extras: {
+      breakfast: ['banana', 'apple', 'drink-apple-juice'],
+      lunch: ['fruit-avocado', 'yasai-corn', 'ready-fries', 'fruit-pineapple'],
+      dinner: ['fruit-pear', 'fruit-persimmon'],
+      other: ['sweets-yakiimo', 'sweets-mixed-nuts', 'drink-drink-yogurt'],
+    },
+  },
+  {
+    id: 'korean',
+    balance: 'day',
+    genre: '韓国',
+    name: '韓国風の1日',
+    lead: 'サーモンの塩焼きの朝、ビビンバの昼、蒸し鶏とキムチの晩',
+    point: 'ビビンバで野菜をたっぷり。サーモンでビタミンD、蒸し鶏と枝豆でたんぱく質。キムチは小皿で',
+    slots: {
+      breakfast: ['rice', 'shioyaki-salmon', 'yasai-tomato', 'drink-vegetable-juice'],
+      lunch: ['bibimbap', 'sweets-yogurt-sweet', 'mikan'],
+      dinner: ['rice', 'banbanji', 'yasai-kimchi', 'yasai-edamame'],
+      other: ['drink-drink-yogurt', 'fruit-kiwi'],
+    },
+    extras: {
+      breakfast: ['banana', 'apple'],
+      lunch: ['fruit-avocado', 'fruit-grapefruit'],
+      dinner: ['ready-imo-tempura', 'yasai-corn', 'fruit-pear'],
+      other: ['sweets-yakiimo', 'sweets-mixed-nuts', 'drink-soy-milk'],
+    },
+  },
+  {
+    id: 'ethnic',
+    balance: 'day',
+    genre: 'エスニック',
+    name: 'タイ風の1日',
+    lead: 'トーストとバナナの朝、ガパオライスの昼、蒸し鶏ごはんと春雨サラダの晩',
+    point: 'ガパオと蒸し鶏でたんぱく質。野菜ジュースとブロッコリーでビタミン、飲むヨーグルトでカルシウム',
+    slots: {
+      breakfast: ['bread-jam-toast', 'sweets-yogurt-sweet', 'yasai-tomato', 'banana', 'drink-vegetable-juice'],
+      lunch: ['gapao-rice', 'yasai-broccoli', 'fruit-pineapple'],
+      dinner: ['rice', 'banbanji', 'harusame-salad', 'fruit-kiwi'],
+      other: ['drink-drink-yogurt', 'mikan'],
+    },
+    extras: {
+      breakfast: ['apple', 'drink-cafe-au-lait'],
+      lunch: ['fruit-avocado', 'yasai-corn', 'fruit-orange'],
+      dinner: ['fruit-grape', 'fruit-pear', 'ready-nasu-tempura'],
+      other: ['sweets-yakiimo', 'drink-soy-milk', 'sweets-mixed-nuts'],
+    },
+  },
+  {
+    id: 'okinawa',
+    balance: 'day',
+    genre: '沖縄',
+    name: '沖縄の1日',
+    lead: 'ハムと目玉焼きの朝、沖縄そばの昼、ゴーヤーチャンプルーとイカスミ汁の晩',
+    point: 'ゴーヤーとパイナップルでビタミンC、チャンプルーの豆腐とイカスミ汁でたんぱく質。おやつはサーターアンダーギー',
+    slots: {
+      breakfast: ['rice', 'fried-egg', 'ready-ham', 'yasai-tomato'],
+      lunch: ['kyodo-47-20-okinawa', 'yasai-broccoli', 'fruit-pineapple'],
+      dinner: ['rice', 'kyodo-47-11-okinawa', 'kyodo-47-12-okinawa', 'ohitashi-komatsuna'],
+      other: ['kyodo-47-8-okinawa', 'sweets-yogurt-sweet'],
+    },
+    extras: {
+      breakfast: ['banana', 'drink-soy-milk'],
+      lunch: ['ready-imo-tempura', 'fruit-kiwi'],
+      dinner: ['yasai-corn', 'fruit-orange'],
+      other: ['sweets-mixed-nuts', 'yogurt'],
+    },
+  },
+  // ここから毎食バランスの献立。朝・昼・晩のどれも、1食で区分の目安（カロリー・PFC・食塩・飽和脂肪酸）に収まる。
+  // 1食の食塩は1日の目安 × 区分の割合（女性の朝なら約1.6g）までなので、みそ汁や麺など塩分の多いものは入れにくい
+  {
+    id: 'meal-washoku',
+    balance: 'meal',
+    genre: '和食',
+    name: '和定食の1日',
+    lead: 'サーモンの塩焼きの朝、鶏の照り焼きの昼、たいの刺身とがんもどきの晩',
+    point: '毎食、主食・魚や肉・野菜をそろえる',
+    slots: {
+      breakfast: ['mugi-rice', 'shioyaki-salmon', 'yasai-kabocha-ni', 'yasai-tomato'],
+      lunch: ['rice', 'teriyaki-chicken', 'yasai-edamame', 'fruit-persimmon'],
+      dinner: ['genmai-rice', 'sashimi-tai', 'ready-ganmodoki', 'ohitashi-komatsuna'],
+      other: ['drink-drink-yogurt', 'fruit-kiwi'],
+    },
+    extras: {
+      breakfast: ['banana', 'yogurt', 'mikan'],
+      lunch: ['apple', 'ready-imo-tempura', 'yasai-corn'],
+      dinner: ['fruit-grape', 'sweets-yakiimo', 'fruit-pear'],
+      other: ['drink-soy-milk', 'fruit-orange', 'sweets-mixed-nuts'],
+    },
+  },
+  {
+    id: 'meal-yoshoku',
+    balance: 'meal',
+    genre: '洋食',
+    name: '洋食の1日',
+    lead: 'ジャムトーストとゆで卵の朝、ロコモコの昼、あじフライの晩',
+    point: '毎食、主食・肉や魚や卵・野菜をそろえる',
+    slots: {
+      breakfast: ['bread-jam-toast', 'boiled-egg', 'yasai-broccoli', 'sweets-yogurt-sweet', 'fruit-kiwi'],
+      lunch: ['loco-moco', 'yasai-tomato', 'fruit-orange'],
+      dinner: ['rice', 'ready-aji-fry', 'onyasai', 'yasai-tomato', 'fruit-grape'],
+      other: ['milk', 'fruit-pineapple'],
+    },
+    extras: {
+      breakfast: ['orange-juice', 'yasai-corn', 'sweets-mixed-nuts'],
+      lunch: ['drink-soy-milk', 'banana', 'apple'],
+      dinner: ['fruit-pear', 'ready-fries', 'ready-imo-tempura'],
+      other: ['sweets-yakiimo', 'onigiri-salmon', 'mikan'],
+    },
+  },
+  {
+    id: 'meal-chuka',
+    balance: 'meal',
+    genre: '中華',
+    name: '中華の1日',
+    lead: '目玉焼きと枝豆の朝、酢豚の昼、麻婆豆腐の晩',
+    point: '毎食、主食・肉や卵や豆腐・野菜をそろえる。豆腐と枝豆でカルシウムと鉄',
+    slots: {
+      breakfast: ['rice', 'fried-egg', 'yasai-edamame', 'yasai-tomato'],
+      lunch: ['genmai-rice', ['subuta', 1.3], 'yasai-broccoli', 'hiyayakko', 'fruit-orange'],
+      dinner: ['rice', 'mapo-tofu', 'ohitashi-chingensai', 'fruit-kiwi'],
+      other: ['sweets-yogurt-sweet', 'banana'],
+    },
+    extras: {
+      breakfast: ['drink-soy-milk', 'apple', 'orange-juice'],
+      lunch: ['fruit-pineapple', 'yasai-corn', 'ready-imo-tempura'],
+      dinner: ['fruit-grape', 'fruit-pear', 'fruit-persimmon'],
+      other: ['mikan', 'sweets-mixed-nuts', 'sweets-yakiimo'],
+    },
+  },
   // ここから市販品を使う献立。コンビニの商品は毎月のデータ更新でなくなることがあるので、テストで確かめる
   {
     id: 'konbini',
+    balance: 'day',
+    genre: '市販品',
     name: 'コンビニでお昼',
     lead: '納豆ごはんの朝、セブン-イレブンのおにぎりとサラダの昼、さばの塩焼きの晩',
     point: 'お昼はおにぎり2個とサラダに、ヨーグルトとキウイを足す。朝と晩の料理で魚・大豆・青菜をとる',
@@ -131,6 +294,8 @@ export const IDEAL_MENUS: IdealMenu[] = [
   },
   {
     id: 'frugra-gyoza',
+    balance: 'day',
+    genre: '市販品',
     name: 'フルグラと冷凍ギョーザ',
     lead: 'フルグラと牛乳の朝、鶏の照り焼きの昼、冷凍ギョーザの晩',
     point: '朝はフルグラで手軽に食物繊維。ギョーザは塩分ひかえめのものに、野菜と豆腐を添える',
@@ -193,6 +358,8 @@ export const stapleBounds = (_dish: Dish): [number, number] => BOUNDS.staple
 // ごはんがこれをこえるときは、足す一品でごはんをへらす（ふつうの量の範囲）。こえた分の2乗 × STAPLE_WEIGHT を損とする
 const STAPLE_COMFORT = 1.2
 const STAPLE_WEIGHT = 10
+// 毎食バランスの献立は、1食ずつ見てもごはんがふつうの量になるように、ごはんを増やすより一品を足すほうを選びやすくする
+const STAPLE_WEIGHT_MEAL = 20
 // 足す一品1品ぶんの損（violation の単位）。ごはんが1.4人前くらいまでなら、一品は足さずにごはんで合わせる
 const EXTRA_COST = 0.5
 // 市販品の量の範囲。おにぎり・食パンなど個数で数える主食は、小食の人なら1個へらす（1個は残す）。ふやすことはしない（ごはんと同じく、足す一品で補う）。
@@ -271,8 +438,6 @@ function toLine(slot: Slot, x: IdealMenuItem, catalog: Catalog): Line | null {
   return { slot, dish, kcal: dish.nutrients.energyKcal ?? 0, base, portion: base, role: role === 'fixed' ? 'count' : role }
 }
 
-const saltOf = (lines: Line[], catalog: Catalog) => menuTotals(toMenu(lines), catalog).day.values.salt
-
 // PFC・カロリー・食塩・飽和脂肪酸の外れ具合（0 なら全部おさまっている）。直すときの目安。
 // slotTargets はごはんで合わせる区分の目安、fixedTargets はごはんのない朝・昼・晩の目安
 function violation(
@@ -281,10 +446,13 @@ function violation(
   targets: Targets,
   slotTargets: Partial<Record<Slot, number>>,
   fixedTargets: Partial<Record<Slot, number>>,
+  perMeal: boolean,
 ): number {
   const t = menuTotals(toMenu(lines), catalog)
   const v = t.day.values
   let score = 0
+  // 毎食バランスの献立は、朝・昼・晩それぞれでも区分の目安に収める
+  if (perMeal) for (const slot of MEALS) score += mealViolation(t.bySlot[slot].values, slot, targets)
   // 1日のカロリーは目安の ±3% まで
   const dayErr = Math.abs(v.energyKcal - targets.energyKcal) / targets.energyKcal
   score += Math.max(0, dayErr - 0.03) ** 2 * 1e4
@@ -304,7 +472,13 @@ function violation(
     score += Math.max(0, err - SLOT_ENERGY_TOLERANCE + 0.01) ** 2 * 1e3
   }
   // ごはんはふつうの量（1.2人前）まで。こえる分は足す一品で補いたい
-  for (const l of lines) if (l.role === 'staple') score += Math.max(0, l.portion - STAPLE_COMFORT) ** 2 * STAPLE_WEIGHT
+  // 一品を足した区分のごはんは1人前から（ごはんを減らして一品に置きかえない）
+  const stapleWeight = perMeal ? STAPLE_WEIGHT_MEAL : STAPLE_WEIGHT
+  for (const l of lines) {
+    if (l.role !== 'staple') continue
+    score += Math.max(0, l.portion - STAPLE_COMFORT) ** 2 * stapleWeight
+    if (lines.some((x) => x.role === 'extra' && x.portion > 0 && x.slot === l.slot)) score += Math.max(0, 1 - l.portion) ** 2 * stapleWeight
+  }
   // PFCは目標の範囲の内側 0.5% ポイントまで
   const ratio = pfcRatio(v)
   if (ratio) {
@@ -317,6 +491,42 @@ function violation(
   score += Math.max(0, v.salt - (targets.saltMax - 0.1)) ** 2 * 100
   score += Math.max(0, v.satFat - targets.satFatMaxG * 0.98) ** 2 * 10
   return score
+}
+
+const MEALS = ['breakfast', 'lunch', 'dinner'] as const
+// 区分の目安（画面の「区分ごとのバランス」と同じ）。カロリーは10kcal単位、食塩・飽和脂肪酸は1日の目安 × 区分の割合
+const mealGoals = (slot: Slot, targets: Targets) => {
+  const share = targets.slotShare[slot]
+  return { kcal: Math.round((targets.energyKcal * share) / 10) * 10, salt: targets.saltMax * share, satFat: targets.satFatMaxG * share }
+}
+// 1食の外れ具合。カロリーは区分の目安の ±15% まで（画面の「ちょうどいい」は ±20%）、PFCは目標の範囲の内側 0.5% ポイントまで、
+// 食塩は区分の目安の 0.05g 手前まで、飽和脂肪酸は区分の目安の98%まで
+function mealViolation(v: MenuTotals['day']['values'], slot: Slot, targets: Targets): number {
+  if (targets.slotShare[slot] <= 0 || v.energyKcal <= 0) return 0
+  const goal = mealGoals(slot, targets)
+  let score = Math.max(0, Math.abs(v.energyKcal - goal.kcal) / goal.kcal - 0.15) ** 2 * 1e3
+  const ratio = pfcRatio(v)
+  if (ratio)
+    for (const key of ['p', 'f', 'c'] as const) {
+      const r = targets.pfcRatio[key]
+      score += Math.max(0, r.lo + 0.5 - ratio[key], ratio[key] - (r.hi - 0.5)) ** 2 * 10
+    }
+  score += Math.max(0, v.salt - (goal.salt - 0.05)) ** 2 * 300
+  score += Math.max(0, v.satFat - goal.satFat * 0.98) ** 2 * 100
+  return score
+}
+// 1日と区分ごとの食塩
+const saltsOf = (lines: Line[], catalog: Catalog) => {
+  const t = menuTotals(toMenu(lines), catalog)
+  return { day: t.day.values.salt, bySlot: Object.fromEntries(SLOTS.map((s) => [s, t.bySlot[s].values.salt])) as Record<Slot, number> }
+}
+type Salts = ReturnType<typeof saltsOf>
+// 動かして食塩がふえ、目安ぎりぎりになるか（1日の目安から margin 手前をこえる。毎食バランスなら、ふやした区分の目安から margin / 2 手前をこえる）。
+// 食塩のない一品（果物など）を足すだけなら、すでにぎりぎりでもとってよい
+function tooSalty(before: Salts, after: Salts, targets: Targets, perMeal: boolean, margin: number, slot: Slot): boolean {
+  const more = (a: number, b: number) => a > b + 0.005
+  if (more(after.day, before.day) && after.day > targets.saltMax - margin) return true
+  return perMeal && slot !== 'other' && more(after.bySlot[slot], before.bySlot[slot]) && after.bySlot[slot] > mealGoals(slot, targets).salt - margin / 2
 }
 
 // 理想の献立を、プロフィールの目安（targets）に合わせた量の1日の食事にする
@@ -388,7 +598,8 @@ export function planIdealMenu(menu: IdealMenu, catalog: Catalog, targets: Target
   const fixedTargets: Partial<Record<Slot, number>> = {}
   // 画面の区分の目安（slotBalance）と同じく10kcal単位に丸める
   for (const slot of fixedSlots) fixedTargets[slot] = Math.round((targets.energyKcal * share[slot]) / 10) * 10
-  const evaluate = () => violation(lines, catalog, targets, goals, fixedTargets)
+  const perMeal = menu.balance === 'meal'
+  const evaluate = () => violation(lines, catalog, targets, goals, fixedTargets, perMeal)
   const movable = lines.filter((l) => l.role === 'count' && fixedSlots.includes(l.slot) && l.slot !== 'other')
   const extras = lines.filter((l) => l.role === 'extra')
   const cost = () => evaluate() + drift(movable) + extras.filter((l) => l.portion > 0).length * EXTRA_COST
@@ -399,24 +610,30 @@ export function planIdealMenu(menu: IdealMenu, catalog: Catalog, targets: Target
     let best: { line: Line; portion: number; total: number } | null = null
     const moves: [Line, number][] = [
       ...movable.flatMap((l) => [-1, 1].map((sign): [Line, number] => [l, roundFor(l, l.portion + sign * stepOf(l))])),
-      // 足す一品は区分ごとに書いた順に（食塩の少ないものから）。次に足せるのは、まだ使っていない最初の1品
-      ...SLOTS.flatMap((slot): [Line, number][] => {
-        const next = extras.find((l) => l.slot === slot && l.portion === 0)
-        return next ? [[next, next.base]] : []
-      }),
+      // 足す一品は区分ごとに書いた順に（食塩の少ないものから）。次に足せるのは、まだ使っていない一品のうち、
+      // 足すと目安に近づく最初の1品（食塩が目安ぎりぎりになるもの・PFCが外れるものはとばす）
+      ...extras.filter((l) => l.portion === 0).map((l): [Line, number] => [l, l.base]),
     ]
+    const before = saltsOf(lines, catalog)
+    const tried = new Set<Slot>()
     for (const [line, portion] of moves) {
       const [lo, hi] = boundsOf(line)
       if (portion < lo || portion > hi) continue
+      const extra = line.role === 'extra'
+      if (extra && tried.has(line.slot)) continue
       const saved = lines.map((l) => l.portion)
       const more = portion > line.portion
       line.portion = portion
       goals = distribute()
       // 食塩が目安ぎりぎりになる手はとらない（区分のカロリーより食塩を守る）
-      const salty = more && saltOf(lines, catalog) > targets.saltMax - 0.2
+      const salty = more && tooSalty(before, saltsOf(lines, catalog), targets, perMeal, 0.2, line.slot)
+      // 一品を足すのは、その区分のごはんがふつうの量（1人前）より少なくならないときだけ（ごはんを一品に置きかえない）
+      const thin = extra && lines.some((l) => l.slot === line.slot && l.role === 'staple' && l.portion < 1)
       const s = cost()
       lines.forEach((l, i) => (l.portion = saved[i]))
-      if (!salty && s < total - 1e-9 && (!best || s < best.total)) best = { line, portion, total: s }
+      const better = !salty && !thin && s < total - 1e-9
+      if (extra && better) tried.add(line.slot)
+      if (better && (!best || s < best.total)) best = { line, portion, total: s }
     }
     goals = distribute()
     if (!best) break
@@ -439,6 +656,7 @@ export function planIdealMenu(menu: IdealMenu, catalog: Catalog, targets: Target
   }
   for (let step = 0; step < 60 && score > 0; step++) {
     let best: { group: Line[]; d: number; score: number } | null = null
+    const before = saltsOf(lines, catalog)
     for (const group of groups) {
       for (const sign of [-1, 1]) {
         const d = sign * stepOf(group[0])
@@ -447,7 +665,7 @@ export function planIdealMenu(menu: IdealMenu, catalog: Catalog, targets: Target
         const prev = group.map((l) => l.portion)
         group.forEach((l, i) => (l.portion = next[i]))
         // 食塩が目安をこえそうになる手はとらない（カロリーが足りなくても、食塩を守る）
-        const salty = d > 0 && saltOf(lines, catalog) > targets.saltMax - 0.1
+        const salty = d > 0 && tooSalty(before, saltsOf(lines, catalog), targets, perMeal, 0.1, group[0].slot)
         const s = evaluate() + drift(group)
         group.forEach((l, i) => (l.portion = prev[i]))
         if (!salty && s < score && (!best || s < best.score)) best = { group, d, score: s }

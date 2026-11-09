@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
-import { IDEAL_MENUS, adjustIdealMenu, idealMenuAvailable, idealMenuHasProducts, idealProductJan, menuItemRole, summarizeIdealMenu } from './idealMenus'
-import { WANT_NUTRIENTS } from './nutrientChecks'
+import { IDEAL_GENRES, IDEAL_MENUS, adjustIdealMenu, idealMenuAvailable, idealMenuHasProducts, idealProductJan, menuItemRole, summarizeIdealMenu } from './idealMenus'
+import { WANT_NUTRIENTS, nutrientChecks } from './nutrientChecks'
 import type { Catalog } from './nutrition'
 import { slotBalance } from './slotBalance'
 import { computeTargets } from './targets'
@@ -42,6 +42,30 @@ describe('理想の献立', () => {
       const base = new Set(SLOTS.flatMap((slot) => m.slots[slot]).map(idOf))
       const extras = Object.values(m.extras).flat().map(idOf)
       expect(extras.filter((id, i) => base.has(id) || extras.indexOf(id) !== i), m.id).toEqual([])
+    }
+  })
+
+  it('1日でバランスをとる献立と、朝・昼・晩それぞれでとる献立の両方があり、ジャンルは和洋中のほかにもいろいろある', () => {
+    expect(new Set(IDEAL_MENUS.map((m) => m.id)).size).toBe(IDEAL_MENUS.length)
+    expect(IDEAL_MENUS.filter((m) => m.balance === 'day').length).toBeGreaterThanOrEqual(5)
+    expect(IDEAL_MENUS.filter((m) => m.balance === 'meal').length).toBeGreaterThanOrEqual(3)
+    const genres = new Set(IDEAL_MENUS.map((m) => m.genre))
+    for (const g of genres) expect(IDEAL_GENRES).toContain(g)
+    expect([...genres].filter((g) => !['和食', '洋食', '中華', '市販品'].includes(g)).length).toBeGreaterThanOrEqual(4)
+  })
+
+  // 毎食バランスの献立は、1食だけ呼び出しても、その区分の目安（カロリー±20%・PFCの範囲・食塩と飽和脂肪酸の上限）に収まる
+  it.each(PROFILES.map((p) => [label(p), p] as const))('%s：毎食バランスの献立は、朝・昼・晩それぞれで区分の目安に収まる', (_, profile) => {
+    const t = computeTargets(profile)
+    for (const m of IDEAL_MENUS.filter((x) => x.balance === 'meal')) {
+      const totals = summarizeIdealMenu(adjustIdealMenu(m, catalog, t), catalog, t).totals
+      for (const slot of ['breakfast', 'lunch', 'dinner'] as const) {
+        const b = slotBalance(totals.bySlot[slot], slot, t)
+        expect(b.energy, `${m.id} ${slot} ${Math.round(b.kcal)}/${b.targetKcal}`).toBe('ok')
+        expect(b.hints.map((h) => `${h.key}${h.gap.toFixed(1)}`), `${m.id} ${slot} PFC`).toEqual([])
+        const over = nutrientChecks(totals.bySlot[slot], t, slot).filter((c) => c.status === 'over')
+        expect(over.map((c) => c.key), `${m.id} ${slot}`).toEqual([])
+      }
     }
   })
 
