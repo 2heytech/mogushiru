@@ -18,6 +18,7 @@
 // フルグラ・冷凍ギョーザなどグラムで数える商品を刻みずつ増減する（サラダなどほかの商品は献立の量のまま）。
 // ごはんのない区分（コンビニのお昼、フルグラの朝など）は、その区分が目安から2割外れないように
 // それらや果物・牛乳を1個・1杯ずつ動かし、そのぶんほかの区分のごはんを配り直す
+import { MORE_IDEAL_MENUS } from './idealMenuData'
 import { nutrientChecks, type NutrientCheck } from './nutrientChecks'
 import { menuTotals, pfcRatio, type Catalog, type MenuTotals } from './nutrition'
 import { SLOT_ENERGY_TOLERANCE } from './slotBalance'
@@ -39,7 +40,7 @@ export const idealProductJan = (x: IdealMenuItem): string | null => {
 // day：1日の合計でバランスをとる（軽い朝ごはんと、しっかりした晩ごはんなど）。
 // meal：朝・昼・晩のどれも、1食だけで区分の目安（カロリー・PFC・食塩・飽和脂肪酸）に収まる。1食だけ呼び出してもよい
 export type IdealBalance = 'day' | 'meal'
-export const IDEAL_GENRES = ['和食', '洋食', '中華', 'イタリアン', '韓国', 'エスニック', '沖縄', '市販品'] as const
+export const IDEAL_GENRES = ['和食', '洋食', '中華', 'イタリアン', '韓国', 'エスニック', '郷土料理', '市販品'] as const
 export type IdealGenre = (typeof IDEAL_GENRES)[number]
 
 export type IdealMenu = {
@@ -57,7 +58,8 @@ export type IdealMenu = {
   extras: Partial<Record<Slot, IdealMenuItem[]>>
 }
 
-export const IDEAL_MENUS: IdealMenu[] = [
+// 最初に手で組んだ献立。一覧ではこの順で先に出し、そのあとに追加分（idealMenuData.ts）を続ける
+const FIRST_IDEAL_MENUS: IdealMenu[] = [
   {
     id: 'washoku',
     balance: 'day',
@@ -197,7 +199,7 @@ export const IDEAL_MENUS: IdealMenu[] = [
   {
     id: 'okinawa',
     balance: 'day',
-    genre: '沖縄',
+    genre: '郷土料理',
     name: '沖縄の1日',
     lead: 'ハムと目玉焼きの朝、沖縄そばの昼、ゴーヤーチャンプルーとイカスミ汁の晩',
     point: 'ゴーヤーとパイナップルでビタミンC、チャンプルーの豆腐とイカスミ汁でたんぱく質。おやつはサーターアンダーギー',
@@ -309,6 +311,8 @@ export const IDEAL_MENUS: IdealMenu[] = [
     extras: { breakfast: ['boiled-egg', 'orange-juice'], lunch: ['nimame', 'apple', 'ready-imo-tempura'], dinner: ['yasai-corn', 'fruit-pineapple', 'yasai-edamame'], other: ['sweets-yakiimo', 'sweets-mixed-nuts', 'onigiri-salmon'] },
   },
 ]
+
+export const IDEAL_MENUS: IdealMenu[] = [...FIRST_IDEAL_MENUS, ...MORE_IDEAL_MENUS]
 
 const itemId = (x: IdealMenuItem) => (typeof x === 'string' ? x : x[0])
 const itemPortion = (x: IdealMenuItem) => (typeof x === 'string' ? undefined : x[1])
