@@ -10,6 +10,7 @@ import { isSupplement } from './domain/supplement'
 import { Picker } from './components/Picker'
 import { ProfileDialog, type ProfileFocus } from './components/ProfileDialog'
 import { SlotStrip } from './components/SlotStrip'
+import { StartChoice } from './components/StartChoice'
 import { RankingView } from './components/RankingView'
 import { confirmDialog } from './components/confirm'
 import { ConfirmHost } from './components/ConfirmDialog'
@@ -19,7 +20,7 @@ import { useCatalog, withMyData } from './data/catalog'
 import { usePrices } from './data/prices'
 import { knownItemsOnly, menuTotals, type Catalog } from './domain/nutrition'
 import { computeTargets } from './domain/targets'
-import type { Ingredient, Slot } from './domain/types'
+import { SLOTS, type Ingredient, type Slot } from './domain/types'
 import { MY_PRODUCT_PREFIX, useAppStore } from './store/useAppStore'
 import { LogoMogu } from './components/Mascot'
 import { UiIcon } from './components/UiIcon'
@@ -130,8 +131,9 @@ export default function App() {
     deleteMenu,
     clearMenu,
   } = useAppStore()
-  // 'ideal' は呼び出しを理想の献立のタブで開く
-  const [savedDialog, setSavedDialog] = useState<'save' | 'load' | 'ideal' | null>(null)
+  const [savedDialog, setSavedDialog] = useState<'save' | 'load' | null>(null)
+  // 1日の食事が空のときに出す「呼び出す／自分でえらぶ」。自分でえらぶを押したら、リセットするまで出さない
+  const [startDismissed, setStartDismissed] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
   const [profileFocus, setProfileFocus] = useState<ProfileFocus | undefined>()
   const [pickerSlot, setPickerSlot] = useState<Slot | null>(null)
@@ -313,6 +315,17 @@ export default function App() {
         </main>
       ) : catalog && totals && !waitingForStores ? (
         <main className="space-y-4">
+          {SLOTS.every((s) => menu[s].length === 0) && !startDismissed && (
+            <StartChoice
+              savedCount={savedMenus.length}
+              onLoad={() => setSavedDialog('load')}
+              onPickSelf={() => {
+                setStartDismissed(true)
+                // 朝食をとらない配分なら昼から
+                setPickerSlot(SLOTS.find((s) => targets.slotShare[s] > 0) ?? 'breakfast')
+              }}
+            />
+          )}
           {/* いちばん上に朝・昼・晩・その他、その下に情報 */}
           <SlotStrip
             menu={menu}
@@ -328,7 +341,10 @@ export default function App() {
             savedCount={savedMenus.length}
             onOpenSave={() => setSavedDialog('save')}
             onOpenLoad={() => setSavedDialog('load')}
-            onReset={clearMenu}
+            onReset={() => {
+              clearMenu()
+              setStartDismissed(false)
+            }}
           />
           <DayInfo
             totals={totals}
@@ -343,7 +359,6 @@ export default function App() {
               setProfileOpen(true)
             }}
             onEditProfile={() => setProfileOpen(true)}
-            onOpenIdeal={() => setSavedDialog('ideal')}
           />
         </main>
       ) : (
@@ -381,14 +396,13 @@ export default function App() {
         />
       )}
 
-      {catalog && (savedDialog === 'load' || savedDialog === 'ideal') && (
+      {catalog && savedDialog === 'load' && (
         <LoadMenuDialog
           menu={menu}
           saved={savedMenus}
           catalog={catalog}
           targets={targets}
           storesLoaded={storesLoaded}
-          initialTab={savedDialog === 'ideal' ? 'ideal' : undefined}
           onLoadIdeal={(_, m) => {
             replaceMenu(m)
             setSavedDialog(null)
