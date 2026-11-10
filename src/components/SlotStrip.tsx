@@ -61,7 +61,7 @@ export function SlotStrip(props: Props) {
   const { menu, totals, targets, catalog, onAdd } = props
   const [open, setOpen] = useState<Slot | null>(null)
   return (
-    <section aria-label="1日の食事">
+    <section aria-label="朝・昼・晩・その他">
       {/* スマホ */}
       <div className="md:hidden">
         <div className="grid grid-cols-4 gap-1.5">

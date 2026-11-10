@@ -13,41 +13,68 @@ import { useDismiss } from './useDismiss'
 
 const itemCount = (menu: DayMenu) => SLOTS.reduce((n, s) => n + menu[s].length, 0)
 
-const BUTTON = 'flex min-h-10 items-center gap-1.5 rounded-full bg-white pl-2 pr-3.5 text-sm shadow-sm disabled:opacity-40'
+// 「献立を呼び出す」だけ色をつけて、いちばん先に目に入るようにする
+const PRIMARY = 'flex items-center justify-center gap-1.5 rounded-full bg-coral font-bold text-[#3d2b1f] shadow-sm transition hover:bg-coral-dark/90'
+const SECONDARY = 'flex min-h-11 items-center justify-center gap-1.5 rounded-full bg-white pr-4 pl-2.5 text-sm shadow-sm transition hover:bg-cream disabled:opacity-40'
+// スマホの下のバーの「保存」「リセット」。アイコンの下に名前
+const BAR_SMALL = 'flex min-h-13 flex-col items-center justify-center gap-0.5 rounded-2xl bg-cream text-[11px] transition disabled:opacity-40'
 
-// 1日の食事の上に並べる「保存」「呼び出し」「リセット」。呼び出しは理想の献立もあるので、いつでも押せる
+export type MenuActionsLayout = 'row' | 'bar'
+
+// 1日の食事の「献立を呼び出す」「保存」「リセット」。
+// row＝見出しやPCの上のバーに横並び、bar＝スマホの下に固定のバー（呼び出すを広く、保存・リセットはアイコンの下に名前）
 export function MenuActions({
   menu,
+  layout,
   savedCount,
   onOpenSave,
   onOpenLoad,
   onReset,
 }: {
   menu: DayMenu
+  layout: MenuActionsLayout
   savedCount: number
   onOpenSave: () => void
   onOpenLoad: () => void
   onReset: () => void
 }) {
   const empty = itemCount(menu) === 0
+  const reset = async () => {
+    if (await confirmDialog('朝・昼・晩・その他の料理をすべて外して、空にしますか？', { okLabel: 'リセットする', danger: true })) onReset()
+  }
+  const count = savedCount > 0 && <span className="rounded-full bg-white/70 px-1.5 text-xs font-normal tabular-nums">{savedCount}</span>
+  if (layout === 'bar')
+    return (
+      <div className="grid grid-cols-[1.8fr_1fr_1fr] gap-2">
+        <button type="button" onClick={onOpenLoad} aria-haspopup="dialog" className={`${PRIMARY} min-h-13 px-3 text-[15px]`}>
+          <UiIcon name="load" className="h-6 w-6 shrink-0" />
+          献立を呼び出す
+          {count}
+        </button>
+        <button type="button" onClick={onOpenSave} disabled={empty} aria-haspopup="dialog" className={BAR_SMALL}>
+          <UiIcon name="save" className="h-6 w-6 shrink-0" />
+          保存
+        </button>
+        <button type="button" onClick={reset} disabled={empty} className={`${BAR_SMALL} text-ink-soft`}>
+          <UiIcon name="reset" className="h-6 w-6 shrink-0" />
+          リセット
+        </button>
+      </div>
+    )
   return (
-    <div className="flex flex-wrap items-center justify-end gap-2">
-      <button type="button" onClick={onOpenSave} disabled={empty} aria-haspopup="dialog" className={BUTTON}>
-        <UiIcon name="save" className="h-6 w-6 shrink-0" />保存
+    <div className="flex flex-wrap items-center gap-2">
+      <button type="button" onClick={onOpenLoad} aria-haspopup="dialog" className={`${PRIMARY} min-h-11 pr-4 pl-2.5`}>
+        <UiIcon name="load" className="h-6 w-6 shrink-0" />
+        献立を呼び出す
+        {count}
       </button>
-      <button type="button" onClick={onOpenLoad} aria-haspopup="dialog" className={BUTTON}>
-        <UiIcon name="load" className="h-6 w-6 shrink-0" />呼び出し
-        {savedCount > 0 && <span className="rounded-full bg-cream px-1.5 text-xs tabular-nums text-ink-soft">{savedCount}</span>}
+      <button type="button" onClick={onOpenSave} disabled={empty} aria-haspopup="dialog" className={SECONDARY}>
+        <UiIcon name="save" className="h-6 w-6 shrink-0" />
+        保存
       </button>
-      <button
-        type="button"
-        disabled={empty}
-        onClick={async () => {
-          if (await confirmDialog('朝・昼・晩・その他の料理をすべて外して、空にしますか？', { okLabel: 'リセットする', danger: true })) onReset()
-        }}
-        className={BUTTON}
-      >
-        <UiIcon name="reset" className="h-6 w-6 shrink-0" />リセット
+      <button type="button" onClick={reset} disabled={empty} className={`${SECONDARY} text-ink-soft`}>
+        <UiIcon name="reset" className="h-6 w-6 shrink-0" />
+        リセット
       </button>
     </div>
   )

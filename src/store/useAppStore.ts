@@ -28,6 +28,8 @@ type State = {
   myProducts: Product[]
   favoriteProductIds: string[]
   savedMenus: SavedMenu[]
+  // いまの1日の食事をどの献立から呼び出したか（理想の献立・保存した食事）。手を加えたら edited
+  menuSource: MenuSource | null
   setProfile: (p: Profile) => void
   // 追加した項目の uid を返す（料理を選ぶ画面で、もう一度押したら外すため）
   addItem: (slot: Slot, item: Omit<MenuItem, 'uid'>) => string
@@ -51,12 +53,17 @@ type State = {
   saveMenu: (name: string) => void
   // 呼び出すと今の1日の食事を置き換える。prepare でなくなった料理を外すなどしてから入れる
   loadMenu: (id: string, prepare?: (menu: DayMenu) => DayMenu) => void
-  // 理想の献立など、外から作った1日の食事で置き換える（項目の uid は付け直す）
-  replaceMenu: (menu: DayMenu) => void
+  // 理想の献立など、外から作った1日の食事で置き換える（項目の uid は付け直す）。name を渡すと呼び出した献立として覚える
+  replaceMenu: (menu: DayMenu, name?: string) => void
   // 1つの区分だけ置き換える（理想の献立から1食だけ呼び出すときなど。uid は付け直す）
   replaceSlot: (slot: Slot, items: MenuItem[]) => void
   deleteMenu: (id: string) => void
 }
+
+export type MenuSource = { name: string; edited: boolean }
+
+// 呼び出した献立に手を加えたら「変更あり」にする
+const touched = (s: { menuSource: MenuSource | null }) => (s.menuSource && !s.menuSource.edited ? { menuSource: { ...s.menuSource, edited: true } } : {})
 
 // カスタマイズした料理を、最後に保存したものから順に
 export const recentMyDishes = (dishes: MyDish[]): MyDish[] =>
@@ -94,11 +101,13 @@ export const useAppStore = create<State>()(
       myProducts: [],
       favoriteProductIds: [],
       savedMenus: [],
+      menuSource: null,
       setProfile: (profile) => set({ profile, profileSet: true }),
       // カスタマイズした料理を別の区分にも入れたら、その区分でも上に出すようにする
       addItem: (slot, item) => {
         const id = uid()
         set((s) => ({
+          ...touched(s),
           menu: { ...s.menu, [slot]: [...s.menu[slot], { ...item, uid: id }] },
           myDishes:
             item.kind === 'myDish'
@@ -108,9 +117,10 @@ export const useAppStore = create<State>()(
         return id
       },
       updatePortion: (slot, id, portion) =>
-        set((s) => ({ menu: { ...s.menu, [slot]: s.menu[slot].map((i) => (i.uid === id ? { ...i, portion } : i)) } })),
+        set((s) => ({ ...touched(s), menu: { ...s.menu, [slot]: s.menu[slot].map((i) => (i.uid === id ? { ...i, portion } : i)) } })),
       customizeItem: (slot, id, ingredients) =>
         set((s) => ({
+          ...touched(s),
           menu: {
             ...s.menu,
             [slot]: s.menu[slot].map((i) => {
@@ -122,19 +132,20 @@ export const useAppStore = create<State>()(
         })),
       replaceWithMyDish: (slot, id, myDishId, portion) =>
         set((s) => ({
+          ...touched(s),
           menu: {
             ...s.menu,
             [slot]: s.menu[slot].map((i) => (i.uid === id ? { uid: i.uid, kind: 'myDish', refId: myDishId, portion: portion ?? i.portion } : i)),
           },
         })),
-      removeItem: (slot, id) => set((s) => ({ menu: { ...s.menu, [slot]: s.menu[slot].filter((i) => i.uid !== id) } })),
+      removeItem: (slot, id) => set((s) => ({ ...touched(s), menu: { ...s.menu, [slot]: s.menu[slot].filter((i) => i.uid !== id) } })),
       moveItem: (from, to, id) =>
         set((s) => {
           const item = s.menu[from].find((i) => i.uid === id)
           if (!item || from === to) return s
-          return { menu: { ...s.menu, [from]: s.menu[from].filter((i) => i.uid !== id), [to]: [...s.menu[to], item] } }
+          return { ...touched(s), menu: { ...s.menu, [from]: s.menu[from].filter((i) => i.uid !== id), [to]: [...s.menu[to], item] } }
         }),
-      clearMenu: () => set({ menu: emptyMenu() }),
+      clearMenu: () => set({ menu: emptyMenu(), menuSource: null }),
       pruneMenu: (prepare) =>
         set((s) => {
           const menu = prepare(s.menu)
@@ -182,25 +193,30 @@ export const useAppStore = create<State>()(
           const same = s.savedMenus.find((m) => m.name === name)
           return {
             savedMenus: same ? s.savedMenus.map((m) => (m.id === same.id ? { ...m, ...saved } : m)) : [...s.savedMenus, { id: uid(), ...saved }],
+            menuSource: { name, edited: false },
           }
         }),
       loadMenu: (id, prepare = (menu) => menu) => {
         const m = get().savedMenus.find((x) => x.id === id)
-        if (m) set({ menu: prepare(structuredClone(m.menu)) })
+        if (m) set({ menu: prepare(structuredClone(m.menu)), menuSource: { name: m.name, edited: false } })
       },
-      replaceMenu: (menu) =>
-        set({ menu: Object.fromEntries(Object.entries(menu).map(([slot, items]) => [slot, items.map((i) => ({ ...i, uid: uid() }))])) as DayMenu }),
-      replaceSlot: (slot, items) => set((s) => ({ menu: { ...s.menu, [slot]: items.map((i) => ({ ...i, uid: uid() })) } })),
+      replaceMenu: (menu, name) =>
+        set({
+          menu: Object.fromEntries(Object.entries(menu).map(([slot, items]) => [slot, items.map((i) => ({ ...i, uid: uid() }))])) as DayMenu,
+          menuSource: name ? { name, edited: false } : null,
+        }),
+      replaceSlot: (slot, items) => set((s) => ({ ...touched(s), menu: { ...s.menu, [slot]: items.map((i) => ({ ...i, uid: uid() })) } })),
       deleteMenu: (id) => set((s) => ({ savedMenus: s.savedMenus.filter((m) => m.id !== id) })),
     }),
     {
       name: 'mogushiru',
       version: SCHEMA_VERSION,
       storage: safeStorage,
-      partialize: ({ profile, profileSet, menu, myDishes, myProducts, favoriteProductIds, savedMenus }) => ({
+      partialize: ({ profile, profileSet, menu, menuSource, myDishes, myProducts, favoriteProductIds, savedMenus }) => ({
         profile,
         profileSet,
         menu,
+        menuSource,
         myDishes,
         myProducts,
         favoriteProductIds,

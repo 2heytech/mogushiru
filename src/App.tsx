@@ -10,6 +10,7 @@ import { isSupplement } from './domain/supplement'
 import { Picker } from './components/Picker'
 import { ProfileDialog, type ProfileFocus } from './components/ProfileDialog'
 import { SlotStrip } from './components/SlotStrip'
+import { DayMenuPanel } from './components/DayMenuPanel'
 import { StartChoice } from './components/StartChoice'
 import { RankingView } from './components/RankingView'
 import { confirmDialog } from './components/confirm'
@@ -43,9 +44,35 @@ const FEATURES: { view: View; icon: ReactNode; title: string; lead: string }[] =
   { view: 'customize', icon: <CustomizeIcon className={ICON_CLASS} />, title: '料理を|カスタマイズ', lead: '人前や材料の量を変えて保存' },
 ]
 
+// 広い画面（lg）ではロゴとプロフィールの間に1段で並べる小さな形
+function FeatureTabsCompact({ view, onChange }: { view: View; onChange: (v: View) => void }) {
+  return (
+    <nav aria-label="機能の切り替え" className="flex gap-2">
+      {FEATURES.map((f) => {
+        const active = f.view === view
+        return (
+          <button
+            key={f.view}
+            type="button"
+            aria-current={active ? 'page' : undefined}
+            onClick={() => onChange(f.view)}
+            title={f.lead}
+            className={`flex min-h-12 items-center gap-1.5 rounded-full border-2 pr-4 pl-2 text-sm font-bold whitespace-nowrap transition ${
+              active ? 'border-coral bg-white text-coral-dark shadow-sm' : 'border-transparent bg-white/60 text-ink hover:bg-white'
+            }`}
+          >
+            {f.icon}
+            {f.title.replaceAll('|', '')}
+          </button>
+        )
+      })}
+    </nav>
+  )
+}
+
 function FeatureTabs({ view, onChange }: { view: View; onChange: (v: View) => void }) {
   return (
-    <nav aria-label="機能の切り替え" className="mb-4 grid grid-cols-3 gap-2">
+    <nav aria-label="機能の切り替え" className="mb-4 grid grid-cols-3 gap-2 lg:hidden">
       {FEATURES.map((f) => {
         const active = f.view === view
         return (
@@ -130,10 +157,11 @@ export default function App() {
     replaceSlot,
     deleteMenu,
     clearMenu,
+    menuSource,
   } = useAppStore()
   const [savedDialog, setSavedDialog] = useState<'save' | 'load' | null>(null)
-  // 1日の食事が空のときに出す「呼び出す／自分でえらぶ」。自分でえらぶを押したら、リセットするまで出さない
-  const [startDismissed, setStartDismissed] = useState(false)
+  // 1日の食事が空のときに出す「呼び出す／自分でえらぶ」。どちらかで料理が入ったら、あとで全部外してもリセットするまで出さない
+  const [startDismissed, setStartDismissed] = useState(() => SLOTS.some((s) => useAppStore.getState().menu[s].length > 0))
   const [profileOpen, setProfileOpen] = useState(false)
   const [profileFocus, setProfileFocus] = useState<ProfileFocus | undefined>()
   const [pickerSlot, setPickerSlot] = useState<Slot | null>(null)
@@ -156,6 +184,7 @@ export default function App() {
   // 1日の食事にコンビニ・メーカーの商品が入っていれば、読み終えるまで待ってから出す（入っていなければすぐ出す）
   const waitingForStores = Boolean(catalog) && !storesLoaded && menu !== storedMenu
   const totals = useMemo(() => (catalog ? menuTotals(menu, catalog) : null), [catalog, menu])
+  const showStart = SLOTS.every((s) => menu[s].length === 0) && !startDismissed
 
   function renderEditor(catalog: Catalog, { slot, uid }: { slot: Slot; uid: string }) {
     const item = menu[slot].find((i) => i.uid === uid)
@@ -274,24 +303,38 @@ export default function App() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl px-4 pb-16">
-      <header className="flex items-center justify-between py-4">
+    // スマホは1日の食事のボタンを下に固定するので、そのぶん下をあける
+    <div className={`mx-auto max-w-6xl px-4 ${view === 'menu' && !showStart ? 'pb-32 md:pb-16' : 'pb-16'}`}>
+      <header className="flex items-center justify-between gap-4 py-4">
         <h1 className="flex shrink-0 items-center gap-1.5">
           <LogoMogu className="h-12 w-12" />
           <span className="font-logo text-[28px] leading-none tracking-wide text-ink">モグシル</span>
         </h1>
-        <button type="button" onClick={() => setProfileOpen(true)} className={NAV_BUTTON}>
+        <div className="hidden lg:block">
+          <FeatureTabsCompact view={view} onChange={setView} />
+        </div>
+        <button type="button" onClick={() => setProfileOpen(true)} className={`relative ${NAV_BUTTON}`}>
           <UiIcon name="profile" className="h-6 w-6 shrink-0" />
           <span>プロフィール</span>
+          {!profileSet && (
+            <>
+              <span className="absolute top-1 right-1 h-2.5 w-2.5 rounded-full bg-alert ring-2 ring-white" aria-hidden />
+              <span className="sr-only">（未入力）</span>
+            </>
+          )}
         </button>
       </header>
 
       <FeatureTabs view={view} onChange={setView} />
 
       {!profileSet && (
-        <button type="button" onClick={() => setProfileOpen(true)} className="mb-4 w-full rounded-xl bg-white px-4 py-2 text-left text-sm shadow-sm">
-          いまは「30〜49歳・女性・ふつう」の目安で表示しています。<span className="font-bold text-coral">プロフィールを入れる →</span>
-        </button>
+        <p className="mb-3 text-right">
+          <button type="button" onClick={() => setProfileOpen(true)} className="min-h-9 rounded-full bg-white px-3 text-left text-xs shadow-sm">
+            <span className="sm:hidden">目安は30〜49歳・女性　</span>
+            <span className="hidden sm:inline">目安は「30〜49歳・女性・ふつう」です。</span>
+            <span className="font-bold whitespace-nowrap text-coral-dark">プロフィールを入れる →</span>
+          </button>
+        </p>
       )}
 
       {catalogState.status === 'ready' && catalogState.missing.length > 0 && (
@@ -315,7 +358,7 @@ export default function App() {
         </main>
       ) : catalog && totals && !waitingForStores ? (
         <main className="space-y-4">
-          {SLOTS.every((s) => menu[s].length === 0) && !startDismissed ? (
+          {showStart ? (
             // 1日の食事が空のうちは、どう入れるかを選ぶまで朝・昼・晩や栄養の表示を出さない
             <StartChoice
               savedCount={savedMenus.length}
@@ -328,26 +371,35 @@ export default function App() {
             />
           ) : (
             <>
-              {/* いちばん上に朝・昼・晩・その他、その下に情報 */}
-              <SlotStrip
-                menu={menu}
+              {/* いちばん上に1日の食事（見出し・ボタン・朝〜その他）、その下に情報 */}
+              <DayMenuPanel
+                source={menuSource}
                 totals={totals}
                 targets={targets}
-                catalog={catalog}
-                onAdd={setPickerSlot}
-                onRemove={removeItem}
-                onEdit={(slot, uid) => setEditing({ slot, uid })}
-              />
-              <MenuActions
-                menu={menu}
-                savedCount={savedMenus.length}
-                onOpenSave={() => setSavedDialog('save')}
-                onOpenLoad={() => setSavedDialog('load')}
-                onReset={() => {
-                  clearMenu()
-                  setStartDismissed(false)
-                }}
-              />
+                actions={(layout) => (
+                  <MenuActions
+                    menu={menu}
+                    layout={layout}
+                    savedCount={savedMenus.length}
+                    onOpenSave={() => setSavedDialog('save')}
+                    onOpenLoad={() => setSavedDialog('load')}
+                    onReset={() => {
+                      clearMenu()
+                      setStartDismissed(false)
+                    }}
+                  />
+                )}
+              >
+                <SlotStrip
+                  menu={menu}
+                  totals={totals}
+                  targets={targets}
+                  catalog={catalog}
+                  onAdd={setPickerSlot}
+                  onRemove={removeItem}
+                  onEdit={(slot, uid) => setEditing({ slot, uid })}
+                />
+              </DayMenuPanel>
               <DayInfo
                 totals={totals}
                 targets={targets}
@@ -407,18 +459,21 @@ export default function App() {
           catalog={catalog}
           targets={targets}
           storesLoaded={storesLoaded}
-          onLoadIdeal={(_, m) => {
-            replaceMenu(m)
+          onLoadIdeal={(ideal, m) => {
+            replaceMenu(m, ideal.name)
+            setStartDismissed(true)
             setSavedDialog(null)
           }}
           onLoadIdealSlot={(_, slot, items) => {
             replaceSlot(slot, items)
+            setStartDismissed(true)
             setSavedDialog(null)
           }}
           onLoad={(m) => {
             // データの更新でなくなった料理があっても止まらないように外してから入れる
             // コンビニ・メーカーの商品を読み終える前は外さない（読み終えたあとに外す）
             loadMenu(m.id, storesLoaded ? (x) => knownItemsOnly(x, catalog) : undefined)
+            setStartDismissed(true)
             setSavedDialog(null)
           }}
           onDelete={(m) => deleteMenu(m.id)}
