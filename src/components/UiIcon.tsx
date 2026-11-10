@@ -2,7 +2,7 @@
 const INK = '#5b4636'
 const CHEEK = '#ffa99a'
 
-export type UiIconName = 'menu' | 'ranking' | 'profile' | 'save' | 'load' | 'reset' | 'limit' | 'want' | 'info'
+export type UiIconName = 'menu' | 'ranking' | 'profile' | 'save' | 'load' | 'reset' | 'limit' | 'want' | 'info' | 'pick'
 
 const TILE_BG: Record<UiIconName, string> = {
   menu: '#ffe6bf',
@@ -14,6 +14,7 @@ const TILE_BG: Record<UiIconName, string> = {
   limit: '#ffe1db',
   want: '#dcf1e2',
   info: '#f3ebe1',
+  pick: '#ffe6bf',
 }
 
 export function UiIcon({ name, className }: { name: UiIconName; className?: string }) {
@@ -95,6 +96,16 @@ export function UiIcon({ name, className }: { name: UiIconName; className?: stri
           <path d="M15.5 24 L24 14.5 L32.5 24" fill="none" {...s} stroke="#4fa874" strokeWidth={4} />
           <path d="M24 36 C18 37 12.5 34 12 28 C18 27.5 22.5 30.5 24 36 Z" fill="#7cc98a" {...s} strokeWidth={1.8} />
           <path d="M37 9 l1.2 2.8 l2.8 1.2 l-2.8 1.2 l-1.2 2.8 l-1.2 -2.8 l-2.8 -1.2 l2.8 -1.2 z" fill="#ffc94d" />
+        </>
+      )}
+      {name === 'pick' && (
+        // 自分でえらぶ：お皿にお箸で1品ずつ。朝・昼・晩の「＋」と同じコーラルの＋
+        <>
+          <ellipse cx="21" cy="30" rx="13" ry="7.5" fill="#fff" {...s} />
+          <ellipse cx="21" cy="29" rx="7" ry="3.2" fill="#ffc94d" />
+          <path d="M29 9 L38 25 M33 8 L41 23" fill="none" {...s} stroke="#c98b5a" strokeWidth={2.6} />
+          <circle cx="36" cy="35" r="7" fill="#ff8a65" {...s} strokeWidth={1.8} />
+          <path d="M36 31.5 v7 M32.5 35 h7" fill="none" stroke="#fff" strokeWidth={2.4} strokeLinecap="round" />
         </>
       )}
       {name === 'info' && (
