@@ -9,7 +9,8 @@ import { SLOTS, type Goal, type Profile } from './types'
 // プロフィール未入力の目安（女性30〜49歳・ふつう）
 const F35: Profile = { sex: 'female', age: 35, activity: 'normal' }
 
-describe('理想の献立', () => {
+// 91種の献立をプロフィールごとに組み直すテストがあり、CIでは5秒をこえることがあるので長めにする
+describe('理想の献立', { timeout: 30_000 }, () => {
   // コンビニの商品は毎月のデータ更新でなくなることがある。落ちたら、同じお店の似た商品に差し替える
   it('献立の料理・市販品がすべてデータにある', () => {
     for (const m of IDEAL_MENUS) {
@@ -81,16 +82,15 @@ describe('理想の献立', () => {
     }
   })
 
-  it('体重を減らす・増やす目標でも、カロリーは目安の±5%に収まる', () => {
-    for (const [profile, goal] of [
-      [{ sex: 'female', age: 35, activity: 'low' }, 'lose'],
-      [{ sex: 'male', age: 20, activity: 'high' }, 'gain'],
-    ] as [Profile, Goal][]) {
-      for (const m of IDEAL_MENUS) {
-        const { t, summary } = planned(m, { ...profile, goal })
-        const kcal = summary.kcal
-        expect(Math.abs(kcal - t.energyKcal) / t.energyKcal, `${m.id} ${goal}`).toBeLessThanOrEqual(0.05)
-      }
+  // 献立ごとに量を組み直すので重い。目標ごとにテストを分ける
+  it.each([
+    ['減らす', { sex: 'female', age: 35, activity: 'low' }, 'lose'],
+    ['増やす', { sex: 'male', age: 20, activity: 'high' }, 'gain'],
+  ] as [string, Profile, Goal][])('体重を%s目標でも、カロリーは目安の±5%に収まる', (_, profile, goal) => {
+    for (const m of IDEAL_MENUS) {
+      const { t, summary } = planned(m, { ...profile, goal })
+      const kcal = summary.kcal
+      expect(Math.abs(kcal - t.energyKcal) / t.energyKcal, `${m.id} ${goal}`).toBeLessThanOrEqual(0.05)
     }
   })
 

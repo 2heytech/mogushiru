@@ -315,7 +315,8 @@ export default function App() {
         </main>
       ) : catalog && totals && !waitingForStores ? (
         <main className="space-y-4">
-          {SLOTS.every((s) => menu[s].length === 0) && !startDismissed && (
+          {SLOTS.every((s) => menu[s].length === 0) && !startDismissed ? (
+            // 1日の食事が空のうちは、どう入れるかを選ぶまで朝・昼・晩や栄養の表示を出さない
             <StartChoice
               savedCount={savedMenus.length}
               onLoad={() => setSavedDialog('load')}
@@ -325,41 +326,44 @@ export default function App() {
                 setPickerSlot(SLOTS.find((s) => targets.slotShare[s] > 0) ?? 'breakfast')
               }}
             />
+          ) : (
+            <>
+              {/* いちばん上に朝・昼・晩・その他、その下に情報 */}
+              <SlotStrip
+                menu={menu}
+                totals={totals}
+                targets={targets}
+                catalog={catalog}
+                onAdd={setPickerSlot}
+                onRemove={removeItem}
+                onEdit={(slot, uid) => setEditing({ slot, uid })}
+              />
+              <MenuActions
+                menu={menu}
+                savedCount={savedMenus.length}
+                onOpenSave={() => setSavedDialog('save')}
+                onOpenLoad={() => setSavedDialog('load')}
+                onReset={() => {
+                  clearMenu()
+                  setStartDismissed(false)
+                }}
+              />
+              <DayInfo
+                totals={totals}
+                targets={targets}
+                profile={profile}
+                onEditSlotShare={() => {
+                  setProfileFocus('slotShare')
+                  setProfileOpen(true)
+                }}
+                onEditExercise={() => {
+                  setProfileFocus('exercise')
+                  setProfileOpen(true)
+                }}
+                onEditProfile={() => setProfileOpen(true)}
+              />
+            </>
           )}
-          {/* いちばん上に朝・昼・晩・その他、その下に情報 */}
-          <SlotStrip
-            menu={menu}
-            totals={totals}
-            targets={targets}
-            catalog={catalog}
-            onAdd={setPickerSlot}
-            onRemove={removeItem}
-            onEdit={(slot, uid) => setEditing({ slot, uid })}
-          />
-          <MenuActions
-            menu={menu}
-            savedCount={savedMenus.length}
-            onOpenSave={() => setSavedDialog('save')}
-            onOpenLoad={() => setSavedDialog('load')}
-            onReset={() => {
-              clearMenu()
-              setStartDismissed(false)
-            }}
-          />
-          <DayInfo
-            totals={totals}
-            targets={targets}
-            profile={profile}
-            onEditSlotShare={() => {
-              setProfileFocus('slotShare')
-              setProfileOpen(true)
-            }}
-            onEditExercise={() => {
-              setProfileFocus('exercise')
-              setProfileOpen(true)
-            }}
-            onEditProfile={() => setProfileOpen(true)}
-          />
         </main>
       ) : (
         <p className="py-20 text-center text-ink-soft">読み込み中…</p>
