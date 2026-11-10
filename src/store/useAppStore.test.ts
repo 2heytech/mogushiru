@@ -219,3 +219,34 @@ describe('なくなった料理・市販品を1日の食事から外す', () => 
     expect(useAppStore.getState().menu).toBe(before)
   })
 })
+
+const dish = { kind: 'dish' as const, refId: 'test-dish', portion: 1 }
+
+describe('呼び出した献立の名前（menuSource）', () => {
+  beforeEach(() => useAppStore.setState({ menu: emptyMenu(), menuSource: null, savedMenus: [] }))
+
+  it('理想の献立を呼び出すと名前を覚え、料理を足したり外したりすると「変更あり」になる', () => {
+    const s = useAppStore.getState()
+    s.replaceMenu({ ...emptyMenu(), breakfast: [{ ...dish, uid: 'x' }] }, 'テストの献立')
+    expect(useAppStore.getState().menuSource).toEqual({ name: 'テストの献立', edited: false })
+    s.addItem('lunch', dish)
+    expect(useAppStore.getState().menuSource).toEqual({ name: 'テストの献立', edited: true })
+  })
+
+  it('保存すると、その名前で「変更なし」に戻り、呼び出すと保存した名前になる', () => {
+    const s = useAppStore.getState()
+    s.addItem('dinner', dish)
+    expect(useAppStore.getState().menuSource).toBeNull()
+    s.saveMenu('11月11日の食事')
+    expect(useAppStore.getState().menuSource).toEqual({ name: '11月11日の食事', edited: false })
+    s.clearMenu()
+    expect(useAppStore.getState().menuSource).toBeNull()
+    s.loadMenu(useAppStore.getState().savedMenus[0].id)
+    expect(useAppStore.getState().menuSource).toEqual({ name: '11月11日の食事', edited: false })
+  })
+
+  it('名前なしで置き換えたときは、呼び出した献立の名前を出さない', () => {
+    useAppStore.getState().replaceMenu({ ...emptyMenu(), other: [{ ...dish, uid: 'y' }] })
+    expect(useAppStore.getState().menuSource).toBeNull()
+  })
+})
