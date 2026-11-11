@@ -126,7 +126,7 @@ export function AboutView({ onBack }: { onBack: () => void }) {
           <li>
             何人が使っているかを知るために、Cloudflare の
             <Ext href="https://www.cloudflare.com/web-analytics/">Web Analytics</Ext>
-            を使っています。開いたページ、参照元、ブラウザの種類などが Cloudflare に送られますが、個人を特定する情報や Cookie は使いません。
+            を使っています（EU からの訪問には使いません）。開いたページ、参照元、ブラウザの種類などが Cloudflare に送られますが、個人を特定する情報や Cookie は使いません。
           </li>
           <li>
             サイトは Cloudflare から配信しています。配信のための通信の記録（IP アドレスなど）は、Cloudflare の
