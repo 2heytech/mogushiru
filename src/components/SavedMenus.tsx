@@ -93,7 +93,7 @@ function Sheet({ title, onClose, wide = false, children }: { title: string; onCl
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className={`max-h-[90vh] w-full overflow-y-auto rounded-t-[var(--radius-card)] bg-cream px-5 pb-5 shadow-xl md:rounded-[var(--radius-card)] ${wide ? 'md:max-w-4xl' : 'md:max-w-md'}`}
+        className={`max-h-[90vh] w-full overflow-y-auto rounded-t-[var(--radius-card)] bg-cream px-5 pb-5 shadow-xl md:rounded-[var(--radius-card)] ${wide ? 'md:max-w-4xl lg:max-w-5xl' : 'md:max-w-md'}`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* 見出しと×は、長い一覧をスクロールしても上に残す */}
