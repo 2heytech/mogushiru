@@ -42,12 +42,12 @@ export function ItemEditor({
         className="w-full rounded-t-[var(--radius-card)] bg-cream p-4 shadow-xl md:max-w-md md:rounded-[var(--radius-card)]"
         onClick={(e) => e.stopPropagation()}
       >
-        <header className="mb-3 flex items-center justify-between gap-2">
+        <div className="mb-3 flex items-center justify-between gap-2">
           <h2 className="text-lg font-bold">{name}</h2>
           <button type="button" onClick={onClose} className="grid h-11 w-11 shrink-0 place-items-center rounded-full hover:bg-white" aria-label="閉じる">
             ×
           </button>
-        </header>
+        </div>
         <div className="space-y-3">
           <PortionEditor item={item} catalog={catalog} onPortion={onPortion} />
           {lines ? (

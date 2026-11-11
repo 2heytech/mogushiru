@@ -147,12 +147,12 @@ export function Picker({
         className="flex h-[85dvh] w-full flex-col rounded-t-[var(--radius-card)] bg-cream p-4 shadow-xl md:h-[min(85dvh,760px)] md:max-w-3xl md:rounded-[var(--radius-card)]"
         onClick={(e) => e.stopPropagation()}
       >
-        <header className="mb-3 flex shrink-0 items-center justify-between">
+        <div className="mb-3 flex shrink-0 items-center justify-between">
           <h2 className="text-lg font-bold">{SLOT_LABEL[slot]}に追加</h2>
           <button type="button" onClick={onClose} className="grid h-11 w-11 place-items-center rounded-full hover:bg-white" aria-label="閉じる">
             ×
           </button>
-        </header>
+        </div>
         <div className="mb-3 flex shrink-0 gap-1 rounded-full bg-white p-1" role="tablist">
           {TABS.map((t) => (
             <button
