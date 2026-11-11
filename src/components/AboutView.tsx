@@ -133,7 +133,7 @@ export function AboutView({ onBack }: { onBack: () => void }) {
             <Ext href="https://www.cloudflare.com/ja-jp/privacypolicy/">プライバシーポリシー</Ext>
             にそって扱われます。
           </li>
-          <li>お問い合わせでいただいたメールアドレスは、返信のためだけに使います。</li>
+          <li>お問い合わせは Google フォームで受け付けます。送っていただいた内容は Google のサービスに保存され、運営者だけが読みます。メールアドレスは返信のためだけに使います。</li>
         </ul>
       </Section>
 
