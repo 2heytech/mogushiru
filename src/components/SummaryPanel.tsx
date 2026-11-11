@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react'
+import { useState } from 'react'
 import { balanceMood, computeAlerts, type Alert, type Mood } from '../domain/alerts'
 import type { MenuTotals } from '../domain/nutrition'
 import { nutrientChecks } from '../domain/nutrientChecks'
@@ -20,7 +20,7 @@ const alertLabel = (a: Alert) => (a.key === 'energy' ? 'カロリー' : NUTRIENT
 const alertDigits = (a: Alert) => (a.key === 'energy' ? 0 : NUTRIENT_INFO[a.key].digits)
 const fmtAlert = (a: Alert, v: number) => v.toLocaleString(undefined, { minimumFractionDigits: alertDigits(a), maximumFractionDigits: alertDigits(a) })
 
-function EnergyGauge({ value, target, hint }: { value: number; target: number; hint?: ReactNode }) {
+function EnergyGauge({ value, target }: { value: number; target: number }) {
   const max = target * 1.5
   const pct = Math.min(value / max, 1) * 100
   const bandLo = ((target * 0.9) / max) * 100
@@ -39,9 +39,8 @@ function EnergyGauge({ value, target, hint }: { value: number; target: number; h
         <div className="absolute inset-y-0 bg-ok/25" style={{ left: `${bandLo}%`, width: `${bandHi - bandLo}%` }} />
         <div className={`h-full rounded-full transition-all duration-500 ${color}`} style={{ width: `${pct}%` }} />
       </div>
-      <p className="mt-1 flex items-center justify-between gap-2 text-xs text-ink-soft">
-        <span>{value === 0 ? '料理を選ぶと計算されます' : value < target ? `あと ${Math.round(target - value)} kcal` : `${Math.round(value - target)} kcal オーバー`}</span>
-        {hint}
+      <p className="mt-1 text-xs text-ink-soft">
+        {value === 0 ? '料理を選ぶと計算されます' : value < target ? `あと ${Math.round(target - value)} kcal` : `${Math.round(value - target)} kcal オーバー`}
       </p>
     </div>
   )
@@ -109,7 +108,6 @@ export function DayInfo({
   onEditSlotShare,
   onEditExercise,
   onEditProfile,
-  profileSet = true,
 }: {
   totals: MenuTotals
   targets: Targets
@@ -117,7 +115,6 @@ export function DayInfo({
   onEditSlotShare?: () => void
   onEditExercise?: () => void
   onEditProfile?: () => void
-  profileSet?: boolean
 }) {
   const [tab, setTab] = useState<InfoTab>('summary')
   const energy = expenditure(profile)
@@ -176,18 +173,7 @@ export function DayInfo({
                 <BowlMogu slot="dinner" mood={bowlMood} className="h-16 w-16 shrink-0" label={`モグは${MOOD_LABEL[bowlMood]}`} />
                 <p className="rounded-2xl bg-white px-4 py-2 text-sm shadow-sm">{message}</p>
               </div>
-              <EnergyGauge
-                value={v.energyKcal}
-                target={targets.energyKcal}
-                hint={
-                  // スマホではここで、仮のプロフィールで計算していることを伝える（上の1行を使わない）
-                  !profileSet && onEditProfile ? (
-                    <button type="button" onClick={onEditProfile} className="-my-2 min-h-9 font-bold whitespace-nowrap text-coral-ink sm:hidden">
-                      目安は仮（30〜49歳・女性）→
-                    </button>
-                  ) : undefined
-                }
-              />
+              <EnergyGauge value={v.energyKcal} target={targets.energyKcal} />
               <SlotShare totals={totals} targets={targets} onEdit={onEditSlotShare} />
               <AlertList alerts={alerts} />
             </div>
