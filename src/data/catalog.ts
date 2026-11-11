@@ -36,7 +36,7 @@ const productFields = (products: Iterable<Product>) => [...products].flatMap((x)
 // 生成済みの配信用JSON（public/data）を読む。まだ生成されていないファイルは空として扱う。
 // コンビニ・メーカーの商品は大きい（圧縮後でも約0.8MB）ので、料理・食材などを先に出し、あとから足す。
 // 同時にダウンロードすると遅い回線では料理・食材の読み込みまで遅れるので、商品は料理・食材を読み終えてから取りにいく。
-// 料理・食材・市販品の3つは index.html の preload で、画面のプログラムより前に読み始めている
+// （index.html で preload すると画面のプログラムと帯域を取り合い、最初の表示が2秒ほど遅れたのでしていない）
 export function useCatalog(): CatalogState {
   const [state, setState] = useState<CatalogState>({ status: 'loading' })
   useEffect(() => {
