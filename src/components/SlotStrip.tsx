@@ -121,7 +121,7 @@ export function SlotStrip(props: Props) {
       </div>
 
       {/* 広い画面 */}
-      <div className="hidden gap-3 md:grid md:grid-cols-4">
+      <div className="hidden gap-3 md:grid md:grid-cols-2 lg:grid-cols-4">
         {SLOTS.map((slot) => {
           const b = slotBalance(totals.bySlot[slot], slot, targets)
           return (

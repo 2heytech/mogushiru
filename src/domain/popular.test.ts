@@ -1,7 +1,7 @@
 /// <reference types="node" />
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
-import { FOOD_PORTION, NOT_POPULAR, POPULAR_BY_SLOT, popularRank } from './popular'
+import { FOOD_PORTION, mealFirstRank, NOT_POPULAR, POPULAR_BY_SLOT, popularRank } from './popular'
 
 // 配信用のJSON（public/data）を読む
 const read = (name: string) => readFileSync(new URL(`../../public/data/${name}`, import.meta.url), 'utf8')
@@ -37,5 +37,16 @@ describe('よく食べられるもの', () => {
     expect(popularRank('other', 'dish:chocolate')).toBe(0)
     expect(popularRank('lunch', 'dish:onigiri-salmon')).toBeLessThan(10)
     expect(popularRank('lunch', 'dish:shoyu-ramen')).toBeLessThan(10)
+  })
+  it('区分を決めない並びでは、朝・昼・晩の定番がおやつだけの定番より上', () => {
+    // チョコレートは「その他」の1位だが、食事の定番（ごはん・みそ汁）より後
+    expect(mealFirstRank('dish:rice')).toBeLessThan(mealFirstRank('dish:chocolate'))
+    expect(mealFirstRank('dish:miso-soup')).toBeLessThan(mealFirstRank('dish:chocolate'))
+    // その他だけの定番どうしは、その他の順のまま
+    expect(mealFirstRank('dish:chocolate')).toBeLessThan(mealFirstRank('dish:potato-chips'))
+    // 食事でも定番のもの（加糖ヨーグルト）は食事の順位で並ぶ
+    expect(mealFirstRank('dish:sweets-yogurt-sweet')).toBe(popularRank('breakfast', 'dish:sweets-yogurt-sweet'))
+    // どの区分の定番でもないものはいちばん後
+    expect(mealFirstRank('dish:no-such-dish')).toBe(NOT_POPULAR)
   })
 })

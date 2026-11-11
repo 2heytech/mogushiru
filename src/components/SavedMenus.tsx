@@ -93,10 +93,16 @@ function Sheet({ title, onClose, children }: { title: string; onClose: () => voi
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className="max-h-[90vh] w-full overflow-y-auto rounded-t-[var(--radius-card)] bg-cream p-5 shadow-xl md:max-w-md md:rounded-[var(--radius-card)]"
+        className="max-h-[90vh] w-full overflow-y-auto rounded-t-[var(--radius-card)] bg-cream px-5 pb-5 shadow-xl md:max-w-md md:rounded-[var(--radius-card)]"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="mb-1 text-lg font-bold">{title}</h2>
+        {/* 見出しと×は、長い一覧をスクロールしても上に残す */}
+        <header className="sticky top-0 z-10 -mx-5 mb-1 flex items-center justify-between bg-cream px-5 pt-3 pb-1">
+          <h2 className="text-lg font-bold">{title}</h2>
+          <button type="button" onClick={onClose} className="-mr-2 grid h-11 w-11 shrink-0 place-items-center rounded-full hover:bg-white" aria-label="閉じる">
+            ×
+          </button>
+        </header>
         {children}
         <button type="button" onClick={onClose} className="mt-5 min-h-11 w-full rounded-full bg-white">
           閉じる

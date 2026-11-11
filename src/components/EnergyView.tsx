@@ -14,6 +14,9 @@ const PARTS: { key: 'bmr' | 'daily' | 'exercise'; label: string; color: string }
   { key: 'exercise', label: '運動', color: '#3a9a78' },
 ]
 
+// 空のときに知らせる区分（その他は食べない日も多いので数えない）
+const MEAL_SLOTS: Slot[] = ['breakfast', 'lunch', 'dinner']
+
 // ほぼつり合っているとみなす差（kcal/日）
 const BALANCED = 50
 
@@ -35,7 +38,7 @@ export function EnergyBalanceView({
   const diff = intake - energy.total
   const max = Math.max(intake, energy.total) * 1.08
   const w = (v: number) => `${(v / max) * 100}%`
-  const empty = (['breakfast', 'lunch', 'dinner'] as Slot[]).filter((s) => totals.bySlot[s].values.energyKcal === 0)
+  const empty = MEAL_SLOTS.filter((s) => totals.bySlot[s].values.energyKcal === 0)
   const hasExercise = (profile.exercises ?? []).length > 0
   const goal = profile.goal ?? 'keep'
   return (
@@ -43,7 +46,7 @@ export function EnergyBalanceView({
       <div className="flex items-center justify-between gap-2">
         <h2 className="font-bold">食べる・使うカロリー</h2>
         {onEditExercise && (
-          <button type="button" onClick={onEditExercise} className="shrink-0 rounded-full bg-white px-3 py-1 text-xs font-bold shadow-sm">
+          <button type="button" onClick={onEditExercise} className="min-h-9 shrink-0 rounded-full bg-white px-3.5 text-xs font-bold shadow-sm">
             {hasExercise ? '運動を変える' : '運動を入れる'}
           </button>
         )}
@@ -146,6 +149,7 @@ export function WeightSimView({ totals, energy, profile, onEditProfile }: { tota
   }
   const sim = simulateWeight(intake, profile)
   const height = profile.heightCm
+  const empty = MEAL_SLOTS.filter((s) => totals.bySlot[s].values.energyKcal === 0)
   const year = sim.at(365)
   const yearBmi = height ? bmi(year, height) : null
   return (
@@ -154,6 +158,12 @@ export function WeightSimView({ totals, energy, profile, onEditProfile }: { tota
         <h2 className="font-bold">このまま続けたときの体重</h2>
         <p className="text-xs text-ink-soft">えらんだ1日の食事と運動を、毎日続けた場合の目安です</p>
       </div>
+      {empty.length > 0 && (
+        <p role="note" className="rounded-2xl bg-caution/20 px-3 py-2 text-sm">
+          <strong>{empty.map((s) => SLOT_LABEL[s]).join('・')}がまだ入っていません。</strong>
+          <span className="block text-xs">下の数字は、いま入っている分だけを1日の食事として計算しています。</span>
+        </p>
+      )}
       <WeightChart sim={sim} relative={energy.usedReferenceWeight} />
       <ul className="grid grid-cols-4 gap-1.5">
         {SIM_PERIODS.map((p) => {
@@ -184,10 +194,10 @@ export function WeightSimView({ totals, energy, profile, onEditProfile }: { tota
           <p className="font-bold text-alert">1年後はBMIが25をこえます。</p>
         )}
         {energy.usedReferenceWeight && (
-          <p>
-            体重が未入力のため、標準的な体重（{fmtKg(sim.start)}kg）からの変化で計算しています。
+          <p className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <span>体重が未入力のため、標準的な体重（{fmtKg(sim.start)}kg）からの変化で計算しています。</span>
             {onEditProfile && (
-              <button type="button" onClick={onEditProfile} className="ml-1 font-bold text-coral-dark underline">
+              <button type="button" onClick={onEditProfile} className="min-h-9 rounded-full bg-white px-3.5 text-xs font-bold text-ink shadow-sm">
                 体重を入れる
               </button>
             )}

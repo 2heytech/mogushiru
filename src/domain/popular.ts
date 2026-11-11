@@ -211,6 +211,17 @@ export function popularRank(slot: Slot, key: string): number {
   return ranks.get(key) ?? NOT_POPULAR
 }
 
+// 区分を決めずに料理を並べるときの順位（「料理をカスタマイズ」）。
+// 朝・昼・晩の定番を上に、その他（おやつ・飲み物）だけの定番はそのあとに並べる
+const MEAL_SLOTS: Slot[] = ['breakfast', 'lunch', 'dinner']
+const OTHER_AFTER = 1000
+export function mealFirstRank(key: string): number {
+  const meal = Math.min(...MEAL_SLOTS.map((slot) => popularRank(slot, key)))
+  if (meal < NOT_POPULAR) return meal
+  const other = popularRank('other', key)
+  return other < NOT_POPULAR ? OTHER_AFTER + other : NOT_POPULAR
+}
+
 // どれかの区分でよく食べられるもの（検索結果で同じ一致度なら前に出す）
 const POPULAR_ANY = new Set(Object.values(POPULAR_BY_SLOT).flat())
 export const isPopular = (key: string) => POPULAR_ANY.has(key)

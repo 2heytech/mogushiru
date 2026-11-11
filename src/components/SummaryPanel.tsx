@@ -71,7 +71,7 @@ function SlotShare({ totals, targets, onEdit }: { totals: MenuTotals; targets: T
       <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-ink-soft">
         <span>目安の配分 {goal}%</span>
         {onEdit && (
-          <button type="button" onClick={onEdit} className="rounded-full bg-white px-2.5 py-0.5 font-bold text-ink shadow-sm">
+          <button type="button" onClick={onEdit} className="min-h-9 rounded-full bg-white px-3.5 font-bold text-ink shadow-sm">
             配分を変える
           </button>
         )}
@@ -234,7 +234,7 @@ function AlertList({ alerts }: { alerts: Alert[] }) {
           ⚠ {alertLabel(a)}{a.supplementOnly && '（サプリの分）'} {fmtAlert(a, a.amount)}
           {a.unit}（{a.limitKind === 'upper' ? '耐容上限量' : '目安'} {fmtAlert(a, a.limit)}
           {a.unit}）
-          {a.limitKind === 'upper' && a.level === 'over' && <span className="font-bold"> とりすぎ注意</span>}{a.topSlot && <span className="text-ink-soft"> いちばん多いのは{SLOT_LABEL[a.topSlot]}</span>}
+          {a.limitKind === 'upper' && a.level === 'over' && <span className="font-bold"> とりすぎ注意</span>}{a.topSlot && <span className="inline-block text-ink-soft">&nbsp;いちばん多いのは{SLOT_LABEL[a.topSlot]}</span>}
         </li>
       ))}
     </ul>
