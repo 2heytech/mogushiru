@@ -1,0 +1,16 @@
+# Cloudflare Workers の静的ファイル配信が読む設定（このファイル自体は配信されない）
+
+# 全体：基本のセキュリティ設定
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
+
+# ビルドで名前に中身の印（ハッシュ）がつくファイルは書き替わらないので、1年キャッシュしてよい
+# （data/ と illustrations/ は名前が変わらないまま中身が更新されるので、毎回新しさを確かめる既定のまま）
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# 仮の URL（〜.workers.dev と PR ごとのプレビュー）は検索に載せない。正式な URL は https://mogushiru.app/
+https://:sub.:account.workers.dev/*
+  X-Robots-Tag: noindex

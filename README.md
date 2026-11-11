@@ -33,7 +33,7 @@ Cloudflare のダッシュボードで「Workers & Pages」→「アプリケー
 - デプロイコマンド: `npx wrangler deploy`
 - プレビュービルド: オン（main 以外のブランチや PR ごとに確認用の URL ができる）
 
-main にマージすると自動で公開に反映されます。Node のバージョンは `.node-version` で指定しています。
+main にマージすると自動で公開に反映されます。正式な URL は https://mogushiru.app/ （ドメインは Cloudflare のダッシュボードで Worker に追加。`wrangler.jsonc` には書かない）。Node のバージョンは `.node-version` で指定しています。
 
 手元で確かめるときは `npm run build` のあと `npx wrangler dev`（公開はしない）。
 
@@ -41,5 +41,10 @@ main にマージすると自動で公開に反映されます。Node のバー�
 
 - 文部科学省「日本食品標準成分表（八訂）増補2023年」（2026年3月27日訂正反映）を加工して作成
 - 市販品データ：Open Food Facts（[ODbL](https://opendatacommons.org/licenses/odbl/1-0/)）。`public/data/products.json` は ODbL で提供します
-- 目標値：厚生労働省「日本人の食事摂取基準（2025年版）」、「健康に配慮した飲酒に関するガイドライン」
+- 目標値：厚生労働省「日本人の食事摂取基準（2025年版）」、「健康に配慮した飲酒に関するガイドライン」、「健康づくりのための身体活動・運動ガイド2023」、農林水産省「カフェインの過剰摂取について」
+- 価格：総務省統計局「小売物価統計調査（動向編）」2025年平均
+- 郷土料理：農林水産省「うちの郷土料理」
+- アプリ内の出典一覧は「このサイトについて」（`#about`、`src/components/AboutView.tsx`）
+- SNS 用の画像（`public/og-image.png`）とアイコンは、ロゴのちゃわんモグと料理の絵から作成
+- 書体：Zen Maru Gothic・Mochiy Pop One（SIL Open Font License 1.1、`@fontsource` で同梱して配信）
 - ソースコード：MIT License

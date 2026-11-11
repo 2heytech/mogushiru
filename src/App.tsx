@@ -13,6 +13,8 @@ import { SlotStrip } from './components/SlotStrip'
 import { DayMenuPanel } from './components/DayMenuPanel'
 import { StartChoice } from './components/StartChoice'
 import { RankingView } from './components/RankingView'
+import { AboutView } from './components/AboutView'
+import { OPERATOR_NAME } from './site'
 import { confirmDialog } from './components/confirm'
 import { ConfirmHost } from './components/ConfirmDialog'
 import { LoadMenuDialog, MenuActions, SaveMenuDialog } from './components/SavedMenus'
@@ -33,7 +35,8 @@ const sameIngredients = (a: Ingredient[], b: Ingredient[]) =>
 const NAV_BUTTON =
   'flex min-h-10 items-center justify-center gap-1 whitespace-nowrap rounded-full bg-white px-3 text-xs leading-tight font-bold shadow-sm sm:min-h-11 sm:px-4 sm:text-sm sm:font-normal'
 
-type View = 'menu' | 'ranking' | 'customize'
+// about は「このサイトについて」（上のタブには出さず、フッターから入る）
+type View = 'menu' | 'ranking' | 'customize' | 'about'
 
 // プロフィールを入れるまでの仮の目安（DEFAULT_PROFILE）の言い方
 const DEFAULT_PROFILE_LABEL = '30〜49歳・女性'
@@ -111,7 +114,8 @@ function FeatureTabs({ view, onChange }: { view: View; onChange: (v: View) => vo
   )
 }
 
-const viewFromHash = (): View => (window.location.hash === '#ranking' ? 'ranking' : window.location.hash === '#customize' ? 'customize' : 'menu')
+const HASH_VIEWS: Record<string, View> = { '#ranking': 'ranking', '#customize': 'customize', '#about': 'about' }
+const viewFromHash = (): View => HASH_VIEWS[window.location.hash] ?? 'menu'
 
 // 画面の切り替えは URL の # で持つ（ブラウザの戻るで献立に戻れるように）
 function useView(): [View, (v: View) => void] {
@@ -343,7 +347,11 @@ export default function App() {
         <p className="mb-4 rounded-xl bg-caution/20 px-4 py-2 text-sm">データ準備中：{catalogState.missing.join('・')}のデータはまだ読み込めません</p>
       )}
 
-      {catalog && view === 'customize' ? (
+      {view === 'about' ? (
+        <main>
+          <AboutView onBack={() => setView('menu')} />
+        </main>
+      ) : catalog && view === 'customize' ? (
         <main>
           <CustomizeView
             catalog={catalog}
@@ -503,9 +511,24 @@ export default function App() {
 
       <ConfirmHost />
 
-      <footer className="mt-12 text-xs leading-relaxed text-ink-soft">
+      <footer className="mt-12 space-y-1 text-xs leading-relaxed text-ink-soft">
         <p>表示される値は目安です。医療・栄養指導の代わりにはなりません。</p>
-        <p>出典：文部科学省「日本食品標準成分表（八訂）増補2023年」（2026年3月27日訂正反映）を加工して作成／農林水産省「うちの郷土料理」（https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/）を加工して作成／セブン-イレブン・ファミリーマート・ローソン・トップバリュ・各食品メーカーの公式サイトの商品情報（栄養成分表示の数値。商品ごとに出典と取得日を表示）／Open Food Facts（ODbL）／厚生労働省「日本人の食事摂取基準（2025年版）」／総務省「小売物価統計調査（動向編）」（価格）</p>
+        <p>
+          データ：文部科学省「日本食品標準成分表（八訂）増補2023年」、農林水産省「うちの郷土料理」、厚生労働省「日本人の食事摂取基準（2025年版）」、各社公式サイトの栄養成分表示、Open Food Facts（ODbL）ほか。出典のくわしい一覧は「このサイトについて」にあります。
+        </p>
+        <p className="flex flex-wrap items-center gap-x-3 gap-y-1">
+          <a
+            href="#about"
+            onClick={(e) => {
+              // 下のフッターから開くので、ページの上から見せる
+              e.preventDefault()
+              setView('about')
+            }}
+            className="font-bold text-coral-ink underline decoration-coral/60 underline-offset-2">
+            このサイトについて（出典・プライバシー・お問い合わせ）
+          </a>
+          <span>運営：{OPERATOR_NAME}</span>
+        </p>
       </footer>
     </div>
   )
