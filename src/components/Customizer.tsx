@@ -153,12 +153,12 @@ export function Customizer({
         className="flex max-h-[92vh] w-full flex-col rounded-t-[var(--radius-card)] bg-cream p-4 shadow-xl md:max-w-2xl md:rounded-[var(--radius-card)]"
         onClick={(e) => e.stopPropagation()}
       >
-        <header className="mb-3 flex shrink-0 items-center justify-between">
+        <div className="mb-3 flex shrink-0 items-center justify-between">
           <h2 className="text-lg font-bold">{title}を編集</h2>
           <button type="button" onClick={onClose} className="grid h-11 w-11 place-items-center rounded-full hover:bg-white" aria-label="閉じる">
             ×
           </button>
-        </header>
+        </div>
         {source && (
           <p className="-mt-2 mb-3 shrink-0 text-xs text-ink-soft">
             {source.region && `${source.region}の郷土料理。`}

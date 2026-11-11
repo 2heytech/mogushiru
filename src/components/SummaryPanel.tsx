@@ -56,7 +56,7 @@ function SlotShare({ totals, targets, onEdit }: { totals: MenuTotals; targets: T
     <div>
       <p className="mb-1 text-sm text-ink-soft">カロリーの配分</p>
       {day > 0 && (
-        <div className="flex h-6 overflow-hidden rounded-full bg-white text-[12px] font-bold">
+        <div className="flex h-6 overflow-hidden rounded-full bg-white text-[12px] font-bold text-ink-strong">
           {SLOTS.map((slot, i) => {
             const share = (totals.bySlot[slot].values.energyKcal / day) * 100
             if (share <= 0) return null

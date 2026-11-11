@@ -165,12 +165,12 @@ export function ProfileDialog({
         onClick={(e) => e.stopPropagation()}
       >
         {/* 見出しと×は、長い入力欄をスクロールしても上に残す */}
-        <header className="sticky top-0 z-10 -mx-5 mb-1 flex items-center justify-between bg-cream px-5 pt-3 pb-1">
+        <div className="sticky top-0 z-10 -mx-5 mb-1 flex items-center justify-between bg-cream px-5 pt-3 pb-1">
           <h2 className="text-lg font-bold">プロフィール</h2>
           <button type="button" onClick={onClose} className="-mr-2 grid h-11 w-11 shrink-0 place-items-center rounded-full hover:bg-white" aria-label="閉じる">
             ×
           </button>
-        </header>
+        </div>
         <p className="mb-4 text-xs text-ink-soft">目安のカロリーを計算するために使います。入力内容はこの端末のブラウザにだけ保存されます。</p>
         <div className="space-y-4">
           <div>

@@ -59,12 +59,12 @@ export function SupplementForm({
         className="flex max-h-[92vh] w-full flex-col rounded-t-[var(--radius-card)] bg-cream p-4 shadow-xl md:max-w-lg md:rounded-[var(--radius-card)]"
         onClick={(e) => e.stopPropagation()}
       >
-        <header className="mb-3 flex shrink-0 items-center justify-between">
+        <div className="mb-3 flex shrink-0 items-center justify-between">
           <h2 className="text-lg font-bold">💊 {initial ? 'サプリを編集' : 'サプリを登録'}</h2>
           <button type="button" onClick={onClose} className="grid h-11 w-11 place-items-center rounded-full hover:bg-white" aria-label="閉じる">
             ×
           </button>
-        </header>
+        </div>
         <div className="-mx-1 flex-1 space-y-4 overflow-y-auto px-1 pb-1">
           <p className="text-xs text-ink-soft">
             パッケージの「1日あたり」や「1回分」の量を見て、入っている成分だけ入れてください。空欄は「入っていない」として計算します。登録したものはこのブラウザだけに保存されます。

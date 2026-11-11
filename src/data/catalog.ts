@@ -34,22 +34,24 @@ function afterPaint(f: () => void) {
 const productFields = (products: Iterable<Product>) => [...products].flatMap((x) => [x.name, x.brand])
 
 // 生成済みの配信用JSON（public/data）を読む。まだ生成されていないファイルは空として扱う。
-// コンビニ・メーカーの商品は大きいので、料理・食材などを先に出し、あとから足す（ダウンロードは同時に始める）
+// コンビニ・メーカーの商品は大きい（圧縮後でも約0.8MB）ので、料理・食材などを先に出し、あとから足す。
+// 同時にダウンロードすると遅い回線では料理・食材の読み込みまで遅れるので、商品は料理・食材を読み終えてから取りにいく。
+// （index.html で preload すると画面のプログラムと帯域を取り合い、最初の表示が2秒ほど遅れたのでしていない）
 export function useCatalog(): CatalogState {
   const [state, setState] = useState<CatalogState>({ status: 'loading' })
   useEffect(() => {
     let alive = true
     const stops: (() => void)[] = []
-    // 読み込み（ダウンロード）は今すぐ始め、中身を読むのは料理・食材の画面を出したあとにする
-    const storesBlob = fetch('/data/store-products.json')
-      .then((res) => (res.ok ? res.blob() : null))
-      .catch(() => null)
     Promise.all([
       loadJson<{ dishes: Dish[] }>('/data/dishes.json'),
       loadJson<{ products: Product[]; categories?: Record<string, string> }>('/data/products.json'),
       loadJson<{ foods: Food[] }>('/data/foods.json'),
     ]).then(([d, p, f]) => {
       if (!alive) return
+      // 料理・食材を読み終えてから、コンビニ・メーカーの商品を取りにいく（中身を読むのは画面を出したあと）
+      const storesBlob = fetch('/data/store-products.json')
+        .then((res) => (res.ok ? res.blob() : null))
+        .catch(() => null)
       const missing = [!d && '料理', !p && '市販品', !f && '食材'].filter((x): x is string => Boolean(x))
       const others = p?.products ?? []
       const catalog = {

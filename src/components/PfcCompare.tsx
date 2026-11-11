@@ -6,14 +6,15 @@ const SHORT: Record<PfcKey, string> = { p: 'P', f: 'F', c: 'C' }
 
 function StackedBar({ ratio, thin }: { ratio: Record<PfcKey, number>; thin?: boolean }) {
   return (
-    <div className={`flex overflow-hidden rounded-full font-bold text-ink ${thin ? 'h-3 text-[0px]' : 'h-5 text-[12px]'}`}>
+    <div className={`flex overflow-hidden rounded-full font-bold text-ink-strong ${thin ? 'h-3' : 'h-5 text-[12px]'}`}>
       {(['p', 'f', 'c'] as const).map((k) => (
         <div
           key={k}
           className="grid place-items-center overflow-hidden whitespace-nowrap transition-all duration-500"
           style={{ width: `${ratio[k]}%`, background: PFC_COLOR[k] }}
         >
-          {ratio[k] >= 12 && `${SHORT[k]} ${Math.round(ratio[k])}%`}
+          {/* 細い棒は字を出さない（割合は外側の aria-label で読み上げる） */}
+          {!thin && ratio[k] >= 12 && `${SHORT[k]} ${Math.round(ratio[k])}%`}
         </div>
       ))}
     </div>
