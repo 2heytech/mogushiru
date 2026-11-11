@@ -26,3 +26,6 @@ dist-ssr
 # 生成物・大きな元データ
 data/generated/
 data/raw/off-*.jsonl
+
+# Cloudflare（wrangler）の作業フォルダ
+.wrangler/

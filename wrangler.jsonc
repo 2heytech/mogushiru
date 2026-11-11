@@ -1,0 +1,12 @@
+// Cloudflare Workers で公開するための設定（静的なファイルだけを配る。Worker のコードはない）
+// ビルド（npm run build）で dist/ にできたファイルを、そのまま配信する
+{
+  // Cloudflare の画面で作ったプロジェクト名と同じにする（違うとビルドが失敗する）
+  "name": "mogushiru",
+  "compatibility_date": "2026-11-11",
+  "assets": {
+    "directory": "./dist",
+    // 画面の切り替えは URL の # で行うので、知らないパスに来たときは index.html を返してアプリを開く
+    "not_found_handling": "single-page-application"
+  }
+}
