@@ -69,45 +69,56 @@ function CheckRow({ c, perSlot }: { c: NutrientCheck; perSlot: boolean }) {
   const { label, unit } = NUTRIENT_INFO[c.key]
   // 目安の線を 2/3 の位置に置き、目安の 1.5 倍までを描く
   const scale = c.goal ? Math.min(c.amount / c.goal, 1.5) / 1.5 : 0
+  const goal = goalText(c, perSlot)
+  const status = statusText(c)
+  // 達成・OK は小さな印だけにして、足りない・こえているものだけ言葉で目立たせる
+  const quiet = c.status === 'ok'
   return (
-    <li className="flex items-center gap-2">
-      {/* w-0：長い栄養素名（ビタミンA（レチノール）など）の幅で、スマホの画面が横にはみ出さないようにする */}
-      <div className="w-0 min-w-0 flex-1">
-        <span className="block leading-snug">
+    <li>
+      <div className="flex flex-wrap items-baseline justify-between gap-x-2">
+        <span className="leading-snug">
           {label}
           {c.partial && <span className="text-ink-soft" title="成分が未収録の食品を含みます">※</span>}
         </span>
-        {c.goal && c.percent !== null ? (
-          <div className="mt-1 flex items-center gap-1.5">
-            <div className="relative h-1.5 flex-1 rounded-full bg-ink/10" aria-hidden>
-              <div className={`h-full rounded-full transition-all duration-500 ${BAR_COLOR[c.status]}`} style={{ width: `${scale * 100}%` }} />
-              <div className="absolute -inset-y-0.5 left-2/3 w-0.5 rounded-full bg-ink/40" />
-            </div>
-            <span className="w-10 shrink-0 text-left text-xs leading-none font-bold tabular-nums" aria-label={`${c.target.kind === 'max' ? '上限' : '目安'}の${pct(c.percent)}%`}>
-              {pct(c.percent)}%
-            </span>
+        <span className="ml-auto text-right whitespace-nowrap tabular-nums">
+          <strong className="text-sm">{fmt(c.key, c.amount)}</strong>
+          <span className="text-ink-soft">{unit}</span>
+          {goal && <span className="ml-1.5 text-[12px] text-ink-soft">／ {goal}</span>}
+        </span>
+      </div>
+      {c.goal && c.percent !== null ? (
+        <div className="mt-1 flex items-center gap-2">
+          <div className="relative h-2 flex-1 rounded-full bg-ink/10" aria-hidden>
+            <div className={`h-full rounded-full transition-all duration-500 ${BAR_COLOR[c.status]}`} style={{ width: `${scale * 100}%` }} />
+            <div className="absolute -inset-y-0.5 left-2/3 w-0.5 rounded-full bg-ink/40" />
           </div>
-        ) : null}
-      </div>
-      <div className="w-[6.5rem] shrink-0 text-right tabular-nums">
-        <strong>{fmt(c.key, c.amount)}</strong>
-        <span className="text-ink-soft">{unit}</span>
-        <span className="block text-[11px] text-ink-soft">{goalText(c, perSlot)}</span>
-        {c.upperScope === 'supplement' && c.upper !== null && c.upperAmount > 0 && (
-          <span className="block text-[11px] text-ink-soft">
-            サプリ {fmt(c.key, c.upperAmount)}・上限 {fmt(c.key, c.upper)}
+          <span className="w-9 shrink-0 text-right text-xs leading-none font-bold tabular-nums" aria-label={`${c.target.kind === 'max' ? '上限' : '目安'}の${pct(c.percent)}%`}>
+            {pct(c.percent)}%
           </span>
-        )}
-      </div>
-      <span className={`w-16 shrink-0 rounded-full py-0.5 text-center text-[11px] font-bold whitespace-nowrap ${CHIP[c.status]}`}>{statusText(c)}</span>
+          <span className="flex w-[5.25rem] shrink-0 justify-start">
+            {quiet ? (
+              <span className="grid h-5 w-5 place-items-center rounded-full bg-ok/25 text-[12px] leading-none font-bold text-ok-ink" role="img" aria-label={status}>
+                ✓
+              </span>
+            ) : (
+              <span className={`rounded-full px-2 py-0.5 text-[12px] leading-tight font-bold whitespace-nowrap ${CHIP[c.status]}`}>{status}</span>
+            )}
+          </span>
+        </div>
+      ) : null}
+      {c.upperScope === 'supplement' && c.upper !== null && c.upperAmount > 0 && (
+        <span className="block text-[12px] text-ink-soft tabular-nums">
+          サプリ {fmt(c.key, c.upperAmount)}・上限 {fmt(c.key, c.upper)}
+        </span>
+      )}
     </li>
   )
 }
 
 // グループごとに色の台とアイコンを分け、「気をつけたい」と「とりたい」の境目がひと目で分かるようにする
 const GROUP_STYLE = {
-  limit: { icon: 'limit', box: 'bg-alert/8 ring-alert/25', title: 'text-alert', note: '少ないほど安心。上限の線をこえないように' },
-  want: { icon: 'want', box: 'bg-ok/10 ring-ok/30', title: 'text-[#3f9466]', note: '目安の線まで届けば達成' },
+  limit: { icon: 'limit', box: 'bg-[color-mix(in_srgb,var(--color-alert)_9%,white)] ring-alert/25', title: 'text-alert-ink', note: '少ないほど安心。上限の線をこえないように' },
+  want: { icon: 'want', box: 'bg-[color-mix(in_srgb,var(--color-ok)_12%,white)] ring-ok/30', title: 'text-ok-ink', note: '目安の線まで届けば達成' },
   info: { icon: 'info', box: 'bg-cream ring-ink/10', title: 'text-ink-soft', note: '量だけを表示' },
 } as const
 
@@ -132,10 +143,10 @@ function Group({
         <UiIcon name={st.icon} className="h-7 w-7 shrink-0" />
         <span className="min-w-0 leading-tight">
           <span className={`block text-sm font-bold ${st.title}`}>{title}</span>
-          <span className="block text-[11px] text-ink-soft">{st.note}</span>
+          <span className="block text-[12px] text-ink-soft">{st.note}</span>
         </span>
       </h3>
-      <ul className="space-y-2 text-xs">
+      <ul className="space-y-2.5 text-xs">
         {rows.map((c) => (
           <CheckRow key={c.key} c={c} perSlot={perSlot} />
         ))}
@@ -171,12 +182,12 @@ export function NutrientChecks({
   const notable = notableChecks(checks, perSlot ? 2 : 4)
   const judged = checks.filter((c) => c.status !== 'info').length
   return (
-    <details open={defaultOpen} className={`group rounded-2xl border-2 border-dashed border-coral/40 bg-white/70 px-3 py-2 open:border-solid open:border-transparent`}>
+    <details open={defaultOpen} className={`group ${perSlot ? 'rounded-2xl border-2 border-dashed border-coral/40 bg-white/70 px-3 py-2 open:border-solid open:border-transparent' : ''}`}>
       <summary className="cursor-pointer list-none [&::-webkit-details-marker]:hidden">
-        <span className="flex min-h-9 flex-wrap items-center gap-x-2 gap-y-1 text-sm font-bold">
+        <span className="flex min-h-9 flex-wrap items-center gap-x-1.5 gap-y-1 text-sm font-bold">
           <span className="whitespace-nowrap">{perSlot ? 'くわしい栄養素' : '栄養素チェック'}</span>
-          <span className="text-[11px] font-normal text-ink-soft">{CHECKED_COUNT}項目</span>
-          <span className="ml-auto flex items-center gap-1 rounded-full bg-coral px-3 py-1 text-[11px] text-white shadow-sm">
+          <span className="text-[12px] font-normal text-ink-soft">{CHECKED_COUNT}項目</span>
+          <span className={`ml-auto flex items-center gap-1 rounded-full px-2.5 py-1 text-[12px] whitespace-nowrap shadow-sm ${perSlot ? 'bg-coral text-ink-strong' : 'bg-white font-normal text-ink-soft'}`}>
             <span className="group-open:hidden">ひらいて見る</span>
             <span className="hidden group-open:inline">とじる</span>
             <span className="transition-transform group-open:rotate-180" aria-hidden>
@@ -185,7 +196,7 @@ export function NutrientChecks({
           </span>
         </span>
         {/* 畳んでいるときも、何が分かるかを少しだけ見せる */}
-        <span className="mt-1 flex flex-wrap items-center gap-1 text-[11px] font-bold group-open:hidden">
+        <span className="mt-1 flex flex-wrap items-center gap-1 text-[12px] font-bold group-open:hidden">
           {counts.map((c) => (
             <span key={c.text} className={`rounded-full px-2 py-0.5 ${c.cls}`}>
               {c.text}
@@ -200,24 +211,42 @@ export function NutrientChecks({
         </span>
       </summary>
       <div className="mt-2 space-y-3 pb-1">
+        {!perSlot && (
+          <p className="flex flex-wrap gap-1 text-[12px] font-bold">
+            {counts.map((c) => (
+              <span key={c.text} className={`rounded-full px-2.5 py-0.5 ${c.cls}`}>
+                {c.text}
+              </span>
+            ))}
+          </p>
+        )}
         <Group kind="limit" title="とりすぎに気をつけたい" keys={LIMIT_NUTRIENTS} checks={checks} perSlot={perSlot} />
         <Group kind="want" title="しっかりとりたい" keys={WANT_NUTRIENTS} checks={checks} perSlot={perSlot} />
         <Group kind="info" title="基準のないもの" keys={INFO_NUTRIENTS} checks={checks} perSlot={perSlot} />
-        <div className="space-y-0.5 text-[11px] leading-relaxed text-ink-soft">
-          {perSlot ? (
-            <p>
-              区分の目安は、1日の目安を{SLOTS.map((s) => `${SLOT_LABEL[s]}${Math.round((slotShare ?? SLOT_ENERGY_SHARE)[s] * 100)}%`).join('・')}
-              で分けた値です（プロフィールで変えられます。アルコール・カフェインは1日の値）。
-            </p>
-          ) : (
-            <p>目安は「日本人の食事摂取基準（2025年版）」の推奨量・目安量・目標量、アルコールは「健康に配慮した飲酒に関するガイドライン」の値です。</p>
-          )}
-          <p>カフェインは日本の基準がないため、欧州食品安全機関とカナダ保健省の「健康な大人は1日400mgまで」を目安にしています（農林水産省の資料で紹介されている値）。妊娠中・授乳中は1日200mgまでが目安です。</p>
-          <p>一価・多価不飽和脂肪酸は食事摂取基準に値がないため、量だけを表示しています。</p>
-          <p>カルシウム・亜鉛・ビタミンD・ビタミンE・ビタミンB6は、耐容上限量（とりすぎで健康をそこなうおそれがある量）をこえると「上限こえ」になります。ビタミンAの耐容上限量はβ-カロテン由来の分を含まない値のため、レチノールの量と比べます。</p>
-          <p>マグネシウム・ナイアシン・葉酸の耐容上限量は、サプリメントなど通常の食品以外からとる分だけにかかる値のため、サプリの分だけで比べます。食事からとる分には上限がありません。</p>
-          {partial && <p>※ 成分が未収録の食品（市販品など）を含むため、実際より少なく出ている可能性があります。</p>}
-        </div>
+        {/* 出典と注意書きは長いので畳んでおく */}
+        <details className="group/notes text-[12px] leading-relaxed text-ink-soft">
+          <summary className="flex min-h-9 cursor-pointer list-none items-center gap-1 font-bold [&::-webkit-details-marker]:hidden">
+            目安の出典と注意書き
+            <span className="text-[12px] transition-transform group-open/notes:rotate-180" aria-hidden>
+              ▼
+            </span>
+          </summary>
+          <div className="space-y-0.5">
+            {perSlot ? (
+              <p>
+                区分の目安は、1日の目安を{SLOTS.map((s) => `${SLOT_LABEL[s]}${Math.round((slotShare ?? SLOT_ENERGY_SHARE)[s] * 100)}%`).join('・')}
+                で分けた値です（プロフィールで変えられます。アルコール・カフェインは1日の値）。
+              </p>
+            ) : (
+              <p>目安は「日本人の食事摂取基準（2025年版）」の推奨量・目安量・目標量、アルコールは「健康に配慮した飲酒に関するガイドライン」の値です。</p>
+            )}
+            <p>カフェインは日本の基準がないため、欧州食品安全機関とカナダ保健省の「健康な大人は1日400mgまで」を目安にしています（農林水産省の資料で紹介されている値）。妊娠中・授乳中は1日200mgまでが目安です。</p>
+            <p>一価・多価不飽和脂肪酸は食事摂取基準に値がないため、量だけを表示しています。</p>
+            <p>カルシウム・亜鉛・ビタミンD・ビタミンE・ビタミンB6は、耐容上限量（とりすぎで健康をそこなうおそれがある量）をこえると「上限こえ」になります。ビタミンAの耐容上限量はβ-カロテン由来の分を含まない値のため、レチノールの量と比べます。</p>
+            <p>マグネシウム・ナイアシン・葉酸の耐容上限量は、サプリメントなど通常の食品以外からとる分だけにかかる値のため、サプリの分だけで比べます。食事からとる分には上限がありません。</p>
+            {partial && <p>※ 成分が未収録の食品（市販品など）を含むため、実際より少なく出ている可能性があります。</p>}
+          </div>
+        </details>
       </div>
     </details>
   )

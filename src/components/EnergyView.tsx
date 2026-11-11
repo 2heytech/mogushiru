@@ -70,7 +70,7 @@ export function EnergyBalanceView({
             )}
           </div>
         </BarRow>
-        <ul className="flex flex-wrap gap-x-3 gap-y-0.5 pl-14 text-[11px] text-ink-soft" aria-label="使うカロリーの内訳">
+        <ul className="flex flex-wrap gap-x-3 gap-y-0.5 pl-14 text-[12px] text-ink-soft" aria-label="使うカロリーの内訳">
           {PARTS.map((p) => (
             <li key={p.key} className="flex items-center gap-1 whitespace-nowrap">
               <span className="h-2.5 w-2.5 rounded-sm" style={{ background: p.color }} aria-hidden />
@@ -98,7 +98,7 @@ export function EnergyBalanceView({
         </p>
       )}
 
-      <div className="space-y-1 text-[11px] leading-relaxed text-ink-soft">
+      <div className="space-y-1 text-[12px] leading-relaxed text-ink-soft">
         {intake > 0 && empty.length > 0 && (
           <p>
             {empty.map((s) => SLOT_LABEL[s]).join('・')}がまだ空です。食べない区分はそのままで大丈夫です。
@@ -121,7 +121,7 @@ function BarRow({ label, value, sub, children }: { label: string; value: number;
     <div className="flex items-center gap-2">
       <span className="w-12 shrink-0 text-sm font-bold whitespace-nowrap">{label}</span>
       <div className="min-w-0 flex-1">
-        <div className="mb-0.5 flex items-baseline justify-between gap-2 text-[11px] text-ink-soft">
+        <div className="mb-0.5 flex items-baseline justify-between gap-2 text-[12px] text-ink-soft">
           <span>{sub}</span>
           <span>
             <strong className="text-base text-ink tabular-nums">{kcal(value)}</strong> kcal
@@ -171,27 +171,27 @@ export function WeightSimView({ totals, energy, profile, onEditProfile }: { tota
           const change = kg - sim.start
           return (
             <li key={p.days} className="rounded-2xl bg-white px-1 py-2 text-center shadow-sm">
-              <p className="text-[11px] text-ink-soft">{p.label}</p>
+              <p className="text-[12px] text-ink-soft">{p.label}</p>
               <p className="leading-tight font-bold">
                 <span className="text-lg">{signedKg(change)}</span>
                 <span className="text-xs">kg</span>
               </p>
-              {!energy.usedReferenceWeight && <p className="text-[11px] text-ink-soft tabular-nums">{fmtKg(kg)}kg</p>}
-              {height && !energy.usedReferenceWeight && <p className="text-[10px] text-ink-soft tabular-nums">BMI {bmi(kg, height).toFixed(1)}</p>}
+              {!energy.usedReferenceWeight && <p className="text-[12px] text-ink-soft tabular-nums">{fmtKg(kg)}kg</p>}
+              {height && !energy.usedReferenceWeight && <p className="text-[12px] text-ink-soft tabular-nums">BMI {bmi(kg, height).toFixed(1)}</p>}
             </li>
           )
         })}
       </ul>
-      <div className="space-y-1 text-[11px] leading-relaxed text-ink-soft">
+      <div className="space-y-1 text-[12px] leading-relaxed text-ink-soft">
         {Math.abs(sim.settle - sim.start) >= 0.5 && (
           <p>
             体重が変わると使うカロリーも変わるので、変化はだんだんゆるやかになり、{energy.usedReferenceWeight ? '' : `${fmtKg(sim.settle)}kgくらいに`}
             落ち着いていきます。
           </p>
         )}
-        {yearBmi !== null && !energy.usedReferenceWeight && yearBmi < 18.5 && <p className="font-bold text-alert">1年後はBMIが18.5を下回ります。やせすぎに気をつけてください。</p>}
+        {yearBmi !== null && !energy.usedReferenceWeight && yearBmi < 18.5 && <p className="font-bold text-alert-ink">1年後はBMIが18.5を下回ります。やせすぎに気をつけてください。</p>}
         {yearBmi !== null && !energy.usedReferenceWeight && yearBmi >= 25 && bmi(sim.start, height!) < 25 && (
-          <p className="font-bold text-alert">1年後はBMIが25をこえます。</p>
+          <p className="font-bold text-alert-ink">1年後はBMIが25をこえます。</p>
         )}
         {energy.usedReferenceWeight && (
           <p className="flex flex-wrap items-center gap-x-2 gap-y-1">
@@ -212,7 +212,9 @@ export function WeightSimView({ totals, energy, profile, onEditProfile }: { tota
 // 体重の折れ線。横軸は0〜12か月、印は1・3・6か月後と1年後
 const W = 320
 const H = 150
-const PAD = { l: 34, r: 10, t: 10, b: 22 }
+const PAD = { l: 38, r: 12, t: 10, b: 24 }
+// 目盛りの字と線の色（--color-ink-soft と同じ）
+const AXIS = '#75604e'
 // m か月後の日数（1・3・6・12 か月で SIM_PERIODS の日数とそろう）
 const monthDays = (m: number) => Math.round((m * 365) / 12)
 
@@ -264,7 +266,7 @@ function WeightChart({ sim, relative }: { sim: ReturnType<typeof simulateWeight>
 
   return (
     <div className="relative rounded-2xl bg-white/70 p-2">
-      <p className="px-1 text-[10px] text-ink-soft">{relative ? 'いまからの増減（kg）' : '体重（kg）'}</p>
+      <p className="px-1 text-[12px] text-ink-soft">{relative ? 'いまからの増減（kg）' : '体重（kg）'}</p>
       <svg
         viewBox={`0 0 ${W} ${H}`}
         className="h-auto w-full touch-pan-y select-none"
@@ -277,15 +279,15 @@ function WeightChart({ sim, relative }: { sim: ReturnType<typeof simulateWeight>
         {ticks.map((t) => (
           <g key={t}>
             <line x1={PAD.l} x2={W - PAD.r} y1={y(t)} y2={y(t)} stroke="#5b4636" strokeOpacity={0.1} strokeWidth={1} />
-            <text x={PAD.l - 5} y={y(t)} dy="0.35em" textAnchor="end" fontSize={10} fill="#8a7563" className="tabular-nums">
+            <text x={PAD.l - 5} y={y(t)} dy="0.35em" textAnchor="end" fontSize={12} fill={AXIS} className="tabular-nums">
               {tickLabel(t)}
             </text>
           </g>
         ))}
         {/* いまの体重 */}
-        <line x1={PAD.l} x2={W - PAD.r} y1={y(start)} y2={y(start)} stroke="#8a7563" strokeOpacity={0.45} strokeWidth={1} strokeDasharray="3 3" />
+        <line x1={PAD.l} x2={W - PAD.r} y1={y(start)} y2={y(start)} stroke={AXIS} strokeOpacity={0.45} strokeWidth={1} strokeDasharray="3 3" />
         {xLabels.map((l) => (
-          <text key={l.day} x={x(l.day)} y={H - 6} textAnchor={l.day === 0 ? 'start' : l.day === 365 ? 'end' : 'middle'} fontSize={10} fill="#8a7563">
+          <text key={l.day} x={x(l.day)} y={H - 6} textAnchor={l.day === 0 ? 'start' : l.day === 365 ? 'end' : 'middle'} fontSize={12} fill={AXIS}>
             {l.label}
           </text>
         ))}
@@ -300,7 +302,7 @@ function WeightChart({ sim, relative }: { sim: ReturnType<typeof simulateWeight>
       </svg>
       {hover !== null && hoverKg !== null && (
         <div
-          className="pointer-events-none absolute top-1 rounded-lg bg-ink px-2 py-1 text-[11px] whitespace-nowrap text-white shadow"
+          className="pointer-events-none absolute top-1 rounded-lg bg-ink px-2 py-1 text-[12px] whitespace-nowrap text-white shadow"
           style={{ left: `${(x(monthDays(hover)) / W) * 100}%`, transform: `translateX(${hover > 8 ? '-100%' : hover < 3 ? '0' : '-50%'})` }}
         >
           {hover === 0 ? 'いま' : hover === 12 ? '1年後' : `${hover}か月後`} {relative ? fmt(hoverKg) : `${fmt(hoverKg)}（${signedKg(hoverKg - start)}kg）`}

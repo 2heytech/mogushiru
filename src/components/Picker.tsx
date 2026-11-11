@@ -3,7 +3,7 @@ import type { Catalog } from '../domain/nutrition'
 import type { DishCategory, MenuItem, Slot } from '../domain/types'
 import { MY_PRODUCT_PREFIX } from '../store/useAppStore'
 import { DISH_CATEGORY_LABEL, PRODUCT_CATEGORY_LAST, PRODUCT_STORES, SLOT_LABEL, STORE_FILTER_PREFIX } from './labels'
-import { buildCards, KYODO, productStore, type Card, type Kind, type Tab } from './pickerCards'
+import { buildCards, cardSegments, KYODO, productStore, type Card, type Kind, type Tab } from './pickerCards'
 import { useDismiss } from './useDismiss'
 
 const TABS: { id: Tab; label: string }[] = [
@@ -16,8 +16,8 @@ const TABS: { id: Tab; label: string }[] = [
 ]
 
 const KIND_BADGE: Record<Kind, { label: string; className: string }> = {
-  dish: { label: '料理', className: 'bg-coral text-white' },
-  myDish: { label: 'お気に入り', className: 'bg-coral-dark text-white' },
+  dish: { label: '料理', className: 'bg-coral text-ink-strong' },
+  myDish: { label: 'お気に入り', className: 'bg-coral-dark text-ink-strong' },
   product: { label: '市販品', className: 'bg-fat/70 text-ink' },
   food: { label: '食材', className: 'bg-carb/70 text-ink' },
   supplement: { label: 'サプリ', className: 'bg-protein/70 text-ink' },
@@ -25,7 +25,7 @@ const KIND_BADGE: Record<Kind, { label: string; className: string }> = {
 
 const MAX_CARDS = 60
 // リストにないものを自分で登録するボタン（点線の枠）
-const REGISTER_BUTTON = 'min-h-10 w-full shrink-0 rounded-full border-2 border-dashed border-coral/60 px-4 text-sm font-bold text-coral hover:bg-coral/10'
+const REGISTER_BUTTON = 'min-h-10 w-full shrink-0 rounded-full border-2 border-dashed border-coral/60 px-4 text-sm font-bold text-coral-ink hover:bg-coral/10'
 
 const PLACEHOLDER: Record<Tab, string> = {
   all: '料理・市販品・食材をさがす',
@@ -132,6 +132,7 @@ export function Picker({
       setLastAction(`「${c.name}」を追加`)
     }
   }
+  const segments = useMemo(() => cardSegments(cards.slice(0, MAX_CARDS), tab, Boolean(query)), [cards, tab, query])
   const switchTab = (t: Tab) => {
     setTab(t)
     setCategory('all')
@@ -160,11 +161,11 @@ export function Picker({
               role="tab"
               aria-selected={tab === t.id}
               onClick={() => switchTab(t.id)}
-              className={`min-h-10 flex-1 rounded-full px-1 text-sm leading-tight whitespace-nowrap ${tab === t.id ? 'bg-coral font-bold text-white' : 'text-ink-soft'}`}
+              className={`min-h-10 flex-1 rounded-full px-1 text-sm leading-tight whitespace-nowrap ${tab === t.id ? 'bg-coral font-bold text-ink-strong' : 'text-ink-soft'}`}
             >
               {t.label}
               {counts && (
-                <span className={`block text-[10px] ${tab === t.id ? 'text-white/90' : counts[t.id] === 0 ? 'text-ink-soft/60' : ''}`}>
+                <span className={`block text-[12px] leading-tight ${tab === t.id ? 'text-ink-strong' : counts[t.id] === 0 ? 'text-ink-soft/60' : ''}`}>
                   {counts[t.id] > 999 ? '999+' : counts[t.id]}件
                 </span>
               )}
@@ -222,52 +223,93 @@ export function Picker({
           ) : (
             <>
               {tab === 'all' && !query && <p className="mb-2 text-xs text-ink-soft">料理・市販品・食材をまとめてさがせます</p>}
-              <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
-                {cards.slice(0, MAX_CARDS).map((c) => (
-                  <li key={c.key} className="relative">
-                    <button
-                      type="button"
-                      onClick={() => pick(c)}
-                      aria-pressed={Boolean(added[c.key])}
-                      className={`group relative flex h-full w-full flex-col items-center rounded-2xl bg-white p-3 text-center shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${added[c.key] ? 'ring-2 ring-ok' : ''}`}
-                    >
-                      {tab === 'all' && query && (
-                        <span className={`absolute top-2 left-2 rounded-full px-2 py-0.5 text-[11px] font-bold ${KIND_BADGE[c.kind].className}`}>
-                          {KIND_BADGE[c.kind].label}
-                        </span>
-                      )}
-                      {added[c.key] && (
-                        <span className={`absolute right-2 rounded-full bg-ok px-2 py-0.5 text-[11px] font-bold text-white ${c.kind === 'product' ? 'top-11' : 'top-2'}`}>
-                          ✓ 追加
-                        </span>
-                      )}
-                      {c.image ? (
-                        <img src={c.image} alt="" className="mb-2 h-20 w-20 object-contain transition-transform group-hover:scale-110 group-hover:-rotate-3" loading="lazy" />
-                      ) : (
-                        <span className="mb-2 grid h-20 w-20 place-items-center rounded-full bg-cream text-3xl" aria-hidden>
-                          🍽️
-                        </span>
-                      )}
-                      <span className="line-clamp-2 text-sm font-bold">{c.name}</span>
-                      <span className="mt-1 text-xs text-ink-soft">
-                        {c.sub}
-                        {c.kcal !== null && ` ・ ${Math.round(c.kcal)}kcal`}
-                      </span>
-                    </button>
-                    {c.kind === 'product' && !c.item.refId.startsWith(MY_PRODUCT_PREFIX) && (
-                      <button
-                        type="button"
-                        aria-pressed={favorites.has(c.item.refId)}
-                        aria-label={`${c.name}をお気に入り${favorites.has(c.item.refId) ? 'から外す' : 'に追加'}`}
-                        onClick={() => onToggleFavorite(c.item.refId)}
-                        className={`absolute top-1 right-1 grid h-9 w-9 place-items-center rounded-full text-lg ${favorites.has(c.item.refId) ? 'text-fat' : 'text-ink-soft/50 hover:text-fat'}`}
-                      >
-                        {favorites.has(c.item.refId) ? '★' : '☆'}
-                      </button>
-                    )}
-                  </li>
-                ))}
-              </ul>
+              {segments.map((seg, si) =>
+                seg.row ? (
+                  // 市販品・食材は絵が種類ごとの共通なので、名前を全部読める1行ずつの並びに
+                  <ul key={si} className="mb-3 grid grid-cols-1 gap-1.5 md:grid-cols-2">
+                    {seg.cards.map((c) => {
+                      const star = c.kind === 'product' && !c.item.refId.startsWith(MY_PRODUCT_PREFIX)
+                      return (
+                        <li key={c.key} className={`flex items-center rounded-2xl bg-white shadow-sm ${added[c.key] ? 'ring-2 ring-ok' : ''}`}>
+                          <button type="button" onClick={() => pick(c)} aria-pressed={Boolean(added[c.key])} className="flex min-h-14 min-w-0 flex-1 items-center gap-2.5 py-1.5 pr-1 pl-2.5 text-left">
+                            {c.image ? (
+                              <img src={c.image} alt="" className="h-10 w-10 shrink-0 object-contain" loading="lazy" />
+                            ) : (
+                              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-cream text-lg" aria-hidden>
+                                🍽️
+                              </span>
+                            )}
+                            <span className="min-w-0 flex-1">
+                              <span className="line-clamp-2 text-sm leading-snug font-bold">{c.name}</span>
+                              <span className="mt-0.5 block truncate text-xs text-ink-soft">
+                                {tab === 'all' && query && <span className={`mr-1.5 rounded-full px-1.5 py-px text-[12px] font-bold ${KIND_BADGE[c.kind].className}`}>{KIND_BADGE[c.kind].label}</span>}
+                                {c.sub}
+                              </span>
+                            </span>
+                            {added[c.key] ? (
+                              <span className="shrink-0 rounded-full bg-ok/25 px-2 py-0.5 text-[12px] font-bold whitespace-nowrap text-ok-ink">✓ 追加</span>
+                            ) : (
+                              c.kcal !== null && (
+                                <span className="shrink-0 text-right text-sm font-bold whitespace-nowrap tabular-nums">
+                                  {Math.round(c.kcal)}
+                                  <span className="ml-0.5 text-[12px] font-normal text-ink-soft">kcal</span>
+                                </span>
+                              )
+                            )}
+                          </button>
+                          {star ? (
+                            <button
+                              type="button"
+                              aria-pressed={favorites.has(c.item.refId)}
+                              aria-label={`${c.name}をお気に入り${favorites.has(c.item.refId) ? 'から外す' : 'に追加'}`}
+                              onClick={() => onToggleFavorite(c.item.refId)}
+                              className={`grid h-11 w-10 shrink-0 place-items-center rounded-full text-lg ${favorites.has(c.item.refId) ? 'text-fat' : 'text-ink-soft/50 hover:text-fat'}`}
+                            >
+                              {favorites.has(c.item.refId) ? '★' : '☆'}
+                            </button>
+                          ) : (
+                            <span className="w-2.5 shrink-0" />
+                          )}
+                        </li>
+                      )
+                    })}
+                  </ul>
+                ) : (
+                  <ul key={si} className="mb-3 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+                    {seg.cards.map((c) => (
+                      <li key={c.key} className="relative">
+                        <button
+                          type="button"
+                          onClick={() => pick(c)}
+                          aria-pressed={Boolean(added[c.key])}
+                          className={`group relative flex h-full w-full flex-col items-center rounded-2xl bg-white p-3 text-center shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${added[c.key] ? 'ring-2 ring-ok' : ''}`}
+                        >
+                          {tab === 'all' && query && (
+                            <span className={`absolute top-2 left-2 rounded-full px-2 py-0.5 text-[12px] font-bold ${KIND_BADGE[c.kind].className}`}>
+                              {KIND_BADGE[c.kind].label}
+                            </span>
+                          )}
+                          {added[c.key] && (
+                            <span className="absolute top-2 right-2 rounded-full bg-ok px-2 py-0.5 text-[12px] font-bold text-ink-strong">✓ 追加</span>
+                          )}
+                          {c.image ? (
+                            <img src={c.image} alt="" className="mb-2 h-20 w-20 object-contain transition-transform group-hover:scale-110 group-hover:-rotate-3" loading="lazy" />
+                          ) : (
+                            <span className="mb-2 grid h-20 w-20 place-items-center rounded-full bg-cream text-3xl" aria-hidden>
+                              🍽️
+                            </span>
+                          )}
+                          <span className="line-clamp-2 text-sm font-bold">{c.name}</span>
+                          <span className="mt-1 text-xs text-ink-soft">
+                            {c.sub}
+                            {c.kcal !== null && ` ・ ${Math.round(c.kcal)}kcal`}
+                          </span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                ),
+              )}
             </>
           )}
           {cards.length > MAX_CARDS && <p className="py-3 text-center text-xs text-ink-soft">ほか {cards.length - MAX_CARDS} 件。検索でしぼりこめます</p>}
@@ -282,7 +324,7 @@ export function Picker({
           <p className="min-w-0 flex-1 truncate text-sm text-ink-soft" aria-live="polite">
             {lastAction ? `${lastAction}（${totalAdded}品）` : 'タップで追加、もう一度で取り消し'}
           </p>
-          <button type="button" onClick={onClose} className="min-h-11 shrink-0 rounded-full bg-coral px-6 text-sm font-bold text-white hover:bg-coral-dark">
+          <button type="button" onClick={onClose} className="min-h-11 shrink-0 rounded-full bg-coral px-6 text-sm font-bold text-ink-strong hover:bg-coral-dark">
             {totalAdded > 0 ? 'できた' : '閉じる'}
           </button>
         </footer>

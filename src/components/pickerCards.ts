@@ -197,3 +197,17 @@ export function buildCards(tab: Tab, filter: Filter): Card[] {
   }
   return rankAndFilter(entries(tab, filter), filter.query, (e) => e.fields).map((e) => e.card)
 }
+
+// 絵で選ぶカード（料理・お気に入り）と、名前で選ぶ行（市販品・サプリ・食材）を、並び順はそのままに、かたまりごとに分ける。
+// 市販品と食材は絵が種類ごとの共通なので、名前を全部読める行にする。
+// 食材は、朝の定番（食パンなど個別の絵があるもの）を「すべて」で見せるときだけカードのまま
+export function cardSegments(cards: Card[], tab: Tab, searching: boolean): { row: boolean; cards: Card[] }[] {
+  const out: { row: boolean; cards: Card[] }[] = []
+  for (const c of cards) {
+    const row = c.kind === 'product' || c.kind === 'supplement' || (c.kind === 'food' && (tab === 'food' || searching))
+    const last = out.at(-1)
+    if (last && last.row === row) last.cards.push(c)
+    else out.push({ row, cards: [c] })
+  }
+  return out
+}

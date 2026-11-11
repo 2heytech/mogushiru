@@ -30,10 +30,10 @@ function Choice<T extends string>({ value, options, onChange }: { value: T; opti
           type="button"
           aria-pressed={value === o.id}
           onClick={() => onChange(o.id)}
-          className={`min-h-11 rounded-2xl px-2 py-2 text-sm ${value === o.id ? 'bg-coral font-bold text-white' : 'bg-white'}`}
+          className={`min-h-11 rounded-2xl px-1 py-2 text-sm ${value === o.id ? 'bg-coral font-bold text-ink-strong' : 'bg-white'}`}
         >
           {o.label}
-          {o.desc && <span className={`mt-0.5 block text-[11px] ${value === o.id ? 'text-white/90' : 'text-ink-soft'}`}>{o.desc}</span>}
+          {o.desc && <span className={`mt-0.5 block text-[12px] leading-snug font-normal [text-wrap:balance] [word-break:auto-phrase] ${value === o.id ? 'text-ink-strong' : 'text-ink-soft'}`}>{o.desc}</span>}
         </button>
       ))}
     </div>
@@ -66,7 +66,7 @@ function SlotShareEditor({ value, onChange, dayKcal }: { value: Record<Slot, num
         ))}
       </ul>
       <div className="mt-2 flex items-center justify-between gap-2 text-xs">
-        <span className={total === 100 ? 'text-ink-soft' : 'font-bold text-alert'}>
+        <span className={total === 100 ? 'text-ink-soft' : 'font-bold text-alert-ink'}>
           合計 {total}%{total !== 100 && `（あと ${total < 100 ? `${100 - total}% 増やして` : `${total - 100}% 減らして`}ください）`}
         </span>
         {!sameShare(value, DEFAULT_SLOT_SHARE_PERCENT) && (
@@ -192,7 +192,7 @@ export function ProfileDialog({
             </label>
           </div>
           {(!heightOk || !weightOk) && (
-            <p className="text-xs font-bold text-alert">
+            <p className="text-xs font-bold text-alert-ink">
               {!heightOk && `身長は${BODY_LIMIT.heightCm.min}〜${BODY_LIMIT.heightCm.max}cm`}
               {!heightOk && !weightOk && '、'}
               {!weightOk && `体重は${BODY_LIMIT.weightKg.min}〜${BODY_LIMIT.weightKg.max}kg`}
@@ -213,7 +213,7 @@ export function ProfileDialog({
                   { id: 'no', label: 'なし' },
                 ]}
               />
-              <p className="mt-1 text-[11px] text-ink-soft">鉄の目安を選ぶために使います（月経ありのほうが多くなります）</p>
+              <p className="mt-1 text-[12px] text-ink-soft">鉄の目安を選ぶために使います（月経ありのほうが多くなります）</p>
             </div>
           )}
           <div>
@@ -223,7 +223,7 @@ export function ProfileDialog({
           <div ref={exerciseRef} className="scroll-mt-4">
             <p className="mb-1 text-sm">ふだんの運動（任意）</p>
             <ExerciseEditor value={exercises} onChange={setExercises} weightKg={energy?.weightKg ?? 60} />
-            <p className="mt-1 text-[11px] text-ink-soft">
+            <p className="mt-1 text-[12px] text-ink-soft">
               {exercises.length > 0 && energy
                 ? `運動で 1日あたり 約${Math.round(energy.exercise).toLocaleString()} kcal（週の回数でならした分）を足します。通勤や家事の動きは「ふだんの活動量」に入っています。`
                 : '続けている運動を入れると、使うカロリーに足して計算します。通勤や家事の動きは「ふだんの活動量」に入っています。'}
@@ -236,7 +236,7 @@ export function ProfileDialog({
           <div ref={slotShareRef}>
             <p className="mb-1 text-sm">朝・昼・晩・その他の配分</p>
             <SlotShareEditor value={slotShare} onChange={setSlotShare} dayKcal={dayKcal} />
-            <p className="mt-1 text-[11px] text-ink-soft">1日の目安をこの割合で分けて、区分ごとのカロリーや栄養素の目安にします</p>
+            <p className="mt-1 text-[12px] text-ink-soft">1日の目安をこの割合で分けて、区分ごとのカロリーや栄養素の目安にします</p>
           </div>
           {preview && (
             <p className="rounded-2xl bg-white px-4 py-3 text-sm">
@@ -254,7 +254,7 @@ export function ProfileDialog({
             type="button"
             disabled={!draft}
             onClick={() => draft && onSave(draft)}
-            className="min-h-11 flex-1 rounded-full bg-coral font-bold text-white disabled:opacity-50"
+            className="min-h-11 flex-1 rounded-full bg-coral font-bold text-ink-strong disabled:opacity-50"
           >
             保存
           </button>

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { Catalog } from '../domain/nutrition'
 import { NUTRIENT_KEYS, type Dish, type MyDish, type Nutrients, type Product, type Slot } from '../domain/types'
-import { buildCards, productStore } from './pickerCards'
+import { buildCards, cardSegments, productStore, type Card, type Kind } from './pickerCards'
 
 // テスト用の架空の料理（実データではない）
 const n = (): Nutrients => Object.fromEntries(NUTRIENT_KEYS.map((k) => [k, 0])) as Nutrients
@@ -59,5 +59,25 @@ describe('市販品のお店ごとの絞り込み', () => {
   it('お店・メーカー品で絞り込む', () => {
     expect(pick('store:seven')).toEqual(['seven-1'])
     expect(pick('store:maker')).toEqual(['4900000000001'])
+  })
+})
+
+describe('カードと行の分け方', () => {
+  const card = (kind: Kind, key: string): Card => ({ key, kind, name: key, sub: '', kcal: null, item: { kind, refId: key, portion: 1 } })
+  const shape = (cards: Card[], tab: Parameters<typeof cardSegments>[1], searching: boolean) =>
+    cardSegments(cards, tab, searching).map((s) => `${s.row ? '行' : 'カード'}:${s.cards.map((c) => c.key).join(',')}`)
+
+  it('料理はカード、市販品とサプリは行。並び順は変えず、となり合うものをまとめる', () => {
+    const cards = [card('dish', 'd1'), card('dish', 'd2'), card('product', 'p1'), card('supplement', 's1'), card('myDish', 'm1')]
+    expect(shape(cards, 'all', true)).toEqual(['カード:d1,d2', '行:p1,s1', 'カード:m1'])
+  })
+  it('食材は、すべてのタブでさがしていないときだけカード（朝の定番の絵を見せる）', () => {
+    const cards = [card('food', 'f1'), card('dish', 'd1')]
+    expect(shape(cards, 'all', false)).toEqual(['カード:f1,d1'])
+    expect(shape(cards, 'all', true)).toEqual(['行:f1', 'カード:d1'])
+    expect(shape([card('food', 'f1')], 'food', false)).toEqual(['行:f1'])
+  })
+  it('空のときは何も返さない', () => {
+    expect(cardSegments([], 'all', false)).toEqual([])
   })
 })

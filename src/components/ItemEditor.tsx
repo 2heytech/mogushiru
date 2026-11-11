@@ -91,10 +91,10 @@ export function ItemEditor({
                 {lines ? '成分を直す' : '栄養成分を直す'}
               </button>
             )}
-            <button type="button" onClick={onRemove} className="min-h-11 rounded-full bg-white px-4 text-sm text-alert">
+            <button type="button" onClick={onRemove} className="min-h-11 rounded-full bg-white px-4 text-sm text-alert-ink">
               1日の食事から外す
             </button>
-            <button type="button" onClick={onClose} className="min-h-11 flex-1 rounded-full bg-coral px-4 text-sm font-bold text-white">
+            <button type="button" onClick={onClose} className="min-h-11 flex-1 rounded-full bg-coral px-4 text-sm font-bold text-ink-strong">
               OK
             </button>
           </div>

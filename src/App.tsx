@@ -31,15 +31,15 @@ const sameIngredients = (a: Ingredient[], b: Ingredient[]) =>
 
 // スマホではアイコンの下に小さく名前、広い画面では横並び
 const NAV_BUTTON =
-  'flex min-h-11 min-w-14 flex-col items-center justify-center whitespace-nowrap rounded-2xl bg-white px-2 text-[11px] leading-tight shadow-sm sm:flex-row sm:gap-1 sm:rounded-full sm:px-4 sm:text-sm'
+  'flex min-h-10 items-center justify-center gap-1 whitespace-nowrap rounded-full bg-white px-3 text-xs leading-tight font-bold shadow-sm sm:min-h-11 sm:px-4 sm:text-sm sm:font-normal'
 
 type View = 'menu' | 'ranking' | 'customize'
 
-const ICON_CLASS = 'h-7 w-7 shrink-0 sm:h-9 sm:w-9'
+const ICON_CLASS = 'h-6 w-6 shrink-0 sm:h-9 sm:w-9'
 
 // アプリの機能。title の | は狭い画面で折り返してよい位置。いつも上に並べて、いまどれを見ているかと、ほかに何があるかが分かるようにする
 const FEATURES: { view: View; icon: ReactNode; title: string; lead: string }[] = [
-  { view: 'menu', icon: <UiIcon name="menu" className={ICON_CLASS} />, title: '1日の|栄養バランス|を確認', lead: '朝・昼・晩の料理を選んで確かめる' },
+  { view: 'menu', icon: <UiIcon name="menu" className={ICON_CLASS} />, title: '1日の|栄養|バランス|を確認', lead: '朝・昼・晩の料理を選んで確かめる' },
   { view: 'ranking', icon: <UiIcon name="ranking" className={ICON_CLASS} />, title: '食品成分|ランキング', lead: '成分の多い食品をさがす' },
   { view: 'customize', icon: <CustomizeIcon className={ICON_CLASS} />, title: '料理を|カスタマイズ', lead: '人前や材料の量を変えて保存' },
 ]
@@ -58,7 +58,7 @@ function FeatureTabsCompact({ view, onChange }: { view: View; onChange: (v: View
             onClick={() => onChange(f.view)}
             title={f.lead}
             className={`flex min-h-12 items-center gap-1.5 rounded-full border-2 pr-4 pl-2 text-sm font-bold whitespace-nowrap transition ${
-              active ? 'border-coral bg-white text-coral-dark shadow-sm' : 'border-transparent bg-white/60 text-ink hover:bg-white'
+              active ? 'border-coral bg-white text-coral-ink shadow-sm' : 'border-transparent bg-white/60 text-ink hover:bg-white'
             }`}
           >
             {f.icon}
@@ -72,7 +72,7 @@ function FeatureTabsCompact({ view, onChange }: { view: View; onChange: (v: View
 
 function FeatureTabs({ view, onChange }: { view: View; onChange: (v: View) => void }) {
   return (
-    <nav aria-label="機能の切り替え" className="mb-4 grid grid-cols-3 gap-2 lg:hidden">
+    <nav aria-label="機能の切り替え" className="mb-3 grid grid-cols-3 gap-1.5 sm:mb-4 sm:gap-2 lg:hidden">
       {FEATURES.map((f) => {
         const active = f.view === view
         return (
@@ -81,13 +81,13 @@ function FeatureTabs({ view, onChange }: { view: View; onChange: (v: View) => vo
             type="button"
             aria-current={active ? 'page' : undefined}
             onClick={() => onChange(f.view)}
-            className={`min-h-16 rounded-2xl border-2 px-1.5 py-2 text-center transition sm:px-4 sm:text-left ${
+            className={`min-h-14 rounded-2xl border-2 px-1 py-1.5 text-center transition sm:min-h-16 sm:px-4 sm:py-2 sm:text-left ${
               active ? 'border-coral bg-white shadow-sm' : 'border-transparent bg-white/60 text-ink-soft hover:bg-white'
             }`}
           >
             {/* スマホは3つ並ぶので、アイコンの下に名前だけ。広い画面では横並びに説明も添える */}
             <span
-              className={`flex flex-col items-center gap-1 text-[11px] leading-snug font-bold sm:flex-row sm:gap-1.5 sm:text-sm lg:text-base lg:whitespace-nowrap ${active ? 'text-coral-dark' : 'text-ink'}`}
+              className={`flex flex-col items-center gap-0.5 text-[12px] leading-[1.3] font-bold tracking-tight sm:flex-row sm:gap-1.5 sm:text-sm sm:tracking-normal lg:text-base lg:whitespace-nowrap ${active ? 'text-coral-ink' : 'text-ink'}`}
             >
               {f.icon}
               <span className="[word-break:keep-all]">
@@ -305,10 +305,10 @@ export default function App() {
   return (
     // スマホは1日の食事のボタンを下に固定するので、そのぶん下をあける
     <div className={`mx-auto max-w-6xl px-4 ${view === 'menu' && !showStart ? 'pb-32 md:pb-16' : 'pb-16'}`}>
-      <header className="flex items-center justify-between gap-4 py-4">
+      <header className="flex items-center justify-between gap-4 py-2.5 sm:py-4">
         <h1 className="flex shrink-0 items-center gap-1.5">
-          <LogoMogu className="h-12 w-12" />
-          <span className="font-logo text-[28px] leading-none tracking-wide text-ink">モグシル</span>
+          <LogoMogu className="h-10 w-10 sm:h-12 sm:w-12" />
+          <span className="font-logo text-2xl leading-none tracking-wide text-ink sm:text-[28px]">モグシル</span>
         </h1>
         <div className="hidden lg:block">
           <FeatureTabsCompact view={view} onChange={setView} />
@@ -318,7 +318,8 @@ export default function App() {
           <span>プロフィール</span>
           {!profileSet && (
             <>
-              <span className="absolute top-1 right-1 h-2.5 w-2.5 rounded-full bg-alert ring-2 ring-white" aria-hidden />
+              <span className="rounded-full bg-alert/15 px-1.5 py-0.5 text-[12px] leading-none font-bold text-coral-ink sm:hidden">未入力</span>
+              <span className="absolute top-1 right-1 hidden h-2.5 w-2.5 rounded-full bg-alert ring-2 ring-white sm:block" aria-hidden />
               <span className="sr-only">（未入力）</span>
             </>
           )}
@@ -328,11 +329,10 @@ export default function App() {
       <FeatureTabs view={view} onChange={setView} />
 
       {!profileSet && (
-        <p className="mb-3 text-right">
+        <p className="mb-3 hidden text-right sm:block">
           <button type="button" onClick={() => setProfileOpen(true)} className="min-h-9 rounded-full bg-white px-3 text-left text-xs shadow-sm">
-            <span className="sm:hidden">目安は30〜49歳・女性　</span>
-            <span className="hidden sm:inline">目安は「30〜49歳・女性・ふつう」です。</span>
-            <span className="font-bold whitespace-nowrap text-coral-dark">プロフィールを入れる →</span>
+            目安は「30〜49歳・女性・ふつう」です。
+            <span className="font-bold whitespace-nowrap text-coral-ink">プロフィールを入れる →</span>
           </button>
         </p>
       )}
@@ -413,6 +413,7 @@ export default function App() {
                   setProfileOpen(true)
                 }}
                 onEditProfile={() => setProfileOpen(true)}
+                profileSet={profileSet}
               />
             </>
           )}

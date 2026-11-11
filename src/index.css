@@ -7,7 +7,10 @@
   --font-logo: 'Mochiy Pop One', 'Zen Maru Gothic', 'Hiragino Maru Gothic ProN', sans-serif;
   --color-cream: #fff8ee;
   --color-ink: #5b4636;
-  --color-ink-soft: #8a7563;
+  /* 補足の字。生成りや白の上で 5:1 以上 */
+  --color-ink-soft: #75604e;
+  /* コーラル・緑・赤でぬった面（ボタンや印）の上に置く字。白い字だと薄いので、こげ茶にする */
+  --color-ink-strong: #3d2b1f;
   --color-coral: #ff8a65;
   --color-coral-dark: #e8704b;
   --color-protein: #f47c7c;
@@ -17,6 +20,13 @@
   --color-caution: #f2b84b;
   --color-alert: #e8705f;
   --radius-card: 20px;
+  /* 白や生成りの上に置く色つきの字（ぬりの色のままだと薄いので、字には濃い色を使う）。ぬりや枠線は元の色のまま */
+  --color-coral-ink: #b8482a;
+  --color-ok-ink: #2c7752;
+  --color-alert-ink: #bf3030;
+  /* 字の大きさの下限：補足（text-xs）は13px、いちばん小さい注記でも12px */
+  --text-xs: 0.8125rem;
+  --text-xs--line-height: 1.45;
 }
 
 body {

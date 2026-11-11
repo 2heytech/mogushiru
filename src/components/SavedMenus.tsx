@@ -14,10 +14,10 @@ import { useDismiss } from './useDismiss'
 const itemCount = (menu: DayMenu) => SLOTS.reduce((n, s) => n + menu[s].length, 0)
 
 // 「献立を呼び出す」だけ色をつけて、いちばん先に目に入るようにする
-const PRIMARY = 'flex items-center justify-center gap-1.5 rounded-full bg-coral font-bold text-[#3d2b1f] shadow-sm transition hover:bg-coral-dark/90'
+const PRIMARY = 'flex items-center justify-center gap-1.5 rounded-full bg-coral font-bold text-ink-strong shadow-sm transition hover:bg-coral-dark/90'
 const SECONDARY = 'flex min-h-11 items-center justify-center gap-1.5 rounded-full bg-white pr-4 pl-2.5 text-sm shadow-sm transition hover:bg-cream disabled:opacity-40'
 // スマホの下のバーの「保存」「リセット」。アイコンの下に名前
-const BAR_SMALL = 'flex min-h-13 flex-col items-center justify-center gap-0.5 rounded-2xl bg-cream text-[11px] transition disabled:opacity-40'
+const BAR_SMALL = 'flex min-h-13 flex-col items-center justify-center gap-0.5 rounded-2xl bg-cream text-[12px] transition disabled:opacity-40'
 
 export type MenuActionsLayout = 'row' | 'bar'
 
@@ -45,8 +45,8 @@ export function MenuActions({
   const count = savedCount > 0 && <span className="rounded-full bg-white/70 px-1.5 text-xs font-normal tabular-nums">{savedCount}</span>
   if (layout === 'bar')
     return (
-      <div className="grid grid-cols-[1.8fr_1fr_1fr] gap-2">
-        <button type="button" onClick={onOpenLoad} aria-haspopup="dialog" className={`${PRIMARY} min-h-13 px-3 text-[15px]`}>
+      <div className="grid grid-cols-[auto_1fr_1fr] gap-2">
+        <button type="button" onClick={onOpenLoad} aria-haspopup="dialog" className={`${PRIMARY} min-h-13 px-4 text-[15px] whitespace-nowrap`}>
           <UiIcon name="load" className="h-6 w-6 shrink-0" />
           献立を呼び出す
           {count}
@@ -85,7 +85,7 @@ const dateLabel = (iso: string) => {
   return `${d.getMonth() + 1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`
 }
 
-function Sheet({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
+function Sheet({ title, onClose, wide = false, children }: { title: string; onClose: () => void; wide?: boolean; children: ReactNode }) {
   useDismiss(onClose)
   return (
     <div className="fixed inset-0 z-20 flex items-end bg-ink/30 md:items-center md:justify-center" onClick={onClose}>
@@ -93,7 +93,7 @@ function Sheet({ title, onClose, children }: { title: string; onClose: () => voi
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className="max-h-[90vh] w-full overflow-y-auto rounded-t-[var(--radius-card)] bg-cream px-5 pb-5 shadow-xl md:max-w-md md:rounded-[var(--radius-card)]"
+        className={`max-h-[90vh] w-full overflow-y-auto rounded-t-[var(--radius-card)] bg-cream px-5 pb-5 shadow-xl md:rounded-[var(--radius-card)] ${wide ? 'md:max-w-4xl' : 'md:max-w-md'}`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* 見出しと×は、長い一覧をスクロールしても上に残す */}
@@ -104,9 +104,11 @@ function Sheet({ title, onClose, children }: { title: string; onClose: () => voi
           </button>
         </header>
         {children}
-        <button type="button" onClick={onClose} className="mt-5 min-h-11 w-full rounded-full bg-white">
-          閉じる
-        </button>
+        {!wide && (
+          <button type="button" onClick={onClose} className="mt-5 min-h-11 w-full rounded-full bg-white">
+            閉じる
+          </button>
+        )}
       </div>
     </div>
   )
@@ -154,7 +156,7 @@ export function SaveMenuDialog({ saved, onSave, onClose }: { saved: SavedMenu[];
           </div>
         </div>
       )}
-      <button type="button" onClick={save} disabled={!trimmed} className="mt-4 min-h-11 w-full rounded-full bg-coral font-bold text-white disabled:opacity-50">
+      <button type="button" onClick={save} disabled={!trimmed} className="mt-4 min-h-11 w-full rounded-full bg-coral font-bold text-ink-strong disabled:opacity-50">
         {overwrite ? '上書き保存' : '保存'}
       </button>
     </Sheet>
@@ -204,9 +206,8 @@ export function LoadMenuDialog({
     { key: 'saved', label: '保存した食事', count: saved.length },
   ]
   return (
-    <Sheet title="1日の食事を呼び出し" onClose={onClose}>
-      <p className="mb-3 text-xs text-ink-soft">呼び出すと、いまの1日の食事と置き換わります（1食だけ呼び出したときは、その区分だけ）。</p>
-      <div role="tablist" aria-label="呼び出すもの" className="mb-3 flex gap-1 rounded-full bg-white/70 p-1">
+    <Sheet title="献立を呼び出す" onClose={onClose} wide>
+      <div role="tablist" aria-label="呼び出すもの" className="mb-3 flex gap-1 rounded-full bg-white/70 p-1 md:max-w-md">
         {tabs.map((t) => (
           <button
             key={t.key}
@@ -256,7 +257,7 @@ export function LoadMenuDialog({
                   onClick={async () => {
                     if (await confirmReplace(m.name)) onLoad(m)
                   }}
-                  className="min-h-10 shrink-0 rounded-full bg-coral px-3.5 text-sm font-bold text-white"
+                  className="min-h-10 shrink-0 rounded-full bg-coral px-3.5 text-sm font-bold text-ink-strong"
                 >
                   呼び出す
                 </button>

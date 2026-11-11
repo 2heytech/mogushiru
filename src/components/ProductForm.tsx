@@ -90,7 +90,7 @@ export function ProductForm({
                   type="button"
                   aria-pressed={basis === b.id}
                   onClick={() => setBasis(b.id)}
-                  className={`min-h-11 rounded-2xl px-2 py-2 text-xs ${basis === b.id ? 'bg-coral font-bold text-white' : 'bg-white'}`}
+                  className={`min-h-11 rounded-2xl px-2 py-2 text-xs ${basis === b.id ? 'bg-coral font-bold text-ink-strong' : 'bg-white'}`}
                 >
                   {b.label}
                 </button>
@@ -128,7 +128,7 @@ export function ProductForm({
         </div>
         <footer className="mt-3 flex shrink-0 gap-2">
           {onDelete && (
-            <button type="button" onClick={onDelete} className="min-h-11 rounded-full bg-white px-4 text-sm text-alert">
+            <button type="button" onClick={onDelete} className="min-h-11 rounded-full bg-white px-4 text-sm text-alert-ink">
               削除
             </button>
           )}
@@ -136,7 +136,7 @@ export function ProductForm({
             type="button"
             disabled={!valid}
             onClick={save}
-            className="min-h-11 flex-1 rounded-full bg-coral text-sm font-bold text-white disabled:opacity-50"
+            className="min-h-11 flex-1 rounded-full bg-coral text-sm font-bold text-ink-strong disabled:opacity-50"
           >
             {valid ? (initial ? '保存する' : '登録する') : '商品名と表示の5項目を入れてください'}
           </button>

@@ -6,7 +6,7 @@ const SHORT: Record<PfcKey, string> = { p: 'P', f: 'F', c: 'C' }
 
 function StackedBar({ ratio, thin }: { ratio: Record<PfcKey, number>; thin?: boolean }) {
   return (
-    <div className={`flex overflow-hidden rounded-full font-bold text-ink ${thin ? 'h-3 text-[0px]' : 'h-5 text-[10px]'}`}>
+    <div className={`flex overflow-hidden rounded-full font-bold text-ink ${thin ? 'h-3 text-[0px]' : 'h-5 text-[12px]'}`}>
       {(['p', 'f', 'c'] as const).map((k) => (
         <div
           key={k}
@@ -41,9 +41,15 @@ export function PfcBars({ ideal, actual, thin }: { ideal: Record<PfcKey, number>
   )
 }
 
-export function GapBadge({ gap }: { gap: number }) {
+// compact: 3つ横に並べるところ用（スマホで隣とくっつかないよう、◎を省いて少し小さく）
+export function GapBadge({ gap, compact = false }: { gap: number; compact?: boolean }) {
   const cls = gap === 0 ? 'bg-ok/20' : gap < 0 ? 'bg-coral/20' : 'bg-alert/20'
-  return <span className={`rounded-full px-2 py-0.5 text-xs font-bold whitespace-nowrap ${cls}`}>{gap === 0 ? '◎ ' : ''}{gapText(gap)}</span>
+  return (
+    <span className={`rounded-full py-0.5 font-bold whitespace-nowrap ${compact ? 'px-2 text-[12px]' : 'px-2 text-xs'} ${cls}`}>
+      {gap === 0 && !compact ? '◎ ' : ''}
+      {gapText(gap)}
+    </span>
+  )
 }
 
 // 1日のまとめ欄用：P・F・C ごとに「いま」「目標範囲」「ずれ」を並べる
