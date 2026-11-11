@@ -11,10 +11,10 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/manifest.webmanifest" />
-    <!-- 最初の画面に要るデータは、画面のプログラムを待たずに読み始める（src/data/catalog.ts の fetch と同じ指定） -->
-    <link rel="preload" href="/data/dishes.json" as="fetch" crossorigin />
-    <link rel="preload" href="/data/foods.json" as="fetch" crossorigin />
-    <link rel="preload" href="/data/products.json" as="fetch" crossorigin />
+    <!-- 最初の画面に要るデータは、画面のプログラムを待たずに読み始める（src/data/catalog.ts の fetch と同じ指定）。画面の CSS・JS を先に届けるため優先度は低くする -->
+    <link rel="preload" href="/data/dishes.json" as="fetch" crossorigin fetchpriority="low" />
+    <link rel="preload" href="/data/foods.json" as="fetch" crossorigin fetchpriority="low" />
+    <link rel="preload" href="/data/products.json" as="fetch" crossorigin fetchpriority="low" />
     <!-- SNS で共有したときの表示（OGP） -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="モグシル" />
