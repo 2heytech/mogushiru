@@ -24,6 +24,8 @@ const KIND_BADGE: Record<Kind, { label: string; className: string }> = {
 }
 
 const MAX_CARDS = 60
+// リストにないものを自分で登録するボタン（点線の枠）
+const REGISTER_BUTTON = 'min-h-10 w-full shrink-0 rounded-full border-2 border-dashed border-coral/60 px-4 text-sm font-bold text-coral hover:bg-coral/10'
 
 const PLACEHOLDER: Record<Tab, string> = {
   all: '料理・市販品・食材をさがす',
@@ -191,21 +193,13 @@ export function Picker({
             ))}
           </div>
         )}
-        {(tab === 'myDish' || tab === 'product' || (query && tab === 'all')) && (
-          <button
-            type="button"
-            onClick={onRegisterProduct}
-            className="mb-3 min-h-10 w-full shrink-0 rounded-full border-2 border-dashed border-coral/60 px-4 text-sm font-bold text-coral hover:bg-coral/10"
-          >
+        {(tab === 'myDish' || tab === 'product') && (
+          <button type="button" onClick={onRegisterProduct} className={`mb-3 ${REGISTER_BUTTON}`}>
             ＋ リストにない市販品を登録する
           </button>
         )}
         {tab === 'supplement' && (
-          <button
-            type="button"
-            onClick={onRegisterSupplement}
-            className="mb-3 min-h-10 w-full shrink-0 rounded-full border-2 border-dashed border-coral/60 px-4 text-sm font-bold text-coral hover:bg-coral/10"
-          >
+          <button type="button" onClick={onRegisterSupplement} className={`mb-3 ${REGISTER_BUTTON}`}>
             ＋ サプリを登録する
           </button>
         )}
@@ -277,6 +271,12 @@ export function Picker({
             </>
           )}
           {cards.length > MAX_CARDS && <p className="py-3 text-center text-xs text-ink-soft">ほか {cards.length - MAX_CARDS} 件。検索でしぼりこめます</p>}
+          {/* まとめてさがしたときは、結果を先に見せて、登録はそのあとに置く */}
+          {tab === 'all' && query && (
+            <button type="button" onClick={onRegisterProduct} className={`mt-3 mb-1 ${REGISTER_BUTTON}`}>
+              ＋ リストにない市販品を登録する
+            </button>
+          )}
         </div>
         <footer className="mt-3 flex shrink-0 items-center gap-3">
           <p className="min-w-0 flex-1 truncate text-sm text-ink-soft" aria-live="polite">

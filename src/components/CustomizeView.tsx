@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { formatPortion, prioritySlots } from '../domain/customize'
 import { ingredientsTotals, type Catalog } from '../domain/nutrition'
-import { NOT_POPULAR, popularRank } from '../domain/popular'
+import { mealFirstRank } from '../domain/popular'
 import { rankAndFilter } from '../domain/search'
 import { SLOTS, type Dish, type Ingredient, type MyDish, type Slot } from '../domain/types'
 import { recentMyDishes } from '../store/useAppStore'
@@ -15,8 +15,8 @@ const MAX_CARDS = 60
 // 「朝・昼」「すべての食事」
 const slotsText = (slots: Slot[]) => (slots.length === SLOTS.length ? 'すべての食事' : slots.map((s) => SLOT_LABEL[s]).join('・'))
 
-// どれかの区分の定番を上に、郷土料理は基本の料理の後に
-const dishRank = (d: Dish) => Math.min(NOT_POPULAR, ...SLOTS.map((slot) => popularRank(slot, `dish:${d.id}`))) + (d.source ? 1 : 0)
+// 朝・昼・晩の定番を上に（その他だけの定番はそのあと）、郷土料理は基本の料理の後に
+const dishRank = (d: Dish) => mealFirstRank(`dish:${d.id}`) + (d.source ? 1 : 0)
 
 const kcalOf = (ingredients: Ingredient[], catalog: Catalog, portion = 1) => {
   try {
@@ -106,8 +106,13 @@ export function CustomizeView({
   }
 
   return (
-    <div className="space-y-6">
-      <p className="text-sm text-ink-soft">料理をえらんで、何人前か・材料の量を変えられます。保存すると、1日の食事で料理をえらぶとき上に出ます。</p>
+    <section aria-labelledby="customize-title" className="space-y-6">
+      <div>
+        <h2 id="customize-title" className="text-xl font-bold">
+          料理をカスタマイズ
+        </h2>
+        <p className="mt-1 text-sm text-ink-soft">料理をえらんで、何人前か・材料の量を変えられます。保存すると、1日の食事で料理をえらぶとき上に出ます。</p>
+      </div>
       {notice && (
         <p role="status" className="rounded-2xl bg-ok/15 px-4 py-2 text-sm">
           {notice}
@@ -116,9 +121,9 @@ export function CustomizeView({
 
       {mine.length > 0 && (
         <section aria-labelledby="my-dishes-title">
-          <h2 id="my-dishes-title" className="mb-2 text-base font-bold">
+          <h3 id="my-dishes-title" className="mb-2 text-base font-bold">
             カスタマイズした料理
-          </h2>
+          </h3>
           <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
             {mine.map((my) => {
               const portion = my.portion ?? 1
@@ -158,9 +163,9 @@ export function CustomizeView({
       )}
 
       <section aria-labelledby="dish-list-title">
-        <h2 id="dish-list-title" className="mb-2 text-base font-bold">
+        <h3 id="dish-list-title" className="mb-2 text-base font-bold">
           料理をえらぶ
-        </h2>
+        </h3>
         <input
           type="search"
           value={query}
@@ -194,6 +199,6 @@ export function CustomizeView({
       </section>
 
       {editing && renderEditor(editing)}
-    </div>
+    </section>
   )
 }

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type CSSProperties } from 'react'
 import { clampPortion, customDishName, formatPortion, gramStep, PORTION_MAX, PORTION_MIN, PORTION_STEP, round1, swapIngredient } from '../domain/customize'
 import { ingredientsTotals, scaleTotals } from '../domain/nutrition'
 import { rankAndFilter } from '../domain/search'
@@ -48,7 +48,8 @@ function PortionSlider({ portion, onChange }: { portion: number; onChange: (p: n
           step={PORTION_STEP}
           value={portion}
           onChange={(e) => set(Number(e.target.value))}
-          className="min-w-0 flex-1 accent-coral"
+          className="range min-w-0 flex-1"
+          style={{ '--fill': `${((portion - PORTION_MIN) / (max - PORTION_MIN)) * 100}%` } as CSSProperties}
           aria-label="何人前"
           aria-valuetext={formatPortion(portion)}
         />
@@ -220,7 +221,8 @@ export function Customizer({
                     step={step}
                     value={ing.grams}
                     onChange={(e) => setGrams(key, Number(e.target.value))}
-                    className="min-w-0 flex-1 accent-coral"
+                    className="range min-w-0 flex-1"
+                    style={{ '--fill': `${(ing.grams / Math.max(max, ing.grams, 1)) * 100}%` } as CSSProperties}
                     aria-label={`${food?.displayName ?? '材料'}の量`}
                   />
                   <button type="button" className={STEP_BUTTON} onClick={() => setGrams(key, ing.grams + step)} aria-label={`${step}gふやす`}>
