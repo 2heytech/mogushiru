@@ -35,7 +35,11 @@ const NAV_BUTTON =
 
 type View = 'menu' | 'ranking' | 'customize'
 
-const ICON_CLASS = 'h-6 w-6 shrink-0 sm:h-9 sm:w-9'
+// プロフィールを入れるまでの仮の目安（DEFAULT_PROFILE）の言い方
+const DEFAULT_PROFILE_LABEL = '30〜49歳・女性'
+
+// lg（ヘッダーに1段で並べる幅）は、プロフィールのボタンと並ぶので少し小さく
+const ICON_CLASS = 'h-6 w-6 shrink-0 sm:h-9 sm:w-9 lg:h-7 lg:w-7 xl:h-9 xl:w-9'
 
 // アプリの機能。title の | は狭い画面で折り返してよい位置。いつも上に並べて、いまどれを見ているかと、ほかに何があるかが分かるようにする
 const FEATURES: { view: View; icon: ReactNode; title: string; lead: string }[] = [
@@ -47,7 +51,7 @@ const FEATURES: { view: View; icon: ReactNode; title: string; lead: string }[] =
 // 広い画面（lg）ではロゴとプロフィールの間に1段で並べる小さな形
 function FeatureTabsCompact({ view, onChange }: { view: View; onChange: (v: View) => void }) {
   return (
-    <nav aria-label="機能の切り替え" className="flex gap-2">
+    <nav aria-label="機能の切り替え" className="flex gap-1.5 xl:gap-2">
       {FEATURES.map((f) => {
         const active = f.view === view
         return (
@@ -57,7 +61,7 @@ function FeatureTabsCompact({ view, onChange }: { view: View; onChange: (v: View
             aria-current={active ? 'page' : undefined}
             onClick={() => onChange(f.view)}
             title={f.lead}
-            className={`flex min-h-12 items-center gap-1.5 rounded-full border-2 pr-4 pl-2 text-sm font-bold whitespace-nowrap transition ${
+            className={`flex min-h-12 items-center gap-1.5 rounded-full border-2 pr-3 pl-2 text-sm font-bold whitespace-nowrap transition xl:pr-4 ${
               active ? 'border-coral bg-white text-coral-ink shadow-sm' : 'border-transparent bg-white/60 text-ink hover:bg-white'
             }`}
           >
@@ -305,7 +309,7 @@ export default function App() {
   return (
     // スマホは1日の食事のボタンを下に固定するので、そのぶん下をあける
     <div className={`mx-auto max-w-6xl px-4 ${view === 'menu' && !showStart ? 'pb-32 md:pb-16' : 'pb-16'}`}>
-      <header className="flex items-center justify-between gap-4 py-2.5 sm:py-4">
+      <header className="flex items-center justify-between gap-4 py-2.5 sm:py-4 lg:gap-3 xl:gap-4">
         <h1 className="flex shrink-0 items-center gap-1.5">
           <LogoMogu className="h-10 w-10 sm:h-12 sm:w-12" />
           <span className="font-logo text-2xl leading-none tracking-wide text-ink sm:text-[28px]">モグシル</span>
@@ -313,29 +317,27 @@ export default function App() {
         <div className="hidden lg:block">
           <FeatureTabsCompact view={view} onChange={setView} />
         </div>
-        <button type="button" onClick={() => setProfileOpen(true)} className={`relative ${NAV_BUTTON}`}>
-          <UiIcon name="profile" className="h-6 w-6 shrink-0" />
-          <span>プロフィール</span>
-          {!profileSet && (
-            <>
-              <span className="rounded-full bg-alert/15 px-1.5 py-0.5 text-[12px] leading-none font-bold text-coral-ink sm:hidden">未入力</span>
-              <span className="absolute top-1 right-1 hidden h-2.5 w-2.5 rounded-full bg-alert ring-2 ring-white sm:block" aria-hidden />
-              <span className="sr-only">（未入力）</span>
-            </>
+        {/* プロフィールの入口はここ1つ。まだ入れていないあいだは、仮の目安で計算していることもこのボタンで伝える */}
+        <button
+          type="button"
+          onClick={() => setProfileOpen(true)}
+          title={profileSet ? undefined : `目安はいま「${DEFAULT_PROFILE_LABEL}・ふつう」で計算しています`}
+          className={`${NAV_BUTTON} ${profileSet ? '' : 'ring-2 ring-coral/50'}`}
+        >
+          {/* 2行になるぶん横に広いので、狭い幅（小さなスマホと、タブが横に並ぶ lg）ではアイコンをはぶく */}
+          <UiIcon name="profile" className={`h-6 w-6 shrink-0 ${profileSet ? '' : 'hidden min-[390px]:block lg:hidden xl:block'}`} />
+          {profileSet ? (
+            <span>プロフィール</span>
+          ) : (
+            <span className="flex flex-col text-left">
+              <span className="font-bold text-coral-ink">プロフィールを入れる</span>
+              <span className="text-[12px] font-normal text-ink-soft">いまは{DEFAULT_PROFILE_LABEL}</span>
+            </span>
           )}
         </button>
       </header>
 
       <FeatureTabs view={view} onChange={setView} />
-
-      {!profileSet && (
-        <p className="mb-3 hidden text-right sm:block">
-          <button type="button" onClick={() => setProfileOpen(true)} className="min-h-9 rounded-full bg-white px-3 text-left text-xs shadow-sm">
-            目安は「30〜49歳・女性・ふつう」です。
-            <span className="font-bold whitespace-nowrap text-coral-ink">プロフィールを入れる →</span>
-          </button>
-        </p>
-      )}
 
       {catalogState.status === 'ready' && catalogState.missing.length > 0 && (
         <p className="mb-4 rounded-xl bg-caution/20 px-4 py-2 text-sm">データ準備中：{catalogState.missing.join('・')}のデータはまだ読み込めません</p>
@@ -413,7 +415,6 @@ export default function App() {
                   setProfileOpen(true)
                 }}
                 onEditProfile={() => setProfileOpen(true)}
-                profileSet={profileSet}
               />
             </>
           )}
