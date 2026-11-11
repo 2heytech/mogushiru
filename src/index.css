@@ -1,5 +1,24 @@
 @import 'tailwindcss';
 
+/* ロゴ文字（モグシル）だけに使う書体。その4文字が入っている分割ファイル2つだけを読む（@fontsource/mochiy-pop-one）。
+   ロゴが一瞬ほかの書体で出ないよう、読み込むまで待つ（block） */
+@font-face {
+  font-family: 'Mochiy Pop One';
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url('../node_modules/@fontsource/mochiy-pop-one/files/mochiy-pop-one-116-400-normal.woff2') format('woff2');
+  unicode-range: U+30E2;
+}
+@font-face {
+  font-family: 'Mochiy Pop One';
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url('../node_modules/@fontsource/mochiy-pop-one/files/mochiy-pop-one-119-400-normal.woff2') format('woff2');
+  unicode-range: U+30B0, U+30B7, U+30EB;
+}
+
 /* デザイントークン（docs/design.md 8.1） */
 @theme {
   --font-sans: 'Zen Maru Gothic', 'Hiragino Maru Gothic ProN', system-ui, sans-serif;
@@ -72,4 +91,15 @@ input[type='range'].range::-moz-range-thumb {
   background: white;
   border: 3px solid var(--color-coral);
   box-shadow: 0 1px 3px rgb(91 70 54 / 0.3);
+}
+
+/* 端末で「視差効果を減らす（動きを減らす）」にしている人には、グラフが伸びる動きなどを止める */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
