@@ -20,11 +20,12 @@ import { itemName, portionLabel } from './itemName'
 import { NUTRIENT_INFO, SLOT_LABEL } from './labels'
 import { SlotIcon } from './Mascot'
 
-const BALANCES: { key: IdealBalance; label: string; intro: string }[] = [
-  { key: 'day', label: '1日でバランス', intro: '1日の合計で栄養の目安がそろう献立です。朝・昼・晩で自然な組み合わせにしています。' },
+const BALANCES: { key: IdealBalance; label: string; short: string; intro: string }[] = [
+  { key: 'day', label: '1日でバランス', short: '1日の合計で目安がそろう献立', intro: '1日の合計で栄養の目安がそろう献立です。朝・昼・晩で自然な組み合わせにしています。' },
   {
     key: 'meal',
     label: '毎食バランス',
+    short: '1食ずつでも目安に収まる献立',
     intro: '朝・昼・晩のどれも、1食だけで区分の目安（カロリー・PFC・食塩など）に収まる献立です。1日まとめてでも、1食だけでも呼び出せます。',
   },
 ]
@@ -61,30 +62,42 @@ export function IdealMenuList({ catalog, targets, storesLoaded, onLoad, onLoadSl
     `min-h-8 rounded-full border px-3 text-xs whitespace-nowrap transition ${active ? 'border-coral bg-coral/15 font-bold text-ink' : 'border-ink/10 bg-white text-ink-soft'}`
   return (
     <>
-      <div role="radiogroup" aria-label="バランスのとり方" className="mb-2 flex gap-1.5">
-        {BALANCES.map((b) => (
-          <button
-            key={b.key}
-            type="button"
-            role="radio"
-            aria-checked={balance === b.key}
-            onClick={() => {
-              setBalance(b.key)
-              setShown(PAGE)
-            }}
-            className={`min-h-9 flex-1 rounded-full border text-sm whitespace-nowrap transition ${
-              balance === b.key ? 'border-coral bg-coral font-bold text-white' : 'border-coral/40 bg-white text-ink-soft'
-            }`}
-          >
-            {b.label}
-          </button>
-        ))}
+      <div className="mb-2 flex flex-wrap items-center gap-x-3 gap-y-2">
+        <div role="radiogroup" aria-label="バランスのとり方" className="flex w-full gap-1.5 md:w-auto md:min-w-80">
+          {BALANCES.map((b) => (
+            <button
+              key={b.key}
+              type="button"
+              role="radio"
+              aria-checked={balance === b.key}
+              onClick={() => {
+                setBalance(b.key)
+                setShown(PAGE)
+              }}
+              className={`min-h-9 flex-1 rounded-full border text-sm whitespace-nowrap transition ${
+                balance === b.key ? 'border-coral bg-coral font-bold text-ink-strong' : 'border-coral/40 bg-white text-ink-soft'
+              }`}
+            >
+              {b.label}
+            </button>
+          ))}
+        </div>
+        {/* 説明は長いので畳んでおく */}
+        <details className="group min-w-0 flex-1 text-xs leading-relaxed text-ink-soft">
+          <summary className="flex min-h-9 cursor-pointer list-none items-center gap-1 [&::-webkit-details-marker]:hidden">
+            <span className="grid h-5 w-5 place-items-center rounded-full bg-white text-[12px] font-bold shadow-sm" aria-hidden>
+              ?
+            </span>
+            {mode.short}
+            <span className="font-bold text-coral-ink group-open:hidden">くわしく</span>
+          </summary>
+          <p className="pb-1">
+            {mode.intro}プロフィールの目安（{targets.energyKcal.toLocaleString()} kcal）に合わせて、ごはん・パン・麺を中心に量を変えて入れます。ごはんは大盛りまでにして、足りない分は
+            <span className="font-bold text-coral-ink">＋</span>の一品を足します。呼び出すと、いまの1日の食事と置き換わります（1食だけ呼び出したときは、その区分だけ）。
+          </p>
+        </details>
       </div>
-      <p className="mb-2 text-xs leading-relaxed text-ink-soft">
-        {mode.intro}プロフィールの目安（{targets.energyKcal.toLocaleString()} kcal）に合わせて、ごはん・パン・麺を中心に量を変えて入れます。ごはんは大盛りまでにして、足りない分は
-        <span className="font-bold text-coral">＋</span>の一品を足します。
-      </p>
-      <div role="radiogroup" aria-label="ジャンル" className="mb-3 flex flex-wrap gap-1.5">
+      <div role="radiogroup" aria-label="ジャンル" className="-mx-5 mb-3 flex gap-1.5 overflow-x-auto px-5 pb-1 md:mx-0 md:flex-wrap md:px-0">
         {[{ g: ALL_GENRES, n: menus.length } as const, ...genres].map(({ g, n }) => (
           <button
             key={g}
@@ -102,7 +115,7 @@ export function IdealMenuList({ catalog, targets, storesLoaded, onLoad, onLoadSl
           </button>
         ))}
       </div>
-      <ul className="space-y-2">
+      <ul className="grid grid-cols-1 gap-2 md:grid-cols-2 md:items-start">
         {list.slice(0, shown).map((ideal) => (
           <IdealMenuCard key={ideal.id} ideal={ideal} catalog={catalog} targets={targets} storesLoaded={storesLoaded} onLoad={onLoad} onLoadSlot={onLoadSlot} />
         ))}
@@ -128,7 +141,7 @@ function IdealMenuCard({ ideal, catalog, targets, storesLoaded, onLoad, onLoadSl
   const title = (
     <p className="font-bold">
       {ideal.name}
-      <span className="ml-1.5 inline-block rounded-full bg-cream px-2 py-0.5 align-[1px] text-[11px] font-normal text-ink-soft">{ideal.genre}</span>
+      <span className="ml-1.5 inline-block rounded-full bg-cream px-2 py-0.5 align-[1px] text-[12px] font-normal text-ink-soft">{ideal.genre}</span>
     </p>
   )
   if (!plan)
@@ -139,7 +152,7 @@ function IdealMenuCard({ ideal, catalog, targets, storesLoaded, onLoad, onLoadSl
             {title}
             <p className="text-xs text-ink-soft">{ideal.lead}</p>
           </div>
-          <button type="button" disabled className="min-h-10 shrink-0 rounded-full bg-coral px-3.5 text-sm font-bold text-white opacity-40">
+          <button type="button" disabled className="min-h-10 shrink-0 rounded-full bg-coral px-3.5 text-sm font-bold text-ink-strong opacity-40">
             呼び出す
           </button>
         </div>
@@ -158,7 +171,7 @@ function IdealMenuCard({ ideal, catalog, targets, storesLoaded, onLoad, onLoadSl
           {title}
           <p className="text-xs text-ink-soft">{ideal.lead}</p>
         </div>
-        <button type="button" onClick={() => onLoad(ideal, menu)} className="min-h-10 shrink-0 rounded-full bg-coral px-3.5 text-sm font-bold text-white">
+        <button type="button" onClick={() => onLoad(ideal, menu)} className="min-h-10 shrink-0 rounded-full bg-coral px-3.5 text-sm font-bold text-ink-strong">
           呼び出す
         </button>
       </div>
@@ -178,7 +191,7 @@ function IdealMenuCard({ ideal, catalog, targets, storesLoaded, onLoad, onLoadSl
                     <span key={item.uid}>
                       {i > 0 && '・'}
                       {isIdealExtra(item) && (
-                        <span className="font-bold text-coral" aria-label="足した一品">
+                        <span className="font-bold text-coral-ink" aria-label="足した一品">
                           ＋
                         </span>
                       )}
@@ -195,7 +208,7 @@ function IdealMenuCard({ ideal, catalog, targets, storesLoaded, onLoad, onLoadSl
                   type="button"
                   aria-label={`「${ideal.name}」の${SLOT_LABEL[slot]}ごはんだけ呼び出す`}
                   onClick={() => onLoadSlot(ideal, slot, menu[slot])}
-                  className="min-h-8 shrink-0 self-center rounded-full border border-coral px-2.5 text-xs font-bold text-coral"
+                  className="min-h-8 shrink-0 self-center rounded-full border border-coral px-2.5 text-xs font-bold text-coral-ink"
                 >
                   {SLOT_LABEL[slot]}だけ
                 </button>
@@ -218,7 +231,7 @@ function IdealMenuCard({ ideal, catalog, targets, storesLoaded, onLoad, onLoadSl
         {short.length > 0 && <>。少なめ：{short.map((c) => NUTRIENT_INFO[c.key].label).join('・')}</>}
       </p>
       {withProducts && (
-        <p className="mt-1 text-[11px] leading-snug text-ink-soft">※ 市販品はパッケージの栄養成分表示にある成分だけで計算しています（ビタミン・ミネラルは実際より少なく出ます）</p>
+        <p className="mt-1 text-[12px] leading-snug text-ink-soft">※ 市販品はパッケージの栄養成分表示にある成分だけで計算しています（ビタミン・ミネラルは実際より少なく出ます）</p>
       )}
     </li>
   )
@@ -230,7 +243,7 @@ function MealStats({ slot, menu, summary, targets }: { slot: Slot; menu: DayMenu
   const totals = summary.totals.bySlot[slot]
   const b = slotBalance(totals, slot, targets)
   return (
-    <span className="block text-[11px] text-ink-soft tabular-nums">
+    <span className="block text-[12px] text-ink-soft tabular-nums">
       <span className="whitespace-nowrap">
         {Math.round(b.kcal).toLocaleString()} kcal（目安 {b.targetKcal.toLocaleString()}）
       </span>

@@ -112,7 +112,7 @@ export function SupplementForm({
             </fieldset>
           ))}
           {!more && (
-            <button type="button" onClick={() => setMore(true)} className="min-h-10 w-full rounded-full bg-white px-4 text-sm font-bold text-coral">
+            <button type="button" onClick={() => setMore(true)} className="min-h-10 w-full rounded-full bg-white px-4 text-sm font-bold text-coral-ink">
               ＋ DHA・EPAやカロリーなども入れる
             </button>
           )}
@@ -123,11 +123,11 @@ export function SupplementForm({
         </div>
         <footer className="mt-3 flex shrink-0 gap-2">
           {onDelete && (
-            <button type="button" onClick={onDelete} className="min-h-11 rounded-full bg-white px-4 text-sm text-alert">
+            <button type="button" onClick={onDelete} className="min-h-11 rounded-full bg-white px-4 text-sm text-alert-ink">
               削除
             </button>
           )}
-          <button type="button" disabled={!valid} onClick={save} className="min-h-11 flex-1 rounded-full bg-coral text-sm font-bold text-white disabled:opacity-50">
+          <button type="button" disabled={!valid} onClick={save} className="min-h-11 flex-1 rounded-full bg-coral text-sm font-bold text-ink-strong disabled:opacity-50">
             {valid ? (initial ? '保存する' : '登録する') : '商品名と、成分を1つ以上入れてください'}
           </button>
         </footer>

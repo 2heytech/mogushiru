@@ -36,7 +36,7 @@ export function PortionEditor({ item, catalog, onPortion }: { item: MenuItem; ca
           type="button"
           aria-pressed={item.portion === step}
           onClick={() => onPortion(step)}
-          className={`min-h-10 min-w-12 rounded-full px-3 text-sm ${item.portion === step ? 'bg-coral font-bold text-white' : 'bg-white'}`}
+          className={`min-h-10 min-w-12 rounded-full px-3 text-sm ${item.portion === step ? 'bg-coral font-bold text-ink-strong' : 'bg-white'}`}
         >
           {step === 0.5 ? '½' : step}
           {supplement ? '回分' : '人前'}

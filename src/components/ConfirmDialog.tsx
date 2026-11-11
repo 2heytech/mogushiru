@@ -27,7 +27,7 @@ function ConfirmBox({ request }: { request: ConfirmRequest }) {
             type="button"
             autoFocus
             onClick={() => answer(true)}
-            className={`min-h-11 flex-1 rounded-full font-bold text-white ${request.danger ? 'bg-alert' : 'bg-coral'}`}
+            className={`min-h-11 flex-1 rounded-full font-bold text-ink-strong ${request.danger ? 'bg-alert' : 'bg-coral'}`}
           >
             {request.okLabel}
           </button>

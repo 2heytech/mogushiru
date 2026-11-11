@@ -22,7 +22,7 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, { failed: 
           <p className="mt-2 text-sm leading-relaxed text-ink-soft">
             ごめんなさい。読み込み直すと、たいていは元に戻ります。入れた食事やプロフィールはこの端末に残っています。
           </p>
-          <button type="button" onClick={() => location.reload()} className="mt-5 min-h-11 w-full rounded-full bg-coral font-bold text-white hover:bg-coral-dark">
+          <button type="button" onClick={() => location.reload()} className="mt-5 min-h-11 w-full rounded-full bg-coral font-bold text-ink-strong hover:bg-coral-dark">
             読み込み直す
           </button>
         </div>

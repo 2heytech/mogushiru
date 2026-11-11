@@ -20,7 +20,7 @@ export function StartChoice({ savedCount, onLoad, onPickSelf }: { savedCount: nu
     <section aria-labelledby="start-choice-title" className="rounded-[var(--radius-card)] bg-[#fff1df] px-4 py-6 shadow-sm sm:px-8 sm:py-8">
       <div className="mb-5 flex flex-col items-center text-center">
         <BowlMogu slot="breakfast" mood="happy" className="h-20 w-20" label="モグ" />
-        <p className="mt-2 rounded-full bg-coral px-3 py-0.5 text-xs font-bold tracking-wider text-white">まずはここから</p>
+        <p className="mt-2 rounded-full bg-coral px-3 py-0.5 text-xs font-bold tracking-wider text-ink-strong">まずはここから</p>
         <h2 id="start-choice-title" className="mt-2 text-xl font-bold">
           今日の食事、どうやって入れる？
         </h2>
@@ -34,7 +34,7 @@ export function StartChoice({ savedCount, onLoad, onPickSelf }: { savedCount: nu
               <span className="block text-lg font-bold">{o.label}</span>
               <span className="mt-0.5 block text-xs leading-snug text-pretty text-ink-soft">{o.note}</span>
             </span>
-            <span aria-hidden="true" className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-coral text-white transition group-hover:translate-x-0.5">
+            <span aria-hidden="true" className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-coral text-ink-strong transition group-hover:translate-x-0.5">
               <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M9 5l7 7-7 7" />
               </svg>

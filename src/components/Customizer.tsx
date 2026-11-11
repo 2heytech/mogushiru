@@ -28,7 +28,7 @@ type Row = { key: number; ing: Ingredient; max: number; step: number }
 let nextKey = 0
 const toRows = (xs: Ingredient[]): Row[] => xs.map((ing) => ({ key: nextKey++, ing, max: sliderMax(ing.grams), step: gramStep(ing.grams) }))
 
-const STEP_BUTTON = 'grid h-10 w-10 shrink-0 place-items-center rounded-full bg-cream text-lg font-bold text-coral-dark hover:bg-coral/15 disabled:opacity-40'
+const STEP_BUTTON = 'grid h-10 w-10 shrink-0 place-items-center rounded-full bg-cream text-lg font-bold text-coral-ink hover:bg-coral/15 disabled:opacity-40'
 
 // 人前のスライダー。0.1人前きざみで、−・＋でも1きざみずつ動かせる
 function PortionSlider({ portion, onChange }: { portion: number; onChange: (p: number) => void }) {
@@ -67,7 +67,7 @@ function PortionSlider({ portion, onChange }: { portion: number; onChange: (p: n
             type="button"
             aria-pressed={portion === p}
             onClick={() => set(p)}
-            className={`min-h-8 rounded-full px-3 text-xs ${portion === p ? 'bg-coral font-bold text-white' : 'bg-cream'}`}
+            className={`min-h-8 rounded-full px-3 text-xs ${portion === p ? 'bg-coral font-bold text-ink-strong' : 'bg-cream'}`}
           >
             {p === 0.5 ? '½' : p}人前
           </button>
@@ -173,7 +173,7 @@ export function Customizer({
         </div>
         <div className="mb-3 flex shrink-0 items-center gap-2" aria-live="polite">
           <Summary label="元のレシピ（1人前）" kcal={before.energyKcal} p={before.protein} f={before.fat} c={before.carb} salt={before.salt} />
-          <span aria-hidden className="text-coral">→</span>
+          <span aria-hidden className="text-coral-ink">→</span>
           <Summary label={`いまの材料（${formatPortion(portion)}）`} kcal={after.energyKcal} p={after.protein} f={after.fat} c={after.carb} salt={after.salt} />
         </div>
         <p className="mb-1 shrink-0 text-xs text-ink-soft">材料の量（1人前あたり）</p>
@@ -281,7 +281,7 @@ export function Customizer({
                 type="button"
                 aria-pressed={slots.includes(slot)}
                 onClick={() => toggleSlot(slot)}
-                className={`min-h-9 rounded-full px-3 text-sm ${slots.includes(slot) ? 'bg-coral font-bold text-white' : 'bg-white text-ink-soft'}`}
+                className={`min-h-9 rounded-full px-3 text-sm ${slots.includes(slot) ? 'bg-coral font-bold text-ink-strong' : 'bg-white text-ink-soft'}`}
               >
                 {SLOT_LABEL[slot]}
               </button>
@@ -303,7 +303,7 @@ export function Customizer({
                 type="button"
                 disabled={result.length === 0}
                 onClick={() => onApply(result, portion)}
-                className="min-h-11 flex-1 rounded-full bg-white text-sm font-bold text-coral disabled:opacity-50"
+                className="min-h-11 flex-1 rounded-full bg-white text-sm font-bold text-coral-ink disabled:opacity-50"
               >
                 {/* 「この1日の食事に／反映」の区切りでだけ折り返す（「反／映」で折れないように） */}
                 {applyLabel.split(/(?<=に)/).map((part) => (
@@ -317,7 +317,7 @@ export function Customizer({
               type="button"
               disabled={result.length === 0 || !name.trim()}
               onClick={() => onSave(name.trim(), result, portion, slots)}
-              className="min-h-11 flex-1 rounded-full bg-coral text-sm font-bold text-white disabled:opacity-50"
+              className="min-h-11 flex-1 rounded-full bg-coral text-sm font-bold text-ink-strong disabled:opacity-50"
             >
               {saveLabel}
             </button>
