@@ -22,13 +22,20 @@ npm run build    # 本番ビルド（dist/）
 | 市販品（Open Food Facts） | `npm run data:off:fetch` で一括データ（約1.3GB）を読み流して日本販売分を取得（数分）→ `npm run data:off` で変換 |
 | 料理 | `data/recipes/*.yaml` を編集し、`npm run data:dishes` で検証・栄養計算（食品データの生成後に実行） |
 
-## 公開（Cloudflare Pages）
+## 公開（Cloudflare Workers）
 
-Cloudflare Pages でこのリポジトリを接続し、次の設定にします。
+Cloudflare Workers の静的ファイル配信（Static Assets）で公開します。設定は `wrangler.jsonc` にあり、Worker のコードはありません。
 
-- Build command: `npm run build`
-- Build output directory: `dist`
-- 環境変数 `NODE_VERSION`: `22`
+Cloudflare のダッシュボードで「Workers & Pages」→「アプリケーションを作成」から GitHub のこのリポジトリをつなぎ、次の設定にします。
+
+- プロジェクト名: `mogushiru`（`wrangler.jsonc` の `name` と同じにする。違うとビルドが失敗する）
+- ビルドコマンド: `npm run build`
+- デプロイコマンド: `npx wrangler deploy`
+- プレビュービルド: オン（main 以外のブランチや PR ごとに確認用の URL ができる）
+
+main にマージすると自動で公開に反映されます。Node のバージョンは `.node-version` で指定しています。
+
+手元で確かめるときは `npm run build` のあと `npx wrangler dev`（公開はしない）。
 
 ## 出典・ライセンス
 
