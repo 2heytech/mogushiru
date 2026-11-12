@@ -17,9 +17,10 @@ import { AboutView } from './components/AboutView'
 import { confirmDialog } from './components/confirm'
 import { SiteFooter } from './components/SiteFooter'
 import { adjustIdealMenu, IDEAL_MENUS, idealMenuAvailable, idealMenuHasProducts } from './domain/idealMenus'
+import { isMealSlot, type MealSlot } from './domain/idealMeals'
 import { legacyRedirect, nutrientFromSlug, VIEW_META, VIEW_PATH, viewFromLocation, type View } from './routes'
 import { ConfirmHost } from './components/ConfirmDialog'
-import { LoadMenuDialog, MenuActions, SaveMenuDialog } from './components/SavedMenus'
+import { IdealMealDialog, LoadMenuDialog, MenuActions, SaveMenuDialog } from './components/SavedMenus'
 import { DayInfo } from './components/SummaryPanel'
 import { useCatalog, withMyData } from './data/catalog'
 import { usePrices } from './data/prices'
@@ -201,6 +202,8 @@ export default function App() {
   const [profileOpen, setProfileOpen] = useState(false)
   const [profileFocus, setProfileFocus] = useState<ProfileFocus | undefined>()
   const [pickerSlot, setPickerSlot] = useState<Slot | null>(null)
+  // 料理をえらぶ画面（朝・昼・晩）から、理想の献立のその1食だけを呼び出す画面
+  const [idealMealSlot, setIdealMealSlot] = useState<MealSlot | null>(null)
   const [editing, setEditing] = useState<{ slot: Slot; uid: string } | null>(null)
   // 市販品の登録（slot があれば登録後その区分に追加）・編集
   const [productForm, setProductForm] = useState<{ jan?: string; slot?: Slot; supplement?: boolean } | null>(null)
@@ -508,10 +511,29 @@ export default function App() {
           onToggleFavorite={toggleFavoriteProduct}
           onRegisterProduct={() => setProductForm({ slot: pickerSlot })}
           onRegisterSupplement={() => setProductForm({ slot: pickerSlot, supplement: true })}
+          // 配分が0%の区分（朝食をとらない設定など）は、理想の献立にもその1食がないので出さない
+          onOpenIdeal={isMealSlot(pickerSlot) && targets.slotShare[pickerSlot] > 0 ? () => setIdealMealSlot(pickerSlot) : undefined}
           // 選んでも閉じずに続けて選べるようにする（閉じるのは「できた」か×）
           onPick={(item) => addItem(pickerSlot, item)}
           onUnpick={(uid) => removeItem(pickerSlot, uid)}
           onClose={() => setPickerSlot(null)}
+        />
+      )}
+
+      {/* 料理をえらぶ画面の上に重ねる。×で料理をえらぶ画面に戻り、呼び出したら両方を閉じる */}
+      {catalog && idealMealSlot && (
+        <IdealMealDialog
+          slot={idealMealSlot}
+          menu={menu}
+          catalog={catalog}
+          targets={targets}
+          storesLoaded={storesLoaded}
+          onLoad={(items) => {
+            replaceSlot(idealMealSlot, items)
+            setIdealMealSlot(null)
+            setPickerSlot(null)
+          }}
+          onClose={() => setIdealMealSlot(null)}
         />
       )}
 

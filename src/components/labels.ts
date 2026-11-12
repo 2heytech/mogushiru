@@ -1,3 +1,4 @@
+import type { BreakfastStyle, DinnerMain, LunchStyle } from '../domain/idealMenuFacets'
 import type { MascotMood } from '../domain/mascotMood'
 import type { PfcKey } from '../domain/slotBalance'
 import type { CheckedNutrient } from '../domain/targets'
@@ -5,6 +6,11 @@ import { SUPPLEMENT_KEYS } from '../domain/supplement'
 import type { DishCategory, NutrientKey, Slot } from '../domain/types'
 
 export const SLOT_LABEL: Record<Slot, string> = { breakfast: '朝', lunch: '昼', dinner: '晩', other: 'その他' }
+
+// 理想の献立を、朝・昼・晩の好みでしぼる言葉
+export const BREAKFAST_LABEL: Record<BreakfastStyle, string> = { rice: 'ごはん', bread: 'パン', cereal: 'シリアル' }
+export const LUNCH_LABEL: Record<LunchStyle, string> = { bowl: '丼', set: '定食', other: 'めん・パンなど' }
+export const DINNER_LABEL: Record<DinnerMain, string> = { fish: '魚介', meat: '肉', soy: 'とうふ・卵など' }
 
 // プロフィールを入れるまでの仮の目安（DEFAULT_PROFILE）の言い方
 export const DEFAULT_PROFILE_LABEL = '30〜49歳・女性'

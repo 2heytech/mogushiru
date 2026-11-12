@@ -1,10 +1,12 @@
 import { useState, type ReactNode } from 'react'
+import type { MealSlot } from '../domain/idealMeals'
 import type { IdealMenu } from '../domain/idealMenus'
 import { knownItemsOnly, menuTotals, type Catalog } from '../domain/nutrition'
 import type { Targets } from '../domain/targets'
 import { SLOTS, type DayMenu, type MenuItem, type Slot } from '../domain/types'
 import type { SavedMenu } from '../store/useAppStore'
 import { confirmDialog } from './confirm'
+import { IdealMealList } from './IdealMeals'
 import { IdealMenuList } from './IdealMenus'
 import { SLOT_LABEL } from './labels'
 import { defaultMenuName } from './menuName'
@@ -85,7 +87,8 @@ const dateLabel = (iso: string) => {
   return `${d.getMonth() + 1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`
 }
 
-function Sheet({ title, onClose, wide = false, children }: { title: string; onClose: () => void; wide?: boolean; children: ReactNode }) {
+// tall：中身の数によらず、いつも同じ高さにする（しぼりこむたびに窓の大きさが変わらないように。下に重なっている窓もかくれる）
+function Sheet({ title, onClose, wide = false, tall = false, children }: { title: string; onClose: () => void; wide?: boolean; tall?: boolean; children: ReactNode }) {
   const dialogRef = useDialog(onClose)
   return (
     <div className="fixed inset-0 z-20 flex items-end bg-ink/30 md:items-center md:justify-center" onClick={onClose}>
@@ -95,7 +98,7 @@ function Sheet({ title, onClose, wide = false, children }: { title: string; onCl
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className={`outline-none max-h-[90vh] w-full overflow-y-auto rounded-t-[var(--radius-card)] bg-cream px-5 pb-5 shadow-xl md:rounded-[var(--radius-card)] ${wide ? 'md:max-w-4xl lg:max-w-5xl' : 'md:max-w-md'}`}
+        className={`outline-none w-full overflow-y-auto rounded-t-[var(--radius-card)] bg-cream px-5 pb-5 shadow-xl md:rounded-[var(--radius-card)] ${tall ? 'h-[90dvh]' : 'max-h-[90vh]'} ${wide ? 'md:max-w-4xl lg:max-w-5xl' : 'md:max-w-md'}`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* 見出しと×は、長い一覧をスクロールしても上に残す */}
@@ -278,6 +281,40 @@ export function LoadMenuDialog({
           })}
         </ul>
       )}
+    </Sheet>
+  )
+}
+
+// 理想の献立から、朝・昼・晩のどれか1食だけを呼び出す（「朝に追加」などの料理をえらぶ画面からひらく）
+export function IdealMealDialog({
+  slot,
+  menu,
+  catalog,
+  targets,
+  storesLoaded,
+  onLoad,
+  onClose,
+}: {
+  slot: MealSlot
+  menu: DayMenu
+  catalog: Catalog
+  targets: Targets
+  storesLoaded: boolean
+  onLoad: (items: MenuItem[]) => void
+  onClose: () => void
+}) {
+  const label = SLOT_LABEL[slot]
+  return (
+    <Sheet title={`${label}ごはんの理想の献立`} onClose={onClose} wide tall>
+      <IdealMealList
+        slot={slot}
+        catalog={catalog}
+        targets={targets}
+        storesLoaded={storesLoaded}
+        onLoad={async (title, items) => {
+          if (menu[slot].length === 0 || (await confirmDialog(`いまの${label}の食事を「${title}」に置き換えますか？`, { okLabel: '呼び出す' }))) onLoad(items)
+        }}
+      />
     </Sheet>
   )
 }

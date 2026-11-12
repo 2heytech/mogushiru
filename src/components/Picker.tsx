@@ -4,6 +4,7 @@ import type { DishCategory, MenuItem, Slot } from '../domain/types'
 import { MY_PRODUCT_PREFIX } from '../store/useAppStore'
 import { DISH_CATEGORY_LABEL, PRODUCT_CATEGORY_LAST, PRODUCT_STORES, SLOT_LABEL, STORE_FILTER_PREFIX } from './labels'
 import { buildCards, cardSegments, KYODO, productStore, type Card, type Kind, type Tab } from './pickerCards'
+import { UiIcon } from './UiIcon'
 import { useDialog } from './useDialog'
 
 const TABS: { id: Tab; label: string }[] = [
@@ -47,6 +48,7 @@ export function Picker({
   onToggleFavorite,
   onRegisterProduct,
   onRegisterSupplement,
+  onOpenIdeal,
   onPick,
   onUnpick,
   onClose,
@@ -63,6 +65,8 @@ export function Picker({
   onRegisterProduct: () => void
   // サプリをラベルの値から登録する
   onRegisterSupplement: () => void
+  // 理想の献立から、この区分の1食だけを呼び出す画面をひらく（朝・昼・晩だけ。その他にはない）
+  onOpenIdeal?: () => void
   // 追加して、献立に入った項目の uid を返す
   onPick: (item: Omit<MenuItem, 'uid'>) => string
   // この画面で追加したものを外す（もう一度押したとき）
@@ -149,9 +153,21 @@ export function Picker({
         className="outline-none flex h-[85dvh] w-full flex-col rounded-t-[var(--radius-card)] bg-cream p-4 shadow-xl md:h-[min(85dvh,760px)] md:max-w-3xl md:rounded-[var(--radius-card)]"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="mb-3 flex shrink-0 items-center justify-between">
-          <h2 className="text-lg font-bold">{SLOT_LABEL[slot]}に追加</h2>
-          <button type="button" onClick={onClose} className="grid h-11 w-11 place-items-center rounded-full hover:bg-white" aria-label="閉じる">
+        <div className="mb-3 flex shrink-0 items-center gap-2">
+          <h2 className="mr-auto text-lg font-bold whitespace-nowrap">{SLOT_LABEL[slot]}に追加</h2>
+          {/* 1品ずつえらぶかわりに、理想の献立のこの1食をまとめて入れる */}
+          {onOpenIdeal && (
+            <button
+              type="button"
+              onClick={onOpenIdeal}
+              aria-haspopup="dialog"
+              className="flex min-h-10 min-w-0 items-center gap-1 rounded-full border border-coral bg-white pr-3 pl-3 text-xs font-bold whitespace-nowrap text-coral-ink shadow-sm transition hover:bg-coral/10 min-[360px]:pl-2"
+            >
+              <UiIcon name="load" className="hidden h-6 w-6 shrink-0 min-[360px]:block" />
+              理想の献立からえらぶ
+            </button>
+          )}
+          <button type="button" onClick={onClose} className="grid h-11 w-11 shrink-0 place-items-center rounded-full hover:bg-white" aria-label="閉じる">
             ×
           </button>
         </div>
