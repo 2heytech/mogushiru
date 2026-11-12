@@ -1,10 +1,20 @@
 # Cloudflare Workers の静的ファイル配信が読む設定（このファイル自体は配信されない）
 
 # 全体：基本のセキュリティ設定
+# - Strict-Transport-Security: いつも https で開かせる（.app はもともと https 専用だが、workers.dev 側にも効かせる）
+# - X-Frame-Options / frame-ancestors: ほかのサイトの枠（iframe）の中に表示させない（なりすまし画面の下じきにされないように）
+# - Cross-Origin-Opener-Policy: 別タブで開いたページから、このタブを操作させない
+# - Content-Security-Policy: 読みこんでよい場所を決める。自分のサイトのほかは Cloudflare Web Analytics（static.cloudflareinsights.com の
+#   スクリプトと、cloudflareinsights.com への送信）だけ。書体の一部はビルドで CSS に埋めこまれる（data:）ので font-src に足す。
+#   外のサイトの画像・スクリプトを足すときは、ここにも足さないと読みこまれない
 /*
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+  X-Frame-Options: DENY
+  Cross-Origin-Opener-Policy: same-origin
+  Content-Security-Policy: default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; connect-src 'self' https://cloudflareinsights.com; img-src 'self'; font-src 'self' data:; style-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests
 
 # ビルドで名前に中身の印（ハッシュ）がつくファイルは書き替わらないので、1年キャッシュしてよい
 # （data/ と illustrations/ は名前が変わらないまま中身が更新されるので、毎回新しさを確かめる既定のまま）
