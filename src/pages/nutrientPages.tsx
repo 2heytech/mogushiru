@@ -251,7 +251,7 @@ function RankingList({ data, metric, rows }: { data: NutrientPageData; metric: R
                   </p>
                 </div>
                 <div className="mt-1 h-2 overflow-hidden rounded-full bg-cream">
-                  <div className={`h-full rounded-full ${info.caution ? 'bg-caution' : 'bg-ok'}`} style={{ width: `${Math.max((r.value / top) * 100, 2)}%` }} />
+                  <div className={`h-full rounded-full ${info.caution ? 'bg-caution' : 'bg-ok'} ${barWidth(r.value / top)}`} />
                 </div>
                 <p className="mt-1 text-xs text-ink-soft">
                   {FOOD_GROUP_LABEL[r.food.group]}・1回 {r.serving.grams}g「{r.serving.label}」
@@ -276,6 +276,11 @@ function RankingList({ data, metric, rows }: { data: NutrientPageData; metric: R
     </section>
   )
 }
+
+// 棒の長さ。サイトの設定（_headers の Content-Security-Policy）で HTML の style 属性は使えないので、5%きざみのクラスにする
+// （Tailwind がクラスを作れるよう、名前はここにそのまま書いておく）
+const BAR_WIDTHS = ['w-[5%]', 'w-[10%]', 'w-[15%]', 'w-[20%]', 'w-[25%]', 'w-[30%]', 'w-[35%]', 'w-[40%]', 'w-[45%]', 'w-[50%]', 'w-[55%]', 'w-[60%]', 'w-[65%]', 'w-[70%]', 'w-[75%]', 'w-[80%]', 'w-[85%]', 'w-[90%]', 'w-[95%]', 'w-[100%]']
+const barWidth = (ratio: number) => BAR_WIDTHS[Math.min(Math.max(Math.round(ratio * 20), 1), 20) - 1]
 
 // 上位の食品の種類（食品群）を多い順に3つ
 function topGroups(rows: RankingRow[]): string {
