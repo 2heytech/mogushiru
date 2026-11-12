@@ -1,11 +1,13 @@
 import { useMemo, useState } from 'react'
-import foodNames from '../../data/food-names.json'
 import type { Catalog } from '../domain/nutrition'
 import {
   FOOD_GROUP_LABEL,
+  NUTRIENT_GROUPS,
   RANKING_METRICS,
   RANKING_NUTRIENTS,
   dailyReference,
+  familiarFoodIds,
+  formatAmount as fmt,
   rankFoods,
   type PriceTable,
   type RankingMetric,
@@ -13,29 +15,12 @@ import {
 import { matches } from '../domain/search'
 import type { Targets } from '../domain/targets'
 import type { NutrientKey } from '../domain/types'
+import { nutrientPagePath } from '../routes'
 
 const PAGE = 30
 
-// 成分は26あるので、種類ごとに分けて見つけやすくする
-const NUTRIENT_GROUPS: { label: string; keys: NutrientKey[] }[] = [
-  { label: '主な栄養', keys: ['energyKcal', 'protein', 'fat', 'carb', 'fiber'] },
-  { label: 'ミネラル', keys: ['calcium', 'iron', 'potassium', 'magnesium', 'zinc'] },
-  { label: 'ビタミン', keys: ['vitaminA', 'vitaminD', 'vitaminE', 'vitaminB1', 'vitaminB2', 'niacin', 'vitaminB6', 'folate', 'vitaminC'] },
-  { label: '脂肪酸', keys: ['n3Fat', 'n6Fat', 'monoUnsatFat', 'polyUnsatFat'] },
-  { label: 'とりすぎに気をつけたい', keys: ['salt', 'satFat', 'caffeine'] },
-]
-
 // 数字のキーは Object.entries で順番が崩れるので食品群番号で並べ直す
 const FOOD_GROUPS = Object.entries(FOOD_GROUP_LABEL).sort(([a], [b]) => a.localeCompare(b))
-
-// 表示名を付けた食材（data/food-names.json）と料理の材料を「よく使う食材」とする
-function familiarFoodIds(catalog: Catalog): Set<string> {
-  const ids = new Set(foodNames.displayNames.map((d) => d.id))
-  for (const dish of catalog.dishes.values()) for (const ing of dish.ingredients) ids.add(ing.foodId)
-  return ids
-}
-
-const fmt = (v: number) => (v >= 100 ? Math.round(v).toLocaleString() : v >= 10 ? v.toFixed(1) : v >= 1 ? v.toFixed(2) : v.toPrecision(2))
 
 function Chip({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
@@ -50,8 +35,18 @@ function Chip({ active, onClick, children }: { active: boolean; onClick: () => v
   )
 }
 
-export function RankingView({ catalog, targets, prices }: { catalog: Catalog; targets: Targets; prices: PriceTable }) {
-  const [nutrient, setNutrient] = useState<NutrientKey>('protein')
+export function RankingView({
+  catalog,
+  targets,
+  prices,
+  initialNutrient = 'protein',
+}: {
+  catalog: Catalog
+  targets: Targets
+  prices: PriceTable
+  initialNutrient?: NutrientKey
+}) {
+  const [nutrient, setNutrient] = useState<NutrientKey>(initialNutrient)
   const [metric, setMetric] = useState<RankingMetric>('serving')
   const [group, setGroup] = useState<string | null>(null)
   const [familiarOnly, setFamiliarOnly] = useState(true)
@@ -66,6 +61,7 @@ export function RankingView({ catalog, targets, prices }: { catalog: Catalog; ta
   const activeMetric = metrics.some((m) => m.key === metric) ? metric : 'serving'
   const info = RANKING_NUTRIENTS.find((n) => n.key === nutrient)!
   const ref = dailyReference(nutrient, targets)
+  const pagePath = nutrientPagePath(nutrient)
 
   const rows = useMemo(() => {
     const foods = [...catalog.foods.values()].filter(
@@ -94,6 +90,14 @@ export function RankingView({ catalog, targets, prices }: { catalog: Catalog; ta
         <p className="mt-1 text-sm text-ink-soft">
           肉・魚・野菜・調味料などの食品（料理ではなく材料）を、成分の多い順に並べます。
           {info.caution ? `いまは${info.label}が多い食品。とりすぎに気をつけたいときの目安にどうぞ。` : `いまは${info.label}をとりやすい食品の順です。`}
+          {pagePath && (
+            <>
+              {' '}
+              <a href={pagePath} className="font-bold text-coral-ink underline decoration-coral/60 underline-offset-2">
+                {info.label}の1日の目安（年齢・性別ごと）
+              </a>
+            </>
+          )}
         </p>
       </div>
 

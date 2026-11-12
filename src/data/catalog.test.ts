@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { Product } from '../domain/types'
-import { mergeProducts, withMyData, withNullNutrients } from './catalog'
+import { withMyData } from './catalog'
+import { mergeProducts, withNullNutrients } from './products'
 
 describe('お気に入りを足したカタログ', () => {
   it('登録した市販品を市販品に加え、元のカタログは変えない', () => {

@@ -12,6 +12,18 @@ npm test         # 計算ロジック・データ変換のテスト
 npm run build    # 本番ビルド（dist/）
 ```
 
+### ページの URL
+
+画面はふつうのパスで切り替えます（以前の `#ranking` などのリンクも開けます）。`npm run build` の最後に `scripts/prerender.tsx` が、ページごとの HTML と `sitemap.xml`・`404.html` を `dist/` に書き出します。
+
+| URL | 中身 |
+|---|---|
+| `/` `/ranking/` `/customize/` `/about/` | アプリの画面。HTML にはタイトル・説明文と、アプリが動きだすまでの説明の字を入れておく |
+| `/nutrients/` `/nutrients/<成分>/` | 成分が多い食品ランキング（26成分）。アプリのプログラムを読まない軽いページ。`/ranking/?n=<成分>` でアプリのランキングをその成分で開く |
+| `/menus/` `/menus/<ジャンル>/` | 理想の献立をジャンルごとに並べたページ。`/?menu=<献立のid>` でアプリにその献立を呼び出す |
+
+URL の決まりは `src/routes.ts`、ページの中身は `src/pages/` にあります。
+
 ## データの生成
 
 配信用データ（`public/data/*.json`）は、元データからスクリプトで生成します。
