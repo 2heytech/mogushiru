@@ -84,10 +84,11 @@ export function idealMealLeads(menu: IdealMenu): { breakfast: string; lunch: str
 // 検索用に正規化した語を改行でつなぐ（語をまたいで当たらないように）
 const words = (...fields: string[]) => fields.map(normalizeForSearch).filter(Boolean).join('\n')
 
-// 朝・昼・晩・その他に入っている料理と市販品の名前（足す一品はプロフィールで変わるので入れない）
-function menuItemNames(menu: IdealMenu, catalog: Catalog): { name: string; words: string }[] {
+// 朝・昼・晩・その他に入っている料理と市販品の名前（足す一品はプロフィールで変わるので入れない）。
+// meal を渡すと、その1食に入っているものだけ
+function menuItemNames(menu: IdealMenu, catalog: Catalog, meal?: keyof IdealFacets): { name: string; words: string }[] {
   const out: { name: string; words: string }[] = []
-  for (const items of Object.values(menu.slots)) {
+  for (const items of meal ? [menu.slots[meal]] : Object.values(menu.slots)) {
     for (const x of items) {
       const jan = idealProductJan(x)
       if (jan) {
@@ -107,10 +108,12 @@ export const idealSearchTokens = (query: string): string[] => query.split(/[\s�
 
 export type IdealSearchIndex = { text: string; items: { name: string; words: string }[] }
 
-// 献立1つ分の検索用の文字。名前・ようす・ジャンル・栄養のポイントと、入っている料理の名前とよみ
-export function idealSearchIndex(menu: IdealMenu, catalog: Catalog): IdealSearchIndex {
-  const items = menuItemNames(menu, catalog)
-  return { text: [words(menu.name, menu.lead, menu.genre, menu.point), ...items.map((i) => i.words)].join('\n'), items }
+// 献立1つ分の検索用の文字。名前・ようす・ジャンル・栄養のポイントと、入っている料理の名前とよみ。
+// meal を渡すと、その1食だけをさがす（ひとことのその1食の部分と、その1食の料理。献立の名前は、ほかの食事の料理名が入っていることがあるので入れない）
+export function idealSearchIndex(menu: IdealMenu, catalog: Catalog, meal?: keyof IdealFacets): IdealSearchIndex {
+  const items = menuItemNames(menu, catalog, meal)
+  const head = meal ? words(idealMealLeads(menu)?.[meal] ?? '') : words(menu.name, menu.lead, menu.genre, menu.point)
+  return { text: [head, ...items.map((i) => i.words)].join('\n'), items }
 }
 
 export const matchesIdealSearch = (index: IdealSearchIndex, tokens: string[]): boolean => tokens.every((t) => index.text.includes(t))

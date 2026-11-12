@@ -28,6 +28,7 @@ import {
   type IdealSearchIndex,
   type LunchStyle,
 } from '../domain/idealMenuFacets'
+import { MEAL_SLOTS, isMealSlot } from '../domain/idealMeals'
 import { WANT_NUTRIENTS } from '../domain/nutrientChecks'
 import type { Catalog } from '../domain/nutrition'
 import { slotBalance } from '../domain/slotBalance'
@@ -35,7 +36,7 @@ import type { Targets } from '../domain/targets'
 import { SLOTS, type DayMenu, type MenuItem, type Slot } from '../domain/types'
 import { menuItemImage } from './illustration'
 import { itemName, portionLabel } from './itemName'
-import { NUTRIENT_INFO, SLOT_LABEL } from './labels'
+import { BREAKFAST_LABEL, DINNER_LABEL, LUNCH_LABEL, NUTRIENT_INFO, SLOT_LABEL } from './labels'
 import { SlotIcon } from './Mascot'
 
 const BALANCES: { key: IdealBalance; label: string; short: string; intro: string }[] = [
@@ -47,14 +48,9 @@ const BALANCES: { key: IdealBalance; label: string; short: string; intro: string
     intro: '朝・昼・晩のどれも、1食だけで区分の目安（カロリー・PFC・食塩など）に収まる献立です。1日まとめてでも、1食だけでも呼び出せます。',
   },
 ]
-const MEALS = ['breakfast', 'lunch', 'dinner'] as const satisfies readonly Slot[]
 // 一度に出す数。献立ごとに量の調整を計算するので、見える分だけ計算する
 const PAGE = 12
 
-// 朝・昼・晩の好みでしぼる言葉
-const BREAKFAST_LABEL: Record<BreakfastStyle, string> = { rice: 'ごはん', bread: 'パン', cereal: 'シリアル' }
-const LUNCH_LABEL: Record<LunchStyle, string> = { bowl: '丼', set: '定食', other: 'めん・パンなど' }
-const DINNER_LABEL: Record<DinnerMain, string> = { fish: '魚介', meat: '肉', soy: 'とうふ・卵など' }
 
 type ListProps = {
   catalog: Catalog
@@ -70,7 +66,7 @@ const NO_FILTERS: Filters = { genre: null, breakfast: null, lunch: null, dinner:
 const valueOf = (e: Entry, key: keyof Filters) => (key === 'genre' ? e.menu.genre : e.facets[key])
 
 // しぼりこみの1行。えらんだものをもう一度押すと外れる。ほかの条件と合わせて1件もないものは押せない
-function FacetRow<T extends string>({
+export function FacetRow<T extends string>({
   label,
   icon,
   options,
@@ -314,7 +310,7 @@ function IdealMenuCard({ ideal, found, catalog, targets, storesLoaded, onLoad, o
   const leads = idealMealLeads(ideal)
   const slotOnly = (slot: Slot) =>
     ideal.balance === 'meal' &&
-    (MEALS as readonly Slot[]).includes(slot) && (
+    isMealSlot(slot) && (
       <button
         type="button"
         aria-label={`「${ideal.name}」の${SLOT_LABEL[slot]}ごはんだけ呼び出す`}
@@ -347,24 +343,8 @@ function IdealMenuCard({ ideal, found, catalog, targets, storesLoaded, onLoad, o
                   <span className="sr-only">{SLOT_LABEL[slot]}</span>
                 </dt>
                 <dd className="min-w-0 flex-1 pt-0.5 leading-snug">
-                  {menu[slot].map((item, i) => {
-                    const portion = portionLabel(item, catalog)
-                    const brand = item.kind === 'product' ? catalog.products.get(item.refId)?.brand : undefined
-                    return (
-                      <span key={item.uid}>
-                        {i > 0 && '・'}
-                        {isIdealExtra(item) && (
-                          <span className="font-bold text-coral-ink" aria-label="足した一品">
-                            ＋
-                          </span>
-                        )}
-                        {brand && <span className="text-ink-soft">{brand}の</span>}
-                        {itemName(item, catalog)}
-                        {portion && <span className="text-ink-soft tabular-nums">{portion}</span>}
-                      </span>
-                    )
-                  })}
-                  {ideal.balance === 'meal' && (MEALS as readonly Slot[]).includes(slot) && <MealStats slot={slot} menu={menu} summary={summary} targets={targets} />}
+                  <MealItems items={menu[slot]} catalog={catalog} />
+                  {ideal.balance === 'meal' && isMealSlot(slot) && <MealStats slot={slot} menu={menu} summary={summary} targets={targets} />}
                 </dd>
                 {slotOnly(slot)}
               </div>
@@ -374,7 +354,7 @@ function IdealMenuCard({ ideal, found, catalog, targets, storesLoaded, onLoad, o
       ) : (
         // 朝・昼・晩を、その食事の顔になる料理の絵とひとことで見せる
         <ul className="mt-1 space-y-0.5">
-          {MEALS.map((slot) => {
+          {MEAL_SLOTS.map((slot) => {
             const face = mealFaceItem(
               menu[slot].filter((item) => !isIdealExtra(item)),
               catalog,
@@ -430,8 +410,33 @@ function IdealMenuCard({ ideal, found, catalog, targets, storesLoaded, onLoad, o
   )
 }
 
-// 毎食バランスの献立で、その1食のカロリー（区分の目安）・PFC・食塩
-function MealStats({ slot, menu, summary, targets }: { slot: Slot; menu: DayMenu; summary: ReturnType<typeof summarizeIdealMenu>; targets: Targets }) {
+// 1食に入っている料理・市販品の名前を「・」でつなぐ。足した一品には「＋」、市販品にはお店・メーカーの名前、1人前でないものには量を添える
+export function MealItems({ items, catalog }: { items: MenuItem[]; catalog: Catalog }) {
+  return (
+    <>
+      {items.map((item, i) => {
+        const portion = portionLabel(item, catalog)
+        const brand = item.kind === 'product' ? catalog.products.get(item.refId)?.brand : undefined
+        return (
+          <span key={item.uid}>
+            {i > 0 && '・'}
+            {isIdealExtra(item) && (
+              <span className="font-bold text-coral-ink" aria-label="足した一品">
+                ＋
+              </span>
+            )}
+            {brand && <span className="text-ink-soft">{brand}の</span>}
+            {itemName(item, catalog)}
+            {portion && <span className="text-ink-soft tabular-nums">{portion}</span>}
+          </span>
+        )
+      })}
+    </>
+  )
+}
+
+// その1食のカロリー（区分の目安）・PFC・食塩
+export function MealStats({ slot, menu, summary, targets }: { slot: Slot; menu: DayMenu; summary: ReturnType<typeof summarizeIdealMenu>; targets: Targets }) {
   if (menu[slot].length === 0) return null
   const totals = summary.totals.bySlot[slot]
   const b = slotBalance(totals, slot, targets)
