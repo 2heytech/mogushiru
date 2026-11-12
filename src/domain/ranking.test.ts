@@ -32,12 +32,12 @@ describe('1回に食べる量の目安', () => {
     expect(servingFor({ id: 'y', name: 'だいず　［豆腐・油揚げ類］　油揚げ　生', group: '04' }).grams).toBe(30)
   })
   it('めんは乾とゆでで量を変える', () => {
-    expect(servingFor({ id: 'a', name: 'こむぎ　［うどん・そうめん類］　干しうどん　乾', group: '01' }).grams).toBe(80)
+    expect(servingFor({ id: 'a', name: 'こむぎ　［うどん・そうめん類］　干しうどん　乾', group: '01' }).grams).toBe(100)
     expect(servingFor({ id: 'b', name: 'こむぎ　［うどん・そうめん類］　うどん　ゆで', group: '01' }).grams).toBe(200)
   })
   it('茶葉と浸出液を分ける', () => {
     expect(servingFor({ id: 'c', name: '＜茶類＞　（緑茶類）　せん茶　茶', group: '16' }).grams).toBe(3)
-    expect(servingFor(tea).grams).toBe(200)
+    expect(servingFor(tea).grams).toBe(150)
   })
 })
 

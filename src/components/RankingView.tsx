@@ -13,6 +13,7 @@ import {
   type RankingMetric,
 } from '../domain/ranking'
 import { matches } from '../domain/search'
+import { SERVING_NOTE } from '../domain/serving'
 import type { Targets } from '../domain/targets'
 import type { NutrientKey } from '../domain/types'
 import { nutrientPagePath } from '../routes'
@@ -214,7 +215,7 @@ export function RankingView({
           </div>
           {activeMetric === 'serving' && (
             <p className="text-xs text-ink-soft">
-              「1回の量」はアプリが決めた目安です（例：ごはん150g、焼きのり3g、しょうゆ6g）。
+              {SERVING_NOTE}
               {ref && `％は${ref.kind === 'max' ? '1日の上限' : '1日の目安'}（${fmt(ref.value)}${info.unit}）に対する割合です。`}
             </p>
           )}
