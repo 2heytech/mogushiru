@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { SITE_NAME, SITE_NAME_KANA } from '../routes'
 import { CONTACT_FORM_URL, OPERATOR_NAME, REPOSITORY_URL } from '../site'
 
 // 「このサイトについて」（#about）。使うときの注意・プライバシー・出典とライセンス・運営者と問い合わせ先を1まいにまとめる
@@ -103,7 +104,9 @@ export function AboutView({ onBack }: { onBack: () => void }) {
       </div>
 
       <Section id="about-what" title="モグシルとは">
-        <p>料理を選ぶだけで、1日のカロリーと栄養バランスが分かる無料のサイトです。登録はいりません。</p>
+        <p>
+          {SITE_NAME}（読み：{SITE_NAME_KANA}）は、料理を選ぶだけで、1日のカロリーと栄養バランスが分かる無料のサイトです。登録はいりません。
+        </p>
         <p>運営：{OPERATOR_NAME}</p>
       </Section>
 

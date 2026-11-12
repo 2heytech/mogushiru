@@ -14,15 +14,15 @@ npm run build    # 本番ビルド（dist/）
 
 ### ページの URL
 
-画面はふつうのパスで切り替えます（以前の `#ranking` などのリンクも開けます）。`npm run build` の最後に `scripts/prerender.tsx` が、ページごとの HTML と `sitemap.xml`・`404.html` を `dist/` に書き出します。
+画面はふつうのパスで切り替えます（以前の `#ranking` などのリンクも開けます）。`npm run build` の最後に `scripts/prerender.tsx` が、ページごとの HTML と `sitemap.xml`・`404.html`、SNS などに貼ったときに出るページごとの画像（`dist/og/*.png`）を `dist/` に書き出します。
 
 | URL | 中身 |
 |---|---|
 | `/` `/ranking/` `/customize/` `/about/` | アプリの画面。HTML にはタイトル・説明文と、アプリが動きだすまでの説明の字を入れておく |
-| `/nutrients/` `/nutrients/<成分>/` | 成分が多い食品ランキング（26成分）。アプリのプログラムを読まない軽いページ。`/ranking/?n=<成分>` でアプリのランキングをその成分で開く |
-| `/menus/` `/menus/<ジャンル>/` | 理想の献立をジャンルごとに並べたページ。`/?menu=<献立のid>` でアプリにその献立を呼び出す |
+| `/nutrients/` `/nutrients/<成分>/` | 成分が多い食品ランキング（26成分）。アプリのプログラムを読まない軽いページ。`/ranking/?n=<成分>` でアプリのランキングをその成分で開く。たんぱく質は「100円あたり」の一覧を先に出す |
+| `/menus/` `/menus/<ジャンル>/` | 理想の献立をジャンルごとに並べたページ。`/?menu=<献立のid>` でアプリにその献立を呼び出す。`/menus/store-bought/` の上には、コンビニの昼ごはんの組み合わせ（商品名・カロリー・たんぱく質・食塩）を出す |
 
-URL の決まりは `src/routes.ts`、ページの中身は `src/pages/` にあります。
+URL の決まりは `src/routes.ts`、ページの中身は `src/pages/` にあります。ページごとの画像は `src/pages/` が決めた中身（`OgCard`）を、`scripts/lib/ogImage.tsx` が satori と resvg で PNG にします（書体はアプリと同じ `@fontsource` のもの）。
 
 ## データの生成
 

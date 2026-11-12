@@ -6,6 +6,9 @@ import type { NutrientKey } from './domain/types'
 
 export const SITE_URL = 'https://mogushiru.app'
 export const SITE_NAME = 'モグシル'
+// 名前の読みと別の書き方。ひらがなやローマ字でさがした人にも見つかるよう、はじめのページのタイトル・説明文と、検索エンジン向けのデータ（alternateName）に入れる
+export const SITE_NAME_KANA = 'もぐしる'
+export const SITE_ALT_NAMES = [SITE_NAME_KANA, 'もぐシル', 'mogushiru']
 
 // about は「このサイトについて」（上のタブには出さず、フッターから入る）
 export type View = 'menu' | 'ranking' | 'customize' | 'about'
@@ -15,9 +18,9 @@ export const VIEW_PATH: Record<View, string> = { menu: '/', ranking: '/ranking/'
 // 画面ごとのタイトルと説明（ブラウザのタブ・検索結果・SNS に貼ったときの表示）
 export const VIEW_META: Record<View, { title: string; description: string; heading: string }> = {
   menu: {
-    title: 'モグシル｜料理を選ぶだけで栄養バランスがわかる',
+    title: `${SITE_NAME}（${SITE_NAME_KANA}）｜料理を選ぶだけで栄養バランスがわかる`,
     heading: '料理を選ぶだけで、1日の栄養バランスがわかる',
-    description: '料理を選んで組み合わせるだけで、1日のカロリーとPFCバランス、栄養素の過不足がすぐ分かる栄養シミュレーター。登録不要・無料です。',
+    description: `${SITE_NAME}（${SITE_NAME_KANA}）は、料理を選んで組み合わせるだけで、1日のカロリーとPFCバランス、栄養素の過不足がすぐ分かる栄養シミュレーターです。登録不要・無料。`,
   },
   ranking: {
     title: '食品成分ランキング｜たんぱく質・鉄・カルシウムなど26成分｜モグシル',
@@ -108,7 +111,8 @@ export const rankingAppPath = (key: NutrientKey): string => {
 export const MENUS_INDEX_PATH = '/menus/'
 
 // 献立の例のページの分け方。数の少ないジャンル（イタリアン・韓国・エスニック）は1ページにまとめる
-export type MenuPage = { slug: string; title: string; heading: string; lead: string } & ({ genres: IdealGenre[] } | { balance: 'meal' })
+// searchTitle・description は、検索結果に出すタイトルと説明文をページの見出しとは別にしたいときだけ書く
+export type MenuPage = { slug: string; title: string; heading: string; lead: string; searchTitle?: string; description?: string } & ({ genres: IdealGenre[] } | { balance: 'meal' })
 
 export const MENU_PAGES: MenuPage[] = [
   { slug: 'washoku', genres: ['和食'], title: '和食', heading: '和食の1日の献立の例', lead: '焼き魚や刺身、煮物などを組み合わせた、栄養バランスの整う1日の和食の献立です。' },
@@ -125,9 +129,13 @@ export const MENU_PAGES: MenuPage[] = [
   {
     slug: 'store-bought',
     genres: ['市販品'],
-    title: '市販品を取り入れた',
-    heading: '市販品を取り入れた1日の献立の例',
-    lead: 'グラノーラやオートミール、コンビニの商品など、買ってきたものを取り入れた栄養バランスの整う1日の献立です。',
+    title: 'コンビニ・市販品',
+    heading: 'コンビニ・市販品を取り入れた1日の献立の例',
+    lead: 'コンビニのおにぎりやサンドイッチ、グラノーラ、オートミール、冷凍ギョーザなど、買ってきたものを取り入れた栄養バランスの整う1日の献立です。',
+    // 「コンビニ 昼ごはん 組み合わせ」でさがす人の入口にする（ページの上に、昼の組み合わせを商品名・カロリー・たんぱく質・食塩つきで出す）
+    searchTitle: 'コンビニの昼ごはんの組み合わせ例｜セブン・ファミマ・ローソンと市販品の1日の献立',
+    description:
+      'コンビニの昼ごはんの組み合わせ例を、セブン-イレブン・ファミリーマート・ローソンの商品名とカロリー・たんぱく質・食塩つきでまとめました。朝・晩を含めた1日の献立と合計、グラノーラや冷凍ギョーザを取り入れた献立も見られます。',
   },
   {
     slug: 'every-meal',

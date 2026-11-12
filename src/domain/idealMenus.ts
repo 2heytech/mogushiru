@@ -278,12 +278,13 @@ const FIRST_IDEAL_MENUS: IdealMenu[] = [
       other: ['mikan', 'sweets-mixed-nuts', 'sweets-yakiimo'],
     },
   },
-  // ここから市販品を使う献立。コンビニの商品は毎月のデータ更新でなくなることがあるので、テストで確かめる
+  // ここから市販品を使う献立。コンビニの商品は毎月のデータ更新でなくなることがあるので、テストで確かめる。
+  // コンビニのお昼は3社ぶん（/menus/store-bought/ の「コンビニの昼ごはんの組み合わせ例」に出る）。なくなりにくい定番の商品（鮭・ツナマヨのおにぎり、ミックスサンド、蒸し鶏のサラダ）で組む
   {
     id: 'konbini',
     balance: 'day',
     genre: '市販品',
-    name: 'コンビニでお昼',
+    name: 'コンビニでお昼（セブン-イレブン）',
     lead: '納豆ごはんの朝、セブン-イレブンのおにぎりとサラダの昼、さばの塩焼きの晩',
     point: 'お昼はおにぎり2個とサラダに、ヨーグルトとキウイを足す。朝と晩の料理で魚・大豆・青菜をとる',
     slots: {
@@ -293,6 +294,37 @@ const FIRST_IDEAL_MENUS: IdealMenu[] = [
       other: ['sweets-mixed-nuts'],
     },
     extras: { breakfast: ['milk', 'fruit-grape'], lunch: ['boiled-egg', 'onigiri-salmon', 'banana'], dinner: ['yasai-corn', 'ready-imo-tempura', 'apple', 'hiyayakko'], other: ['drink-soy-milk', 'sweets-yakiimo'] },
+  },
+  {
+    id: 'konbini-famima',
+    balance: 'day',
+    genre: '市販品',
+    name: 'コンビニでお昼（ファミリーマート）',
+    lead: 'ロールパンとゆで卵の朝、ファミリーマートのおにぎりとサラダの昼、チキンソテーの晩',
+    point: 'お昼はおにぎり2個とサラダに、みかんを足す。朝は卵と牛乳、晩はチキンソテーでたんぱく質をとる',
+    slots: {
+      breakfast: ['roll-bread', 'boiled-egg', 'milk', 'banana'],
+      lunch: ['product:famima-0410151', 'product:famima-0411516', 'product:famima-1212310', 'mikan'],
+      dinner: ['rice', 'grill-chicken-saute', 'yasai-tomato', 'nimame'],
+      other: ['sweets-yogurt-sweet', 'fruit-kiwi'],
+    },
+    // コンビニのお昼は食塩が多めなので、足す一品は食塩のほとんどないものにする
+    extras: { breakfast: ['apple', 'orange-juice', 'sweets-ohagi'], lunch: ['yasai-corn', 'onigiri-salmon', 'fruit-persimmon'], dinner: ['ready-imo-tempura', 'fruit-pineapple', 'ready-fries', 'yasai-edamame'], other: ['sweets-mixed-nuts', 'drink-soy-milk', 'sweets-yakiimo'] },
+  },
+  {
+    id: 'konbini-lawson',
+    balance: 'day',
+    genre: '市販品',
+    name: 'コンビニでお昼（ローソン）',
+    lead: '納豆と玄米の朝、ローソンのサンドイッチとサラダの昼、焼き鮭の晩',
+    point: 'お昼はサンドイッチと蒸し鶏のサラダに、ヨーグルトとバナナを足す。朝と晩の料理で大豆・魚・野菜をとる',
+    slots: {
+      breakfast: ['genmai-rice', 'ready-natto', 'yasai-tomato'],
+      lunch: ['product:lawson-1532664_1996', 'product:lawson-1530052_1996', 'sweets-yogurt-sweet', 'banana'],
+      dinner: ['rice', 'grilled-salmon', 'hiyayakko', 'yasai-kabocha-ni'],
+      other: ['sweets-mixed-nuts', 'mikan'],
+    },
+    extras: { breakfast: ['milk', 'fruit-grape', 'sweets-ohagi'], lunch: ['apple', 'boiled-egg', 'onigiri-salmon'], dinner: ['yasai-corn', 'ready-imo-tempura', 'nimame', 'fruit-persimmon', 'ready-fries'], other: ['drink-soy-milk', 'sweets-yakiimo'] },
   },
   {
     id: 'frugra-gyoza',
