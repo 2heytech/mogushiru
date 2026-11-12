@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { mergeProducts, withNullNutrients } from '../data/products'
 import type { Catalog } from '../domain/nutrition'
@@ -30,6 +30,8 @@ const TEMPLATE = `<!doctype html>
     <meta property="og:title" content="もとのタイトル" />
     <meta property="og:description" content="もとの説明" />
     <meta property="og:url" content="https://mogushiru.app/" />
+    <meta property="og:image" content="https://mogushiru.app/og-image.png" />
+    <meta property="og:image:alt" content="もとの画像の説明" />
     <script type="module" crossorigin src="/assets/index-abc.js"></script>
     <link rel="modulepreload" crossorigin href="/assets/vendor-abc.js">
     <link rel="stylesheet" crossorigin href="/assets/index-abc.css">
@@ -69,6 +71,68 @@ describe('書き出すページ', () => {
     expect(washoku.body).toContain('href="/?menu=')
     expect(washoku.body).toContain('kcal')
   })
+
+  it('はじめのページのタイトルと説明文に、名前の読み（もぐしる）がある', () => {
+    const top = page('/')
+    expect(top.title).toContain('モグシル（もぐしる）')
+    expect(top.description).toContain('もぐしる')
+    expect(top.jsonLd?.[0]).toMatchObject({ '@type': 'WebSite', name: 'モグシル', alternateName: expect.arrayContaining(['もぐしる', 'もぐシル', 'mogushiru']) })
+    // ほかのページには入れない（サイトの名前は、はじめのページで伝える）
+    expect(page('/ranking/').jsonLd).toBeUndefined()
+  })
+
+  it('たんぱく質のページは、100円あたりの一覧を先に出し、身近な食品の1回分の値段を書く', () => {
+    const protein = page('/nutrients/protein/')
+    expect(protein.title).toContain('100円あたり・1回の量')
+    const yen = protein.body.indexOf('値段のわりにたんぱく質が多い食品（100円あたり）')
+    expect(yen).toBeGreaterThan(-1)
+    expect(yen).toBeLessThan(protein.body.indexOf('id="reference"'))
+    expect(yen).toBeLessThan(protein.body.indexOf('ふだん1回に食べる量でたんぱく質が多い食品'))
+    // 卵1個・納豆1パックの値段とたんぱく質（本文と説明文の両方）
+    expect(protein.body).toMatch(/卵（生）1個（50g）は約\d+円で[\d.]+g/)
+    expect(protein.description).toMatch(/納豆1パック（45g）は約\d+円で[\d.]+g/)
+    expect(protein.body).toContain('小売物価統計調査')
+    // 一覧の行にも1回分の値段
+    expect(protein.body).toMatch(/・約<!-- -->\d+<!-- -->円（100gで約<!-- -->\d+<!-- -->円）|・約\d+円（100gで約\d+円）/)
+    // ほかの成分は、これまでどおり1回の量から
+    const iron = page('/nutrients/iron/')
+    expect(iron.title).toContain('1回の量・100gあたり')
+    expect(iron.body.indexOf('id="reference"')).toBeLessThan(iron.body.indexOf('ふだん1回に食べる量で鉄分が多い食品'))
+    expect(iron.body.indexOf('ふだん1回に食べる量で鉄分が多い食品')).toBeLessThan(iron.body.indexOf('値段のわりに鉄分が多い食品'))
+  })
+
+  it('市販品のページには、コンビニ3社の昼ごはんの組み合わせが、商品名・カロリー・たんぱく質・食塩つきである', () => {
+    const store = page('/menus/store-bought/')
+    expect(store.title).toContain('コンビニの昼ごはんの組み合わせ例')
+    expect(store.body).toContain('コンビニの昼ごはんの組み合わせ例')
+    for (const name of ['セブン-イレブン', 'ファミリーマート', 'ローソン']) expect(store.body).toContain(`${name}の`)
+    for (const id of ['konbini', 'konbini-famima', 'konbini-lawson']) {
+      expect(store.body).toContain(`href="/?menu=${id}"`)
+      expect(store.body).toContain(`href="#${id}"`)
+      expect(store.body).toContain(`id="${id}"`)
+    }
+    expect(store.body).toContain('昼ごはんの合計')
+    // 商品名から各社の商品ページ（出典）に行ける
+    expect(store.body).toMatch(/href="https:\/\/www\.sej\.co\.jp\/products\/[^"]+" rel="noopener"/)
+    // ほかのジャンルのページには出さない
+    expect(page('/menus/washoku/').body).not.toContain('コンビニの昼ごはんの組み合わせ例')
+  })
+
+  it('読みもののページには、ページごとの共有の画像がある', () => {
+    const withOg = pages.filter((p) => p.og)
+    expect(withOg.map((p) => p.path).sort()).toEqual(pages.filter((p) => p.kind === 'static').map((p) => p.path).sort())
+    expect(new Set(withOg.map((p) => p.og!.path)).size).toBe(withOg.length)
+    for (const p of withOg) {
+      expect(p.og!.path).toMatch(/^\/og\/[a-z0-9-]+\.png$/)
+      expect(p.og!.alt.length).toBeGreaterThan(10)
+      expect(p.og!.card.title.length).toBeLessThanOrEqual(24)
+      // 絵は public にあるもの
+      for (const src of [...(p.og!.card.icons ?? []), ...(p.og!.card.rows ?? []).map((r) => r.image)]) expect(existsSync(new URL(`../../public${src}`, import.meta.url)), src).toBe(true)
+    }
+    const protein = page('/nutrients/protein/').og!.card
+    expect(protein.rows).toHaveLength(3)
+    expect(protein.sub).toContain('100円あたり')
+  })
 })
 
 describe('HTML のひな形への差しこみ', () => {
@@ -87,6 +151,17 @@ describe('HTML のひな形への差しこみ', () => {
     expect(out).toContain('index-abc.css')
     expect(out).toContain('"@type":"BreadcrumbList"')
     expect(out).not.toContain('<div id="root">')
+  })
+
+  it('共有の画像と、はじめのページのサイト名のデータを入れる', () => {
+    const iron = renderDocument(TEMPLATE, page('/nutrients/iron/'))
+    expect(iron).toContain('<meta property="og:image" content="https://mogushiru.app/og/nutrients-iron.png" />')
+    expect(iron).not.toContain('もとの画像の説明')
+    // アプリの画面は、サイト共通の画像のまま
+    const top = renderDocument(TEMPLATE, page('/'))
+    expect(top).toContain('<meta property="og:image" content="https://mogushiru.app/og-image.png" />')
+    expect(top).toContain('"@type":"WebSite"')
+    expect(top).toContain('"alternateName":["もぐしる","もぐシル","mogushiru"]')
   })
 
   it('404 は検索に載せない', () => {
