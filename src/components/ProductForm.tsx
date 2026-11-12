@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { NUTRIENT_KEYS, type Nutrients, type Product } from '../domain/types'
 import type { MyProductInput } from '../store/useAppStore'
-import { useDismiss } from './useDismiss'
+import { useDialog } from './useDialog'
 
 type Basis = Product['basis']
 
@@ -36,7 +36,7 @@ export function ProductForm({
   onDelete?: () => void
   onClose: () => void
 }) {
-  useDismiss(onClose)
+  const dialogRef = useDialog(onClose)
   const [name, setName] = useState(initial?.name ?? '')
   const [brand, setBrand] = useState(initial?.brand ?? '')
   const [basis, setBasis] = useState<Basis>(initial?.basis ?? 'serving')
@@ -59,10 +59,12 @@ export function ProductForm({
   return (
     <div className="fixed inset-0 z-40 flex items-end bg-ink/30 md:items-center md:justify-center" onClick={onClose}>
       <div
+        ref={dialogRef}
+        tabIndex={-1}
         role="dialog"
         aria-modal="true"
         aria-label={initial ? 'お気に入りの市販品を編集' : '市販品を登録'}
-        className="flex max-h-[92vh] w-full flex-col rounded-t-[var(--radius-card)] bg-cream p-4 shadow-xl md:max-w-lg md:rounded-[var(--radius-card)]"
+        className="outline-none flex max-h-[92vh] w-full flex-col rounded-t-[var(--radius-card)] bg-cream p-4 shadow-xl md:max-w-lg md:rounded-[var(--radius-card)]"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-3 flex shrink-0 items-center justify-between">

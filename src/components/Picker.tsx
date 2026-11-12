@@ -4,7 +4,7 @@ import type { DishCategory, MenuItem, Slot } from '../domain/types'
 import { MY_PRODUCT_PREFIX } from '../store/useAppStore'
 import { DISH_CATEGORY_LABEL, PRODUCT_CATEGORY_LAST, PRODUCT_STORES, SLOT_LABEL, STORE_FILTER_PREFIX } from './labels'
 import { buildCards, cardSegments, KYODO, productStore, type Card, type Kind, type Tab } from './pickerCards'
-import { useDismiss } from './useDismiss'
+import { useDialog } from './useDialog'
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'all', label: 'すべて' },
@@ -69,7 +69,7 @@ export function Picker({
   onUnpick: (uid: string) => void
   onClose: () => void
 }) {
-  useDismiss(onClose)
+  const dialogRef = useDialog(onClose)
   const [tab, setTab] = useState<Tab>('all')
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState('all')
@@ -141,10 +141,12 @@ export function Picker({
   return (
     <div className="fixed inset-0 z-20 flex items-end bg-ink/30 md:items-center md:justify-center" onClick={onClose}>
       <div
+        ref={dialogRef}
+        tabIndex={-1}
         role="dialog"
         aria-modal="true"
         aria-label={`${SLOT_LABEL[slot]}に追加する料理をえらぶ`}
-        className="flex h-[85dvh] w-full flex-col rounded-t-[var(--radius-card)] bg-cream p-4 shadow-xl md:h-[min(85dvh,760px)] md:max-w-3xl md:rounded-[var(--radius-card)]"
+        className="outline-none flex h-[85dvh] w-full flex-col rounded-t-[var(--radius-card)] bg-cream p-4 shadow-xl md:h-[min(85dvh,760px)] md:max-w-3xl md:rounded-[var(--radius-card)]"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-3 flex shrink-0 items-center justify-between">

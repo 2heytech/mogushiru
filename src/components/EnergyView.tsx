@@ -14,11 +14,14 @@ const PARTS: { key: 'bmr' | 'daily' | 'exercise'; label: string; color: string }
   { key: 'exercise', label: '運動', color: '#3a9a78' },
 ]
 
-// 空のときに知らせる区分（その他は食べない日も多いので数えない）
-const MEAL_SLOTS: Slot[] = ['breakfast', 'lunch', 'dinner']
+const slotNames = (slots: Slot[]) => slots.map((s) => SLOT_LABEL[s]).join('・')
 
 // ほぼつり合っているとみなす差（kcal/日）
 const BALANCED = 50
+
+// 朝・昼・晩のうちまだ入っていない区分（missing）があるあいだは、合計を1日ぶんとして扱わない。
+// asFullDay は、ユーザーが「この内容を1日ぶんとして計算する」をえらんだとき
+type DayProgress = { missing: Slot[]; asFullDay: boolean }
 
 // 食べるカロリー（えらんだ1日の食事）と使うカロリー（基礎代謝＋ふだんの生活＋運動）をくらべる
 export function EnergyBalanceView({
@@ -26,6 +29,8 @@ export function EnergyBalanceView({
   energy,
   targets,
   profile,
+  missing,
+  asFullDay,
   onEditExercise,
 }: {
   totals: MenuTotals
@@ -33,12 +38,13 @@ export function EnergyBalanceView({
   targets: Targets
   profile: Profile
   onEditExercise?: () => void
-}) {
+} & DayProgress) {
   const intake = totals.day.values.energyKcal
   const diff = intake - energy.total
   const max = Math.max(intake, energy.total) * 1.08
   const w = (v: number) => `${(v / max) * 100}%`
-  const empty = MEAL_SLOTS.filter((s) => totals.bySlot[s].values.energyKcal === 0)
+  // 入力の途中：食べるカロリーはまだ1日ぶんではないので、ふえる・へるの結論は出さない
+  const partial = intake > 0 && missing.length > 0 && !asFullDay
   const hasExercise = (profile.exercises ?? []).length > 0
   const goal = profile.goal ?? 'keep'
   return (
@@ -53,7 +59,7 @@ export function EnergyBalanceView({
       </div>
 
       <div className="space-y-2 rounded-2xl bg-white/70 p-3">
-        <BarRow label="食べる" value={intake} sub="えらんだ1日の食事">
+        <BarRow label="食べる" value={intake} sub={partial ? '入力済みの合計' : 'えらんだ1日の食事'}>
           <div className="h-full rounded-r-md bg-coral transition-all duration-500" style={{ width: w(intake) }} />
         </BarRow>
         <BarRow label="使う" value={energy.total} sub="1日の目安">
@@ -82,6 +88,11 @@ export function EnergyBalanceView({
 
       {intake === 0 ? (
         <p className="text-sm text-ink-soft">料理をえらぶと、食べるカロリーとくらべます</p>
+      ) : partial ? (
+        <p role="note" className="rounded-2xl bg-white px-4 py-2 text-sm shadow-sm">
+          <strong>{slotNames(missing)}がまだ入っていません</strong>
+          <span className="block text-xs text-ink-soft">1日ぶんがそろうと、体重がふえるペースか、へるペースかを出します</span>
+        </p>
       ) : (
         <p className="rounded-2xl bg-white px-4 py-2 text-sm shadow-sm">
           {Math.abs(diff) < BALANCED ? (
@@ -99,11 +110,8 @@ export function EnergyBalanceView({
       )}
 
       <div className="space-y-1 text-[12px] leading-relaxed text-ink-soft">
-        {intake > 0 && empty.length > 0 && (
-          <p>
-            {empty.map((s) => SLOT_LABEL[s]).join('・')}がまだ空です。食べない区分はそのままで大丈夫です。
-          </p>
-        )}
+        {intake > 0 && missing.length > 0 && asFullDay && <p>{slotNames(missing)}は空のまま、いま入っている分を1日ぶんとして計算しています。</p>}
+        {energy.usedReferenceWeight && <p>体重が未入力のため、使うカロリーは年齢・性別の標準的な体重で計算しています。</p>}
         {goal !== 'keep' && (
           <p>
             まとめの「1日の目安」（{targets.energyKcal.toLocaleString()} kcal）は、体重の目標「{goal === 'lose' ? '減らしたい' : '増やしたい'}」に合わせて、使うカロリーより
@@ -136,20 +144,74 @@ function BarRow({ label, value, sub, children }: { label: string; value: number;
 const fmtKg = (v: number) => v.toFixed(1)
 const signedKg = (v: number) => (Math.abs(v) < 0.05 ? '±0.0' : `${v > 0 ? '+' : '−'}${Math.abs(v).toFixed(1)}`)
 
-// えらんだ1日の食事と運動を毎日続けたときの体重（1・3・6か月後と1年後）
-export function WeightSimView({ totals, energy, profile, onEditProfile }: { totals: MenuTotals; energy: Expenditure; profile: Profile; onEditProfile?: () => void }) {
+// えらんだ1日の食事と運動を毎日続けたときの体重（1・3・6か月後と1年後）。
+// 入力の途中（朝だけ入れた、など）や体重が未入力のうちは、数字を出さずに何がそろえば計算するかを見せる
+export function WeightSimView({
+  totals,
+  energy,
+  profile,
+  missing,
+  asFullDay,
+  onTreatAsFullDay,
+  onEditProfile,
+}: {
+  totals: MenuTotals
+  energy: Expenditure
+  profile: Profile
+  onTreatAsFullDay?: () => void
+  onEditProfile?: () => void
+} & DayProgress) {
   const intake = totals.day.values.energyKcal
-  if (intake === 0) {
+  const mealsReady = intake > 0 && (missing.length === 0 || asFullDay)
+  const weightReady = !energy.usedReferenceWeight
+  if (!mealsReady || !weightReady) {
     return (
-      <div>
-        <h2 className="font-bold">このまま続けたときの体重</h2>
-        <p className="py-6 text-center text-sm text-ink-soft">料理をえらぶと、毎日続けたときの体重の変化を計算します</p>
+      <div className="space-y-3">
+        <div>
+          <h2 className="font-bold">このまま続けたときの体重</h2>
+          <p className="text-xs text-ink-soft">次の2つがそろうと、毎日続けたときの体重の変化を計算します</p>
+        </div>
+        <ul className="space-y-2">
+          <NeedRow done={mealsReady} label="1日ぶんの食事">
+            {mealsReady ? (
+              missing.length > 0 ? (
+                `${slotNames(missing)}は空のまま計算します`
+              ) : (
+                '入っています'
+              )
+            ) : intake === 0 ? (
+              'まだ料理が入っていません'
+            ) : (
+              <>
+                {slotNames(missing)}がまだ入っていません
+                {onTreatAsFullDay && (
+                  <button type="button" onClick={onTreatAsFullDay} className="mt-1.5 block min-h-9 rounded-full bg-white px-3.5 text-xs font-bold text-ink shadow-sm">
+                    この内容を1日ぶんとして計算する
+                  </button>
+                )}
+              </>
+            )}
+          </NeedRow>
+          <NeedRow done={weightReady} label="いまの体重">
+            {weightReady ? (
+              `${fmtKg(energy.weightKg)}kg`
+            ) : (
+              <>
+                まだ入っていません
+                {onEditProfile && (
+                  <button type="button" onClick={onEditProfile} className="mt-1.5 block min-h-9 rounded-full bg-white px-3.5 text-xs font-bold text-ink shadow-sm">
+                    体重を入れる
+                  </button>
+                )}
+              </>
+            )}
+          </NeedRow>
+        </ul>
       </div>
     )
   }
   const sim = simulateWeight(intake, profile)
   const height = profile.heightCm
-  const empty = MEAL_SLOTS.filter((s) => totals.bySlot[s].values.energyKcal === 0)
   const year = sim.at(365)
   const yearBmi = height ? bmi(year, height) : null
   return (
@@ -158,13 +220,19 @@ export function WeightSimView({ totals, energy, profile, onEditProfile }: { tota
         <h2 className="font-bold">このまま続けたときの体重</h2>
         <p className="text-xs text-ink-soft">えらんだ1日の食事と運動を、毎日続けた場合の目安です</p>
       </div>
-      {empty.length > 0 && (
+      {missing.length > 0 && (
         <p role="note" className="rounded-2xl bg-caution/20 px-3 py-2 text-sm">
-          <strong>{empty.map((s) => SLOT_LABEL[s]).join('・')}がまだ入っていません。</strong>
+          <strong>{slotNames(missing)}は入っていません。</strong>
           <span className="block text-xs">下の数字は、いま入っている分だけを1日の食事として計算しています。</span>
         </p>
       )}
-      <WeightChart sim={sim} relative={energy.usedReferenceWeight} />
+      {intake < energy.bmr && (
+        <p role="note" className="rounded-2xl bg-caution/20 px-3 py-2 text-sm">
+          <strong>食べるカロリーが、基礎代謝（{kcal(energy.bmr)} kcal）より少なくなっています。</strong>
+          <span className="block text-xs">食事がすべて入っているか、たしかめてください。この量を毎日続ける計算は、実際とは大きくずれます。</span>
+        </p>
+      )}
+      <WeightChart sim={sim} />
       <ul className="grid grid-cols-4 gap-1.5">
         {SIM_PERIODS.map((p) => {
           const kg = sim.at(p.days)
@@ -176,36 +244,40 @@ export function WeightSimView({ totals, energy, profile, onEditProfile }: { tota
                 <span className="text-lg">{signedKg(change)}</span>
                 <span className="text-xs">kg</span>
               </p>
-              {!energy.usedReferenceWeight && <p className="text-[12px] text-ink-soft tabular-nums">{fmtKg(kg)}kg</p>}
-              {height && !energy.usedReferenceWeight && <p className="text-[12px] text-ink-soft tabular-nums">BMI {bmi(kg, height).toFixed(1)}</p>}
+              <p className="text-[12px] text-ink-soft tabular-nums">{fmtKg(kg)}kg</p>
+              {height && <p className="text-[12px] text-ink-soft tabular-nums">BMI {bmi(kg, height).toFixed(1)}</p>}
             </li>
           )
         })}
       </ul>
       <div className="space-y-1 text-[12px] leading-relaxed text-ink-soft">
-        {Math.abs(sim.settle - sim.start) >= 0.5 && (
-          <p>
-            体重が変わると使うカロリーも変わるので、変化はだんだんゆるやかになり、{energy.usedReferenceWeight ? '' : `${fmtKg(sim.settle)}kgくらいに`}
-            落ち着いていきます。
-          </p>
-        )}
-        {yearBmi !== null && !energy.usedReferenceWeight && yearBmi < 18.5 && <p className="font-bold text-alert-ink">1年後はBMIが18.5を下回ります。やせすぎに気をつけてください。</p>}
-        {yearBmi !== null && !energy.usedReferenceWeight && yearBmi >= 25 && bmi(sim.start, height!) < 25 && (
-          <p className="font-bold text-alert-ink">1年後はBMIが25をこえます。</p>
-        )}
-        {energy.usedReferenceWeight && (
-          <p className="flex flex-wrap items-center gap-x-2 gap-y-1">
-            <span>体重が未入力のため、標準的な体重（{fmtKg(sim.start)}kg）からの変化で計算しています。</span>
-            {onEditProfile && (
-              <button type="button" onClick={onEditProfile} className="min-h-9 rounded-full bg-white px-3.5 text-xs font-bold text-ink shadow-sm">
-                体重を入れる
-              </button>
-            )}
-          </p>
-        )}
+        {Math.abs(sim.settle - sim.start) >= 0.5 && <p>体重が変わると使うカロリーも変わるので、変化はだんだんゆるやかになり、{fmtKg(sim.settle)}kgくらいに落ち着いていきます。</p>}
+        {yearBmi !== null && yearBmi < 18.5 && <p className="font-bold text-alert-ink">1年後はBMIが18.5を下回ります。やせすぎに気をつけてください。</p>}
+        {yearBmi !== null && yearBmi >= 25 && bmi(sim.start, height!) < 25 && <p className="font-bold text-alert-ink">1年後はBMIが25をこえます。</p>}
         <p>体脂肪1kg＝約7,000kcalとして計算しています。体の水分などでも体重は変わるので、実際とは同じになりません。</p>
       </div>
     </div>
+  )
+}
+
+// 体重の変化を計算するのに要るもの（そろったら ✓）
+function NeedRow({ done, label, children }: { done: boolean; label: string; children: ReactNode }) {
+  return (
+    <li className="flex gap-2.5 rounded-2xl bg-white/70 px-3 py-2.5">
+      <span
+        aria-hidden
+        className={`mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full text-[12px] leading-none font-bold ${done ? 'bg-ok text-ink-strong' : 'border-2 border-ink/25'}`}
+      >
+        {done && '✓'}
+      </span>
+      <div className="min-w-0 text-sm">
+        <p className="font-bold">
+          {label}
+          <span className="sr-only">{done ? '（そろっています）' : '（まだです）'}</span>
+        </p>
+        <div className="text-xs text-ink-soft">{children}</div>
+      </div>
+    </li>
   )
 }
 
@@ -223,11 +295,10 @@ function niceStep(span: number) {
   return 20
 }
 
-// relative: 体重が未入力のときは、標準的な体重の値でなく「いまからの増減」で目盛りをつける
-function WeightChart({ sim, relative }: { sim: ReturnType<typeof simulateWeight>; relative: boolean }) {
+function WeightChart({ sim }: { sim: ReturnType<typeof simulateWeight> }) {
   const [hover, setHover] = useState<number | null>(null)
-  const at = (day: number) => sim.at(day) - (relative ? sim.start : 0)
-  const start = relative ? 0 : sim.start
+  const at = sim.at
+  const start = sim.start
   const months = Array.from({ length: 13 }, (_, m) => m)
   const values = months.map((m) => at(monthDays(m)))
   const lo0 = Math.min(...values)
@@ -247,8 +318,8 @@ function WeightChart({ sim, relative }: { sim: ReturnType<typeof simulateWeight>
     .map((d, i) => `${i === 0 ? 'M' : 'L'}${x(d).toFixed(1)},${y(at(d)).toFixed(1)}`)
     .join(' ')
   const marks = SIM_PERIODS.map((p) => ({ ...p, kg: at(p.days) }))
-  const tickLabel = (t: number) => (relative ? signedKg(t).replace('.0', '') : t % 1 === 0 ? String(t) : t.toFixed(1))
-  const fmt = (kg: number) => (relative ? `${signedKg(kg)}kg` : `${fmtKg(kg)}kg`)
+  const tickLabel = (t: number) => (t % 1 === 0 ? String(t) : t.toFixed(1))
+  const fmt = (kg: number) => `${fmtKg(kg)}kg`
   // 1か月は「いま」と近くて重なるので、印だけにして文字は出さない
   const xLabels = [
     { day: 0, label: 'いま' },
@@ -266,7 +337,7 @@ function WeightChart({ sim, relative }: { sim: ReturnType<typeof simulateWeight>
 
   return (
     <div className="relative rounded-2xl bg-white/70 p-2">
-      <p className="px-1 text-[12px] text-ink-soft">{relative ? 'いまからの増減（kg）' : '体重（kg）'}</p>
+      <p className="px-1 text-[12px] text-ink-soft">体重（kg）</p>
       <svg
         viewBox={`0 0 ${W} ${H}`}
         className="h-auto w-full touch-pan-y select-none"
@@ -305,7 +376,7 @@ function WeightChart({ sim, relative }: { sim: ReturnType<typeof simulateWeight>
           className="pointer-events-none absolute top-1 rounded-lg bg-ink px-2 py-1 text-[12px] whitespace-nowrap text-white shadow"
           style={{ left: `${(x(monthDays(hover)) / W) * 100}%`, transform: `translateX(${hover > 8 ? '-100%' : hover < 3 ? '0' : '-50%'})` }}
         >
-          {hover === 0 ? 'いま' : hover === 12 ? '1年後' : `${hover}か月後`} {relative ? fmt(hoverKg) : `${fmt(hoverKg)}（${signedKg(hoverKg - start)}kg）`}
+          {hover === 0 ? 'いま' : hover === 12 ? '1年後' : `${hover}か月後`} {fmt(hoverKg)}（{signedKg(hoverKg - start)}kg）
         </div>
       )}
     </div>

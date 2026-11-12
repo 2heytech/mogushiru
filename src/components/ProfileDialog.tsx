@@ -7,7 +7,7 @@ import { SLOTS, type Activity, type Exercise, type Goal, type Profile, type Sex,
 import { ExerciseEditor } from './ExerciseEditor'
 import { fromDraft, toDraft, type ExerciseDraft } from './exerciseDraft'
 import { SLOT_LABEL } from './labels'
-import { useDismiss } from './useDismiss'
+import { useDialog } from './useDialog'
 
 // 運動を入れたときは、運動の分は別に足すので「高い」から運動習慣を外す
 const activityOptions = (withExercise: boolean): { id: Activity; label: string; desc: string }[] => [
@@ -103,7 +103,7 @@ export function ProfileDialog({
   // 'slotShare'・'exercise' のときはその欄までスクロールして開く
   focus?: ProfileFocus
 }) {
-  useDismiss(onClose)
+  const dialogRef = useDialog(onClose)
   const [sex, setSex] = useState<Sex>(profile.sex)
   const [age, setAge] = useState(String(profile.age))
   const [height, setHeight] = useState(profile.heightCm ? String(profile.heightCm) : '')
@@ -158,10 +158,12 @@ export function ProfileDialog({
   return (
     <div className="fixed inset-0 z-20 flex items-end bg-ink/30 md:items-center md:justify-center" onClick={onClose}>
       <div
+        ref={dialogRef}
+        tabIndex={-1}
         role="dialog"
         aria-modal="true"
         aria-label="プロフィール"
-        className="max-h-[90vh] w-full overflow-y-auto rounded-t-[var(--radius-card)] bg-cream px-5 pb-5 shadow-xl md:max-w-md md:rounded-[var(--radius-card)]"
+        className="outline-none max-h-[90vh] w-full overflow-y-auto rounded-t-[var(--radius-card)] bg-cream px-5 pb-5 shadow-xl md:max-w-md md:rounded-[var(--radius-card)]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* 見出しと×は、長い入力欄をスクロールしても上に残す */}

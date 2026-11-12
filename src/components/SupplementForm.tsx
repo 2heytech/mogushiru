@@ -12,7 +12,7 @@ import {
 import type { NutrientKey, Product } from '../domain/types'
 import { nutrientInfo } from './labels'
 import type { MyProductInput } from '../store/useAppStore'
-import { useDismiss } from './useDismiss'
+import { useDialog } from './useDialog'
 
 const num = (s: string) => (s.trim() === '' || Number.isNaN(Number(s)) || Number(s) < 0 ? null : Number(s))
 // 0 は「入っていない」なので空欄で見せる
@@ -30,7 +30,7 @@ export function SupplementForm({
   onDelete?: () => void
   onClose: () => void
 }) {
-  useDismiss(onClose)
+  const dialogRef = useDialog(onClose)
   const [name, setName] = useState(initial?.name ?? '')
   const [brand, setBrand] = useState(initial?.brand ?? '')
   const [servingLabel, setServingLabel] = useState(initial?.servingLabel ?? '')
@@ -53,10 +53,12 @@ export function SupplementForm({
   return (
     <div className="fixed inset-0 z-40 flex items-end bg-ink/30 md:items-center md:justify-center" onClick={onClose}>
       <div
+        ref={dialogRef}
+        tabIndex={-1}
         role="dialog"
         aria-modal="true"
         aria-label={initial ? 'サプリを編集' : 'サプリを登録'}
-        className="flex max-h-[92vh] w-full flex-col rounded-t-[var(--radius-card)] bg-cream p-4 shadow-xl md:max-w-lg md:rounded-[var(--radius-card)]"
+        className="outline-none flex max-h-[92vh] w-full flex-col rounded-t-[var(--radius-card)] bg-cream p-4 shadow-xl md:max-w-lg md:rounded-[var(--radius-card)]"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-3 flex shrink-0 items-center justify-between">

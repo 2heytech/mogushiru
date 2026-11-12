@@ -5,9 +5,9 @@ import { nutrientChecks } from '../domain/nutrientChecks'
 import { pfcGaps, type PfcGap } from '../domain/pfcGap'
 import { expenditure } from '../domain/energy'
 import type { Targets } from '../domain/targets'
-import { SLOTS, type Profile } from '../domain/types'
+import { SLOTS, type Profile, type Slot } from '../domain/types'
 import { EnergyBalanceView, WeightSimView } from './EnergyView'
-import { MOOD_LABEL, SLOT_LABEL } from './labels'
+import { DEFAULT_PROFILE_LABEL, MOOD_LABEL, SLOT_LABEL } from './labels'
 import type { MascotMood } from '../domain/mascotMood'
 import { BowlMogu, SlotIcon } from './Mascot'
 import { SlotBalanceView } from './SlotBalanceView'
@@ -20,7 +20,8 @@ const alertLabel = (a: Alert) => (a.key === 'energy' ? 'カロリー' : NUTRIENT
 const alertDigits = (a: Alert) => (a.key === 'energy' ? 0 : NUTRIENT_INFO[a.key].digits)
 const fmtAlert = (a: Alert, v: number) => v.toLocaleString(undefined, { minimumFractionDigits: alertDigits(a), maximumFractionDigits: alertDigits(a) })
 
-function EnergyGauge({ value, target }: { value: number; target: number }) {
+// partial: 入力の途中（朝・昼・晩のどれかがまだ）。合計が1日ぶんではないことを数字のそばで伝える
+function EnergyGauge({ value, target, partial }: { value: number; target: number; partial: boolean }) {
   const max = target * 1.5
   const pct = Math.min(value / max, 1) * 100
   const bandLo = ((target * 0.9) / max) * 100
@@ -29,7 +30,9 @@ function EnergyGauge({ value, target }: { value: number; target: number }) {
   return (
     <div>
       <div className="mb-1 flex items-baseline justify-between">
-        <span className="text-sm text-ink-soft">カロリー</span>
+        <span className="text-sm text-ink-soft">
+          カロリー{partial && <span className="text-xs">（入力済みの合計）</span>}
+        </span>
         <span>
           <strong className="text-2xl">{Math.round(value).toLocaleString()}</strong>
           <span className="text-sm text-ink-soft"> / {target.toLocaleString()} kcal</span>
@@ -105,6 +108,8 @@ export function DayInfo({
   totals,
   targets,
   profile,
+  profileSet,
+  missingSlots,
   onEditSlotShare,
   onEditExercise,
   onEditProfile,
@@ -112,18 +117,31 @@ export function DayInfo({
   totals: MenuTotals
   targets: Targets
   profile: Profile
+  // プロフィールを入れたか（まだなら、仮の目安で計算していることを結果のそばで伝える）
+  profileSet: boolean
+  // 朝・昼・晩のうち、まだ料理が入っていない区分
+  missingSlots: Slot[]
   onEditSlotShare?: () => void
   onEditExercise?: () => void
   onEditProfile?: () => void
 }) {
   const [tab, setTab] = useState<InfoTab>('summary')
+  // 「この内容を1日ぶんとして計算する」をえらんだときの、空の区分の組み合わせ。料理を足したり外したりして組み合わせが変わると、もう一度たしかめる
+  const [fullDayFor, setFullDayFor] = useState<string | null>(null)
+  const missingKey = missingSlots.join(',')
+  const asFullDay = missingSlots.length > 0 && fullDayFor === missingKey
   const energy = expenditure(profile)
   const v = totals.day.values
+  // 入力の途中：合計はまだ1日ぶんではない
+  const partial = v.energyKcal > 0 && missingSlots.length > 0 && !asFullDay
   const gaps = pfcGaps(v, targets)
   const alerts = computeAlerts(totals, targets)
   const mood = balanceMood(totals, targets, alerts)
-  const bowlMood: MascotMood = alerts.some((a) => a.level === 'over') ? 'alert' : mood
-  const message = moguMessage(v.energyKcal, mood, gaps, alerts)
+  const isOver = alerts.some((a) => a.level === 'over')
+  const missingNames = missingSlots.map((s) => SLOT_LABEL[s]).join('・')
+  // 入力の途中は、足りない・かたよっていると決めつけない（とりすぎだけは、途中でも知らせる）
+  const bowlMood: MascotMood = isOver ? 'alert' : partial ? 'okay' : mood
+  const message = partial && !isOver ? `${missingNames}も入れると、1日のバランスがわかるよ` : moguMessage(v.energyKcal, mood, gaps, alerts)
   // サプリだけ（0kcal）でも成分の取りすぎを見られるように、何か入っていれば出す
   const hasAny = Object.values(v).some((x) => x > 0)
   const overCount = alerts.filter((a) => a.level === 'over').length
@@ -139,6 +157,22 @@ export function DayInfo({
 
   return (
     <section aria-label="1日の栄養バランス" className="space-y-3">
+      {(partial || !profileSet) && (
+        <div role="note" className="space-y-1 rounded-2xl bg-white/70 px-4 py-2.5 text-xs leading-relaxed text-ink-soft">
+          {partial && (
+            <p>
+              <strong className="text-ink">入力済みの合計です。</strong>
+              {missingNames}がまだ入っていません。
+            </p>
+          )}
+          {!profileSet && (
+            <p>
+              <strong className="text-ink">プロフィール未設定・仮の目安（{DEFAULT_PROFILE_LABEL}）で計算中。</strong>
+              右上の「プロフィールを入れる」から変えられます。入れた内容は、このブラウザにのみ保存されます。
+            </p>
+          )}
+        </div>
+      )}
       <div role="tablist" aria-label="見る情報" className="flex gap-1 rounded-full bg-white/70 p-1 shadow-sm lg:hidden">
         {tabs.map((t) => (
           <button
@@ -173,7 +207,7 @@ export function DayInfo({
                 <BowlMogu slot="dinner" mood={bowlMood} className="h-16 w-16 shrink-0" label={`モグは${MOOD_LABEL[bowlMood]}`} />
                 <p className="rounded-2xl bg-white px-4 py-2 text-sm shadow-sm">{message}</p>
               </div>
-              <EnergyGauge value={v.energyKcal} target={targets.energyKcal} />
+              <EnergyGauge value={v.energyKcal} target={targets.energyKcal} partial={partial} />
               <SlotShare totals={totals} targets={targets} onEdit={onEditSlotShare} />
               <AlertList alerts={alerts} />
             </div>
@@ -185,10 +219,18 @@ export function DayInfo({
           {/* 食べる・使うカロリーと、続けたときの体重 */}
           <div className="contents lg:grid lg:grid-cols-2 lg:items-stretch lg:gap-4">
             <div className={`${CARD} ${panel('energy')}`}>
-              <EnergyBalanceView totals={totals} energy={energy} targets={targets} profile={profile} onEditExercise={onEditExercise} />
+              <EnergyBalanceView totals={totals} energy={energy} targets={targets} profile={profile} missing={missingSlots} asFullDay={asFullDay} onEditExercise={onEditExercise} />
             </div>
             <div className={`${CARD} ${panel('energy')}`}>
-              <WeightSimView totals={totals} energy={energy} profile={profile} onEditProfile={onEditProfile} />
+              <WeightSimView
+                totals={totals}
+                energy={energy}
+                profile={profile}
+                missing={missingSlots}
+                asFullDay={asFullDay}
+                onTreatAsFullDay={() => setFullDayFor(missingKey)}
+                onEditProfile={onEditProfile}
+              />
             </div>
           </div>
           <div className={panel('slots')}>

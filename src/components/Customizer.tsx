@@ -4,7 +4,7 @@ import { ingredientsTotals, scaleTotals } from '../domain/nutrition'
 import { rankAndFilter } from '../domain/search'
 import { SLOTS, type DishSource, type Food, type Ingredient, type Slot } from '../domain/types'
 import { SLOT_LABEL } from './labels'
-import { useDismiss } from './useDismiss'
+import { useDialog } from './useDialog'
 
 const SUGGEST_LIMIT = 8
 const ADD_GRAMS = 50
@@ -112,7 +112,7 @@ export function Customizer({
   onSave: (name: string, ingredients: Ingredient[], portion: number, slots: Slot[]) => void
   onClose: () => void
 }) {
-  useDismiss(onClose)
+  const dialogRef = useDialog(onClose)
   const [rows, setRows] = useState<Row[]>(() => toRows(initial))
   const [portion, setPortion] = useState(initialPortion)
   const [slots, setSlots] = useState<Slot[]>(initialSlots)
@@ -147,10 +147,12 @@ export function Customizer({
   return (
     <div className="fixed inset-0 z-30 flex items-end bg-ink/30 md:items-center md:justify-center" onClick={onClose}>
       <div
+        ref={dialogRef}
+        tabIndex={-1}
         role="dialog"
         aria-modal="true"
         aria-label={`${title}を編集`}
-        className="flex max-h-[92vh] w-full flex-col rounded-t-[var(--radius-card)] bg-cream p-4 shadow-xl md:max-w-2xl md:rounded-[var(--radius-card)]"
+        className="outline-none flex max-h-[92vh] w-full flex-col rounded-t-[var(--radius-card)] bg-cream p-4 shadow-xl md:max-w-2xl md:rounded-[var(--radius-card)]"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-3 flex shrink-0 items-center justify-between">

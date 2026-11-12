@@ -25,8 +25,10 @@ import { useCatalog, withMyData } from './data/catalog'
 import { usePrices } from './data/prices'
 import { knownItemsOnly, menuTotals, type Catalog } from './domain/nutrition'
 import { computeTargets } from './domain/targets'
+import { missingMealSlots } from './domain/dayProgress'
 import { SLOTS, type Ingredient, type Slot } from './domain/types'
 import { MY_PRODUCT_PREFIX, useAppStore } from './store/useAppStore'
+import { DEFAULT_PROFILE_LABEL } from './components/labels'
 import { LogoMogu } from './components/Mascot'
 import { UiIcon } from './components/UiIcon'
 
@@ -37,8 +39,8 @@ const sameIngredients = (a: Ingredient[], b: Ingredient[]) =>
 const NAV_BUTTON =
   'flex min-h-10 items-center justify-center gap-1 whitespace-nowrap rounded-full bg-white px-3 text-xs leading-tight font-bold shadow-sm sm:min-h-11 sm:px-4 sm:text-sm sm:font-normal'
 
-// プロフィールを入れるまでの仮の目安（DEFAULT_PROFILE）の言い方
-const DEFAULT_PROFILE_LABEL = '30〜49歳・女性'
+// 最初の画面の「献立の例で試す」で入れる理想の献立（市販品を使わないので、すぐ入れられる）
+const SAMPLE_MENU_ID = 'washoku'
 
 // lg（ヘッダーに1段で並べる幅）は、プロフィールのボタンと並ぶので少し小さく
 const ICON_CLASS = 'h-6 w-6 shrink-0 sm:h-9 sm:w-9 lg:h-7 lg:w-7 xl:h-9 xl:w-9'
@@ -219,6 +221,10 @@ export default function App() {
   const waitingForStores = Boolean(catalog) && !storesLoaded && menu !== storedMenu
   const totals = useMemo(() => (catalog ? menuTotals(menu, catalog) : null), [catalog, menu])
   const showStart = SLOTS.every((s) => menu[s].length === 0) && !startDismissed
+  const sampleMenu = useMemo(() => {
+    const ideal = IDEAL_MENUS.find((m) => m.id === SAMPLE_MENU_ID)
+    return ideal && catalog && idealMenuAvailable(ideal, catalog) ? ideal : undefined
+  }, [catalog])
 
   // 成分ランキングのページから「くらべ方を変えて見る」で来たとき（/ranking/?n=iron）は、その成分をえらんだ状態で開く
   const [rankingStart] = useState(() => nutrientFromSlug(queryParam('n')) ?? undefined)
@@ -398,11 +404,11 @@ export default function App() {
       )}
 
       {view === 'about' ? (
-        <main>
+        <main tabIndex={-1} className="outline-none">
           <AboutView onBack={() => setView('menu')} />
         </main>
       ) : catalog && view === 'customize' ? (
-        <main>
+        <main tabIndex={-1} className="outline-none">
           <CustomizeView
             catalog={catalog}
             myDishes={myDishes}
@@ -413,15 +419,23 @@ export default function App() {
           />
         </main>
       ) : catalog && view === 'ranking' ? (
-        <main>
+        <main tabIndex={-1} className="outline-none">
           <RankingView catalog={catalog} targets={targets} prices={prices} initialNutrient={rankingStart} />
         </main>
       ) : catalog && totals && !waitingForStores ? (
-        <main className="space-y-4">
+        <main tabIndex={-1} className="space-y-4 outline-none">
           {showStart ? (
             // 1日の食事が空のうちは、どう入れるかを選ぶまで朝・昼・晩や栄養の表示を出さない
             <StartChoice
               savedCount={savedMenus.length}
+              sampleName={sampleMenu?.name}
+              onTrySample={() => {
+                if (!sampleMenu) return
+                // いまの目安（プロフィール）に合わせた量で入れる
+                replaceMenu(adjustIdealMenu(sampleMenu, catalog, targets), sampleMenu.name)
+                setStartDismissed(true)
+                window.scrollTo({ top: 0 })
+              }}
               onLoad={() => setSavedDialog('load')}
               onPickSelf={() => {
                 setStartDismissed(true)
@@ -464,6 +478,8 @@ export default function App() {
                 totals={totals}
                 targets={targets}
                 profile={profile}
+                profileSet={profileSet}
+                missingSlots={missingMealSlots(menu, targets)}
                 onEditSlotShare={() => {
                   setProfileFocus('slotShare')
                   setProfileOpen(true)
