@@ -7,8 +7,8 @@
   },
   "overrides": [
     {
-      // ビルドのときにだけ HTML に書き出すページ（開発中の画面の差しかえ＝Fast Refresh は使わない）
-      "files": ["src/pages/**"],
+      // ビルドのときにだけ HTML や画像に書き出すもの（開発中の画面の差しかえ＝Fast Refresh は使わない）
+      "files": ["src/pages/**", "scripts/**"],
       "rules": { "react/only-export-components": "off" }
     }
   ]
