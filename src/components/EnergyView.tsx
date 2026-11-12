@@ -19,6 +19,9 @@ const slotNames = (slots: Slot[]) => slots.map((s) => SLOT_LABEL[s]).join('・')
 // ほぼつり合っているとみなす差（kcal/日）
 const BALANCED = 50
 
+// 食べるカロリーが基礎代謝のこの割合より少ないときは、体重の変化を計算しない
+const TOO_LOW_RATIO = 0.5
+
 // 朝・昼・晩のうちまだ入っていない区分（missing）があるあいだは、合計を1日ぶんとして扱わない。
 // asFullDay は、ユーザーが「この内容を1日ぶんとして計算する」をえらんだとき
 type DayProgress = { missing: Slot[]; asFullDay: boolean }
@@ -210,6 +213,20 @@ export function WeightSimView({
       </div>
     )
   }
+  // 基礎代謝の半分にも届かない量は、入れ忘れか、続けられない量。「1年後 −40kg」のような数字になるので計算しない
+  if (intake < energy.bmr * TOO_LOW_RATIO) {
+    return (
+      <div className="space-y-3">
+        <h2 className="font-bold">このまま続けたときの体重</h2>
+        <p role="note" className="rounded-2xl bg-caution/20 px-3 py-2 text-sm">
+          <strong>食べるカロリーが少なすぎるので、体重の変化は計算しません。</strong>
+          <span className="block text-xs">
+            いまの合計（{kcal(intake)} kcal）は、基礎代謝（{kcal(energy.bmr)} kcal）の半分より少なくなっています。食事がすべて入っているか、たしかめてください。
+          </span>
+        </p>
+      </div>
+    )
+  }
   const sim = simulateWeight(intake, profile)
   const height = profile.heightCm
   const year = sim.at(365)
@@ -229,7 +246,7 @@ export function WeightSimView({
       {intake < energy.bmr && (
         <p role="note" className="rounded-2xl bg-caution/20 px-3 py-2 text-sm">
           <strong>食べるカロリーが、基礎代謝（{kcal(energy.bmr)} kcal）より少なくなっています。</strong>
-          <span className="block text-xs">食事がすべて入っているか、たしかめてください。この量を毎日続ける計算は、実際とは大きくずれます。</span>
+          <span className="block text-xs">食事がすべて入っているか、たしかめてください。この量を長く続ける計算は、実際とはずれやすくなります。</span>
         </p>
       )}
       <WeightChart sim={sim} />

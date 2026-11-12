@@ -39,7 +39,7 @@ export function StartChoice({
           <span className="inline-block">料理を選ぶだけで、</span>
           <span className="inline-block">1日の栄養バランスがわかる</span>
         </h2>
-        <p className="mt-1.5 max-w-xl text-sm text-pretty text-ink-soft">カロリーやPFCバランス、ビタミン・ミネラルが、1日の目安に足りているかを見られます。</p>
+        <p className="mt-1.5 max-w-xl text-sm text-balance text-ink-soft">カロリーやPFCバランス、ビタミン・ミネラルが、1日の目安に足りているかを見られます。</p>
       </div>
       <div className="mx-auto max-w-4xl">
         <div className="mb-3 flex flex-col items-center gap-1.5 text-center sm:flex-row sm:justify-center sm:gap-2.5">
