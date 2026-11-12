@@ -5,6 +5,10 @@ on:
   push:
     branches: [main]
 
+# CI は読むだけ（コードの取得）なので、GitHub の鍵（GITHUB_TOKEN）には読む権限だけを渡す
+permissions:
+  contents: read
+
 jobs:
   check:
     runs-on: ubuntu-latest
