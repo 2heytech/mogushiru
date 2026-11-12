@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { Fragment, useEffect, useMemo, useRef, useState, type MouseEvent, type ReactNode } from 'react'
 import { Customizer } from './components/Customizer'
 import { prioritySlots, withSlot } from './domain/customize'
 import { CustomizeIcon } from './components/CustomizeIcon'
@@ -14,8 +14,10 @@ import { DayMenuPanel } from './components/DayMenuPanel'
 import { StartChoice } from './components/StartChoice'
 import { RankingView } from './components/RankingView'
 import { AboutView } from './components/AboutView'
-import { OPERATOR_NAME } from './site'
 import { confirmDialog } from './components/confirm'
+import { SiteFooter } from './components/SiteFooter'
+import { adjustIdealMenu, IDEAL_MENUS, idealMenuAvailable, idealMenuHasProducts } from './domain/idealMenus'
+import { legacyRedirect, nutrientFromSlug, VIEW_META, VIEW_PATH, viewFromLocation, type View } from './routes'
 import { ConfirmHost } from './components/ConfirmDialog'
 import { LoadMenuDialog, MenuActions, SaveMenuDialog } from './components/SavedMenus'
 import { DayInfo } from './components/SummaryPanel'
@@ -34,9 +36,6 @@ const sameIngredients = (a: Ingredient[], b: Ingredient[]) =>
 // スマホではアイコンの下に小さく名前、広い画面では横並び
 const NAV_BUTTON =
   'flex min-h-10 items-center justify-center gap-1 whitespace-nowrap rounded-full bg-white px-3 text-xs leading-tight font-bold shadow-sm sm:min-h-11 sm:px-4 sm:text-sm sm:font-normal'
-
-// about は「このサイトについて」（上のタブには出さず、フッターから入る）
-type View = 'menu' | 'ranking' | 'customize' | 'about'
 
 // プロフィールを入れるまでの仮の目安（DEFAULT_PROFILE）の言い方
 const DEFAULT_PROFILE_LABEL = '30〜49歳・女性'
@@ -58,11 +57,11 @@ function FeatureTabsCompact({ view, onChange }: { view: View; onChange: (v: View
       {FEATURES.map((f) => {
         const active = f.view === view
         return (
-          <button
+          <a
             key={f.view}
-            type="button"
+            href={VIEW_PATH[f.view]}
             aria-current={active ? 'page' : undefined}
-            onClick={() => onChange(f.view)}
+            onClick={(e) => inAppLink(e, () => onChange(f.view))}
             title={f.lead}
             className={`flex min-h-12 items-center gap-1.5 rounded-full border-2 pr-3 pl-2 text-sm font-bold whitespace-nowrap transition xl:pr-4 ${
               active ? 'border-coral bg-white text-coral-ink shadow-sm' : 'border-transparent bg-white/60 text-ink hover:bg-white'
@@ -70,7 +69,7 @@ function FeatureTabsCompact({ view, onChange }: { view: View; onChange: (v: View
           >
             {f.icon}
             {f.title.replaceAll('|', '')}
-          </button>
+          </a>
         )
       })}
     </nav>
@@ -83,12 +82,12 @@ function FeatureTabs({ view, onChange }: { view: View; onChange: (v: View) => vo
       {FEATURES.map((f) => {
         const active = f.view === view
         return (
-          <button
+          <a
             key={f.view}
-            type="button"
+            href={VIEW_PATH[f.view]}
             aria-current={active ? 'page' : undefined}
-            onClick={() => onChange(f.view)}
-            className={`min-h-14 rounded-2xl border-2 px-1 py-1.5 text-center transition sm:min-h-16 sm:px-4 sm:py-2 sm:text-left ${
+            onClick={(e) => inAppLink(e, () => onChange(f.view))}
+            className={`block min-h-14 rounded-2xl border-2 px-1 py-1.5 text-center transition sm:min-h-16 sm:px-4 sm:py-2 sm:text-left ${
               active ? 'border-coral bg-white shadow-sm' : 'border-transparent bg-white/60 text-ink-soft hover:bg-white'
             }`}
           >
@@ -107,30 +106,57 @@ function FeatureTabs({ view, onChange }: { view: View; onChange: (v: View) => vo
               </span>
             </span>
             <span className="mt-0.5 hidden text-xs leading-snug sm:block">{f.lead}</span>
-          </button>
+          </a>
         )
       })}
     </nav>
   )
 }
 
-const HASH_VIEWS: Record<string, View> = { '#ranking': 'ranking', '#customize': 'customize', '#about': 'about' }
-const viewFromHash = (): View => HASH_VIEWS[window.location.hash] ?? 'menu'
+// 画面へのリンクは <a href> にしておき（検索エンジンがたどれる・新しいタブでも開ける）、ふつうのクリックはページを読み直さずに切り替える
+function inAppLink(e: MouseEvent<HTMLAnchorElement>, go: () => void) {
+  if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+  e.preventDefault()
+  go()
+}
 
-// 画面の切り替えは URL の # で持つ（ブラウザの戻るで献立に戻れるように）
+// 画面の切り替えは URL のパス（/ranking/ など）で持つ（ブラウザの戻るで献立に戻れるように）。
+// 古い # のリンク（/#ranking）で来たときは、その画面を開いてアドレス欄を新しい URL に直す
 function useView(): [View, (v: View) => void] {
-  const [view, setView] = useState<View>(viewFromHash)
+  const [view, setView] = useState<View>(() => viewFromLocation(window.location.pathname, window.location.hash))
   useEffect(() => {
-    const onHash = () => setView(viewFromHash())
-    window.addEventListener('hashchange', onHash)
-    return () => window.removeEventListener('hashchange', onHash)
+    const sync = () => {
+      const { pathname, hash, search } = window.location
+      const legacy = legacyRedirect(pathname, hash)
+      if (legacy) window.history.replaceState(null, '', legacy + search)
+      setView(viewFromLocation(window.location.pathname, window.location.hash))
+    }
+    sync()
+    window.addEventListener('popstate', sync)
+    window.addEventListener('hashchange', sync)
+    return () => {
+      window.removeEventListener('popstate', sync)
+      window.removeEventListener('hashchange', sync)
+    }
   }, [])
+  useEffect(() => {
+    document.title = VIEW_META[view].title
+  }, [view])
   const go = (v: View) => {
-    window.location.hash = v === 'menu' ? '' : v
+    if (window.location.pathname !== VIEW_PATH[v]) window.history.pushState(null, '', VIEW_PATH[v])
     setView(v)
     window.scrollTo({ top: 0 })
   }
   return [view, go]
+}
+
+// URL のクエリ（?n=iron や ?menu=…）を読んで、読み終えたらアドレス欄から消す
+const queryParam = (name: string) => new URLSearchParams(window.location.search).get(name)
+function dropQueryParam(name: string) {
+  const url = new URL(window.location.href)
+  if (!url.searchParams.has(name)) return
+  url.searchParams.delete(name)
+  window.history.replaceState(null, '', url.pathname + url.search + url.hash)
 }
 
 export default function App() {
@@ -193,6 +219,30 @@ export default function App() {
   const waitingForStores = Boolean(catalog) && !storesLoaded && menu !== storedMenu
   const totals = useMemo(() => (catalog ? menuTotals(menu, catalog) : null), [catalog, menu])
   const showStart = SLOTS.every((s) => menu[s].length === 0) && !startDismissed
+
+  // 成分ランキングのページから「くらべ方を変えて見る」で来たとき（/ranking/?n=iron）は、その成分をえらんだ状態で開く
+  const [rankingStart] = useState(() => nutrientFromSlug(queryParam('n')) ?? undefined)
+  useEffect(() => dropQueryParam('n'), [])
+
+  // 献立の例のページから「この献立をアプリで開く」で来たとき（/?menu=<id>）は、その理想の献立をプロフィールに合わせて呼び出す
+  const menuRequest = useRef(queryParam('menu'))
+  useEffect(() => {
+    const id = menuRequest.current
+    if (!id || !catalog) return
+    const ideal = IDEAL_MENUS.find((m) => m.id === id)
+    // 市販品を使う献立は、コンビニ・メーカーの商品を読み終えるまで待つ
+    if (ideal && !idealMenuAvailable(ideal, catalog) && idealMenuHasProducts(ideal) && !storesLoaded) return
+    menuRequest.current = null
+    dropQueryParam('menu')
+    if (!ideal || !idealMenuAvailable(ideal, catalog)) return
+    const planned = adjustIdealMenu(ideal, catalog, targets)
+    const empty = SLOTS.every((s) => useAppStore.getState().menu[s].length === 0)
+    void (async () => {
+      if (!empty && !(await confirmDialog(`いまの1日の食事を「${ideal.name}」に置き換えますか？`, { okLabel: '呼び出す' }))) return
+      replaceMenu(planned, ideal.name)
+      setStartDismissed(true)
+    })()
+  }, [catalog, storesLoaded, targets, replaceMenu])
 
   function renderEditor(catalog: Catalog, { slot, uid }: { slot: Slot; uid: string }) {
     const item = menu[slot].find((i) => i.uid === uid)
@@ -364,7 +414,7 @@ export default function App() {
         </main>
       ) : catalog && view === 'ranking' ? (
         <main>
-          <RankingView catalog={catalog} targets={targets} prices={prices} />
+          <RankingView catalog={catalog} targets={targets} prices={prices} initialNutrient={rankingStart} />
         </main>
       ) : catalog && totals && !waitingForStores ? (
         <main className="space-y-4">
@@ -511,25 +561,7 @@ export default function App() {
 
       <ConfirmHost />
 
-      <footer className="mt-12 space-y-1 text-xs leading-relaxed text-ink-soft">
-        <p>表示される値は目安です。医療・栄養指導の代わりにはなりません。</p>
-        <p>
-          データ：文部科学省「日本食品標準成分表（八訂）増補2023年」、農林水産省「うちの郷土料理」、厚生労働省「日本人の食事摂取基準（2025年版）」、各社公式サイトの栄養成分表示、Open Food Facts（ODbL）ほか。出典のくわしい一覧は「このサイトについて」にあります。
-        </p>
-        <p className="flex flex-wrap items-center gap-x-3 gap-y-1">
-          <a
-            href="#about"
-            onClick={(e) => {
-              // 下のフッターから開くので、ページの上から見せる
-              e.preventDefault()
-              setView('about')
-            }}
-            className="font-bold text-coral-ink underline decoration-coral/60 underline-offset-2">
-            このサイトについて（出典・プライバシー・お問い合わせ）
-          </a>
-          <span>運営：{OPERATOR_NAME}</span>
-        </p>
-      </footer>
+      <SiteFooter onAbout={() => setView('about')} />
     </div>
   )
 }

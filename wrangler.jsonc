@@ -6,8 +6,9 @@
   "compatibility_date": "2026-11-11",
   "assets": {
     "directory": "./dist",
-    // 画面の切り替えは URL の # で行うので、知らないパスに来たときは index.html を返してアプリを開く
-    "not_found_handling": "single-page-application"
+    // 画面ごとのページ（/ranking/ など）と読みもののページはビルドで HTML を書き出しているので、
+    // 知らないパスには 404.html を「見つからない」（404）として返す（アプリの画面を返すと、検索エンジンが中身のないページとして数えてしまう）
+    "not_found_handling": "404-page"
   },
   // main 以外のブランチ（PR）のビルドは npx wrangler preview で確認用の URL を作る。そのためにこの欄が要る（中身は空でよい）
   "previews": {}

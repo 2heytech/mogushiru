@@ -1,5 +1,7 @@
 // 食品成分ランキング
 // 「100gあたり」だけでなく、1回に食べる量・カロリー・価格あたりでも並べられるようにする
+import foodNames from '../../data/food-names.json'
+import type { Catalog } from './nutrition'
 import { servingFor, type Serving } from './serving'
 import type { NutrientTarget, Targets } from './targets'
 import type { Food, NutrientKey } from './types'
@@ -42,6 +44,15 @@ export const RANKING_NUTRIENTS: RankingNutrient[] = [
   { key: 'salt', label: '食塩', unit: 'g', caution: true },
   { key: 'satFat', label: '飽和脂肪酸', unit: 'g', caution: true },
   { key: 'caffeine', label: 'カフェイン', unit: 'mg', caution: true },
+]
+
+// 成分は26あるので、種類ごとに分けて見つけやすくする
+export const NUTRIENT_GROUPS: { label: string; keys: NutrientKey[] }[] = [
+  { label: '主な栄養', keys: ['energyKcal', 'protein', 'fat', 'carb', 'fiber'] },
+  { label: 'ミネラル', keys: ['calcium', 'iron', 'potassium', 'magnesium', 'zinc'] },
+  { label: 'ビタミン', keys: ['vitaminA', 'vitaminD', 'vitaminE', 'vitaminB1', 'vitaminB2', 'niacin', 'vitaminB6', 'folate', 'vitaminC'] },
+  { label: '脂肪酸', keys: ['n3Fat', 'n6Fat', 'monoUnsatFat', 'polyUnsatFat'] },
+  { label: 'とりすぎに気をつけたい', keys: ['salt', 'satFat', 'caffeine'] },
 ]
 
 // 食品群の短い表示名（成分表の食品群番号）
@@ -152,3 +163,14 @@ export function dailyReference(nutrient: NutrientKey, t: Targets): { value: numb
     }
   }
 }
+
+// 表示名を付けた食材（data/food-names.json）と料理の材料を「よく使う食材」とする
+export function familiarFoodIds(catalog: Pick<Catalog, 'dishes'>): Set<string> {
+  const ids = new Set(foodNames.displayNames.map((d) => d.id))
+  for (const dish of catalog.dishes.values()) for (const ing of dish.ingredients) ids.add(ing.foodId)
+  return ids
+}
+
+// 量の表示。大きい値は整数、小さい値は有効数字2けたくらい
+export const formatAmount = (v: number): string =>
+  v >= 100 ? Math.round(v).toLocaleString() : v >= 10 ? v.toFixed(1) : v >= 1 ? v.toFixed(2) : v.toPrecision(2)

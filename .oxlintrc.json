@@ -4,5 +4,12 @@
   "rules": {
     "react/rules-of-hooks": "error",
     "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
+  },
+  "overrides": [
+    {
+      // ビルドのときにだけ HTML に書き出すページ（開発中の画面の差しかえ＝Fast Refresh は使わない）
+      "files": ["src/pages/**"],
+      "rules": { "react/only-export-components": "off" }
+    }
+  ]
 }

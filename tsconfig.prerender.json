@@ -1,0 +1,6 @@
+{
+  // ページの書き出し（scripts/prerender.tsx）を tsx で動かすときだけ使う。src の画面の部品（.tsx）も同じ JSX の変換で読むため
+  // 型のチェックは tsconfig.scripts.json（npm run build の tsc -b）でする
+  "extends": "./tsconfig.scripts.json",
+  "include": ["scripts", "src"]
+}
