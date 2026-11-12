@@ -13,6 +13,7 @@ import {
   type RankingNutrient,
   type RankingRow,
 } from '../domain/ranking'
+import { SERVING_NOTE } from '../domain/serving'
 import { computeTargets, DEFAULT_PROFILE, type Targets } from '../domain/targets'
 import type { Food, NutrientKey, Sex } from '../domain/types'
 import { nutrientPagePath, NUTRIENTS_INDEX_PATH, rankingAppPath, SITE_NAME } from '../routes'
@@ -112,7 +113,7 @@ const LIST_TITLE: Record<RankingMetric, (name: string, caution: boolean) => stri
   per100yen: (n) => `値段のわりに${n}が多い食品（100円あたり）`,
 }
 const LIST_HINT: Record<RankingMetric, string> = {
-  serving: '1回の量はモグシルの目安です（例：ごはん150g、焼きのり3g、しょうゆ6g）。乾物や調味料のように一度にたくさん食べないものは下がります。',
+  serving: `${SERVING_NOTE}乾物や調味料のように一度にたくさん食べないものは下がります。`,
   per100g: '日本食品標準成分表の100gあたりの値です。乾物や調味料のように、ふだん少ししか使わないものも上に来ます。',
   per100kcal: 'カロリーをとりすぎずにとれる食品が上に来ます（100gあたり10kcal未満の食品は除きます）。',
   per100yen: '総務省「小売物価統計調査」の2025年平均の店頭価格をもとにした概算で、100円分に含まれる量でくらべます。実際の値段は店や時期で変わります。価格が分かる食品だけです（調味料は除きます）。',

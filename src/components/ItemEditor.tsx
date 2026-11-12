@@ -4,7 +4,7 @@ import { supplementLines } from './labels'
 import type { MenuItem } from '../domain/types'
 import { itemName } from './itemName'
 import { PortionEditor } from './PortionEditor'
-import { useDismiss } from './useDismiss'
+import { useDialog } from './useDialog'
 
 // 市販品・食材の編集（量・お気に入り）。料理は材料まで変えられる Customizer で開く
 export function ItemEditor({
@@ -27,7 +27,7 @@ export function ItemEditor({
   onRemove: () => void
   onClose: () => void
 }) {
-  useDismiss(onClose)
+  const dialogRef = useDialog(onClose)
   const v = itemTotals(item, catalog).values
   const name = itemName(item, catalog)
   const product = item.kind === 'product' || item.kind === 'supplement' ? catalog.products.get(item.refId) : undefined
@@ -36,10 +36,12 @@ export function ItemEditor({
   return (
     <div className="fixed inset-0 z-30 flex items-end bg-ink/30 md:items-center md:justify-center" onClick={onClose}>
       <div
+        ref={dialogRef}
+        tabIndex={-1}
         role="dialog"
         aria-modal="true"
         aria-label={`${name}を編集`}
-        className="w-full rounded-t-[var(--radius-card)] bg-cream p-4 shadow-xl md:max-w-md md:rounded-[var(--radius-card)]"
+        className="outline-none w-full rounded-t-[var(--radius-card)] bg-cream p-4 shadow-xl md:max-w-md md:rounded-[var(--radius-card)]"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-3 flex items-center justify-between gap-2">

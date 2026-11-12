@@ -6,6 +6,9 @@ import type { DishCategory, NutrientKey, Slot } from '../domain/types'
 
 export const SLOT_LABEL: Record<Slot, string> = { breakfast: '朝', lunch: '昼', dinner: '晩', other: 'その他' }
 
+// プロフィールを入れるまでの仮の目安（DEFAULT_PROFILE）の言い方
+export const DEFAULT_PROFILE_LABEL = '30〜49歳・女性'
+
 export const DISH_CATEGORY_LABEL: Record<DishCategory, string> = {
   staple: '主食',
   main: '主菜',

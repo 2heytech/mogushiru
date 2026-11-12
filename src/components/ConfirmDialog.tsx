@@ -1,5 +1,5 @@
 import { answer, useConfirmStore, type ConfirmRequest } from './confirm'
-import { useDismiss } from './useDismiss'
+import { useDialog } from './useDialog'
 
 // App の最後に1つだけ置く。ほかのダイアログより手前に出す
 export function ConfirmHost() {
@@ -8,14 +8,16 @@ export function ConfirmHost() {
 }
 
 function ConfirmBox({ request }: { request: ConfirmRequest }) {
-  useDismiss(() => answer(false))
+  const dialogRef = useDialog(() => answer(false))
   return (
     <div className="fixed inset-0 z-30 flex items-center justify-center bg-ink/30 px-4" onClick={() => answer(false)}>
       <div
+        ref={dialogRef}
+        tabIndex={-1}
         role="alertdialog"
         aria-modal="true"
         aria-label={request.message}
-        className="w-full max-w-sm rounded-[var(--radius-card)] bg-cream p-5 shadow-xl"
+        className="outline-none w-full max-w-sm rounded-[var(--radius-card)] bg-cream p-5 shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
         <p className="text-base leading-relaxed">{request.message}</p>
