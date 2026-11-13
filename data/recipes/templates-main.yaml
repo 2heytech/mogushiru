@@ -40,12 +40,18 @@
   suggestedSlots: [breakfast, lunch, dinner]
   ingredients:
     - { foodId: "{food}", grams: "{grams}", role: 魚 }
+  recipe:
+    minutes: 10
+    note: "重さは、焼いたあとの重さです。"
+    steps:
+      - "魚焼きグリルを温め、{name}を並べて中火で焼く。"
+      - "焼き色がついたら裏返し、もう片面も焼く。開きは身のほうから焼くと、皮がこげにくい。"
   variants:
     - { id: aji, name: あじの開き, kana: あじのひらき, food: "10007", grams: 65 } # まあじ 開き干し 焼き 1枚の可食部
     - { id: hokke, name: ほっけの開き, kana: ほっけのひらき, food: "10412", grams: 120 } # ほっけ 開き干し 焼き 1/2枚の可食部
     - { id: shishamo, name: ししゃも, kana: ししゃも, food: "10183", grams: 60 } # からふとししゃも 生干し 焼き 3尾
     - { id: mezashi, name: めざし, kana: めざし, food: "10054", grams: 40 } # めざし 焼き 4尾
-    - { id: tarako, name: 焼きたらこ, kana: やきたらこ たらこ, food: "10203", grams: 30 } # たらこ 焼き 1/2腹
+    - { id: tarako, name: 焼きたらこ, kana: やきたらこ たらこ, food: "10203", grams: 30, recipe: { minutes: 10, note: "重さは、焼いたあとの重さです。", steps: ["たらこはアルミホイルにのせ、魚焼きグリルかオーブントースターで焼く。", "表面の色が変わったら転がして、全体を焼く。中まで火を通すか、半生にするかは好みで。"] } } # たらこ 焼き 1/2腹
 
 # 照り焼き（しょうゆ・みりん・砂糖のたれ）
 - template: teriyaki
@@ -59,9 +65,16 @@
     - { foodId: "16025", grams: 9 } # 本みりん 大さじ1/2
     - { foodId: "03003", grams: 2 } # 上白糖
     - { foodId: "14006", grams: 3 } # 調合油
+  recipe:
+    minutes: 15
+    steps:
+      - "{prep}"
+      - "しょうゆ、みりん、砂糖をまぜてたれを作る。"
+      - "フライパンにサラダ油を入れて中火で熱し、盛りつけるときに上になる側から焼く。焼き色がついたら裏返し、ふたをして弱火で中まで火を通す。"
+      - "出てきた脂をふきとり、たれを加えて煮からめ、照りを出す。"
   variants:
-    - { id: buri, name: ぶり, kana: ぶり, food: "10242", grams: 80 } # ぶり 焼き 1切れ
-    - { id: chicken, name: 鶏, kana: とり とりもも, food: "11222", grams: 100 } # 若どり もも 皮つき 焼き
+    - { id: buri, name: ぶり, kana: ぶり, food: "10242", grams: 80, prep: "ぶりは水気をふく。" } # ぶり 焼き 1切れ
+    - { id: chicken, name: 鶏, kana: とり とりもも, food: "11222", grams: 100, prep: "鶏もも肉は厚いところを開いて厚みをそろえ、筋を切る。" } # 若どり もも 皮つき 焼き
 
 # 刺身（つけじょうゆ・わさび付き）
 - template: sashimi
@@ -73,15 +86,21 @@
     - { foodId: "{food}", grams: "{grams}", role: 魚 }
     - { foodId: "17007", grams: 5 } # こいくちしょうゆ
     - { foodId: "17081", grams: 1 } # 練りわさび
+  recipe:
+    minutes: 5
+    note: "刺身用に売られているものを使います。"
+    steps:
+      - "{prep}"
+      - "器に盛り、わさびとしょうゆを添える。"
   variants:
-    - { id: salmon, name: サーモン, kana: さーもん, food: "10144", grams: 60 } # たいせいようさけ 養殖 生
-    - { id: hamachi, name: はまち, kana: はまち, food: "10243", grams: 60 } # ぶり はまち 養殖 生
-    - { id: tai, name: たい, kana: たい まだい, food: "10193", grams: 60 } # まだい 養殖 生
-    - { id: katsuo, name: かつお, kana: かつお, food: "10086", grams: 70 } # かつお 春獲り 生
-    - { id: ika, name: いか, kana: いか, food: "10345", grams: 50 } # するめいか 生
-    - { id: tako, name: たこ, kana: たこ, food: "10362", grams: 50 } # まだこ ゆで
-    - { id: hotate, name: ほたて, kana: ほたて ほたてがい, food: "10313", grams: 50 } # ほたてがい 貝柱 生
-    - { id: amaebi, name: 甘えび, kana: あまえび, food: "10319", grams: 40 } # あまえび 生
+    - { id: salmon, name: サーモン, kana: さーもん, food: "10144", grams: 60, prep: "サーモンのさくは水気をふき、包丁を手前に引くようにして1cmの厚さに切る。" } # たいせいようさけ 養殖 生
+    - { id: hamachi, name: はまち, kana: はまち, food: "10243", grams: 60, prep: "はまちのさくは水気をふき、包丁を手前に引くようにして1cmの厚さに切る。" } # ぶり はまち 養殖 生
+    - { id: tai, name: たい, kana: たい まだい, food: "10193", grams: 60, prep: "たいのさくは水気をふき、包丁を手前に引くようにして薄く切る。" } # まだい 養殖 生
+    - { id: katsuo, name: かつお, kana: かつお, food: "10086", grams: 70, prep: "かつおのさくは水気をふき、包丁を手前に引くようにして1cmの厚さに切る。" } # かつお 春獲り 生
+    - { id: ika, name: いか, kana: いか, food: "10345", grams: 50, prep: "いかは皮をむいて水気をふき、細く切る。" } # するめいか 生
+    - { id: tako, name: たこ, kana: たこ, food: "10362", grams: 50, prep: "ゆでだこの足は、包丁を手前に引くようにして薄いそぎ切りにする。" } # まだこ ゆで
+    - { id: hotate, name: ほたて, kana: ほたて ほたてがい, food: "10313", grams: 50, prep: "ほたて貝柱は水気をふき、厚みを半分に切る。" } # ほたてがい 貝柱 生
+    - { id: amaebi, name: 甘えび, kana: あまえび, food: "10319", grams: 40, prep: "甘えびは頭と殻をとり、尾は残す。" } # あまえび 生
 
 # 肉の焼き物（塩・こしょう）
 - template: grill
@@ -93,10 +112,16 @@
     - { foodId: "{food}", grams: "{grams}", role: 肉 }
     - { foodId: "17012", grams: 0.8 } # 食塩
     - { foodId: "17065", grams: 0.1 } # こしょう
+  recipe:
+    minutes: 15
+    steps:
+      - "{prep}"
+      - "焼く直前に、両面に塩とこしょうをふる。"
+      - "フライパンにサラダ油を入れて中火で熱し、盛りつけるときに上になる側から焼く。焼き色がついたら裏返し、鶏肉は中まで火を通し、牛肉は好みの焼き加減まで焼く。"
   variants:
-    - { id: steak, name: ビーフステーキ, kana: すてーき びーふすてーき, food: "11043", grams: 150, alternatives: ["11015", "11045"], extra: [{ foodId: "14006", grams: 3 }] } # 乳用肥育牛 サーロイン 脂身つき 生。和牛は 11015
-    - { id: chicken-saute, name: チキンソテー, kana: ちきんそてー, food: "11222", grams: 100, extra: [{ foodId: "14006", grams: 3 }] } # 若どり もも 皮つき 焼き
-    - { id: chicken-breast, name: 鶏むね肉のソテー, kana: とりむねにくのそてー, food: "11287", grams: 100, extra: [{ foodId: "14006", grams: 3 }] } # 若どり むね 皮つき 焼き
+    - { id: steak, name: ビーフステーキ, kana: すてーき びーふすてーき, food: "11043", grams: 150, alternatives: ["11015", "11045"], extra: [{ foodId: "14006", grams: 3 }], prep: "牛肉は焼く30分前に冷蔵庫から出しておき、脂身と赤身のさかいの筋を切る。" } # 乳用肥育牛 サーロイン 脂身つき 生。和牛は 11015
+    - { id: chicken-saute, name: チキンソテー, kana: ちきんそてー, food: "11222", grams: 100, extra: [{ foodId: "14006", grams: 3 }], prep: "鶏もも肉は厚いところを開いて厚みをそろえ、筋を切る。" } # 若どり もも 皮つき 焼き
+    - { id: chicken-breast, name: 鶏むね肉のソテー, kana: とりむねにくのそてー, food: "11287", grams: 100, extra: [{ foodId: "14006", grams: 3 }], prep: "鶏むね肉は厚いところを開いて厚みをそろえる。" } # 若どり むね 皮つき 焼き
 
 # 加工肉・練り物など、そのまま食べるもの
 - template: ready

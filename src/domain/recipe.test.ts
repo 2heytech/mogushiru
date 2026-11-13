@@ -82,6 +82,11 @@ describe('材料の一覧', () => {
     expect(amountText('17021', 150)).toBe('150mL')
     expect(amountText('17012', 0.3)).toBe('少々')
   })
+  it('牛乳は多いと mL、少ないと大さじ・小さじ。とても多い量にはさじの目安をつけない', () => {
+    expect(amountText('13003', 200)).toBe('200mL')
+    expect(amountText('13003', 15)).toBe('15g（大さじ1）')
+    expect(amountText('03003', 120)).toBe('120g')
+  })
   it('量が0の材料は出さない', () => {
     expect(recipeLines([{ foodId: '17007', grams: 0 }], 1, FOODS)).toEqual([])
   })
