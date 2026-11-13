@@ -15,6 +15,9 @@ const ALIASES: Record<string, string[]> = {
   ほうれんそう: ['ほうれん草'],
   大根: ['だいこん'],
   たらこ: ['焼きたらこ'],
+  まぐろ赤身: ['まぐろ'],
+  牛ばら肉: ['牛肉'],
+  豚ばら肉: ['豚肉'],
 }
 
 describe('料理の作り方（データ）', () => {
@@ -31,7 +34,7 @@ describe('料理の作り方（データ）', () => {
         const id = RAW_FORMS[ing.foodId]?.rawId ?? ing.foodId
         const own = d.recipe!.names?.[ing.foodId] ?? d.recipe!.names?.[id] ?? ''
         const names = [ing.role!, shortFoodName(foodById.get(ing.foodId)?.displayName ?? ''), RECIPE_NAMES[id] ?? '', own].filter(Boolean)
-        const all = names.flatMap((n) => [n, ...(ALIASES[n] ?? [])])
+        const all = names.flatMap((n) => [n, shortFoodName(n), ...(ALIASES[n] ?? [])])
         if (!all.some((n) => text.includes(n))) problems.push(`${d.name}: ${names.join('／')}`)
       }
     }
