@@ -3,7 +3,8 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import type { Catalog } from '../domain/nutrition'
 import { NUTRIENT_GROUPS, type PriceTable } from '../domain/ranking'
 import type { NutrientKey } from '../domain/types'
-import { MENU_PAGES, MENUS_INDEX_PATH, menuPagePath, NUTRIENT_SLUG, NUTRIENTS_INDEX_PATH, SITE_ALT_NAMES, SITE_NAME, SITE_URL, VIEW_META, VIEW_PATH, type View } from '../routes'
+import { DISHES_INDEX_PATH, MENU_PAGES, MENUS_INDEX_PATH, menuPagePath, NUTRIENT_SLUG, NUTRIENTS_INDEX_PATH, SITE_ALT_NAMES, SITE_NAME, SITE_URL, VIEW_META, VIEW_PATH, type View } from '../routes'
+import { dishesIndexOgCard, DishesIndexPage, dishOgCard, DishPage, dishPageDescription, dishPagesFor, dishPageTitle, dishRecipeJsonLd, relatedDishes } from './dishPages'
 import { OPERATOR_NAME } from '../site'
 import { menuGenreOgCard, MenuGenrePage, MenusIndexPage, menusFor, menusIndexOgCard, planMenus } from './menuPages'
 import { NUTRIENT_COPY } from './nutrientCopy'
@@ -52,6 +53,7 @@ const OG_NUTRIENTS: NutrientKey[] = ['protein', 'fiber', 'iron', 'calcium', 'vit
 const APP_LINKS = [
   { name: '成分が多い食品ランキング', path: NUTRIENTS_INDEX_PATH },
   { name: '栄養バランスの整う献立の例', path: MENUS_INDEX_PATH },
+  { name: '料理の作り方とカロリー・栄養', path: DISHES_INDEX_PATH },
 ]
 
 function appPage(view: View, links = APP_LINKS): SitePage {
@@ -69,6 +71,7 @@ export function buildSitePages({ catalog, prices }: { catalog: Catalog; prices: 
   const nutrients = NUTRIENT_GROUPS.flatMap((g) => g.keys).flatMap((key) => nutrientPageData(key, catalog, prices) ?? [])
   const nutrientLinks = nutrients.map((d) => ({ name: d.copy.heading, path: d.path }))
   const menuGroups = MENU_PAGES.map((page) => ({ page, plans: planMenus(menusFor(page), catalog) })).filter((g) => g.plans.length > 0)
+  const dishes = dishPagesFor(catalog)
 
   const pages: SitePage[] = [
     { ...appPage('menu'), jsonLd: [WEBSITE_JSON_LD] },
@@ -124,6 +127,28 @@ export function buildSitePages({ catalog, prices }: { catalog: Catalog; prices: 
       crumbs: [{ name: SITE_NAME, path: '/' }, { name: '献立の例', path: MENUS_INDEX_PATH }, { name: page.title }],
       og: og(`menus-${page.slug}`, menuGenreOgCard(page, plans, catalog)),
     })),
+    {
+      path: DISHES_INDEX_PATH,
+      title: `料理の作り方・レシピとカロリー・栄養（${dishes.length}品）｜${SITE_NAME}`,
+      description: `肉じゃが・唐揚げ・さばの味噌煮・豚汁など、ふだんの料理${dishes.length}品の作り方を、2人分の材料と手順、1人前のカロリー・たんぱく質・食塩つきでまとめました。`,
+      kind: 'static' as const,
+      body: html(<DishesIndexPage pages={dishes} />),
+      crumbs: [{ name: SITE_NAME, path: '/' }, { name: '料理の作り方' }],
+      og: og('dishes', dishesIndexOgCard(dishes)),
+    },
+    ...dishes.map((d) => {
+      const image = og(`dishes-${d.dish.id}`, dishOgCard(d))!
+      return {
+        path: d.path,
+        title: dishPageTitle(d),
+        description: dishPageDescription(d),
+        kind: 'static' as const,
+        body: html(<DishPage data={d} related={relatedDishes(d, dishes)} />),
+        crumbs: [{ name: SITE_NAME, path: '/' }, { name: '料理の作り方', path: DISHES_INDEX_PATH }, { name: d.dish.name }],
+        og: image,
+        jsonLd: [dishRecipeJsonLd(d, image.path)],
+      }
+    }),
   ]
   return pages
 }

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { formatPortion, prioritySlots } from '../domain/customize'
 import { ingredientsTotals, type Catalog } from '../domain/nutrition'
 import { mealFirstRank } from '../domain/popular'
@@ -26,13 +26,15 @@ const kcalOf = (ingredients: Ingredient[], catalog: Catalog, portion = 1) => {
   }
 }
 
-type Editing = { kind: 'dish'; dish: Dish } | { kind: 'myDish'; my: MyDish }
+type Editing = { kind: 'dish'; dish: Dish; tab?: 'edit' | 'recipe' } | { kind: 'myDish'; my: MyDish }
 
 // 1日の食事とは別に、料理を選んで人前や材料を変え、お気に入りに保存する画面
 export function CustomizeView({
   catalog,
   myDishes,
   showAlcohol,
+  initialDishId,
+  onInitialDishOpened,
   onSaveNew,
   onUpdate,
   onDelete,
@@ -40,12 +42,22 @@ export function CustomizeView({
   catalog: Catalog
   myDishes: MyDish[]
   showAlcohol: boolean
+  // 料理の作り方のページから来たときに、はじめから編集の窓をひらく料理
+  initialDishId?: string
+  onInitialDishOpened?: () => void
   onSaveNew: (d: Omit<MyDish, 'id' | 'createdAt' | 'updatedAt'>) => void
   onUpdate: (id: string, patch: Pick<MyDish, 'name' | 'ingredients' | 'portion' | 'slots'>) => void
   onDelete: (id: string) => void
 }) {
   const [query, setQuery] = useState('')
-  const [editing, setEditing] = useState<Editing | null>(null)
+  const [editing, setEditing] = useState<Editing | null>(() => {
+    const dish = initialDishId ? catalog.dishes.get(initialDishId) : undefined
+    return dish ? { kind: 'dish', dish, tab: dish.recipe || dish.source ? 'recipe' : 'edit' } : null
+  })
+  // ひらいたことを伝える（親が initialDishId を消すので、呼ぶのは1回だけ）
+  useEffect(() => {
+    if (initialDishId) onInitialDishOpened?.()
+  }, [initialDishId, onInitialDishOpened])
   const [notice, setNotice] = useState<string | null>(null)
   const dishes = useMemo(
     () =>
@@ -70,6 +82,7 @@ export function CustomizeView({
           initial={dish.ingredients}
           source={dish.source}
           recipe={dish.recipe}
+          initialTab={e.tab}
           foods={catalog.foods}
           saveLabel="お気に入りに保存"
           initialSlots={dish.suggestedSlots.length ? dish.suggestedSlots : [...SLOTS]}

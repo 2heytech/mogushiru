@@ -150,3 +150,12 @@ export const menuPagePath = (page: MenuPage): string => `${MENUS_INDEX_PATH}${pa
 
 // アプリで理想の献立を呼び出した状態でひらく URL（/?menu=<献立のid>）
 export const idealMenuAppPath = (id: string): string => `/?menu=${encodeURIComponent(id)}`
+
+// ---- 料理の作り方（/dishes/<料理id>/） ----
+
+export const DISHES_INDEX_PATH = '/dishes/'
+
+export const dishPagePath = (id: string): string => `${DISHES_INDEX_PATH}${id}/`
+
+// アプリで、その料理の編集の窓を「つくり方」をひらいた状態で出す URL（/customize/?dish=<料理id>）
+export const dishAppPath = (id: string): string => `${VIEW_PATH.customize}?dish=${encodeURIComponent(id)}`

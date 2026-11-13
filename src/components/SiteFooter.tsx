@@ -1,5 +1,5 @@
 import type { MouseEvent } from 'react'
-import { MENUS_INDEX_PATH, NUTRIENTS_INDEX_PATH, VIEW_PATH } from '../routes'
+import { DISHES_INDEX_PATH, MENUS_INDEX_PATH, NUTRIENTS_INDEX_PATH, VIEW_PATH } from '../routes'
 import { OPERATOR_NAME } from '../site'
 
 const LINK = 'font-bold text-coral-ink underline decoration-coral/60 underline-offset-2'
@@ -25,6 +25,9 @@ export function SiteFooter({ onAbout }: { onAbout?: () => void }) {
         </a>
         <a href={MENUS_INDEX_PATH} className={LINK}>
           栄養バランスの整う献立の例
+        </a>
+        <a href={DISHES_INDEX_PATH} className={LINK}>
+          料理の作り方
         </a>
       </p>
       <p className="flex flex-wrap items-center gap-x-3 gap-y-1">
