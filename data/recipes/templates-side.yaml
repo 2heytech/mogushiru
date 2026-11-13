@@ -48,13 +48,19 @@
     - { foodId: "17021", grams: 150 } # だし
     - { foodId: "17045", grams: 12, role: みそ, alternatives: ["17044", "17046"] } # 淡色辛みそ
     - { foodId: "{food}", grams: "{grams}", role: 具 }
+  recipe:
+    minutes: 10
+    steps:
+      - "{prep}"
+      - "鍋にだしと具を入れて中火にかけ、具に火が通るまで煮る。"
+      - "火を弱めてみそを溶き入れ、煮立つ直前に火を止める。"
   variants:
-    - { id: nameko, name: なめこ, kana: なめこ, food: "08021", grams: 30, extra: [{ foodId: "06226", grams: 3 }] }
-    - { id: daikon, name: 大根, kana: だいこん, food: "06135", grams: 40, extra: [{ foodId: "04040", grams: 5 }] } # 大根と油揚げ
-    - { id: jagaimo, name: じゃがいもと玉ねぎ, kana: じゃがいもとたまねぎ, food: "02019", grams: 40, extra: [{ foodId: "06155", grams: 20 }] }
-    - { id: asari, name: あさり, kana: あさり, food: "10281", grams: 30 } # 殻を除いた重さ
-    - { id: shijimi, name: しじみ, kana: しじみ, food: "10297", grams: 15 } # 殻を除いた重さ
-    - { id: cabbage, name: キャベツ, kana: きゃべつ, food: "06062", grams: 30 }
-    - { id: nasu, name: なす, kana: なす, food: "06192", grams: 40 }
-    - { id: spinach, name: ほうれん草, kana: ほうれんそう, food: "06268", grams: 30 }
-    - { id: wakame, name: わかめとねぎ, kana: わかめとねぎ, food: "09045", grams: 15, extra: [{ foodId: "06226", grams: 5 }] }
+    - { id: nameko, name: なめこ, kana: なめこ, food: "08021", grams: 30, extra: [{ foodId: "06226", grams: 3 }], prep: "なめこはさっと洗って水気をきる。長ねぎは小口切りにする。" }
+    - { id: daikon, name: 大根, kana: だいこん, food: "06135", grams: 40, extra: [{ foodId: "04040", grams: 5 }], prep: "だいこんは細切りに、油揚げは細切りにする。" } # 大根と油揚げ
+    - { id: jagaimo, name: じゃがいもと玉ねぎ, kana: じゃがいもとたまねぎ, food: "02019", grams: 40, extra: [{ foodId: "06155", grams: 20 }], prep: "じゃがいもは皮をむいて1cm厚さのいちょう切りに、たまねぎは薄切りにする。" }
+    - { id: asari, name: あさり, kana: あさり, food: "10281", grams: 30, recipe: { minutes: 15, steps: ["あさりは塩水につけて砂を吐かせ、殻をこすり合わせて洗う。", "鍋にだしとあさりを入れて中火にかけ、殻が開いたらアクをとる。", "火を弱めてみそを溶き入れ、煮立つ直前に火を止める。"] } } # 殻を除いた重さ
+    - { id: shijimi, name: しじみ, kana: しじみ, food: "10297", grams: 15, recipe: { minutes: 15, steps: ["しじみは塩水につけて砂を吐かせ、殻をこすり合わせて洗う。", "鍋にだしとしじみを入れて中火にかけ、殻が開いたらアクをとる。", "火を弱めてみそを溶き入れ、煮立つ直前に火を止める。"] } } # 殻を除いた重さ
+    - { id: cabbage, name: キャベツ, kana: きゃべつ, food: "06062", grams: 30, prep: "キャベツはざく切りにする。" }
+    - { id: nasu, name: なす, kana: なす, food: "06192", grams: 40, prep: "なすは半月切りにする。" }
+    - { id: spinach, name: ほうれん草, kana: ほうれんそう, food: "06268", grams: 30, prep: "ほうれんそうはさっとゆでて水気をしぼり、4cmの長さに切る。" }
+    - { id: wakame, name: わかめとねぎ, kana: わかめとねぎ, food: "09045", grams: 15, extra: [{ foodId: "06226", grams: 5 }], prep: "わかめは食べやすく切り、長ねぎは小口切りにする。" }

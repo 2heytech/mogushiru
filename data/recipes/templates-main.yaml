@@ -11,6 +11,13 @@
   ingredients:
     - { foodId: "{food}", grams: "{grams}", role: 魚 }
     - { foodId: "17012", grams: 0.8 } # 食塩
+  recipe:
+    minutes: 25
+    note: "魚の重さは、焼いたあとの食べられる部分の重さです。"
+    steps:
+      - "魚は水気をふき、両面に塩をふって15分ほどおく。出てきた水気をふきとる。"
+      - "魚焼きグリルを温め、盛りつけるときに上になる側から中火で焼く。"
+      - "焼き色がついたら裏返し、中まで火が通るまで焼く。"
   variants:
     - { id: aji, name: あじ, kana: あじ, food: "10005", grams: 70 } # まあじ 焼き 中1尾の可食部
     - { id: sanma, name: さんま, kana: さんま, food: "10174", grams: 90 } # さんま 焼き 1尾の可食部

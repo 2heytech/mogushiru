@@ -69,6 +69,7 @@ export function CustomizeView({
           original={dish.ingredients}
           initial={dish.ingredients}
           source={dish.source}
+          recipe={dish.recipe}
           foods={catalog.foods}
           saveLabel="お気に入りに保存"
           initialSlots={dish.suggestedSlots.length ? dish.suggestedSlots : [...SLOTS]}
@@ -92,6 +93,7 @@ export function CustomizeView({
         initial={my.ingredients}
         initialPortion={my.portion ?? 1}
         source={base?.source}
+        recipe={base?.recipe}
         foods={catalog.foods}
         saveLabel="上書き保存"
         initialSlots={prioritySlots(my)}

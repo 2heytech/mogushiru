@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { NUTRIENT_KEYS, type Food, type Nutrients } from '../../src/domain/types'
-import { buildDishes, type RecipeInput } from './dishes'
+import { buildDishes, recipeProblems, type RecipeInput } from './dishes'
 
 // 値は架空
 const n = (p: Partial<Nutrients>): Nutrients => {
@@ -63,5 +63,33 @@ describe('料理データの生成', () => {
   it('食塩が多すぎる料理は警告', () => {
     const { warnings } = buildDishes([recipe({ ingredients: [{ foodId: '01088', grams: 150 }, { foodId: '17012', grams: 12 }] })], foods, new Set())
     expect(warnings.some((w) => w.includes('食塩'))).toBe(true)
+  })
+})
+
+describe('作り方', () => {
+  const steps = ['ごはんを茶碗に盛る。', '塩をふる。']
+  it('作り方を料理データに入れる', () => {
+    const { dishes, errors } = buildDishes([recipe({ recipe: { minutes: 5, steps } })], foods, new Set())
+    expect(errors).toEqual([])
+    expect(dishes[0].recipe).toEqual({ minutes: 5, steps })
+  })
+
+  it('手順の文に分量を書いているとエラー（分量は材料の一覧に出す）', () => {
+    expect(recipeProblems({ minutes: 5, steps: ['しょうゆ大さじ1を加える。', '煮る。'] }, foods)).toHaveLength(1)
+    expect(recipeProblems({ minutes: 5, steps: ['砂糖10gを加える。', '煮る。'] }, foods)).toHaveLength(1)
+    // 長さや時間・温度は書いてよい
+    expect(recipeProblems({ minutes: 5, steps: ['2cm角に切る。', '170℃の油で4分揚げる。'] }, foods)).toEqual([])
+  })
+
+  it('手順の数・調理時間・作るときの材料の食品番号を確かめる', () => {
+    expect(recipeProblems({ minutes: 0, steps }, foods)).toHaveLength(1)
+    expect(recipeProblems({ minutes: 5, steps: ['盛る。'] }, foods)).toHaveLength(1)
+    expect(recipeProblems({ minutes: 5, steps: ['盛る', 'ふる。'] }, foods)).toHaveLength(1)
+    expect(recipeProblems({ minutes: 5, steps, materials: [{ name: '米', grams: 70, foodId: '99999' }] }, foods)).toHaveLength(1)
+  })
+
+  it('作り方に問題があれば料理データを作らない', () => {
+    const { errors } = buildDishes([recipe({ recipe: { minutes: 5, steps: ['盛る。'] } })], foods, new Set())
+    expect(errors).toHaveLength(1)
   })
 })

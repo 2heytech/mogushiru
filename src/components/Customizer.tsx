@@ -2,8 +2,9 @@ import { useMemo, useState, type CSSProperties } from 'react'
 import { clampPortion, customDishName, formatPortion, gramStep, PORTION_MAX, PORTION_MIN, PORTION_STEP, round1, swapIngredient } from '../domain/customize'
 import { ingredientsTotals, scaleTotals } from '../domain/nutrition'
 import { rankAndFilter } from '../domain/search'
-import { SLOTS, type DishSource, type Food, type Ingredient, type Slot } from '../domain/types'
+import { SLOTS, type DishRecipe, type DishSource, type Food, type Ingredient, type Slot } from '../domain/types'
 import { SLOT_LABEL } from './labels'
+import { RecipeView } from './RecipeView'
 import { useDialog } from './useDialog'
 
 const SUGGEST_LIMIT = 8
@@ -85,6 +86,7 @@ export function Customizer({
   initial,
   initialPortion = 1,
   source,
+  recipe,
   foods,
   saveLabel,
   applyLabel = 'この1日の食事に反映',
@@ -102,6 +104,8 @@ export function Customizer({
   initial: Ingredient[]
   initialPortion?: number
   source?: DishSource
+  // 作り方。なくても出典（郷土料理）があれば、「つくり方」で元のページへ案内する
+  recipe?: DishRecipe
   foods: Map<string, Food>
   saveLabel: string
   applyLabel?: string
@@ -120,6 +124,10 @@ export function Customizer({
   const toggleSlot = (slot: Slot) =>
     setSlots((xs) => (xs.includes(slot) ? (xs.length > 1 ? xs.filter((s) => s !== slot) : xs) : SLOTS.filter((s) => s === slot || xs.includes(s))))
   const [query, setQuery] = useState('')
+  // 「材料と量」と「つくり方」の切り替え。作り方も出典もない料理は「材料と量」だけ
+  const hasRecipeTab = Boolean(recipe || source)
+  const [tab, setTab] = useState<'edit' | 'recipe'>('edit')
+  const showRecipe = hasRecipeTab && tab === 'recipe'
   // 名前を自分で直すまでは、人前や変えた材料に合わせて初期値を作り直す
   const [typedName, setTypedName] = useState<string | null>(initialName ?? null)
 
@@ -161,8 +169,29 @@ export function Customizer({
             ×
           </button>
         </div>
-        {source && (
-          <p className="-mt-2 mb-3 shrink-0 text-xs text-ink-soft">
+        {hasRecipeTab && (
+          <div className="mb-3 flex shrink-0 gap-1 rounded-full bg-white p-1" role="tablist" aria-label="見るもの">
+            {(
+              [
+                ['edit', '材料と量'],
+                ['recipe', 'つくり方'],
+              ] as const
+            ).map(([id, label]) => (
+              <button
+                key={id}
+                type="button"
+                role="tab"
+                aria-selected={tab === id}
+                onClick={() => setTab(id)}
+                className={`min-h-10 flex-1 rounded-full text-sm ${tab === id ? 'bg-coral font-bold text-ink-strong' : 'text-ink-soft'}`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
+        {source && !showRecipe && (
+          <p className="mb-3 shrink-0 text-xs text-ink-soft">
             {source.region && `${source.region}の郷土料理。`}
             <a href={source.url} target="_blank" rel="noreferrer" className="underline">
               {source.label}
@@ -170,161 +199,169 @@ export function Customizer({
             のレシピを1人前に換算
           </p>
         )}
-        <div className="mb-3 shrink-0">
-          <PortionSlider portion={portion} onChange={setPortion} />
-        </div>
-        <div className="mb-3 flex shrink-0 items-center gap-2" aria-live="polite">
-          <Summary label="元のレシピ（1人前）" kcal={before.energyKcal} p={before.protein} f={before.fat} c={before.carb} salt={before.salt} />
-          <span aria-hidden className="text-coral-ink">→</span>
-          <Summary label={`いまの材料（${formatPortion(portion)}）`} kcal={after.energyKcal} p={after.protein} f={after.fat} c={after.carb} salt={after.salt} />
-        </div>
-        <p className="mb-1 shrink-0 text-xs text-ink-soft">材料の量（1人前あたり）</p>
+        {!(showRecipe && !recipe) && (
+          <div className="mb-3 shrink-0">
+            <PortionSlider portion={portion} onChange={setPortion} />
+          </div>
+        )}
+        {showRecipe ? (
+          <RecipeView recipe={recipe} source={source} ingredients={result} portion={portion} foods={foods} />
+        ) : (
+          <>
+          <div className="mb-3 flex shrink-0 items-center gap-2" aria-live="polite">
+            <Summary label="元のレシピ（1人前）" kcal={before.energyKcal} p={before.protein} f={before.fat} c={before.carb} salt={before.salt} />
+            <span aria-hidden className="text-coral-ink">→</span>
+            <Summary label={`いまの材料（${formatPortion(portion)}）`} kcal={after.energyKcal} p={after.protein} f={after.fat} c={after.carb} salt={after.salt} />
+          </div>
+          <p className="mb-1 shrink-0 text-xs text-ink-soft">材料の量（1人前あたり）</p>
 
-        <ul className="-mx-1 flex-1 space-y-2 overflow-y-auto px-1">
-          {rows.map(({ key, ing, max, step }) => {
-            const food = foods.get(ing.foodId)
-            const alternatives = [ing.foodId, ...(ing.alternatives ?? [])]
-            return (
-              <li key={key} className="rounded-2xl bg-white p-3">
-                <div className="mb-1 flex items-center gap-2">
-                  {alternatives.length > 1 ? (
-                    <select
-                      value={ing.foodId}
-                      onChange={(e) => update(key, (x) => swapIngredient(x, e.target.value))}
-                      className="min-h-10 flex-1 rounded-full bg-cream px-3 text-sm font-bold"
-                      aria-label="食材を入れ替える"
+          <ul className="-mx-1 flex-1 space-y-2 overflow-y-auto px-1">
+            {rows.map(({ key, ing, max, step }) => {
+              const food = foods.get(ing.foodId)
+              const alternatives = [ing.foodId, ...(ing.alternatives ?? [])]
+              return (
+                <li key={key} className="rounded-2xl bg-white p-3">
+                  <div className="mb-1 flex items-center gap-2">
+                    {alternatives.length > 1 ? (
+                      <select
+                        value={ing.foodId}
+                        onChange={(e) => update(key, (x) => swapIngredient(x, e.target.value))}
+                        className="min-h-10 flex-1 rounded-full bg-cream px-3 text-sm font-bold"
+                        aria-label="食材を入れ替える"
+                      >
+                        {alternatives.map((id) => (
+                          <option key={id} value={id}>
+                            {foods.get(id)?.displayName ?? id}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <span className="flex-1 text-sm font-bold">{food?.displayName ?? ing.foodId}</span>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => remove(key)}
+                      className="grid h-10 w-10 place-items-center rounded-full text-ink-soft hover:bg-cream"
+                      aria-label={`${food?.displayName ?? '材料'}を外す`}
                     >
-                      {alternatives.map((id) => (
-                        <option key={id} value={id}>
-                          {foods.get(id)?.displayName ?? id}
-                        </option>
-                      ))}
-                    </select>
-                  ) : (
-                    <span className="flex-1 text-sm font-bold">{food?.displayName ?? ing.foodId}</span>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => remove(key)}
-                    className="grid h-10 w-10 place-items-center rounded-full text-ink-soft hover:bg-cream"
-                    aria-label={`${food?.displayName ?? '材料'}を外す`}
-                  >
-                    🗑
-                  </button>
-                </div>
-                <div className="flex items-center gap-2">
-                  <button type="button" className={STEP_BUTTON} onClick={() => setGrams(key, ing.grams - step)} disabled={ing.grams <= 0} aria-label={`${step}gへらす`}>
-                    −
-                  </button>
-                  <input
-                    type="range"
-                    min={0}
-                    max={Math.max(max, ing.grams)}
-                    step={step}
-                    value={ing.grams}
-                    onChange={(e) => setGrams(key, Number(e.target.value))}
-                    className="range min-w-0 flex-1"
-                    style={{ '--fill': `${(ing.grams / Math.max(max, ing.grams, 1)) * 100}%` } as CSSProperties}
-                    aria-label={`${food?.displayName ?? '材料'}の量`}
-                  />
-                  <button type="button" className={STEP_BUTTON} onClick={() => setGrams(key, ing.grams + step)} aria-label={`${step}gふやす`}>
-                    ＋
-                  </button>
-                  <label className="flex shrink-0 items-center gap-1 text-sm">
-                    <input
-                      type="number"
-                      min={0}
-                      step={step}
-                      inputMode="decimal"
-                      value={ing.grams}
-                      onChange={(e) => setGrams(key, Number(e.target.value) || 0)}
-                      className="min-h-10 w-20 rounded-full bg-cream px-3 text-right text-base tabular-nums"
-                      aria-label={`${food?.displayName ?? '材料'}のグラム数`}
-                    />
-                    g
-                  </label>
-                </div>
-              </li>
-            )
-          })}
-          <li className="rounded-2xl border-2 border-dashed border-coral/50 p-3">
-            <input
-              type="search"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="＋ 食材を追加（例：たまご、ブロッコリー）"
-              className="min-h-11 w-full rounded-full bg-white px-4 text-base outline-none focus:ring-2 focus:ring-coral"
-            />
-            {suggestions.length > 0 && (
-              <ul className="mt-2 space-y-1">
-                {suggestions.map((f) => (
-                  <li key={f.id}>
-                    <button type="button" onClick={() => add(f)} className="flex w-full justify-between rounded-xl px-3 py-2 text-left text-sm hover:bg-white">
-                      <span>{f.displayName}</span>
-                      <span className="text-ink-soft">{f.per100g.energyKcal ?? '—'} kcal/100g</span>
+                      🗑
                     </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </li>
-        </ul>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button type="button" className={STEP_BUTTON} onClick={() => setGrams(key, ing.grams - step)} disabled={ing.grams <= 0} aria-label={`${step}gへらす`}>
+                      −
+                    </button>
+                    <input
+                      type="range"
+                      min={0}
+                      max={Math.max(max, ing.grams)}
+                      step={step}
+                      value={ing.grams}
+                      onChange={(e) => setGrams(key, Number(e.target.value))}
+                      className="range min-w-0 flex-1"
+                      style={{ '--fill': `${(ing.grams / Math.max(max, ing.grams, 1)) * 100}%` } as CSSProperties}
+                      aria-label={`${food?.displayName ?? '材料'}の量`}
+                    />
+                    <button type="button" className={STEP_BUTTON} onClick={() => setGrams(key, ing.grams + step)} aria-label={`${step}gふやす`}>
+                      ＋
+                    </button>
+                    <label className="flex shrink-0 items-center gap-1 text-sm">
+                      <input
+                        type="number"
+                        min={0}
+                        step={step}
+                        inputMode="decimal"
+                        value={ing.grams}
+                        onChange={(e) => setGrams(key, Number(e.target.value) || 0)}
+                        className="min-h-10 w-20 rounded-full bg-cream px-3 text-right text-base tabular-nums"
+                        aria-label={`${food?.displayName ?? '材料'}のグラム数`}
+                      />
+                      g
+                    </label>
+                  </div>
+                </li>
+              )
+            })}
+            <li className="rounded-2xl border-2 border-dashed border-coral/50 p-3">
+              <input
+                type="search"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="＋ 食材を追加（例：たまご、ブロッコリー）"
+                className="min-h-11 w-full rounded-full bg-white px-4 text-base outline-none focus:ring-2 focus:ring-coral"
+              />
+              {suggestions.length > 0 && (
+                <ul className="mt-2 space-y-1">
+                  {suggestions.map((f) => (
+                    <li key={f.id}>
+                      <button type="button" onClick={() => add(f)} className="flex w-full justify-between rounded-xl px-3 py-2 text-left text-sm hover:bg-white">
+                        <span>{f.displayName}</span>
+                        <span className="text-ink-soft">{f.per100g.energyKcal ?? '—'} kcal/100g</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </li>
+          </ul>
 
-        <footer className="mt-3 shrink-0 space-y-2">
-          <label className="flex items-center gap-2 text-sm">
-            名前
-            <input value={name} onChange={(e) => setTypedName(e.target.value)} className="min-h-10 min-w-0 flex-1 rounded-full bg-white px-4 text-base" />
-          </label>
-          <div className="flex flex-wrap items-center gap-1.5 text-sm" role="group" aria-label="料理をえらぶとき上に出す食事">
-            <span className="mr-1">上に出す</span>
-            {SLOTS.map((slot) => (
-              <button
-                key={slot}
-                type="button"
-                aria-pressed={slots.includes(slot)}
-                onClick={() => toggleSlot(slot)}
-                className={`min-h-9 rounded-full px-3 text-sm ${slots.includes(slot) ? 'bg-coral font-bold text-ink-strong' : 'bg-white text-ink-soft'}`}
-              >
-                {SLOT_LABEL[slot]}
-              </button>
-            ))}
-          </div>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => {
-                setRows(toRows(original))
-                setPortion(1)
-              }}
-              className="min-h-11 rounded-full bg-white px-4 text-sm"
-            >
-              元に戻す
-            </button>
-            {onApply && (
+          <footer className="mt-3 shrink-0 space-y-2">
+            <label className="flex items-center gap-2 text-sm">
+              名前
+              <input value={name} onChange={(e) => setTypedName(e.target.value)} className="min-h-10 min-w-0 flex-1 rounded-full bg-white px-4 text-base" />
+            </label>
+            <div className="flex flex-wrap items-center gap-1.5 text-sm" role="group" aria-label="料理をえらぶとき上に出す食事">
+              <span className="mr-1">上に出す</span>
+              {SLOTS.map((slot) => (
+                <button
+                  key={slot}
+                  type="button"
+                  aria-pressed={slots.includes(slot)}
+                  onClick={() => toggleSlot(slot)}
+                  className={`min-h-9 rounded-full px-3 text-sm ${slots.includes(slot) ? 'bg-coral font-bold text-ink-strong' : 'bg-white text-ink-soft'}`}
+                >
+                  {SLOT_LABEL[slot]}
+                </button>
+              ))}
+            </div>
+            <div className="flex gap-2">
               <button
                 type="button"
-                disabled={result.length === 0}
-                onClick={() => onApply(result, portion)}
-                className="min-h-11 flex-1 rounded-full bg-white text-sm font-bold text-coral-ink disabled:opacity-50"
+                onClick={() => {
+                  setRows(toRows(original))
+                  setPortion(1)
+                }}
+                className="min-h-11 rounded-full bg-white px-4 text-sm"
               >
-                {/* 「この1日の食事に／反映」の区切りでだけ折り返す（「反／映」で折れないように） */}
-                {applyLabel.split(/(?<=に)/).map((part) => (
-                  <span key={part} className="inline-block">
-                    {part}
-                  </span>
-                ))}
+                元に戻す
               </button>
-            )}
-            <button
-              type="button"
-              disabled={result.length === 0 || !name.trim()}
-              onClick={() => onSave(name.trim(), result, portion, slots)}
-              className="min-h-11 flex-1 rounded-full bg-coral text-sm font-bold text-ink-strong disabled:opacity-50"
-            >
-              {saveLabel}
-            </button>
-          </div>
-        </footer>
+              {onApply && (
+                <button
+                  type="button"
+                  disabled={result.length === 0}
+                  onClick={() => onApply(result, portion)}
+                  className="min-h-11 flex-1 rounded-full bg-white text-sm font-bold text-coral-ink disabled:opacity-50"
+                >
+                  {/* 「この1日の食事に／反映」の区切りでだけ折り返す（「反／映」で折れないように） */}
+                  {applyLabel.split(/(?<=に)/).map((part) => (
+                    <span key={part} className="inline-block">
+                      {part}
+                    </span>
+                  ))}
+                </button>
+              )}
+              <button
+                type="button"
+                disabled={result.length === 0 || !name.trim()}
+                onClick={() => onSave(name.trim(), result, portion, slots)}
+                className="min-h-11 flex-1 rounded-full bg-coral text-sm font-bold text-ink-strong disabled:opacity-50"
+              >
+                {saveLabel}
+              </button>
+            </div>
+          </footer>
+          </>
+        )}
       </div>
     </div>
   )
