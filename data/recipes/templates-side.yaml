@@ -11,12 +11,17 @@
     - { foodId: "17007", grams: 4 } # こいくちしょうゆ
     - { foodId: "17021", grams: 5 } # だし
     - { foodId: "10091", grams: 0.5 } # かつお節
+  recipe:
+    minutes: 10
+    steps:
+      - "{prep}"
+      - "だしとしょうゆをまぜてかけ、かつお節をのせる。"
   variants:
-    - { id: komatsuna, name: 小松菜, kana: こまつな, food: "06087", grams: 70 }
-    - { id: shungiku, name: 春菊, kana: しゅんぎく, food: "06100", grams: 70 }
-    - { id: chingensai, name: チンゲン菜, kana: ちんげんさい, food: "06161", grams: 70 }
-    - { id: okura, name: オクラ, kana: おくら, food: "06033", grams: 50 }
-    - { id: moyashi, name: もやし, kana: もやし, food: "06292", grams: 70 }
+    - { id: komatsuna, name: 小松菜, kana: こまつな, food: "06087", grams: 70, prep: "小松菜は根元を切り、たっぷりの湯で1分ほどゆでる。冷水にとって水気をしぼり、4cmの長さに切る。" }
+    - { id: shungiku, name: 春菊, kana: しゅんぎく, food: "06100", grams: 70, prep: "春菊は根元を切り、茎から湯に入れて1分ほどゆでる。冷水にとって水気をしぼり、4cmの長さに切る。" }
+    - { id: chingensai, name: チンゲン菜, kana: ちんげんさい, food: "06161", grams: 70, prep: "チンゲン菜は根元を切って縦に4〜6つ割りにし、茎から湯に入れて1〜2分ゆでる。ざるに上げて冷まし、水気をしぼる。" }
+    - { id: okura, name: オクラ, kana: おくら, food: "06033", grams: 50, prep: "オクラはがくのまわりをむいて、熱湯で1〜2分ゆでる。冷水にとって水気をきり、斜め半分に切る。" }
+    - { id: moyashi, name: もやし, kana: もやし, food: "06292", grams: 70, prep: "もやしはひげ根をとり、熱湯で1分ほどゆでる。ざるに上げて冷まし、水気をしぼる。" }
 
 # ゆで野菜・そのまま食べる野菜（調味料を変える）
 - template: yasai
@@ -27,11 +32,11 @@
   ingredients:
     - { foodId: "{food}", grams: "{grams}", role: 野菜 }
   variants:
-    - { id: broccoli, name: ゆでブロッコリー（マヨネーズ）, kana: ぶろっこりー, food: "06264", grams: 60, extra: [{ foodId: "17042", grams: 8 }] }
-    - { id: edamame, name: 枝豆, kana: えだまめ, food: "06016", grams: 50, extra: [{ foodId: "17012", grams: 0.5 }] } # ゆで、さやを除いた重さ
-    - { id: corn, name: ゆでとうもろこし, kana: とうもろこし こーん, food: "06176", grams: 100 } # 1/2本の可食部
+    - { id: broccoli, name: ゆでブロッコリー（マヨネーズ）, kana: ぶろっこりー, food: "06264", grams: 60, extra: [{ foodId: "17042", grams: 8 }], recipe: { minutes: 10, extras: [{ name: "塩（ゆでる湯に入れる）" }], steps: ["ブロッコリーは小房に分け、茎は皮を厚めにむいて食べやすく切る。", "鍋に湯をわかして塩を入れ、ブロッコリーを2分ほどゆでて、ざるに上げて冷ます。", "器に盛り、マヨネーズを添える。"] } }
+    - { id: edamame, name: 枝豆, kana: えだまめ, food: "06016", grams: 50, extra: [{ foodId: "17012", grams: 0.5 }], recipe: { minutes: 10, note: "枝豆の重さは、さやを除いた重さです。", steps: ["枝豆はさやの両端を少し切り落とし、塩の半量をまぶしてもむ。", "たっぷりの湯に塩ごと入れて3〜5分ゆで、ざるに上げて残りの塩をふる。"] } } # ゆで、さやを除いた重さ
+    - { id: corn, name: ゆでとうもろこし, kana: とうもろこし こーん, food: "06176", grams: 100, recipe: { minutes: 15, extras: [{ name: "塩（ゆでる湯に入れる）" }], note: "とうもろこしの重さは、芯を除いた重さです（1人前で1/2本ほど）。", steps: ["とうもろこしは皮とひげをとり、半分に折る。", "鍋にかぶるくらいの水と塩を入れて火にかけ、とうもろこしを入れる。煮立ってから3〜5分ゆでる。"] } } # 1/2本の可食部
     - { id: tomato, name: 冷やしトマト, kana: ひやしとまと とまと, food: "06182", grams: 100 }
-    - { id: kabocha-ni, name: かぼちゃの煮物, kana: かぼちゃのにもの, food: "06049", grams: 80, extra: [{ foodId: "03003", grams: 4 }, { foodId: "17007", grams: 4 }, { foodId: "16025", grams: 3 }] }
+    - { id: kabocha-ni, name: かぼちゃの煮物, kana: かぼちゃのにもの, food: "06049", grams: 80, extra: [{ foodId: "03003", grams: 4 }, { foodId: "17007", grams: 4 }, { foodId: "16025", grams: 3 }], recipe: { minutes: 20, extras: [{ name: "水", amount: 50, unit: mL }], steps: ["かぼちゃは種とわたをとってひと口大に切り、ところどころ皮をむく。", "鍋にかぼちゃを皮を下にして並べ、水、砂糖、みりんを加えて中火にかける。", "煮立ったら落としぶたをして弱めの中火で5分煮る。しょうゆを加え、やわらかくなるまでさらに5〜8分煮る。"] } }
     - { id: kimchi, name: キムチ, kana: きむち はくさいきむち, food: "06236", grams: 40 }
     - { id: takuan, name: たくあん, kana: たくあん, food: "06138", grams: 20 }
     - { id: hakusai-zuke, name: 白菜の漬物, kana: はくさいのつけもの はくさいづけ, food: "06235", grams: 30 }
