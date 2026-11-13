@@ -111,6 +111,12 @@ const PIECES: Record<string, { grams: number; unit: string }> = {
 
 export type RecipeLine = { key: string; name: string; amount: string }
 
+// 作り方を何人分で見るか（栄養の計算の人前とは別）。1人分きざみ
+export const SERVINGS_MIN = 1
+export const SERVINGS_MAX = 10
+export const DEFAULT_SERVINGS = 2
+export const clampServings = (n: number) => (Number.isFinite(n) ? Math.min(SERVINGS_MAX, Math.max(SERVINGS_MIN, Math.round(n))) : DEFAULT_SERVINGS)
+
 const FRACTIONS: [number, string][] = [
   [1 / 4, '1/4'],
   [1 / 3, '1/3'],

@@ -250,3 +250,15 @@ describe('呼び出した献立の名前（menuSource）', () => {
     expect(useAppStore.getState().menuSource).toBeNull()
   })
 })
+
+describe('作り方の人数', () => {
+  it('はじめは2人分。1〜10人分の整数におさめて覚える（栄養の人前とは別）', () => {
+    expect(useAppStore.getInitialState().recipeServings).toBe(2)
+    useAppStore.getState().setRecipeServings(4)
+    expect(useAppStore.getState().recipeServings).toBe(4)
+    useAppStore.getState().setRecipeServings(0)
+    expect(useAppStore.getState().recipeServings).toBe(1)
+    useAppStore.getState().setRecipeServings(12)
+    expect(useAppStore.getState().recipeServings).toBe(10)
+  })
+})
