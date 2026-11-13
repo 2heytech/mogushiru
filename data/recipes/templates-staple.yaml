@@ -40,13 +40,19 @@
     - { foodId: "17012", grams: 1 } # 食塩
     - { foodId: "06226", grams: 5 } # ねぎ
     - { foodId: "{food}", grams: "{grams}", role: 具 }
+  recipe:
+    minutes: 10
+    steps:
+      - "鍋にだし、うすくちしょうゆ、みりん、塩を入れて煮立て、つゆを作る。"
+      - "うどんは熱湯で温めて湯をきり、どんぶりに入れて熱いつゆを注ぐ。"
+      - "{prep}"
   variants:
-    - { id: kitsune, name: きつね, kana: きつね, food: "04040", grams: 20, extra: [{ foodId: "03003", grams: 4 }, { foodId: "17007", grams: 4 }] } # 油揚げの甘煮
-    - { id: tanuki, name: たぬき, kana: たぬき, food: "01172", grams: 10 } # 天かす（天ぷら用バッター 揚げ）
-    - { id: tsukimi, name: 月見, kana: つきみ, food: "12004", grams: 50 }
-    - { id: tempura, name: 天ぷら, kana: てんぷら えびてん, food: "10416", grams: 60 } # えびの天ぷら2本
-    - { id: niku, name: 肉, kana: にく, food: "11046", grams: 50, extra: [{ foodId: "03003", grams: 4 }, { foodId: "17007", grams: 6 }] } # 牛ばらの甘辛煮
-    - { id: wakame, name: わかめ, kana: わかめ, food: "09045", grams: 20 }
+    - { id: kitsune, name: きつね, kana: きつね, food: "04040", grams: 20, extra: [{ foodId: "03003", grams: 4 }, { foodId: "17007", grams: 4 }], recipe: { minutes: 20, steps: ["油揚げは熱湯をかけて油抜きし、半分に切る。小鍋に油揚げ、砂糖、しょうゆ、だしを少し入れ、汁気が少なくなるまで煮る。", "鍋に残りのだし、うすくちしょうゆ、みりん、塩を入れて煮立て、つゆを作る。", "うどんは熱湯で温めて湯をきり、どんぶりに入れて熱いつゆを注ぐ。", "油揚げと、小口切りの長ねぎをのせる。"] } } # 油揚げの甘煮
+    - { id: tanuki, name: たぬき, kana: たぬき, food: "01172", grams: 10, prep: "天かすと、小口切りの長ねぎをのせる。" } # 天かす（天ぷら用バッター 揚げ）
+    - { id: tsukimi, name: 月見, kana: つきみ, food: "12004", grams: 50, prep: "卵を割り落とし、小口切りの長ねぎをのせる。" }
+    - { id: tempura, name: 天ぷら, kana: てんぷら えびてん, food: "10416", grams: 60, prep: "えびの天ぷらと、小口切りの長ねぎをのせる。" } # えびの天ぷら2本
+    - { id: niku, name: 肉, kana: にく, food: "11046", grams: 50, extra: [{ foodId: "03003", grams: 4 }, { foodId: "17007", grams: 6 }], recipe: { minutes: 15, steps: ["牛肉は食べやすく切る。小鍋に牛肉、砂糖、しょうゆ、だしを少し入れ、牛肉に火が通って汁気が少なくなるまで煮る。", "鍋に残りのだし、うすくちしょうゆ、みりん、塩を入れて煮立て、つゆを作る。", "うどんは熱湯で温めて湯をきり、どんぶりに入れて熱いつゆを注ぐ。", "牛肉と、小口切りの長ねぎをのせる。"] } } # 牛ばらの甘辛煮
+    - { id: wakame, name: わかめ, kana: わかめ, food: "09045", grams: 20, prep: "わかめは食べやすく切り、小口切りの長ねぎと一緒にのせる。" }
 
 # 温かいそば（ゆでそば＋つゆ＋具）
 - template: soba
@@ -61,12 +67,18 @@
     - { foodId: "16025", grams: 12 } # 本みりん
     - { foodId: "06226", grams: 5 } # ねぎ
     - { foodId: "{food}", grams: "{grams}", role: 具 }
+  recipe:
+    minutes: 10
+    steps:
+      - "鍋にだし、しょうゆ、みりんを入れて煮立て、つゆを作る。"
+      - "そばはたっぷりの湯で袋の表示どおりにゆで、湯をきってどんぶりに入れ、熱いつゆを注ぐ。"
+      - "{prep}"
   variants:
-    - { id: kake, name: かけ, kana: かけ, food: "06226", grams: 5 } # ねぎを増やすだけ
-    - { id: kitsune, name: きつね, kana: きつね, food: "04040", grams: 20, extra: [{ foodId: "03003", grams: 4 }, { foodId: "17007", grams: 4 }] }
-    - { id: tanuki, name: たぬき, kana: たぬき, food: "01172", grams: 10 }
-    - { id: tsukimi, name: 月見, kana: つきみ, food: "12004", grams: 50 }
-    - { id: tempura, name: 天ぷら, kana: てんぷら えびてん, food: "10416", grams: 60 }
+    - { id: kake, name: かけ, kana: かけ, food: "06226", grams: 5, prep: "小口切りの長ねぎをのせる。" } # ねぎを増やすだけ
+    - { id: kitsune, name: きつね, kana: きつね, food: "04040", grams: 20, extra: [{ foodId: "03003", grams: 4 }, { foodId: "17007", grams: 4 }], recipe: { minutes: 20, steps: ["油揚げは熱湯をかけて油抜きし、半分に切る。小鍋に油揚げ、砂糖、しょうゆ、だしを少し入れ、汁気が少なくなるまで煮る。", "鍋に残りのだし、しょうゆ、みりんを入れて煮立て、つゆを作る。", "そばはたっぷりの湯で袋の表示どおりにゆで、湯をきってどんぶりに入れ、熱いつゆを注ぐ。", "油揚げと、小口切りの長ねぎをのせる。"] } }
+    - { id: tanuki, name: たぬき, kana: たぬき, food: "01172", grams: 10, prep: "天かすと、小口切りの長ねぎをのせる。" }
+    - { id: tsukimi, name: 月見, kana: つきみ, food: "12004", grams: 50, prep: "卵を割り落とし、小口切りの長ねぎをのせる。" }
+    - { id: tempura, name: 天ぷら, kana: てんぷら えびてん, food: "10416", grams: 60, prep: "えびの天ぷらと、小口切りの長ねぎをのせる。" }
 
 # 丼もの（ごはん230g＋具）
 - template: don
@@ -78,14 +90,14 @@
     - { foodId: "01088", grams: 230, role: ごはん }
     - { foodId: "{food}", grams: "{grams}", role: 具 }
   variants:
-    - { id: katsudon, name: かつ丼, kana: かつどん, food: "11276", grams: 100, extra: [{ foodId: "12004", grams: 50 }, { foodId: "06153", grams: 40 }, { foodId: "17021", grams: 50 }, { foodId: "17007", grams: 12 }, { foodId: "16025", grams: 10 }, { foodId: "03003", grams: 4 }] } # とんかつを卵でとじる
-    - { id: tendon, name: 天丼, kana: てんどん, food: "10416", grams: 60, extra: [{ foodId: "02047", grams: 30 }, { foodId: "06343", grams: 30 }, { foodId: "17030", grams: 15 }] } # えび・さつまいも・なすの天ぷら、たれは三倍濃縮めんつゆ
-    - { id: tekka, name: 鉄火丼, kana: てっかどん まぐろどん, food: "10253", grams: 80, extra: [{ foodId: "17007", grams: 8 }, { foodId: "09004", grams: 1 }, { foodId: "17081", grams: 1 }] }
-    - { id: salmon, name: サーモン丼, kana: さーもんどん, food: "10144", grams: 80, extra: [{ foodId: "17007", grams: 8 }, { foodId: "17081", grams: 1 }] }
-    - { id: butadon, name: 豚丼, kana: ぶたどん, food: "11129", grams: 80, extra: [{ foodId: "06153", grams: 40 }, { foodId: "17007", grams: 12 }, { foodId: "16025", grams: 10 }, { foodId: "03003", grams: 5 }, { foodId: "14006", grams: 3 }] }
-    - { id: chukadon, name: 中華丼, kana: ちゅうかどん, food: "18048", grams: 200 } # 八宝菜（調理済み流通食品）をかける
-    - { id: mabodon, name: 麻婆丼, kana: まーぼーどん, food: "18049", grams: 150 } # 麻婆豆腐（調理済み流通食品）をかける
-    - { id: tamago-kake, name: 卵かけごはん, kana: たまごかけごはん, food: "12004", grams: 50, extra: [{ foodId: "17007", grams: 4 }], suggestedSlots: [breakfast] }
+    - { id: katsudon, name: かつ丼, kana: かつどん, food: "11276", grams: 100, extra: [{ foodId: "12004", grams: 50 }, { foodId: "06153", grams: 40 }, { foodId: "17021", grams: 50 }, { foodId: "17007", grams: 12 }, { foodId: "16025", grams: 10 }, { foodId: "03003", grams: 4 }], recipe: { minutes: 15, note: "とんかつは、揚げたものの重さです。", steps: ["とんかつは2cm幅に切り、たまねぎは薄切りにする。", "小さめのフライパンにだし、しょうゆ、みりん、砂糖を入れて煮立て、たまねぎを加えてしんなりするまで煮る。", "とんかつをのせ、とき卵を回し入れる。ふたをして弱火で1分ほど煮て、卵が半熟になったら火を止める。", "どんぶりにごはんを盛り、すべらせるようにのせる。"] } } # とんかつを卵でとじる
+    - { id: tendon, name: 天丼, kana: てんどん, food: "10416", grams: 60, extra: [{ foodId: "02047", grams: 30 }, { foodId: "06343", grams: 30 }, { foodId: "17030", grams: 15 }], recipe: { minutes: 10, extras: [{ name: "水", amount: 15, unit: mL }], note: "天ぷらは、揚げたものの重さです。", steps: ["めんつゆを同じくらいの量の水でうすめ、小鍋で煮立てて、たれを作る。", "えびの天ぷら、さつまいもの天ぷら、なすの天ぷらは、オーブントースターで温める。", "どんぶりにごはんを盛り、天ぷらをたれにくぐらせてのせ、残りのたれをかける。"] } } # えび・さつまいも・なすの天ぷら、たれは三倍濃縮めんつゆ
+    - { id: tekka, name: 鉄火丼, kana: てっかどん まぐろどん, food: "10253", grams: 80, extra: [{ foodId: "17007", grams: 8 }, { foodId: "09004", grams: 1 }, { foodId: "17081", grams: 1 }], recipe: { minutes: 10, steps: ["まぐろは薄めのそぎ切りにする。", "どんぶりにごはんを盛ってちぎったのりをちらし、まぐろを並べる。", "わさびを添え、しょうゆをかける。"] } }
+    - { id: salmon, name: サーモン丼, kana: さーもんどん, food: "10144", grams: 80, extra: [{ foodId: "17007", grams: 8 }, { foodId: "17081", grams: 1 }], recipe: { minutes: 10, steps: ["サーモンは薄めのそぎ切りにする。", "どんぶりにごはんを盛り、サーモンを並べる。", "わさびを添え、しょうゆをかける。"] } }
+    - { id: butadon, name: 豚丼, kana: ぶたどん, food: "11129", grams: 80, extra: [{ foodId: "06153", grams: 40 }, { foodId: "17007", grams: 12 }, { foodId: "16025", grams: 10 }, { foodId: "03003", grams: 5 }, { foodId: "14006", grams: 3 }], recipe: { minutes: 15, steps: ["たまねぎは薄切り、豚肉は食べやすく切る。しょうゆ、みりん、砂糖をまぜて、たれを作る。", "フライパンにサラダ油を入れて中火で熱し、豚肉とたまねぎを炒める。", "火が通ったらたれを加え、煮からめる。", "どんぶりにごはんを盛り、たれごとのせる。"] } }
+    - { id: chukadon, name: 中華丼, kana: ちゅうかどん, food: "18048", grams: 200, recipe: { minutes: 25, materials: [{ name: "ごはん", grams: 230, foodId: "01088" }, { name: "豚もも肉（薄切り）", grams: 30, foodId: "11130" }, { name: "えび（ブラックタイガー）", grams: 20, foodId: "10329" }, { name: "いか", grams: 15, foodId: "10345" }, { name: "はくさい", grams: 80, foodId: "06233" }, { name: "にんじん", grams: 15, foodId: "06214" }, { name: "たけのこ（水煮）", grams: 15, foodId: "06151" }, { name: "絹さや", grams: 5, foodId: "06020" }, { name: "うずら卵（水煮）", grams: 10, foodId: "12003" }, { name: "サラダ油", grams: 4, foodId: "14006" }, { name: "鶏がらスープ", grams: 60, foodId: "17024" }, { name: "酒", grams: 3, foodId: "16001" }, { name: "しょうゆ", grams: 3, foodId: "17007" }, { name: "食塩", grams: 0.5, foodId: "17012" }, { name: "片栗粉", grams: 4, foodId: "02034" }], note: "栄養は、成分表の「八宝菜」（できあがりの重さ）の値で計算しています。「材料と量」で変えた内容は、この材料には反映されません。", steps: ["豚肉といかは食べやすく切り、えびは殻と背わたをとる。はくさいはそぎ切り、にんじんは短冊切り、たけのこは薄切りにし、絹さやは筋をとる。", "フライパンにサラダ油を入れて中火で熱し、豚肉、えび、いかを炒める。にんじん、たけのこ、はくさいを加えて炒める。", "鶏がらスープ、酒、しょうゆ、塩を加えて煮立て、うずら卵と絹さやを加える。水でといた片栗粉でとろみをつける。", "どんぶりにごはんを盛り、あんをかける。"] } } # 八宝菜（調理済み流通食品）をかける
+    - { id: mabodon, name: 麻婆丼, kana: まーぼーどん, food: "18049", grams: 150, recipe: { minutes: 20, materials: [{ name: "ごはん", grams: 230, foodId: "01088" }, { name: "木綿豆腐", grams: 100, foodId: "04032" }, { name: "豚ひき肉", grams: 25, foodId: "11163" }, { name: "長ねぎ", grams: 8, foodId: "06226" }, { name: "にんにく", grams: 1, foodId: "06223" }, { name: "しょうが", grams: 1, foodId: "06103" }, { name: "豆板醤", grams: 2, foodId: "17004" }, { name: "しょうゆ", grams: 4, foodId: "17007" }, { name: "砂糖", grams: 1, foodId: "03003" }, { name: "酒", grams: 3, foodId: "16001" }, { name: "鶏がらスープ", grams: 50, foodId: "17024" }, { name: "片栗粉", grams: 2, foodId: "02034" }, { name: "ごま油", grams: 2, foodId: "14002" }, { name: "サラダ油", grams: 2, foodId: "14006" }], note: "栄養は、成分表の「麻婆豆腐」（できあがりの重さ）の値で計算しています。「材料と量」で変えた内容は、この材料には反映されません。", steps: ["豆腐は2cm角に切る。長ねぎ、にんにく、しょうがはみじん切りにする。", "フライパンにサラダ油、にんにく、しょうがを入れて中火にかけ、ひき肉を炒める。豆板醤を加えて炒める。", "鶏がらスープ、しょうゆ、砂糖、酒を加えて煮立て、豆腐を入れて3分煮る。長ねぎを加えて水でといた片栗粉でとろみをつけ、ごま油をたらす。", "どんぶりにごはんを盛り、麻婆豆腐をかける。"] } } # 麻婆豆腐（調理済み流通食品）をかける
+    - { id: tamago-kake, name: 卵かけごはん, kana: たまごかけごはん, food: "12004", grams: 50, extra: [{ foodId: "17007", grams: 4 }], suggestedSlots: [breakfast], recipe: { minutes: 5, note: "卵は、新しいものを使います。", steps: ["茶碗に温かいごはんを盛り、まん中を少しくぼませる。", "卵を割り入れ、しょうゆをかけて、まぜながら食べる。"] } }
 
 # パン（トースト＋ぬるもの、そのまま食べるパン）
 - template: bread
@@ -96,9 +108,9 @@
   ingredients:
     - { foodId: "{food}", grams: "{grams}", role: パン }
   variants:
-    - { id: jam-toast, name: ジャムトースト, kana: じゃむとーすと, food: "01026", grams: 60, extra: [{ foodId: "07013", grams: 15 }] } # 6枚切り1枚＋いちごジャム
-    - { id: honey-toast, name: はちみつトースト, kana: はちみつとーすと, food: "01026", grams: 60, extra: [{ foodId: "14017", grams: 5 }, { foodId: "03022", grams: 10 }] }
-    - { id: cheese-toast, name: チーズトースト, kana: ちーずとーすと, food: "01026", grams: 60, extra: [{ foodId: "13040", grams: 18 }] } # スライスチーズ1枚
+    - { id: jam-toast, name: ジャムトースト, kana: じゃむとーすと, food: "01026", grams: 60, extra: [{ foodId: "07013", grams: 15 }], recipe: { minutes: 5, steps: ["食パンをオーブントースターで、こんがりと焼き色がつくまで2〜3分焼く。", "いちごジャムをぬる。"] } } # 6枚切り1枚＋いちごジャム
+    - { id: honey-toast, name: はちみつトースト, kana: はちみつとーすと, food: "01026", grams: 60, extra: [{ foodId: "14017", grams: 5 }, { foodId: "03022", grams: 10 }], recipe: { minutes: 5, steps: ["食パンをオーブントースターで、こんがりと焼き色がつくまで2〜3分焼く。", "焼きたてにバターをぬり、はちみつをかける。"] } }
+    - { id: cheese-toast, name: チーズトースト, kana: ちーずとーすと, food: "01026", grams: 60, extra: [{ foodId: "13040", grams: 18 }], recipe: { minutes: 5, steps: ["食パンにチーズをのせる。", "オーブントースターで、チーズがとけて焼き色がつくまで3〜4分焼く。"] } } # スライスチーズ1枚
     - { id: plain-toast, name: トースト（何もぬらない）, kana: とーすと しょくぱん, food: "01026", grams: 60 }
     - { id: france, name: フランスパン, kana: ふらんすぱん ばげっと, food: "01031", grams: 60 }
     - { id: bagel, name: ベーグル, kana: べーぐる, food: "01148", grams: 90 }
