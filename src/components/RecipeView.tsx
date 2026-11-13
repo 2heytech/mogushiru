@@ -1,23 +1,23 @@
-import { formatPortion } from '../domain/customize'
 import { extraTexts, materialLines, recipeLines } from '../domain/recipe'
 import type { DishRecipe, DishSource, Food, Ingredient } from '../domain/types'
 
 const CARD = 'rounded-2xl bg-white px-4 py-3'
 const PILL = 'rounded-full bg-white px-3 py-1 text-xs font-bold'
 
-// 料理の編集画面の「つくり方」。材料の分量は、いま画面で選んでいる人前と材料から出す
+// 料理の編集画面の「つくり方」。材料の分量は、「材料と量」で変えたあとの材料と、何人分つくるか（servings）から出す。
+// 栄養の計算の人前とは別（自分の分だけ数えて、家族の分まで作ることがあるため）
 export function RecipeView({
   recipe,
   source,
   ingredients,
-  portion,
+  servings,
   foods,
 }: {
   recipe?: DishRecipe
   source?: DishSource
   // 1人前あたり（材料と量で変えたあとのもの）
   ingredients: Ingredient[]
-  portion: number
+  servings: number
   foods: Map<string, Food>
 }) {
   // 作り方がなく出典だけある料理（郷土料理）は、元のページへ案内する。材料と量は「材料と量」で見られる
@@ -55,17 +55,16 @@ export function RecipeView({
       </div>
     )
   }
-  const lines = recipe.materials ? materialLines(recipe.materials, portion) : recipeLines(ingredients, portion, foods)
-  const extras = extraTexts(recipe.extras ?? [], portion)
+  const lines = recipe.materials ? materialLines(recipe.materials, servings) : recipeLines(ingredients, servings, foods)
+  const extras = extraTexts(recipe.extras ?? [], servings)
   return (
     <div className="-mx-1 flex-1 space-y-2 overflow-y-auto px-1 pb-1">
       <div className="flex flex-wrap gap-1.5">
         <span className={PILL}>調理 約{recipe.minutes}分</span>
-        <span className={PILL}>{formatPortion(portion)}の分量</span>
       </div>
 
       <section className={CARD} aria-label="材料">
-        <h3 className="mb-1 text-sm font-bold">材料（{formatPortion(portion)}）</h3>
+        <h3 className="mb-1 text-sm font-bold">材料（{servings}人分）</h3>
         <ul className="text-sm">
           {lines.map((l) => (
             <li key={l.key} className="flex justify-between gap-3 border-b border-dashed border-ink/10 py-1.5 last:border-b-0">
@@ -94,7 +93,7 @@ export function RecipeView({
 
       {!recipe.materials && (
         <p className="px-1 text-xs text-ink-soft">
-          分量は、栄養の計算に使っている材料から出しています（ゆでた野菜などは、ゆでる前の重さに直しています）。「材料と量」で材料を変えると、ここの分量も変わります。
+          分量は、栄養の計算に使っている1人前の材料から出しています（ゆでた野菜などは、ゆでる前の重さに直しています）。「材料と量」で材料を変えると、ここの分量も変わります。
         </p>
       )}
     </div>

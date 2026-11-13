@@ -3,6 +3,7 @@ import { createJSONStorage, persist } from 'zustand/middleware'
 import { DEFAULT_PROFILE } from '../domain/targets'
 import { isSupplement } from '../domain/supplement'
 import { withSlot } from '../domain/customize'
+import { clampServings, DEFAULT_SERVINGS } from '../domain/recipe'
 import type { DayMenu, Ingredient, MenuItem, MyDish, Product, Profile, Slot } from '../domain/types'
 
 export const emptyMenu = (): DayMenu => ({ breakfast: [], lunch: [], dinner: [], other: [] })
@@ -30,6 +31,9 @@ type State = {
   savedMenus: SavedMenu[]
   // いまの1日の食事をどの献立から呼び出したか（理想の献立・保存した食事）。手を加えたら edited
   menuSource: MenuSource | null
+  // 作り方を何人分で見るか。栄養の計算の人前とは別（自分の分だけ数えて、家族の分まで作ることがあるため）。料理をまたいで覚えておく
+  recipeServings: number
+  setRecipeServings: (n: number) => void
   setProfile: (p: Profile) => void
   // 追加した項目の uid を返す（料理を選ぶ画面で、もう一度押したら外すため）
   addItem: (slot: Slot, item: Omit<MenuItem, 'uid'>) => string
@@ -102,6 +106,8 @@ export const useAppStore = create<State>()(
       favoriteProductIds: [],
       savedMenus: [],
       menuSource: null,
+      recipeServings: DEFAULT_SERVINGS,
+      setRecipeServings: (n) => set({ recipeServings: clampServings(n) }),
       setProfile: (profile) => set({ profile, profileSet: true }),
       // カスタマイズした料理を別の区分にも入れたら、その区分でも上に出すようにする
       addItem: (slot, item) => {
@@ -212,7 +218,7 @@ export const useAppStore = create<State>()(
       name: 'mogushiru',
       version: SCHEMA_VERSION,
       storage: safeStorage,
-      partialize: ({ profile, profileSet, menu, menuSource, myDishes, myProducts, favoriteProductIds, savedMenus }) => ({
+      partialize: ({ profile, profileSet, menu, menuSource, myDishes, myProducts, favoriteProductIds, savedMenus, recipeServings }) => ({
         profile,
         profileSet,
         menu,
@@ -221,6 +227,7 @@ export const useAppStore = create<State>()(
         myProducts,
         favoriteProductIds,
         savedMenus,
+        recipeServings,
       }),
     },
   ),

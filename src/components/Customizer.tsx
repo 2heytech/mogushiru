@@ -3,6 +3,8 @@ import { clampPortion, customDishName, formatPortion, gramStep, PORTION_MAX, POR
 import { ingredientsTotals, scaleTotals } from '../domain/nutrition'
 import { rankAndFilter } from '../domain/search'
 import { SLOTS, type DishRecipe, type DishSource, type Food, type Ingredient, type Slot } from '../domain/types'
+import { SERVINGS_MAX, SERVINGS_MIN } from '../domain/recipe'
+import { useAppStore } from '../store/useAppStore'
 import { SLOT_LABEL } from './labels'
 import { RecipeView } from './RecipeView'
 import { useDialog } from './useDialog'
@@ -78,6 +80,27 @@ function PortionSlider({ portion, onChange }: { portion: number; onChange: (p: n
   )
 }
 
+// 作り方を何人分で見るか。栄養の計算の人前（「材料と量」）とは別に、1人分きざみで決める
+function ServingsStepper({ servings, onChange }: { servings: number; onChange: (n: number) => void }) {
+  return (
+    <div className="flex items-center gap-2 rounded-2xl bg-white px-3 py-2">
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-bold">何人分つくる？</p>
+        <p className="text-xs text-ink-soft">栄養の計算の人前とは別です</p>
+      </div>
+      <button type="button" className={STEP_BUTTON} onClick={() => onChange(servings - 1)} disabled={servings <= SERVINGS_MIN} aria-label="1人分へらす">
+        −
+      </button>
+      <output className="w-14 shrink-0 text-center text-base font-bold tabular-nums" aria-live="polite">
+        {servings}人分
+      </output>
+      <button type="button" className={STEP_BUTTON} onClick={() => onChange(servings + 1)} disabled={servings >= SERVINGS_MAX} aria-label="1人分ふやす">
+        ＋
+      </button>
+    </div>
+  )
+}
+
 export function Customizer({
   title,
   baseName = title,
@@ -128,6 +151,8 @@ export function Customizer({
   const hasRecipeTab = Boolean(recipe || source)
   const [tab, setTab] = useState<'edit' | 'recipe'>('edit')
   const showRecipe = hasRecipeTab && tab === 'recipe'
+  const servings = useAppStore((s) => s.recipeServings)
+  const setServings = useAppStore((s) => s.setRecipeServings)
   // 名前を自分で直すまでは、人前や変えた材料に合わせて初期値を作り直す
   const [typedName, setTypedName] = useState<string | null>(initialName ?? null)
 
@@ -199,13 +224,19 @@ export function Customizer({
             のレシピを1人前に換算
           </p>
         )}
-        {!(showRecipe && !recipe) && (
+        {!showRecipe ? (
           <div className="mb-3 shrink-0">
             <PortionSlider portion={portion} onChange={setPortion} />
           </div>
+        ) : (
+          recipe && (
+            <div className="mb-3 shrink-0">
+              <ServingsStepper servings={servings} onChange={setServings} />
+            </div>
+          )
         )}
         {showRecipe ? (
-          <RecipeView recipe={recipe} source={source} ingredients={result} portion={portion} foods={foods} />
+          <RecipeView recipe={recipe} source={source} ingredients={result} servings={servings} foods={foods} />
         ) : (
           <>
           <div className="mb-3 flex shrink-0 items-center gap-2" aria-live="polite">
