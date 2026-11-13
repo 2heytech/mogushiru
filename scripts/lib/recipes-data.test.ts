@@ -29,7 +29,8 @@ describe('料理の作り方（データ）', () => {
       const text = d.recipe!.steps.join('')
       for (const ing of d.ingredients.filter((i) => i.role)) {
         const id = RAW_FORMS[ing.foodId]?.rawId ?? ing.foodId
-        const names = [ing.role!, shortFoodName(foodById.get(ing.foodId)?.displayName ?? ''), RECIPE_NAMES[id] ?? ''].filter(Boolean)
+        const own = d.recipe!.names?.[ing.foodId] ?? d.recipe!.names?.[id] ?? ''
+        const names = [ing.role!, shortFoodName(foodById.get(ing.foodId)?.displayName ?? ''), RECIPE_NAMES[id] ?? '', own].filter(Boolean)
         const all = names.flatMap((n) => [n, ...(ALIASES[n] ?? [])])
         if (!all.some((n) => text.includes(n))) problems.push(`${d.name}: ${names.join('／')}`)
       }

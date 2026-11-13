@@ -60,6 +60,10 @@ export const RAW_FORMS: Record<string, { rawId: string; rate: number }> = {
   '11280': { rawId: '11163', rate: 69 }, // 豚ひき肉 焼き → 生
   '11287': { rawId: '11219', rate: 62 }, // 若どり むね 皮つき 焼き → 生
   '11291': { rawId: '11230', rate: 62 }, // 鶏ひき肉 焼き → 生
+  '06016': { rawId: '06015', rate: 96 }, // えだまめ ゆで → 生
+  '06033': { rawId: '06032', rate: 97 }, // オクラ ゆで → 生
+  '06161': { rawId: '06160', rate: 71 }, // チンゲンサイ ゆで → 生
+  '06176': { rawId: '06175', rate: 110 }, // スイートコーン ゆで → 生
 }
 
 // 作り方の画面での呼び名。書いていない食品は、表示名から（ゆで）などのかっこを省いた名前
@@ -118,6 +122,22 @@ export const RECIPE_NAMES: Record<string, string> = {
   '17113': '焼き肉のたれ',
   '17117': 'ごまドレッシング',
   '17140': '鍋つゆ（ストレート）',
+  '01174': '食パン（トースト）',
+  '06015': '枝豆',
+  '06032': 'オクラ',
+  '06072': '水菜',
+  '06128': 'かいわれ大根',
+  '06160': 'チンゲン菜',
+  '06175': 'とうもろこし',
+  '06274': 'みつば',
+  '06278': 'みつば',
+  '06316': 'ロメインレタス',
+  '07156': 'レモン汁',
+  '10283': 'あさり（水煮缶）',
+  '10306': 'はまぐり',
+  '11316': 'ベーコン',
+  '17020': '昆布だし',
+  '17026': '洋風だし（コンソメ）',
 }
 
 // 小さじ1杯の重さ（g）。大さじ1は小さじ3杯。一般的な計量スプーンの重さ
@@ -160,10 +180,13 @@ const TEASPOON_GRAMS: Record<string, number> = {
   '17112': 6, // 焼き鳥のたれ
   '17113': 6, // 焼き肉のたれ
   '17117': 5, // ごまドレッシング
+  '17116': 5, // 和風ドレッシング
+  '14001': 4, // オリーブ油
+  '07156': 5, // レモン汁
 }
 
 // mL で書くもの（だし・スープ。1gを1mLとみなす）
-const ML_FOODS = new Set(['17019', '17021', '17024', '17025', '17029', '17140'])
+const ML_FOODS = new Set(['17019', '17020', '17021', '17024', '17025', '17026', '17029', '17140'])
 // 多いときは mL で書き、少ないときは大さじ・小さじの目安をつけるもの（牛乳・生クリーム）
 const LIQUID_FOODS = new Set(['13003', '13014'])
 const LIQUID_ML_FROM = 50
@@ -279,7 +302,8 @@ export function amountText(foodId: string | undefined, grams: number): string {
 const recipeName = (id: string, foods: Map<string, Food>) => RECIPE_NAMES[id] ?? shortFoodName(foods.get(id)?.displayName ?? id)
 
 // 材料表（1人前あたり）→ 作り方の画面の材料の一覧（portion 人前）。同じ食品はまとめる
-export function recipeLines(ingredients: Ingredient[], portion: number, foods: Map<string, Food>): RecipeLine[] {
+// names は、この料理だけの呼び名（食品番号 → 名前）。ゆでた食品の番号でも、生の番号でもよい
+export function recipeLines(ingredients: Ingredient[], portion: number, foods: Map<string, Food>, names?: Record<string, string>): RecipeLine[] {
   const merged = new Map<string, number>()
   for (const ing of ingredients) {
     if (!(ing.grams > 0)) continue
@@ -288,7 +312,8 @@ export function recipeLines(ingredients: Ingredient[], portion: number, foods: M
     const grams = raw ? (ing.grams * 100) / raw.rate : ing.grams
     merged.set(id, (merged.get(id) ?? 0) + grams * portion)
   }
-  return [...merged].map(([id, grams]) => ({ key: id, name: recipeName(id, foods), amount: amountText(id, grams) }))
+  const own = new Map(Object.entries(names ?? {}).map(([k, v]) => [RAW_FORMS[k]?.rawId ?? k, v]))
+  return [...merged].map(([id, grams]) => ({ key: id, name: own.get(id) ?? recipeName(id, foods), amount: amountText(id, grams) }))
 }
 
 // 作るときの材料（materials）→ 一覧（portion 人前）。grams がないものは「適量」

@@ -51,6 +51,10 @@ export function recipeProblems(recipe: DishRecipe, foods: Map<string, Food>): st
     if (m.grams !== undefined && !(m.grams > 0)) out.push(`materials「${m.name}」: grams は正の数で指定してください`)
     if (m.foodId !== undefined && !foods.has(m.foodId)) out.push(`materials「${m.name}」: 成分表にない食品番号 ${m.foodId}`)
   }
+  for (const [id, name] of Object.entries(recipe.names ?? {})) {
+    if (!foods.has(id)) out.push(`names: 成分表にない食品番号 ${id}`)
+    if (typeof name !== 'string' || !name.trim()) out.push(`names「${id}」: 呼び名が空です`)
+  }
   return out
 }
 

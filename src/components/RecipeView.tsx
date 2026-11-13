@@ -55,7 +55,7 @@ export function RecipeView({
       </div>
     )
   }
-  const lines = recipe.materials ? materialLines(recipe.materials, servings) : recipeLines(ingredients, servings, foods)
+  const lines = recipe.materials ? materialLines(recipe.materials, servings) : recipeLines(ingredients, servings, foods, recipe.names)
   const extras = extraTexts(recipe.extras ?? [], servings)
   return (
     <div className="-mx-1 flex-1 space-y-2 overflow-y-auto px-1 pb-1">

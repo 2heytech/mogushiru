@@ -87,6 +87,12 @@ describe('材料の一覧', () => {
     expect(amountText('13003', 15)).toBe('15g（大さじ1）')
     expect(amountText('03003', 120)).toBe('120g')
   })
+  it('料理ごとの呼び名があれば、その名前で出す（ゆでた食品の番号でも生の番号でもよい）', () => {
+    const lines = recipeLines([{ foodId: '02019', grams: 68 }], 1, FOODS, { '02019': '新じゃが' })
+    expect(lines[0].name).toBe('新じゃが')
+    const raw = recipeLines([{ foodId: '02019', grams: 68 }], 1, FOODS, { '02017': 'メークイン' })
+    expect(raw[0].name).toBe('メークイン')
+  })
   it('量が0の材料は出さない', () => {
     expect(recipeLines([{ foodId: '17007', grams: 0 }], 1, FOODS)).toEqual([])
   })
