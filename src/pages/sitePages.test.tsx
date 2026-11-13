@@ -187,3 +187,39 @@ describe('HTML のひな形への差しこみ', () => {
     expect(xml).not.toContain('404')
   })
 })
+
+describe('料理の作り方のページ', () => {
+  const dishPages = pages.filter((p) => /^\/dishes\/[a-z0-9-]+\/$/.test(p.path))
+
+  it('作り方のある料理（郷土料理をのぞく）ごとにページがあり、一覧からすべてにリンクする', () => {
+    const withRecipe = [...catalog.dishes.values()].filter((d) => d.recipe && !d.source && !['drink', 'alcohol'].includes(d.category))
+    expect(dishPages.length).toBe(withRecipe.length)
+    expect(dishPages.length).toBeGreaterThanOrEqual(250)
+    const index = page('/dishes/')
+    for (const p of dishPages) expect(index.body).toContain(`href="${p.path}"`)
+  })
+
+  it('材料（2人分）・手順・1人前の栄養と、アプリで開くリンクがある', () => {
+    const p = page('/dishes/nikujaga/')
+    expect(p.title).toContain('肉じゃがの作り方')
+    expect(p.body).toContain('材料（2人分）')
+    expect(p.body).toContain('つくり方')
+    expect(p.body).toContain('1人前の栄養')
+    expect(p.body).toContain('href="/customize/?dish=nikujaga"')
+    // 同じカテゴリのほかの料理へのリンク
+    expect(p.body).toContain('ほかの主菜の作り方')
+  })
+
+  it('レシピのデータ（Recipe）に、材料・手順・時間・1人前の栄養と画像がある', () => {
+    const ld = page('/dishes/nikujaga/').jsonLd?.[0] as Record<string, unknown>
+    expect(ld).toMatchObject({ '@type': 'Recipe', name: '肉じゃが', recipeYield: '2人分', image: ['https://mogushiru.app/og/dishes-nikujaga.png'] })
+    expect((ld.recipeIngredient as string[]).length).toBeGreaterThan(3)
+    expect((ld.recipeInstructions as { text: string }[])[0].text).toMatch(/。$/)
+    expect(ld.totalTime).toMatch(/^PT\d+M$/)
+    expect(ld.nutrition).toMatchObject({ servingSize: '1人前', calories: expect.stringMatching(/^\d+ kcal$/) })
+  })
+
+  it('style 属性を使わない（CSP で止められるため）', () => {
+    for (const p of [...dishPages, page('/dishes/')]) expect(p.body).not.toContain('style=')
+  })
+})

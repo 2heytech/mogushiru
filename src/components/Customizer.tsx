@@ -110,6 +110,7 @@ export function Customizer({
   initialPortion = 1,
   source,
   recipe,
+  initialTab = 'edit',
   foods,
   saveLabel,
   applyLabel = 'この1日の食事に反映',
@@ -129,6 +130,8 @@ export function Customizer({
   source?: DishSource
   // 作り方。なくても出典（郷土料理）があれば、「つくり方」で元のページへ案内する
   recipe?: DishRecipe
+  // はじめに出すタブ（料理の作り方のページから来たときは「つくり方」）
+  initialTab?: 'edit' | 'recipe'
   foods: Map<string, Food>
   saveLabel: string
   applyLabel?: string
@@ -149,7 +152,7 @@ export function Customizer({
   const [query, setQuery] = useState('')
   // 「材料と量」と「つくり方」の切り替え。作り方も出典もない料理は「材料と量」だけ
   const hasRecipeTab = Boolean(recipe || source)
-  const [tab, setTab] = useState<'edit' | 'recipe'>('edit')
+  const [tab, setTab] = useState<'edit' | 'recipe'>(initialTab)
   const showRecipe = hasRecipeTab && tab === 'recipe'
   const servings = useAppStore((s) => s.recipeServings)
   const setServings = useAppStore((s) => s.setRecipeServings)

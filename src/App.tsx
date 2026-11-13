@@ -233,6 +233,10 @@ export default function App() {
   const [rankingStart] = useState(() => nutrientFromSlug(queryParam('n')) ?? undefined)
   useEffect(() => dropQueryParam('n'), [])
 
+  // 料理の作り方のページから来たとき（/customize/?dish=<料理id>）は、その料理の編集の窓を「つくり方」でひらく
+  const [dishStart, setDishStart] = useState(() => queryParam('dish') ?? undefined)
+  useEffect(() => dropQueryParam('dish'), [])
+
   // 献立の例のページから「この献立をアプリで開く」で来たとき（/?menu=<id>）は、その理想の献立をプロフィールに合わせて呼び出す
   const menuRequest = useRef(queryParam('menu'))
   useEffect(() => {
@@ -418,6 +422,9 @@ export default function App() {
             catalog={catalog}
             myDishes={myDishes}
             showAlcohol={profile.age >= 20}
+            initialDishId={dishStart}
+            // 一度ひらいたら忘れる（ほかの画面からもどってきたとき、同じ料理をまたひらかない）
+            onInitialDishOpened={() => setDishStart(undefined)}
             onSaveNew={saveMyDish}
             onUpdate={updateMyDish}
             onDelete={deleteMyDish}
