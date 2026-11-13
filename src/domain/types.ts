@@ -88,7 +88,27 @@ export type Dish = {
   nutrients: Nutrients // ビルド時に事前計算
   missingNutrients?: NutrientKey[] // 材料に未測定の成分を含むもの
   source?: DishSource // 外部のレシピをもとにした料理の出典
+  recipe?: DishRecipe // 作り方（あるものだけ）
 }
+
+// 料理の作り方。材料の分量は ingredients（栄養の計算と同じ材料表）から出すので、手順の文には分量を書かない
+// （人前や材料を変えても、文が食い違わないように）
+export type DishRecipe = {
+  minutes: number // 調理時間の目安（分）
+  steps: string[]
+  // 栄養に数えていない材料（水・揚げ油など）。amount は1人前あたりで、なければ「適量」
+  extras?: RecipeExtra[]
+  // 作るときの材料（1人前）。成分表の「できあがりの料理」を1つの材料にしている料理（唐揚げ・とんかつなど）だけ書く。
+  // あれば、作り方の画面では ingredients のかわりにこれを出す
+  materials?: RecipeMaterial[]
+  // 材料の下に出すひとこと（「魚の重さは焼いたあとの重さ」など）
+  note?: string
+}
+
+export type RecipeExtra = { name: string; amount?: number; unit?: string }
+
+// foodId があれば「大さじ1」「1/2個」などの目安を添える。grams がなければ「適量」
+export type RecipeMaterial = { name: string; grams?: number; foodId?: string }
 
 // 料理のレシピの出典（郷土料理など）
 export type DishSource = {

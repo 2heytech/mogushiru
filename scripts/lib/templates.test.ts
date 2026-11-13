@@ -31,6 +31,20 @@ describe('料理の型の展開', () => {
     expect(recipes[1].suggestedSlots).toEqual(['lunch'])
   })
 
+  it('型の作り方に料理の名前と下ごしらえを入れる。下ごしらえがなければその手順を出さない', () => {
+    const recipe = { minutes: 10, steps: ['{prep}', '{name}を焼く。'], note: '{name}は焼いたあとの重さ' }
+    const withPrep = { ...t, recipe, variants: [{ ...t.variants[0], prep: 'あを洗う。' }, t.variants[1]] }
+    const { recipes } = expandTemplate(withPrep)
+    expect(recipes[0].recipe).toEqual({ minutes: 10, steps: ['あを洗う。', 'あを焼く。'], note: 'あは焼いたあとの重さ' })
+    expect(recipes[1].recipe?.steps).toEqual(['いを焼く。'])
+  })
+
+  it('料理ごとの作り方があれば、型の作り方のかわりに使う', () => {
+    const own = { minutes: 5, steps: ['別の作り方。', 'もうひとつ。'] }
+    const { recipes } = expandTemplate({ ...t, recipe: { minutes: 10, steps: ['型の作り方。', '型。'] }, variants: [{ ...t.variants[0], recipe: own }] })
+    expect(recipes[0].recipe).toEqual(own)
+  })
+
   it('食材や量が抜けているとエラー', () => {
     const { errors } = expandTemplate({ ...t, variants: [{ id: 'c', name: 'う', kana: 'う' }] })
     expect(errors).toHaveLength(2)

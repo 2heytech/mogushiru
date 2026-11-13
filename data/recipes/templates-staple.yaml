@@ -11,13 +11,20 @@
     - { foodId: "09004", grams: 1 } # 焼きのり
     - { foodId: "17012", grams: 0.3 } # 食塩
     - { foodId: "{food}", grams: "{grams}", role: 具 }
+  recipe:
+    minutes: 5
+    steps:
+      - "{prep}"
+      - "手を水でぬらし、塩を手のひらにつける。"
+      - "温かいごはんを手にとり、まん中に具をのせて、包むように三角ににぎる。"
+      - "のりを巻く。"
   variants:
-    - { id: tuna-mayo, name: ツナマヨ, kana: つなまよ, food: "10263", grams: 15, extra: [{ foodId: "17042", grams: 5 }] }
+    - { id: tuna-mayo, name: ツナマヨ, kana: つなまよ, food: "10263", grams: 15, extra: [{ foodId: "17042", grams: 5 }], prep: "ツナは油をきって、マヨネーズとまぜる。" }
     - { id: konbu, name: 昆布, kana: こんぶ, food: "09023", grams: 8 } # こんぶ つくだ煮
-    - { id: okaka, name: おかか, kana: おかか, food: "10091", grams: 2, extra: [{ foodId: "17007", grams: 2 }] }
-    - { id: tarako, name: たらこ, kana: たらこ, food: "10203", grams: 10 } # たらこ 焼き
-    - { id: mentaiko, name: 明太子, kana: めんたいこ, food: "10204", grams: 10 }
-    - { id: takana, name: 高菜, kana: たかな, food: "06148", grams: 10 }
+    - { id: okaka, name: おかか, kana: おかか, food: "10091", grams: 2, extra: [{ foodId: "17007", grams: 2 }], prep: "かつお節としょうゆをまぜる。" }
+    - { id: tarako, name: たらこ, kana: たらこ, food: "10203", grams: 10, prep: "たらこは焼いて、ほぐす。" } # たらこ 焼き
+    - { id: mentaiko, name: 明太子, kana: めんたいこ, food: "10204", grams: 10, prep: "明太子は薄皮をとって、ほぐす。" }
+    - { id: takana, name: 高菜, kana: たかな, food: "06148", grams: 10, prep: "高菜漬けは細かく刻む。" }
 
 # 温かいうどん（ゆでうどん1玉＋つゆ＋具）。つゆはかけうどんと同じで、飲み干す前提
 - template: udon

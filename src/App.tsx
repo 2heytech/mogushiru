@@ -267,6 +267,7 @@ export default function App() {
           initial={item.customIngredients ?? dish.ingredients}
           initialPortion={item.portion}
           source={dish.source}
+          recipe={dish.recipe}
           foods={catalog.foods}
           saveLabel="お気に入りに保存"
           initialSlots={[slot]}
@@ -297,6 +298,7 @@ export default function App() {
           initial={item.customIngredients ?? my.ingredients}
           initialPortion={item.portion}
           source={base?.source}
+          recipe={base?.recipe}
           foods={catalog.foods}
           saveLabel="お気に入りを上書き保存"
           initialSlots={withSlot(prioritySlots(my), slot)}

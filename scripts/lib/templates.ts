@@ -1,6 +1,6 @@
 // 料理の型（テンプレート）→ 料理レシピへの展開（純粋関数）
 // 例: 「{name}の塩焼き」の型に、あじ・ぶり・さんま…の食品番号と量を当てはめて料理を作る
-import type { Ingredient } from '../../src/domain/types'
+import type { DishRecipe, Ingredient } from '../../src/domain/types'
 import type { RecipeInput } from './dishes'
 
 type TemplateIngredient = Omit<Ingredient, 'foodId' | 'grams'> & { foodId: string; grams: number | string }
@@ -15,6 +15,10 @@ export type TemplateVariant = {
   // 型の材料に足す材料（具や付け合わせ）
   extra?: Ingredient[]
   suggestedSlots?: RecipeInput['suggestedSlots']
+  // 型の作り方が合わないとき（貝のみそ汁など）は、この料理だけの作り方を書く
+  recipe?: DishRecipe
+  // 型の作り方の手順「{prep}」に入れる、この料理の下ごしらえ（1つの手順）。なければその手順を出さない
+  prep?: string
 }
 
 export type TemplateInput = Omit<RecipeInput, 'id' | 'ingredients'> & {
@@ -26,6 +30,13 @@ export type TemplateInput = Omit<RecipeInput, 'id' | 'ingredients'> & {
 export const isTemplate = (x: RecipeInput | TemplateInput): x is TemplateInput => 'template' in x
 
 const fill = (s: string, v: TemplateVariant) => s.replaceAll('{name}', v.name).replaceAll('{kana}', v.kana)
+
+// 作り方の文の {name} を料理ごとの名前に置きかえる
+const fillRecipe = (r: DishRecipe, v: TemplateVariant): DishRecipe => ({
+  ...r,
+  steps: r.steps.map((s) => (s === '{prep}' ? (v.prep ?? '') : fill(s, v))).filter(Boolean),
+  ...(r.note ? { note: fill(r.note, v) } : {}),
+})
 
 export function expandTemplate(t: TemplateInput): { recipes: RecipeInput[]; errors: string[] } {
   const errors: string[] = []
@@ -48,6 +59,7 @@ export function expandTemplate(t: TemplateInput): { recipes: RecipeInput[]; erro
       category: t.category,
       suggestedSlots: v.suggestedSlots ?? t.suggestedSlots,
       ingredients: [...ingredients, ...(v.extra ?? [])],
+      ...((v.recipe ?? t.recipe) ? { recipe: fillRecipe((v.recipe ?? t.recipe) as DishRecipe, v) } : {}),
     }
   })
   return { recipes, errors }
