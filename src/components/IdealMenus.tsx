@@ -2,12 +2,11 @@ import { useMemo, useState, type ReactNode } from 'react'
 import {
   IDEAL_GENRES,
   IDEAL_MENUS,
-  adjustIdealMenu,
+  adjustIdealMenuCached,
   idealMenuAvailable,
   idealMenuHasProducts,
   isIdealExtra,
   summarizeIdealMenu,
-  type IdealBalance,
   type IdealGenre,
   type IdealMenu,
 } from '../domain/idealMenus'
@@ -28,7 +27,7 @@ import {
   type IdealSearchIndex,
   type LunchStyle,
 } from '../domain/idealMenuFacets'
-import { MEAL_SLOTS, isMealSlot } from '../domain/idealMeals'
+import { MEAL_SLOTS } from '../domain/idealMeals'
 import { WANT_NUTRIENTS } from '../domain/nutrientChecks'
 import type { Catalog } from '../domain/nutrition'
 import { slotBalance } from '../domain/slotBalance'
@@ -39,25 +38,14 @@ import { itemName, portionLabel } from './itemName'
 import { BREAKFAST_LABEL, DINNER_LABEL, LUNCH_LABEL, NUTRIENT_INFO, SLOT_LABEL } from './labels'
 import { SlotIcon } from './Mascot'
 
-const BALANCES: { key: IdealBalance; label: string; short: string; intro: string }[] = [
-  { key: 'day', label: '1日でバランス', short: '1日の合計で目安がそろう献立', intro: '1日の合計で栄養の目安がそろう献立です。朝・昼・晩で自然な組み合わせにしています。' },
-  {
-    key: 'meal',
-    label: '毎食バランス',
-    short: '1食ずつでも目安に収まる献立',
-    intro: '朝・昼・晩のどれも、1食だけで区分の目安（カロリー・PFC・食塩など）に収まる献立です。1日まとめてでも、1食だけでも呼び出せます。',
-  },
-]
 // 一度に出す数。献立ごとに量の調整を計算するので、見える分だけ計算する
 const PAGE = 12
-
 
 type ListProps = {
   catalog: Catalog
   targets: Targets
   storesLoaded: boolean
   onLoad: (ideal: IdealMenu, menu: DayMenu) => void
-  onLoadSlot: (ideal: IdealMenu, slot: Slot, items: MenuItem[]) => void
 }
 
 type Entry = { menu: IdealMenu; facets: IdealFacets; index: IdealSearchIndex }
@@ -110,25 +98,23 @@ export function FacetRow<T extends string>({
   )
 }
 
-// 理想の献立の一覧。プロフィールの目安に合わせた量で、朝・昼・晩の絵とカロリー・食塩を添えて出す。
-// 「1日でバランス」と、朝・昼・晩それぞれでそろう「毎食バランス」を切り替える。毎食バランスは1食だけ呼び出せる。
+// 「1日でバランス」の理想の献立の一覧（献立をつくる窓）。プロフィールの目安に合わせた量で、朝・昼・晩の絵とカロリー・食塩を添えて出す。
 // 数が多いので、食べたい料理の名前でさがすか、ジャンルと朝・昼・晩の好みでしぼって選ぶ。
+// 毎食バランスの献立は、朝・昼・晩を1食ずつえらぶ流れ（MenuBuilder.tsx）で出すので、ここには出さない。
 // 市販品を使う献立は、コンビニ・メーカーの商品を読み終えるまで「読み込み中」にし、読み終えても商品がなければ出さない
-export function IdealMenuList({ catalog, targets, storesLoaded, onLoad, onLoadSlot }: ListProps) {
-  const [balance, setBalance] = useState<IdealBalance>('day')
+export function IdealMenuList({ catalog, targets, storesLoaded, onLoad }: ListProps) {
   const [filters, setFilters] = useState<Filters>(NO_FILTERS)
   const [query, setQuery] = useState('')
   const [shown, setShown] = useState(PAGE)
-  const [help, setHelp] = useState(false)
   // データにない市販品を使う献立は出さない（読み込み中は出しておく）
   const entries = useMemo<Entry[]>(
     () =>
-      IDEAL_MENUS.filter((m) => m.balance === balance && (idealMenuAvailable(m, catalog) || (idealMenuHasProducts(m) && !storesLoaded))).map((menu) => ({
+      IDEAL_MENUS.filter((m) => m.balance === 'day' && (idealMenuAvailable(m, catalog) || (idealMenuHasProducts(m) && !storesLoaded))).map((menu) => ({
         menu,
         facets: idealMenuFacets(menu, catalog),
         index: idealSearchIndex(menu, catalog),
       })),
-    [balance, catalog, storesLoaded],
+    [catalog, storesLoaded],
   )
   const tokens = useMemo(() => idealSearchTokens(query), [query])
   // skip の条件だけ外して数える（その行のチップに出す件数）
@@ -149,52 +135,10 @@ export function IdealMenuList({ catalog, targets, storesLoaded, onLoad, onLoadSl
     setQuery('')
     setShown(PAGE)
   }
-  const mode = BALANCES.find((b) => b.key === balance)!
   // 1件もないジャンルは出さない（いまえらんでいるものは外せるように残す）
   const genres = options('genre', IDEAL_GENRES, (g) => g).filter((o) => o.key === filters.genre || entries.some((e) => e.menu.genre === o.key))
   return (
     <>
-      <div className="mb-2 flex items-center gap-x-3 gap-y-2">
-        <div role="radiogroup" aria-label="バランスのとり方" className="flex min-w-0 flex-1 gap-1.5 md:max-w-80">
-          {BALANCES.map((b) => (
-            <button
-              key={b.key}
-              type="button"
-              role="radio"
-              aria-checked={balance === b.key}
-              onClick={() => {
-                setBalance(b.key)
-                setShown(PAGE)
-              }}
-              className={`min-h-9 flex-1 rounded-full border text-sm whitespace-nowrap transition ${
-                balance === b.key ? 'border-coral bg-coral font-bold text-ink-strong' : 'border-coral/40 bg-white text-ink-soft'
-              }`}
-            >
-              {b.label}
-            </button>
-          ))}
-        </div>
-        {/* 説明は長いので畳んでおく。スマホは「?」だけ */}
-        <button
-          type="button"
-          aria-expanded={help}
-          aria-label={`${mode.label}の説明`}
-          onClick={() => setHelp((v) => !v)}
-          className="flex min-h-9 shrink-0 items-center gap-1 text-xs text-ink-soft md:min-w-0 md:shrink"
-        >
-          <span className="grid h-7 w-7 place-items-center rounded-full bg-white text-xs font-bold shadow-sm md:h-5 md:w-5 md:text-2xs" aria-hidden>
-            ?
-          </span>
-          <span className="hidden truncate md:inline">{mode.short}</span>
-          <span className="hidden font-bold text-coral-ink md:inline">{help ? 'とじる' : 'くわしく'}</span>
-        </button>
-      </div>
-      {help && (
-        <p className="mb-2 rounded-2xl bg-white/60 px-3 py-2 text-xs leading-relaxed text-ink-soft">
-          {mode.intro}プロフィールの目安（{targets.energyKcal.toLocaleString()} kcal）に合わせて、ごはん・パン・麺を中心に量を変えて入れます。ごはんは大盛りまでにして、足りない分は
-          <span className="font-bold text-coral-ink">＋</span>の一品を足します。呼び出すと、いまの1日の食事と置き換わります（1食だけ呼び出したときは、その区分だけ）。
-        </p>
-      )}
       {/* えらび方：食べたい料理でさがすか、ジャンルと朝・昼・晩の好みでしぼる */}
       <div className="mb-2 space-y-2">
         <input
@@ -256,7 +200,6 @@ export function IdealMenuList({ catalog, targets, storesLoaded, onLoad, onLoadSl
               targets={targets}
               storesLoaded={storesLoaded}
               onLoad={onLoad}
-              onLoadSlot={onLoadSlot}
             />
           ))}
         </ul>
@@ -272,13 +215,13 @@ export function IdealMenuList({ catalog, targets, storesLoaded, onLoad, onLoadSl
 
 // 献立1つ分のカード。量の調整はカードが出たときに計算する。
 // ふだんは名前、朝・昼・晩の絵とひとこと、カロリーと食塩だけ。料理の一覧・PFC・栄養のポイントは「中身を見る」でひらく
-function IdealMenuCard({ ideal, found, catalog, targets, storesLoaded, onLoad, onLoadSlot }: ListProps & { ideal: IdealMenu; found: string[] }) {
+function IdealMenuCard({ ideal, found, catalog, targets, storesLoaded, onLoad }: ListProps & { ideal: IdealMenu; found: string[] }) {
   const [open, setOpen] = useState(false)
   const withProducts = idealMenuHasProducts(ideal)
   const ready = idealMenuAvailable(ideal, catalog)
   const plan = useMemo(() => {
     if (!ready) return null
-    const menu = adjustIdealMenu(ideal, catalog, targets)
+    const menu = adjustIdealMenuCached(ideal, catalog, targets)
     return { menu, summary: summarizeIdealMenu(menu, catalog, targets) }
   }, [ideal, ready, catalog, targets])
   const title = (
@@ -295,8 +238,8 @@ function IdealMenuCard({ ideal, found, catalog, targets, storesLoaded, onLoad, o
             {title}
             <p className="text-xs text-ink-soft">{ideal.lead}</p>
           </div>
-          <button type="button" disabled className="min-h-10 shrink-0 rounded-full bg-coral px-3.5 text-sm font-bold text-ink-strong opacity-40">
-            呼び出す
+          <button type="button" disabled className="min-h-10 shrink-0 rounded-full bg-coral px-3.5 text-sm font-bold whitespace-nowrap text-ink-strong opacity-40">
+            これにする
           </button>
         </div>
         <p className="mt-2 text-xs text-ink-soft">コンビニ・メーカーの商品を読み込んでいます…</p>
@@ -308,18 +251,6 @@ function IdealMenuCard({ ideal, found, catalog, targets, storesLoaded, onLoad, o
   const short = summary.checks.filter((c) => (WANT_NUTRIENTS as readonly string[]).includes(c.key) && c.status === 'low' && !c.partial)
   const salt = summary.totals.day.values.salt
   const leads = idealMealLeads(ideal)
-  const slotOnly = (slot: Slot) =>
-    ideal.balance === 'meal' &&
-    isMealSlot(slot) && (
-      <button
-        type="button"
-        aria-label={`「${ideal.name}」の${SLOT_LABEL[slot]}ごはんだけ呼び出す`}
-        onClick={() => onLoadSlot(ideal, slot, menu[slot])}
-        className="min-h-8 shrink-0 self-center rounded-full border border-coral px-2.5 text-xs font-bold text-coral-ink"
-      >
-        {SLOT_LABEL[slot]}だけ
-      </button>
-    )
   const toggle = (
     <button type="button" aria-expanded={open} onClick={() => setOpen((v) => !v)} className="min-h-9 shrink-0 rounded-full px-2 text-xs font-bold whitespace-nowrap text-coral-ink">
       {open ? 'とじる ▴' : '中身を見る ▾'}
@@ -329,8 +260,13 @@ function IdealMenuCard({ ideal, found, catalog, targets, storesLoaded, onLoad, o
     <li className="rounded-2xl bg-white p-3">
       <div className="flex items-start gap-2">
         <div className="min-w-0 flex-1 pt-1.5">{title}</div>
-        <button type="button" onClick={() => onLoad(ideal, menu)} className="min-h-10 shrink-0 rounded-full bg-coral px-3.5 text-sm font-bold text-ink-strong">
-          呼び出す
+        <button
+          type="button"
+          onClick={() => onLoad(ideal, menu)}
+          aria-label={`これにする：${ideal.name}`}
+          className="min-h-10 shrink-0 rounded-full bg-coral px-3.5 text-sm font-bold whitespace-nowrap text-ink-strong"
+        >
+          これにする
         </button>
       </div>
       {open ? (
@@ -344,9 +280,7 @@ function IdealMenuCard({ ideal, found, catalog, targets, storesLoaded, onLoad, o
                 </dt>
                 <dd className="min-w-0 flex-1 pt-0.5 leading-snug">
                   <MealItems items={menu[slot]} catalog={catalog} />
-                  {ideal.balance === 'meal' && isMealSlot(slot) && <MealStats slot={slot} menu={menu} summary={summary} targets={targets} />}
                 </dd>
-                {slotOnly(slot)}
               </div>
             ),
           )}
@@ -366,7 +300,6 @@ function IdealMenuCard({ ideal, found, catalog, targets, storesLoaded, onLoad, o
                 {src ? <img src={src} alt="" className="h-8 w-8 shrink-0" /> : <span className="h-8 w-8 shrink-0 rounded-full bg-cream" aria-hidden />}
                 <span className="shrink-0 text-xs text-ink-soft">{SLOT_LABEL[slot]}</span>
                 <span className="min-w-0 flex-1">{leads ? leads[slot] : itemName(face, catalog)}</span>
-                {slotOnly(slot)}
               </li>
             )
           })}

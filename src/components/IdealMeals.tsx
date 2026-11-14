@@ -1,10 +1,6 @@
 import { useMemo, useState } from 'react'
 import { idealMeals, type IdealMeal, type MealSlot } from '../domain/idealMeals'
 import {
-  BREAKFAST_STYLES,
-  DINNER_MAINS,
-  LUNCH_STYLES,
-  idealMealLeads,
   idealMenuFacets,
   idealSearchIndex,
   idealSearchTokens,
@@ -12,32 +8,20 @@ import {
   mealFaceItem,
   type IdealSearchIndex,
 } from '../domain/idealMenuFacets'
-import { IDEAL_MENUS, adjustIdealMenu, idealMenuAvailable, idealMenuHasProducts, isIdealExtra, summarizeIdealMenu, type IdealBalance } from '../domain/idealMenus'
+import { IDEAL_MENUS, adjustIdealMenuCached, idealMenuAvailable, idealMenuHasProducts, isIdealExtra, summarizeIdealMenu, type IdealBalance } from '../domain/idealMenus'
 import type { Catalog } from '../domain/nutrition'
 import type { Targets } from '../domain/targets'
 import type { MenuItem } from '../domain/types'
 import { FacetRow, MealItems, MealStats } from './IdealMenus'
 import { menuItemImage } from './illustration'
-import { BREAKFAST_LABEL, DINNER_LABEL, LUNCH_LABEL, SLOT_LABEL } from './labels'
+import { PAGE, STYLES, mealName } from './idealMealList'
+import { SLOT_LABEL } from './labels'
 
-// 一度に出す数。1食ごとに献立の量の調整を計算するので、見える分だけ計算する
-const PAGE = 12
-
-// その区分の好みでしぼる言葉（理想の献立の一覧の朝・昼・晩と同じ分け方）
-const STYLES: Record<MealSlot, { label: string; options: { key: string; label: string }[] }> = {
-  breakfast: { label: '主食', options: BREAKFAST_STYLES.map((key) => ({ key, label: BREAKFAST_LABEL[key] })) },
-  lunch: { label: '種類', options: LUNCH_STYLES.map((key) => ({ key, label: LUNCH_LABEL[key] })) },
-  dinner: { label: '主菜', options: DINNER_MAINS.map((key) => ({ key, label: DINNER_LABEL[key] })) },
-}
 const BALANCES: { key: IdealBalance; label: string }[] = [
   { key: 'meal', label: '毎食バランス' },
   { key: 'day', label: '1日でバランス' },
 ]
 const SEARCH_EXAMPLE: Record<MealSlot, string> = { breakfast: '納豆、トースト', lunch: '丼、カツ', dinner: '刺身、麻婆' }
-
-// 1食の名前。献立のひとこと（「〇〇の朝、〇〇の昼、〇〇の晩」）のその1食の部分（「納豆と玄米」）。
-// 一覧ではこのまま見出しにして、確認の言葉では「納豆と玄米の朝ごはん」の形にする
-const mealName = ({ menu, slot }: IdealMeal) => idealMealLeads(menu)?.[slot] ?? menu.name
 
 type Props = {
   slot: MealSlot
@@ -53,7 +37,7 @@ type Filters = { style: string | null; balance: IdealBalance | null }
 const NO_FILTERS: Filters = { style: null, balance: null }
 const valueOf = (e: Entry, key: keyof Filters) => (key === 'style' ? e.style : e.meal.menu.balance)
 
-// 理想の献立の、朝・昼・晩のどれか1食だけの一覧（「朝に追加」などの画面から呼び出す）。
+// 理想の献立の、朝・昼・晩のどれか1食だけの一覧（「朝に追加」などの料理をえらぶ画面の「理想の献立からえらぶ」）。
 // 同じ組み合わせの1食は1つにまとめ、量はプロフィールの目安に合わせた献立のその1食ぶんをそのまま使う。
 // 毎食バランスの献立の1食は、その1食だけで区分の目安に収まるので先に並べて印をつける
 export function IdealMealList({ slot, catalog, targets, storesLoaded, onLoad }: Props) {
@@ -103,7 +87,7 @@ export function IdealMealList({ slot, catalog, targets, storesLoaded, onLoad }: 
       {help && (
         <p className="mb-2 rounded-2xl bg-white/60 px-3 py-2 text-xs leading-relaxed text-ink-soft">
           「毎食バランス」は、この1食だけでカロリー・PFC・食塩などが{label}の目安に収まります。「1日でバランス」は、1日の合計で目安がそろう献立の{label}ごはんです。ごはん・パン・麺を中心に量を変え、足りない分は
-          <span className="font-bold text-coral-ink">＋</span>の一品を足します。呼び出すと、いまの{label}の食事と置き換わります（ほかの区分はそのまま）。
+          <span className="font-bold text-coral-ink">＋</span>の一品を足します。えらぶと、いまの{label}の食事と置き換わります（ほかの区分はそのまま）。
         </p>
       )}
       <div className="mb-2 space-y-2">
@@ -152,13 +136,23 @@ export function IdealMealList({ slot, catalog, targets, storesLoaded, onLoad }: 
 }
 
 // 1食ぶんのカード。その食事の顔になる料理の絵、名前、もとの献立、入っている料理、カロリー（区分の目安）・PFC・食塩。
-// 名前が長くても折り返しにくいよう、「呼び出す」は下の行の右に置く
-function IdealMealCard({ meal, catalog, targets, storesLoaded, onLoad }: Omit<Props, 'slot'> & { meal: IdealMeal }) {
+// 名前が長くても折り返しにくいよう、「これにする」は下の行の右に置く。
+// 毎食バランスで1食ずつえらぶ流れ（MenuBuilder.tsx）では、どれも1食で収まるので「毎食バランス」の印は出さない。chosen はいまえらんでいる1食
+export function IdealMealCard({
+  meal,
+  catalog,
+  targets,
+  storesLoaded,
+  onLoad,
+  actionLabel = 'これにする',
+  showBalanced = true,
+  chosen = false,
+}: Omit<Props, 'slot'> & { meal: IdealMeal; actionLabel?: string; showBalanced?: boolean; chosen?: boolean }) {
   const { menu: ideal, slot } = meal
   const ready = idealMenuAvailable(ideal, catalog)
   const plan = useMemo(() => {
     if (!ready) return null
-    const menu = adjustIdealMenu(ideal, catalog, targets)
+    const menu = adjustIdealMenuCached(ideal, catalog, targets)
     return { menu, summary: summarizeIdealMenu(menu, catalog, targets) }
   }, [ideal, ready, catalog, targets])
   if (!plan && !(idealMenuHasProducts(ideal) && !storesLoaded)) return null
@@ -173,14 +167,15 @@ function IdealMealCard({ meal, catalog, targets, storesLoaded, onLoad }: Omit<Pr
   )
   const src = face && menuItemImage(face, catalog)
   return (
-    <li className="rounded-2xl bg-white p-3">
+    <li className={`rounded-2xl bg-white p-3 ${chosen ? 'ring-2 ring-coral' : ''}`}>
       <div className="flex items-start gap-2.5">
         {src ? <img src={src} alt="" className="h-12 w-12 shrink-0" /> : <span className="h-12 w-12 shrink-0 rounded-full bg-cream" aria-hidden />}
         <div className="min-w-0 flex-1">
           <p className="font-bold leading-snug">{name}</p>
           <p className="mt-0.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs text-ink-soft">
             <span>「{ideal.name}」より</span>
-            {meal.balanced && <span className="rounded-full bg-ok/25 px-2 py-0.5 text-2xs font-bold whitespace-nowrap text-ok-ink">毎食バランス</span>}
+            {chosen && <span className="rounded-full bg-coral/20 px-2 py-0.5 text-2xs font-bold whitespace-nowrap text-coral-ink">いまえらんでいる</span>}
+            {showBalanced && meal.balanced && <span className="rounded-full bg-ok/25 px-2 py-0.5 text-2xs font-bold whitespace-nowrap text-ok-ink">毎食バランス</span>}
           </p>
         </div>
       </div>
@@ -197,11 +192,12 @@ function IdealMealCard({ meal, catalog, targets, storesLoaded, onLoad }: Omit<Pr
         <button
           type="button"
           disabled={!plan}
-          aria-label={`「${title}」を呼び出す`}
+          // 見えている言葉を名前の中に入れる（音声で「これにする」と言って押せるように）
+          aria-label={`${actionLabel}：${title}`}
           onClick={() => onLoad(title, items)}
-          className="min-h-10 shrink-0 rounded-full bg-coral px-3.5 text-sm font-bold text-ink-strong disabled:opacity-40"
+          className="min-h-10 shrink-0 rounded-full bg-coral px-3.5 text-sm font-bold whitespace-nowrap text-ink-strong disabled:opacity-40"
         >
-          呼び出す
+          {actionLabel}
         </button>
       </div>
     </li>

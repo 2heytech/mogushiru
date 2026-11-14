@@ -20,7 +20,8 @@ import { adjustIdealMenu, IDEAL_MENUS, idealMenuAvailable, idealMenuHasProducts 
 import { isMealSlot, type MealSlot } from './domain/idealMeals'
 import { legacyRedirect, nutrientFromSlug, VIEW_META, VIEW_PATH, viewFromLocation, type View } from './routes'
 import { ConfirmHost } from './components/ConfirmDialog'
-import { IdealMealDialog, LoadMenuDialog, MenuActions, SaveMenuDialog } from './components/SavedMenus'
+import { IdealMealDialog, MenuActions, SaveMenuDialog, SavedMenusDialog } from './components/SavedMenus'
+import { MenuBuilderDialog, type BuildMode } from './components/MenuBuilder'
 import { DayInfo } from './components/SummaryPanel'
 import { useCatalog, withMyData } from './data/catalog'
 import { usePrices } from './data/prices'
@@ -197,12 +198,14 @@ export default function App() {
     menuSource,
   } = useAppStore()
   const [savedDialog, setSavedDialog] = useState<'save' | 'load' | null>(null)
-  // 1日の食事が空のときに出す「呼び出す／自分でえらぶ」。どちらかで料理が入ったら、あとで全部外してもリセットするまで出さない
+  // 献立をつくる窓（mode は最初の画面でえらんだバランスのとり方。ヘッダーのボタンからはえらぶところから）
+  const [builder, setBuilder] = useState<{ mode: BuildMode | null } | null>(null)
+  // 1日の食事が空のときに出す最初の画面（献立をつくる／自分でえらぶ）。どれかで料理が入ったら、あとで全部外してもリセットするまで出さない
   const [startDismissed, setStartDismissed] = useState(() => SLOTS.some((s) => useAppStore.getState().menu[s].length > 0))
   const [profileOpen, setProfileOpen] = useState(false)
   const [profileFocus, setProfileFocus] = useState<ProfileFocus | undefined>()
   const [pickerSlot, setPickerSlot] = useState<Slot | null>(null)
-  // 料理をえらぶ画面（朝・昼・晩）から、理想の献立のその1食だけを呼び出す画面
+  // 料理をえらぶ画面（朝・昼・晩）から、理想の献立のその1食だけをえらぶ画面
   const [idealMealSlot, setIdealMealSlot] = useState<MealSlot | null>(null)
   const [editing, setEditing] = useState<{ slot: Slot; uid: string } | null>(null)
   // 市販品の登録（slot があれば登録後その区分に追加）・編集
@@ -237,7 +240,7 @@ export default function App() {
   const [dishStart, setDishStart] = useState(() => queryParam('dish') ?? undefined)
   useEffect(() => dropQueryParam('dish'), [])
 
-  // 献立の例のページから「この献立をアプリで開く」で来たとき（/?menu=<id>）は、その理想の献立をプロフィールに合わせて呼び出す
+  // 献立の例のページから「この献立をアプリで開く」で来たとき（/?menu=<id>）は、その理想の献立をプロフィールに合わせて入れる
   const menuRequest = useRef(queryParam('menu'))
   useEffect(() => {
     const id = menuRequest.current
@@ -251,7 +254,7 @@ export default function App() {
     const planned = adjustIdealMenu(ideal, catalog, targets)
     const empty = SLOTS.every((s) => useAppStore.getState().menu[s].length === 0)
     void (async () => {
-      if (!empty && !(await confirmDialog(`いまの1日の食事を「${ideal.name}」に置き換えますか？`, { okLabel: '呼び出す' }))) return
+      if (!empty && !(await confirmDialog(`いまの1日の食事を「${ideal.name}」に置き換えますか？`, { okLabel: '置き換える' }))) return
       replaceMenu(planned, ideal.name)
       setStartDismissed(true)
     })()
@@ -448,7 +451,8 @@ export default function App() {
                 setStartDismissed(true)
                 window.scrollTo({ top: 0 })
               }}
-              onLoad={() => setSavedDialog('load')}
+              onBuild={(mode) => setBuilder({ mode })}
+              onOpenSaved={() => setSavedDialog('load')}
               onPickSelf={() => {
                 setStartDismissed(true)
                 // 朝食をとらない配分なら昼から
@@ -467,8 +471,9 @@ export default function App() {
                     menu={menu}
                     layout={layout}
                     savedCount={savedMenus.length}
+                    onOpenBuild={() => setBuilder({ mode: null })}
                     onOpenSave={() => setSavedDialog('save')}
-                    onOpenLoad={() => setSavedDialog('load')}
+                    onOpenSaved={() => setSavedDialog('load')}
                     onReset={() => {
                       clearMenu()
                       setStartDismissed(false)
@@ -559,23 +564,37 @@ export default function App() {
         />
       )}
 
-      {catalog && savedDialog === 'load' && (
-        <LoadMenuDialog
+      {catalog && builder && (
+        <MenuBuilderDialog
+          initialMode={builder.mode}
           menu={menu}
-          saved={savedMenus}
           catalog={catalog}
           targets={targets}
           storesLoaded={storesLoaded}
-          onLoadIdeal={(ideal, m) => {
+          onLoadDay={(ideal, m) => {
             replaceMenu(m, ideal.name)
             setStartDismissed(true)
-            setSavedDialog(null)
+            setBuilder(null)
+            window.scrollTo({ top: 0 })
           }}
-          onLoadIdealSlot={(_, slot, items) => {
+          // 毎食バランスは、1食えらぶたびにその区分に入れる（途中で閉じても、えらんだところまでは残る）
+          onLoadMeal={(slot, items) => {
             replaceSlot(slot, items)
             setStartDismissed(true)
-            setSavedDialog(null)
           }}
+          onDone={() => {
+            setBuilder(null)
+            window.scrollTo({ top: 0 })
+          }}
+          onClose={() => setBuilder(null)}
+        />
+      )}
+
+      {catalog && savedDialog === 'load' && (
+        <SavedMenusDialog
+          menu={menu}
+          saved={savedMenus}
+          catalog={catalog}
           onLoad={(m) => {
             // データの更新でなくなった料理があっても止まらないように外してから入れる
             // コンビニ・メーカーの商品を読み終える前は外さない（読み終えたあとに外す）

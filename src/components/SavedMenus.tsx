@@ -1,13 +1,11 @@
 import { useState, type ReactNode } from 'react'
 import type { MealSlot } from '../domain/idealMeals'
-import type { IdealMenu } from '../domain/idealMenus'
 import { knownItemsOnly, menuTotals, type Catalog } from '../domain/nutrition'
 import type { Targets } from '../domain/targets'
-import { SLOTS, type DayMenu, type MenuItem, type Slot } from '../domain/types'
+import { SLOTS, type DayMenu, type MenuItem } from '../domain/types'
 import type { SavedMenu } from '../store/useAppStore'
 import { confirmDialog } from './confirm'
 import { IdealMealList } from './IdealMeals'
-import { IdealMenuList } from './IdealMenus'
 import { SLOT_LABEL } from './labels'
 import { defaultMenuName } from './menuName'
 import { UiIcon } from './UiIcon'
@@ -15,47 +13,67 @@ import { useDialog } from './useDialog'
 
 const itemCount = (menu: DayMenu) => SLOTS.reduce((n, s) => n + menu[s].length, 0)
 
-// 「献立を呼び出す」だけ色をつけて、いちばん先に目に入るようにする
+// 「献立をつくる」だけ色をつけて、いちばん先に目に入るようにする
 const PRIMARY = 'flex items-center justify-center gap-1.5 rounded-full bg-coral font-bold text-ink-strong shadow-sm transition hover:bg-coral-dark/90'
 const SECONDARY = 'flex min-h-11 items-center justify-center gap-1.5 rounded-full bg-white pr-4 pl-2.5 text-sm shadow-sm transition hover:bg-cream disabled:opacity-40'
-// スマホの下のバーの「保存」「リセット」。アイコンの下に名前
-const BAR_SMALL = 'flex min-h-13 flex-col items-center justify-center gap-0.5 rounded-2xl bg-cream text-2xs transition disabled:opacity-40'
+// スマホの下のバーの「保存」「呼び出す」「リセット」。アイコンの下に名前
+const BAR_SMALL = 'flex min-h-13 min-w-0 flex-col items-center justify-center gap-0.5 rounded-2xl bg-cream text-2xs whitespace-nowrap transition disabled:opacity-40'
 
 export type MenuActionsLayout = 'row' | 'bar'
 
-// 1日の食事の「献立を呼び出す」「保存」「リセット」。
-// row＝見出しやPCの上のバーに横並び、bar＝スマホの下に固定のバー（呼び出すを広く、保存・リセットはアイコンの下に名前）
+// 1日の食事の「献立をつくる」「保存」「呼び出す」「リセット」。
+// 献立をつくる（理想の献立から1日分・1食ずつ）と、保存した食事を呼び出すのは入口を分ける。
+// row＝見出しやPCの上のバーに横並び、bar＝スマホの下に固定のバー（献立をつくるを広く、ほかはアイコンの下に名前）
 export function MenuActions({
   menu,
   layout,
   savedCount,
+  onOpenBuild,
   onOpenSave,
-  onOpenLoad,
+  onOpenSaved,
   onReset,
 }: {
   menu: DayMenu
   layout: MenuActionsLayout
   savedCount: number
+  onOpenBuild: () => void
   onOpenSave: () => void
-  onOpenLoad: () => void
+  onOpenSaved: () => void
   onReset: () => void
 }) {
   const empty = itemCount(menu) === 0
   const reset = async () => {
     if (await confirmDialog('朝・昼・晩・その他の料理をすべて外して、空にしますか？', { okLabel: 'リセットする', danger: true })) onReset()
   }
-  const count = savedCount > 0 && <span className="rounded-full bg-white/70 px-1.5 text-xs font-normal tabular-nums">{savedCount}</span>
+  const savedTitle = savedCount === 0 ? '保存した食事はまだありません' : undefined
+  const count = savedCount > 0 && <span className="rounded-full bg-white px-1.5 text-xs font-normal tabular-nums text-ink-soft">{savedCount}</span>
   if (layout === 'bar')
     return (
-      <div className="grid grid-cols-[auto_1fr_1fr] gap-2">
-        <button type="button" onClick={onOpenLoad} aria-haspopup="dialog" className={`${PRIMARY} min-h-13 px-4 text-base whitespace-nowrap`}>
-          <UiIcon name="load" className="h-6 w-6 shrink-0" />
-          献立を呼び出す
-          {count}
+      <div className="grid grid-cols-[auto_1fr_1fr_1fr] gap-1.5">
+        <button type="button" onClick={onOpenBuild} aria-haspopup="dialog" className={`${PRIMARY} min-h-13 px-3 text-base whitespace-nowrap`}>
+          <UiIcon name="build" className="h-6 w-6 shrink-0" />
+          献立をつくる
         </button>
         <button type="button" onClick={onOpenSave} disabled={empty} aria-haspopup="dialog" className={BAR_SMALL}>
           <UiIcon name="save" className="h-6 w-6 shrink-0" />
           保存
+        </button>
+        <button
+          type="button"
+          onClick={onOpenSaved}
+          disabled={savedCount === 0}
+          title={savedTitle}
+          aria-haspopup="dialog"
+          aria-label={`保存した食事を呼び出す${savedCount > 0 ? `（${savedCount}件）` : ''}`}
+          className={`${BAR_SMALL} relative`}
+        >
+          <UiIcon name="load" className="h-6 w-6 shrink-0" />
+          呼び出す
+          {savedCount > 0 && (
+            <span className="absolute top-1 right-1 min-w-5 rounded-full bg-white px-1 text-2xs leading-5 tabular-nums text-ink-soft shadow-sm" aria-hidden>
+              {savedCount}
+            </span>
+          )}
         </button>
         <button type="button" onClick={reset} disabled={empty} className={`${BAR_SMALL} text-ink-soft`}>
           <UiIcon name="reset" className="h-6 w-6 shrink-0" />
@@ -65,14 +83,26 @@ export function MenuActions({
     )
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <button type="button" onClick={onOpenLoad} aria-haspopup="dialog" className={`${PRIMARY} min-h-11 pr-4 pl-2.5`}>
-        <UiIcon name="load" className="h-6 w-6 shrink-0" />
-        献立を呼び出す
-        {count}
+      <button type="button" onClick={onOpenBuild} aria-haspopup="dialog" className={`${PRIMARY} min-h-11 pr-4 pl-2.5`}>
+        <UiIcon name="build" className="h-6 w-6 shrink-0" />
+        献立をつくる
       </button>
       <button type="button" onClick={onOpenSave} disabled={empty} aria-haspopup="dialog" className={SECONDARY}>
         <UiIcon name="save" className="h-6 w-6 shrink-0" />
         保存
+      </button>
+      <button
+        type="button"
+        onClick={onOpenSaved}
+        disabled={savedCount === 0}
+        title={savedTitle}
+        aria-haspopup="dialog"
+        aria-label={`保存した食事を呼び出す${savedCount > 0 ? `（${savedCount}件）` : ''}`}
+        className={SECONDARY}
+      >
+        <UiIcon name="load" className="h-6 w-6 shrink-0" />
+        呼び出す
+        {count}
       </button>
       <button type="button" onClick={reset} disabled={empty} className={`${SECONDARY} text-ink-soft`}>
         <UiIcon name="reset" className="h-6 w-6 shrink-0" />
@@ -88,7 +118,7 @@ const dateLabel = (iso: string) => {
 }
 
 // tall：中身の数によらず、いつも同じ高さにする（しぼりこむたびに窓の大きさが変わらないように。下に重なっている窓もかくれる）
-function Sheet({ title, onClose, wide = false, tall = false, children }: { title: string; onClose: () => void; wide?: boolean; tall?: boolean; children: ReactNode }) {
+export function Sheet({ title, onClose, wide = false, tall = false, children }: { title: string; onClose: () => void; wide?: boolean; tall?: boolean; children: ReactNode }) {
   const dialogRef = useDialog(onClose)
   return (
     <div className="fixed inset-0 z-20 flex items-end bg-ink/30 md:items-center md:justify-center" onClick={onClose}>
@@ -168,82 +198,31 @@ export function SaveMenuDialog({ saved, onSave, onClose }: { saved: SavedMenu[];
   )
 }
 
-export type LoadTab = 'ideal' | 'saved'
-
-// 理想の献立と、保存した1日の食事を呼び出す（保存したものは削除もできる）
-export function LoadMenuDialog({
+// 保存した1日の食事を呼び出す（削除もできる）。理想の献立から献立をつくるのは「献立をつくる」（MenuBuilder.tsx）
+export function SavedMenusDialog({
   menu,
   saved,
   catalog,
-  targets,
-  storesLoaded,
-  initialTab,
   onLoad,
-  onLoadIdeal,
-  onLoadIdealSlot,
   onDelete,
   onClose,
 }: {
   menu: DayMenu
   saved: SavedMenu[]
   catalog: Catalog
-  targets: Targets
-  // コンビニ・メーカーの商品を読み終えたか（市販品を使う理想の献立で使う）
-  storesLoaded: boolean
-  initialTab?: LoadTab
   onLoad: (m: SavedMenu) => void
-  onLoadIdeal: (ideal: IdealMenu, menu: DayMenu) => void
-  // 毎食バランスの献立から、朝・昼・晩のどれか1食だけ入れる
-  onLoadIdealSlot: (ideal: IdealMenu, slot: Slot, items: MenuItem[]) => void
   onDelete: (m: SavedMenu) => void
   onClose: () => void
 }) {
-  // 保存したものがあればそちらから、なければ理想の献立から見せる
-  const [tab, setTab] = useState<LoadTab>(initialTab ?? (saved.length > 0 ? 'saved' : 'ideal'))
   const empty = itemCount(menu) === 0
   const confirmReplace = async (name: string) => empty || (await confirmDialog(`いまの1日の食事を「${name}」に置き換えますか？`, { okLabel: '呼び出す' }))
   const summary = (m: SavedMenu) => {
     const known = knownItemsOnly(m.menu, catalog)
     return { count: itemCount(known), kcal: Math.round(menuTotals(known, catalog).day.values.energyKcal) }
   }
-  const tabs: { key: LoadTab; label: string; count?: number }[] = [
-    { key: 'ideal', label: '理想の献立' },
-    { key: 'saved', label: '保存した食事', count: saved.length },
-  ]
   return (
-    <Sheet title="献立を呼び出す" onClose={onClose} wide>
-      <div role="tablist" aria-label="呼び出すもの" className="mb-3 flex gap-1 rounded-full bg-white/70 p-1 md:max-w-md">
-        {tabs.map((t) => (
-          <button
-            key={t.key}
-            type="button"
-            role="tab"
-            aria-selected={tab === t.key}
-            onClick={() => setTab(t.key)}
-            className={`flex min-h-10 flex-1 items-center justify-center gap-1 rounded-full text-sm whitespace-nowrap transition ${
-              tab === t.key ? 'bg-white font-bold text-ink shadow-sm' : 'text-ink-soft'
-            }`}
-          >
-            {t.label}
-            {t.count !== undefined && t.count > 0 && <span className="rounded-full bg-cream px-1.5 text-xs font-normal tabular-nums text-ink-soft">{t.count}</span>}
-          </button>
-        ))}
-      </div>
-      {tab === 'ideal' ? (
-        <IdealMenuList
-          catalog={catalog}
-          targets={targets}
-          storesLoaded={storesLoaded}
-          onLoad={async (ideal, m) => {
-            if (await confirmReplace(ideal.name)) onLoadIdeal(ideal, m)
-          }}
-          onLoadSlot={async (ideal, slot, items) => {
-            const label = SLOT_LABEL[slot]
-            if (menu[slot].length === 0 || (await confirmDialog(`いまの${label}の食事を「${ideal.name}」の${label}ごはんに置き換えますか？`, { okLabel: '呼び出す' })))
-              onLoadIdealSlot(ideal, slot, items)
-          }}
-        />
-      ) : saved.length === 0 ? (
+    <Sheet title="保存した食事を呼び出す" onClose={onClose}>
+      {saved.length === 0 ? (
         <p className="rounded-2xl bg-white/60 px-4 py-3 text-sm text-ink-soft">まだありません。1日の食事を「保存」すると、ここから呼び出せます。</p>
       ) : (
         <ul className="space-y-2">
@@ -312,7 +291,7 @@ export function IdealMealDialog({
         targets={targets}
         storesLoaded={storesLoaded}
         onLoad={async (title, items) => {
-          if (menu[slot].length === 0 || (await confirmDialog(`いまの${label}の食事を「${title}」に置き換えますか？`, { okLabel: '呼び出す' }))) onLoad(items)
+          if (menu[slot].length === 0 || (await confirmDialog(`いまの${label}の食事を「${title}」に置き換えますか？`, { okLabel: '置き換える' }))) onLoad(items)
         }}
       />
     </Sheet>

@@ -2,7 +2,7 @@
 const INK = '#5b4636'
 const CHEEK = '#ffa99a'
 
-export type UiIconName = 'menu' | 'ranking' | 'profile' | 'save' | 'load' | 'reset' | 'limit' | 'want' | 'info' | 'pick'
+export type UiIconName = 'menu' | 'ranking' | 'profile' | 'save' | 'load' | 'reset' | 'limit' | 'want' | 'info' | 'pick' | 'build'
 
 const TILE_BG: Record<UiIconName, string> = {
   menu: '#ffe6bf',
@@ -15,6 +15,7 @@ const TILE_BG: Record<UiIconName, string> = {
   want: '#dcf1e2',
   info: '#f3ebe1',
   pick: '#ffe6bf',
+  build: '#ffe1db',
 }
 
 export function UiIcon({ name, className }: { name: UiIconName; className?: string }) {
@@ -106,6 +107,19 @@ export function UiIcon({ name, className }: { name: UiIconName; className?: stri
           <path d="M29 9 L38 25 M33 8 L41 23" fill="none" {...s} stroke="#c98b5a" strokeWidth={2.6} />
           <circle cx="36" cy="35" r="7" fill="#ff8a65" {...s} strokeWidth={1.8} />
           <path d="M36 31.5 v7 M32.5 35 h7" fill="none" stroke="#fff" strokeWidth={2.4} strokeLinecap="round" />
+        </>
+      )}
+      {name === 'build' && (
+        // 献立をつくる：お盆に、ごはん・おかず・汁もの。きらっと
+        <>
+          <rect x="5" y="28" width="38" height="10" rx="4" fill="#e8a86a" {...s} />
+          <ellipse cx="24" cy="17" rx="7.5" ry="3.4" fill="#fff" {...s} strokeWidth={1.8} />
+          <ellipse cx="24" cy="16.2" rx="4.2" ry="1.7" fill="#7cc98a" />
+          <path d="M8 23 h14 a7 7 0 0 1 -14 0 z" fill="#ff8a65" {...s} />
+          <path d="M9.5 23 a5.5 4 0 0 1 11 0" fill="#fff" {...s} strokeWidth={1.8} />
+          <path d="M26 23 h14 a7 7 0 0 1 -14 0 z" fill="#c9714f" {...s} />
+          <path d="M27.5 23 h11" fill="none" stroke="#ffc94d" strokeWidth={2} strokeLinecap="round" />
+          <path d="M39 6 l1.1 2.6 l2.6 1.1 l-2.6 1.1 l-1.1 2.6 l-1.1 -2.6 l-2.6 -1.1 l2.6 -1.1 z" fill="#ffc94d" />
         </>
       )}
       {name === 'info' && (
