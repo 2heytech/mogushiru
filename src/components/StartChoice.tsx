@@ -26,27 +26,24 @@ export function StartChoice({
   onTrySample?: () => void
 }) {
   return (
-    <section aria-labelledby="start-title" className="rounded-[var(--radius-card)] bg-[#fff1df] px-4 py-6 shadow-sm sm:px-8 sm:py-8">
-      <div className="mb-5 flex flex-col items-center text-center">
-        <BowlMogu slot="breakfast" mood="happy" className="h-16 w-16 sm:h-20 sm:w-20" label="モグ" />
-        <h2 id="start-title" className="mt-2 text-xl leading-snug font-bold text-balance sm:text-2xl">
+    // スマホでは、2択のカードまでが最初の画面に収まるように：モグは見出しの横に小さく、説明の文ははぶく
+    <section aria-labelledby="start-title" className="rounded-[var(--radius-card)] bg-[#fff1df] px-4 py-4 shadow-sm sm:px-8 sm:py-8">
+      <div className="mb-3 flex items-center justify-center gap-2.5 sm:mb-5 sm:flex-col sm:gap-0 sm:text-center">
+        <BowlMogu slot="breakfast" mood="happy" className="h-12 w-12 shrink-0 sm:h-20 sm:w-20" label="モグ" />
+        <h2 id="start-title" className="text-lg leading-snug font-bold sm:mt-2 sm:text-2xl sm:text-balance">
           {/* 折り返すときは「、」のあとで */}
           <span className="inline-block">料理を選ぶだけで、</span>
           <span className="inline-block">1日の栄養バランスがわかる</span>
         </h2>
-        <p className="mt-1.5 max-w-xl text-sm text-balance text-ink-soft">カロリーやPFCバランス、ビタミン・ミネラルが、1日の目安に足りているかを見られます。</p>
+        <p className="mt-1.5 hidden max-w-xl text-sm text-balance text-ink-soft sm:block">カロリーやPFCバランス、ビタミン・ミネラルが、1日の目安に足りているかを見られます。</p>
       </div>
       <div className="mx-auto max-w-4xl">
-        <div className="mb-3 flex flex-col items-center gap-1.5 text-center">
-          <p className="rounded-full bg-coral px-3 py-0.5 text-xs font-bold tracking-wider text-ink-strong">まずはここから</p>
-          <h3 id="start-choice-title" className="text-lg font-bold text-balance">
-            <span className="inline-block">献立をつくろう。</span>
-            <span className="inline-block">バランスのとり方は？</span>
-          </h3>
-        </div>
+        <h3 id="start-choice-title" className="mb-2.5 text-center text-base font-bold text-balance sm:mb-3 sm:text-lg">
+          どちらのバランスで献立をつくる？
+        </h3>
         <BuildModeOptions onChoose={onBuild} opensDialog />
 
-        <div className="mt-6 flex flex-col items-center gap-2 text-center">
+        <div className="mt-5 flex flex-col items-center gap-2 text-center sm:mt-6">
           <p className="text-sm text-ink-soft">ほかの入れ方</p>
           <div className="flex flex-wrap justify-center gap-2">
             <button type="button" onClick={onPickSelf} aria-haspopup="dialog" className={OTHER}>
