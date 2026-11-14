@@ -58,6 +58,18 @@ const SOURCES: { name: ReactNode; note: ReactNode }[] = [
     note: '10の食品群（さあにぎやかにいただく）と1日7つ以上の目安。東京都健康長寿医療センター研究所の食品摂取の多様性スコアにもとづくもの',
   },
   {
+    name: <Ext href="https://jpnsh.jp/data/pressrelease_241008.pdf">日本高血圧学会「尿ナトカリ比の目標値に関するコンセンサスステートメント」（2024年）</Ext>,
+    note: '食塩とカリウムのつり合い（ナトカリ比）の考え方。目安は、ここで食事摂取基準の目標量に相当するとされている値を、食事の成分から計算するように加工して作成',
+  },
+  {
+    name: <Ext href="https://www.who.int/publications/i/item/9789240105591">WHO「Use of lower-sodium salt substitutes」（2025年）</Ext>,
+    note: 'カリウム入りの減塩タイプの食塩への置きかえと、腎臓の病気などでカリウムを控えている人への注意',
+  },
+  {
+    name: <Ext href="https://www.who.int/news/item/17-07-2023-who-updates-guidelines-on-fats-and-carbohydrates">WHO「炭水化物と脂質のガイドライン」（2023年）</Ext>,
+    note: '主食を全粒穀物にする置きかえ（炭水化物は主に全粒穀物・野菜・果物・豆から）',
+  },
+  {
     name: <Ext href="https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/kenkou_iryou/kenkou/undou/index.html">厚生労働省「健康づくりのための身体活動・運動ガイド2023」</Ext>,
     note: '運動で使うカロリー（メッツ表）。加工して作成',
   },

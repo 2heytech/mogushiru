@@ -13,8 +13,10 @@ import { BowlMogu, SlotIcon } from './Mascot'
 import { SlotBalanceView } from './SlotBalanceView'
 import { PfcDangoView } from './PfcDangoView'
 import { NutrientChecks } from './NutrientChecks'
+import { SaltPotassiumView } from './SaltPotassiumView'
 import { NUTRIENT_INFO } from './labels'
 import type { DayFoods } from '../domain/foodBalance'
+import type { SwapIdea } from '../domain/swaps'
 import { FoodBalanceView } from './FoodBalanceView'
 
 
@@ -109,6 +111,8 @@ const CARD = 'rounded-[var(--radius-card)] bg-[#fff1df] p-4 shadow-sm'
 export function DayInfo({
   totals,
   foods,
+  swaps,
+  onSwap,
   targets,
   profile,
   profileSet,
@@ -120,6 +124,9 @@ export function DayInfo({
   totals: MenuTotals
   // 料理の材料から数えた、食べものの単位のバランス
   foods: DayFoods | null
+  // 減塩・全粒穀物への置きかえの案と、それを当てる操作
+  swaps: SwapIdea[]
+  onSwap?: (idea: SwapIdea) => void
   targets: Targets
   profile: Profile
   // プロフィールを入れたか（まだなら、仮の目安で計算していることを結果のそばで伝える）
@@ -270,8 +277,16 @@ export function DayInfo({
           </div>
         </div>
 
-        <div className={`${CARD} ${panel('nutrients')}`}>
-          {hasAny ? <NutrientChecks checks={nutrientChecks(totals.day, targets, undefined, totals.supplement)} defaultOpen /> : <Empty />}
+        <div className={`space-y-3 ${panel('nutrients')}`}>
+          {/* 表示するものがなければ、カードごと出さない */}
+          {hasAny && (
+            <div className={`${CARD} empty:hidden`}>
+              <SaltPotassiumView totals={totals.day} targets={targets} ideas={swaps} onSwap={onSwap} />
+            </div>
+          )}
+          <div className={CARD}>
+            {hasAny ? <NutrientChecks checks={nutrientChecks(totals.day, targets, undefined, totals.supplement)} defaultOpen /> : <Empty />}
+          </div>
         </div>
       </div>
     </section>

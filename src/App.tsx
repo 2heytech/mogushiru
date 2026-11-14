@@ -27,6 +27,7 @@ import { useCatalog, withMyData } from './data/catalog'
 import { usePrices } from './data/prices'
 import { knownItemsOnly, menuTotals, type Catalog } from './domain/nutrition'
 import { dayFoods } from './domain/foodBalance'
+import { swapIdeas } from './domain/swaps'
 import { computeTargets } from './domain/targets'
 import { missingMealSlots } from './domain/dayProgress'
 import { SLOTS, type Ingredient, type MenuItem, type Slot } from './domain/types'
@@ -234,6 +235,8 @@ export default function App() {
   const totals = useMemo(() => (catalog ? menuTotals(menu, catalog) : null), [catalog, menu])
   // 主食・主菜・副菜、野菜・果物、10食品群（料理の材料から数える）
   const foods = useMemo(() => (catalog ? dayFoods(menu, catalog) : null), [catalog, menu])
+  // 減塩・全粒穀物への置きかえの案（栄養素のタブに出す）
+  const swaps = useMemo(() => (catalog ? swapIdeas(menu, catalog) : []), [catalog, menu])
   const showStart = SLOTS.every((s) => menu[s].length === 0) && !startDismissed
   const sampleMenu = useMemo(() => {
     const ideal = IDEAL_MENUS.find((m) => m.id === SAMPLE_MENU_ID)
@@ -530,6 +533,8 @@ export default function App() {
               <DayInfo
                 totals={totals}
                 foods={foods}
+                swaps={swaps}
+                onSwap={(idea) => customizeItem(idea.slot, idea.uid, idea.ingredients)}
                 targets={targets}
                 profile={profile}
                 profileSet={profileSet}
