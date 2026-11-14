@@ -4,7 +4,8 @@ import { representativeProducts } from '../domain/productGroups'
 import { matcher, rankAcross, rankAndFilter } from '../domain/search'
 import { isSupplement, SUPPLEMENT_MAIN_KEYS } from '../domain/supplement'
 import { formatPortion, prioritizedIn } from '../domain/customize'
-import type { Ingredient, MenuItem, Product, Slot } from '../domain/types'
+import type { Dish, Ingredient, MenuItem, MyDish, Product, Slot } from '../domain/types'
+import { drinkSpec, STANDARD_DRINKS, type RecentDrink } from '../domain/drinks'
 import { recentMyDishes } from '../store/useAppStore'
 import { dishImage, foodImage, menuItemImage, productImage, SUPPLEMENT_IMAGE } from './illustration'
 import { DISH_CATEGORY_LABEL, PRODUCT_CATEGORY_LAST, STORE_FILTER_PREFIX, shortNutrientLabel } from './labels'
@@ -45,18 +46,7 @@ function entries(kind: Kind, { catalog, slot, query, category, showAlcohol, favo
             Number(b.suggestedSlots.includes(slot)) - Number(a.suggestedSlots.includes(slot)) ||
             Number(Boolean(a.source)) - Number(Boolean(b.source)),
         )
-        .map((d) => ({
-          fields: [d.name, d.kana],
-          card: {
-            key: `dish:${d.id}`,
-            kind,
-            name: d.name,
-            sub: [DISH_CATEGORY_LABEL[d.category], d.source?.region].filter(Boolean).join('・'),
-            kcal: d.nutrients.energyKcal,
-            image: dishImage(d),
-            item: { kind: 'dish', refId: d.id, portion: 1 },
-          },
-        }))
+        .map((d) => ({ fields: [d.name, d.kana], card: dishCard(d) }))
     case 'product': {
       // 市販品は数が多いので、検索中は一致しないものをカードにする前に外す
       const hit = matcher(query)
@@ -73,24 +63,7 @@ function entries(kind: Kind, { catalog, slot, query, category, showAlcohol, favo
               ? Boolean(query) || !PRODUCT_CATEGORY_LAST.includes(p.category)
               : p.category === category,
         )
-      return representativeProducts(found)
-        .map((p) => {
-          // 1食量が分かれば1食分、分からなければ100g(mL)で追加する
-          const grams = p.servingGrams ?? 100
-          const per = p.basis === 'serving' ? 1 : grams / 100
-          return {
-            fields: [p.name, p.brand],
-            card: {
-              key: `product:${p.jan}`,
-              kind,
-              name: p.name,
-              sub: [p.brand, p.basis === 'serving' ? (p.servingLabel ?? '1食') : `${grams}${p.basis === '100ml' ? 'mL' : 'g'}`].filter(Boolean).join('・'),
-              kcal: p.nutrients.energyKcal === null ? null : p.nutrients.energyKcal * per,
-              image: productImage(p),
-              item: { kind: 'product', refId: p.jan, portion: p.basis === 'serving' ? 1 : grams },
-            },
-          }
-        })
+      return representativeProducts(found).map((p) => ({ fields: [p.name, p.brand], card: productCard(p) }))
     }
     case 'food':
       // 食材は数が多いので、検索前はその区分でよく食べられるものだけ出す。
@@ -129,23 +102,81 @@ function entries(kind: Kind, { catalog, slot, query, category, showAlcohol, favo
       }))
     case 'myDish':
       // カスタマイズした料理は、最後に保存したものから。保存したときの人前で追加する
-      return recentMyDishes([...catalog.myDishes.values()]).map((d) => {
-        const portion = d.portion ?? 1
-        const item = { kind: 'myDish', refId: d.id, portion } as const
-        return {
-          fields: [d.name],
-          card: {
-            key: `myDish:${d.id}`,
-            kind,
-            name: d.name,
-            sub: portion === 1 ? 'カスタマイズ' : `カスタマイズ・${formatPortion(portion)}`,
-            kcal: myDishKcal(d.ingredients, catalog) * portion,
-            image: menuItemImage({ uid: '', ...item }, catalog),
-            item,
-          },
-        }
-      })
+      return recentMyDishes([...catalog.myDishes.values()]).map((d) => ({ fields: [d.name], card: myDishCard(d, catalog) }))
   }
+}
+
+function dishCard(d: Dish): Card {
+  return {
+    key: `dish:${d.id}`,
+    kind: 'dish',
+    name: d.name,
+    sub: [DISH_CATEGORY_LABEL[d.category], d.source?.region].filter(Boolean).join('・'),
+    kcal: d.nutrients.energyKcal,
+    image: dishImage(d),
+    item: { kind: 'dish', refId: d.id, portion: 1 },
+  }
+}
+
+function productCard(p: Product): Card {
+  // 1食量が分かれば1食分、分からなければ100g(mL)で追加する
+  const grams = p.servingGrams ?? 100
+  const per = p.basis === 'serving' ? 1 : grams / 100
+  return {
+    key: `product:${p.jan}`,
+    kind: 'product',
+    name: p.name,
+    sub: [p.brand, p.basis === 'serving' ? (p.servingLabel ?? '1食') : `${grams}${p.basis === '100ml' ? 'mL' : 'g'}`].filter(Boolean).join('・'),
+    kcal: p.nutrients.energyKcal === null ? null : p.nutrients.energyKcal * per,
+    image: productImage(p),
+    item: { kind: 'product', refId: p.jan, portion: p.basis === 'serving' ? 1 : grams },
+  }
+}
+
+function myDishCard(d: MyDish, catalog: Catalog): Card {
+  // 保存したときの人前で追加する
+  const portion = d.portion ?? 1
+  const item = { kind: 'myDish', refId: d.id, portion } as const
+  return {
+    key: `myDish:${d.id}`,
+    kind: 'myDish',
+    name: d.name,
+    sub: portion === 1 ? 'カスタマイズ' : `カスタマイズ・${formatPortion(portion)}`,
+    kcal: myDishKcal(d.ingredients, catalog) * portion,
+    image: menuItemImage({ uid: '', ...item }, catalog),
+    item,
+  }
+}
+
+// 「dish:beer」などのキーから、そのカードを作る（なくなったもの・未成年のお酒は null）
+export function cardForKey(key: string, { catalog, showAlcohol }: Pick<Filter, 'catalog' | 'showAlcohol'>): Card | null {
+  const at = key.indexOf(':')
+  const kind = key.slice(0, at)
+  const id = key.slice(at + 1)
+  if (kind === 'dish') {
+    const d = catalog.dishes.get(id)
+    return d && (showAlcohol || d.category !== 'alcohol') ? dishCard(d) : null
+  }
+  if (kind === 'product') {
+    const p = catalog.products.get(id)
+    return p && !isSupplement(p) && (showAlcohol || p.category !== 'alcohol') ? productCard(p) : null
+  }
+  if (kind === 'myDish') {
+    const d = catalog.myDishes.get(id)
+    const base = d?.baseDishId ? catalog.dishes.get(d.baseDishId) : undefined
+    return d && (showAlcohol || base?.category !== 'alcohol') ? myDishCard(d, catalog) : null
+  }
+  return null
+}
+
+// 料理をえらぶ画面の「飲み物」の列：最近入れたもの → この区分の定番 の順に、飲み物だけ
+export const DRINK_STRIP_MAX = 10
+export function drinkStripCards(filter: Pick<Filter, 'catalog' | 'showAlcohol' | 'slot'>, recent: RecentDrink[]): Card[] {
+  const keys = [...new Set([...recent.map((d) => d.key), ...STANDARD_DRINKS[filter.slot]])]
+  return keys
+    .map((k) => cardForKey(k, filter))
+    .filter((c): c is Card => Boolean(c && drinkSpec(c.item, filter.catalog)))
+    .slice(0, DRINK_STRIP_MAX)
 }
 
 function myDishKcal(ingredients: Ingredient[], catalog: Catalog): number {

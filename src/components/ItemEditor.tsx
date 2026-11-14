@@ -2,16 +2,21 @@ import type { Catalog } from '../domain/nutrition'
 import { itemTotals } from '../domain/nutrition'
 import { supplementLines } from './labels'
 import type { MenuItem } from '../domain/types'
-import { itemName } from './itemName'
+import { drinkSpec } from '../domain/drinks'
+import { DrinkAmountEditor } from './DrinkAmountEditor'
+import { drinkItemName } from './itemName'
 import { PortionEditor } from './PortionEditor'
 import { useDialog } from './useDialog'
 
-// 市販品・食材の編集（量・お気に入り）。料理は材料まで変えられる Customizer で開く
+// 市販品・食材・飲み物の編集（量・お気に入り）。料理は材料まで変えられる Customizer で開く。
+// 飲み物（料理の飲み物も）は、1杯の量と何杯かで量を変える
 export function ItemEditor({
   item,
   catalog,
   favorite,
   onPortion,
+  onDrink,
+  onCustomize,
   onToggleFavorite,
   onEditProduct,
   onRemove,
@@ -21,6 +26,10 @@ export function ItemEditor({
   catalog: Catalog
   favorite: boolean
   onPortion: (portion: number) => void
+  // 飲み物の杯数・1杯の量を変える
+  onDrink?: (amount: Pick<MenuItem, 'portion' | 'cup'>) => void
+  // 料理の飲み物の材料を変える画面（Customizer）をひらく
+  onCustomize?: () => void
   onToggleFavorite?: () => void
   // 登録した市販品のとき、栄養成分を直す
   onEditProduct?: () => void
@@ -29,7 +38,8 @@ export function ItemEditor({
 }) {
   const dialogRef = useDialog(onClose)
   const v = itemTotals(item, catalog).values
-  const name = itemName(item, catalog)
+  const drink = onDrink ? drinkSpec(item, catalog) : null
+  const name = drinkItemName(item, catalog, drink?.short)
   const product = item.kind === 'product' || item.kind === 'supplement' ? catalog.products.get(item.refId) : undefined
   // サプリは入っている成分を並べる
   const lines = item.kind === 'supplement' ? supplementLines(v) : null
@@ -51,7 +61,7 @@ export function ItemEditor({
           </button>
         </div>
         <div className="space-y-3">
-          <PortionEditor item={item} catalog={catalog} onPortion={onPortion} />
+          {drink && onDrink ? <DrinkAmountEditor item={item} spec={drink} onChange={onDrink} /> : <PortionEditor item={item} catalog={catalog} onPortion={onPortion} />}
           {lines ? (
             <p className="rounded-2xl bg-white px-3 py-2 text-sm tabular-nums">
               {product?.servingLabel && <span className="mr-2 text-xs text-ink-soft">1回分 {product.servingLabel}</span>}
@@ -86,6 +96,11 @@ export function ItemEditor({
             {onToggleFavorite && (
               <button type="button" aria-pressed={favorite} onClick={onToggleFavorite} className="min-h-11 rounded-full bg-white px-4 text-sm font-bold">
                 {favorite ? '★ お気に入り' : '☆ お気に入りに追加'}
+              </button>
+            )}
+            {onCustomize && (
+              <button type="button" onClick={onCustomize} className="min-h-11 rounded-full bg-white px-4 text-sm">
+                材料を変える
               </button>
             )}
             {onEditProduct && (

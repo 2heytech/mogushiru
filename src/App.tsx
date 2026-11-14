@@ -28,7 +28,8 @@ import { usePrices } from './data/prices'
 import { knownItemsOnly, menuTotals, type Catalog } from './domain/nutrition'
 import { computeTargets } from './domain/targets'
 import { missingMealSlots } from './domain/dayProgress'
-import { SLOTS, type Ingredient, type Slot } from './domain/types'
+import { SLOTS, type Ingredient, type MenuItem, type Slot } from './domain/types'
+import { drinkSpec } from './domain/drinks'
 import { MY_PRODUCT_PREFIX, useAppStore } from './store/useAppStore'
 import { DEFAULT_PROFILE_LABEL } from './components/labels'
 import { LogoMogu } from './components/Mascot'
@@ -177,6 +178,9 @@ export default function App() {
     removeItem,
     addItem,
     updatePortion,
+    updateDrink,
+    recentDrinks,
+    rememberDrink,
     customizeItem,
     replaceWithMyDish,
     saveMyDish,
@@ -207,7 +211,8 @@ export default function App() {
   const [pickerSlot, setPickerSlot] = useState<Slot | null>(null)
   // 料理をえらぶ画面（朝・昼・晩）から、理想の献立のその1食だけをえらぶ画面
   const [idealMealSlot, setIdealMealSlot] = useState<MealSlot | null>(null)
-  const [editing, setEditing] = useState<{ slot: Slot; uid: string } | null>(null)
+  // full: 飲み物の料理でも、材料まで変えられる画面（Customizer）でひらく
+  const [editing, setEditing] = useState<{ slot: Slot; uid: string; full?: boolean } | null>(null)
   // 市販品の登録（slot があれば登録後その区分に追加）・編集
   const [productForm, setProductForm] = useState<{ jan?: string; slot?: Slot; supplement?: boolean } | null>(null)
   const targets = useMemo(() => computeTargets(profile), [profile])
@@ -260,10 +265,37 @@ export default function App() {
     })()
   }, [catalog, storesLoaded, targets, replaceMenu])
 
-  function renderEditor(catalog: Catalog, { slot, uid }: { slot: Slot; uid: string }) {
+  // 飲み物の杯数・1杯の量を変えて、最近の飲み物として覚える
+  const changeDrink = (slot: Slot, item: MenuItem, amount: Pick<MenuItem, 'portion' | 'cup'>) => {
+    updateDrink(slot, item.uid, amount)
+    if (!item.customIngredients) rememberDrink(`${item.kind}:${item.refId}`, amount.cup)
+  }
+
+  function renderEditor(catalog: Catalog, { slot, uid, full }: { slot: Slot; uid: string; full?: boolean }) {
     const item = menu[slot].find((i) => i.uid === uid)
     const close = () => setEditing(null)
     if (!item) return null
+    // 飲み物は、まず杯数と1杯の量の画面（料理の飲み物は「材料を変える」で Customizer へ）
+    const drink = !full && drinkSpec(item, catalog)
+    if (drink) {
+      return (
+        <ItemEditor
+          item={item}
+          catalog={catalog}
+          favorite={favoriteProductIds.includes(item.refId)}
+          onPortion={(p) => updatePortion(slot, uid, p)}
+          onDrink={(amount) => changeDrink(slot, item, amount)}
+          onCustomize={item.kind === 'dish' || item.kind === 'myDish' ? () => setEditing({ slot, uid, full: true }) : undefined}
+          onToggleFavorite={item.kind === 'product' && !item.refId.startsWith(MY_PRODUCT_PREFIX) ? () => toggleFavoriteProduct(item.refId) : undefined}
+          onEditProduct={item.kind === 'product' && item.refId.startsWith(MY_PRODUCT_PREFIX) ? () => setProductForm({ jan: item.refId }) : undefined}
+          onRemove={() => {
+            removeItem(slot, uid)
+            close()
+          }}
+          onClose={close}
+        />
+      )
+    }
     if (item.kind === 'dish') {
       const dish = catalog.dishes.get(item.refId)
       if (!dish) return null
@@ -488,6 +520,7 @@ export default function App() {
                   catalog={catalog}
                   onAdd={setPickerSlot}
                   onRemove={removeItem}
+                  onDrink={(slot, item, amount) => changeDrink(slot, item, amount)}
                   onEdit={(slot, uid) => setEditing({ slot, uid })}
                 />
               </DayMenuPanel>
@@ -517,6 +550,8 @@ export default function App() {
       {catalog && pickerSlot && (
         <Picker
           slot={pickerSlot}
+          items={menu[pickerSlot]}
+          recentDrinks={recentDrinks}
           catalog={catalog}
           productCategories={catalogState.status === 'ready' ? catalogState.productCategories : {}}
           storesLoaded={storesLoaded}
@@ -530,6 +565,8 @@ export default function App() {
           // 選んでも閉じずに続けて選べるようにする（閉じるのは「できた」か×）
           onPick={(item) => addItem(pickerSlot, item)}
           onUnpick={(uid) => removeItem(pickerSlot, uid)}
+          onDrink={(uid, amount) => updateDrink(pickerSlot, uid, amount)}
+          onRememberDrink={rememberDrink}
           onClose={() => setPickerSlot(null)}
         />
       )}

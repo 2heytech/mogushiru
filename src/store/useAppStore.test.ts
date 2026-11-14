@@ -262,3 +262,26 @@ describe('作り方の人数', () => {
     expect(useAppStore.getState().recipeServings).toBe(10)
   })
 })
+
+describe('飲み物の杯数', () => {
+  const long = { label: 'ロング缶', ml: 500, unit: '本' }
+  beforeEach(() => {
+    useAppStore.setState({ menu: emptyMenu(), recentDrinks: [] })
+    useAppStore.getState().addItem('dinner', { kind: 'dish', refId: 'beer', portion: 1 })
+  })
+  const item = () => useAppStore.getState().menu.dinner[0]
+
+  it('杯数と1杯の量を変え、1人前の量にもどしたら cup を外す', () => {
+    useAppStore.getState().updateDrink('dinner', item().uid, { portion: 2.857, cup: long })
+    expect(item()).toMatchObject({ portion: 2.857, cup: long })
+    useAppStore.getState().updateDrink('dinner', item().uid, { portion: 2, cup: undefined })
+    expect(item().portion).toBe(2)
+    expect(item()).not.toHaveProperty('cup')
+  })
+
+  it('最近の飲み物を覚える', () => {
+    useAppStore.getState().rememberDrink('dish:beer', long)
+    useAppStore.getState().rememberDrink('dish:drink-green-tea')
+    expect(useAppStore.getState().recentDrinks).toEqual([{ key: 'dish:drink-green-tea' }, { key: 'dish:beer', cup: long }])
+  })
+})

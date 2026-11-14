@@ -160,7 +160,12 @@ export type MenuItem = {
   portion: number
   // 料理を献立の中だけでアレンジした材料（kind: 'dish'・'myDish' のとき）
   customIngredients?: Ingredient[]
+  // 飲み物の1杯の量（缶・中ジョッキなど）。杯数は portion とこの量から出す（src/domain/drinks.ts）。なければ1人前・1本の量
+  cup?: DrinkSize
 }
+
+// 飲み物の1杯の量。表示は「label＋杯数＋unit」（「ロング缶2本」「2合」）。approx はお店などで量がちがう、およその量
+export type DrinkSize = { label: string; ml: number; unit: string; approx?: boolean }
 
 export type DayMenu = Record<Slot, MenuItem[]>
 

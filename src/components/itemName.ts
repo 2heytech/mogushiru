@@ -34,3 +34,8 @@ export function portionLabel(item: MenuItem, catalog: Catalog): string {
   }
   return item.portion === 1 ? '' : `×${Math.round(item.portion * 10) / 10}`
 }
+
+// 飲み物は量を「缶2本」などで別に出すので、料理の名前から量を外す（「ビール（350mL缶）」→「ビール」）
+export function drinkItemName(item: MenuItem, catalog: Catalog, short?: string): string {
+  return short && item.kind === 'dish' && !item.customIngredients ? short : itemName(item, catalog)
+}
