@@ -14,6 +14,8 @@ import { SlotBalanceView } from './SlotBalanceView'
 import { PfcDangoView } from './PfcDangoView'
 import { NutrientChecks } from './NutrientChecks'
 import { NUTRIENT_INFO } from './labels'
+import type { DayFoods } from '../domain/foodBalance'
+import { FoodBalanceView } from './FoodBalanceView'
 
 
 const alertLabel = (a: Alert) => (a.key === 'energy' ? 'カロリー' : NUTRIENT_INFO[a.key].label)
@@ -99,13 +101,14 @@ function moguMessage(energy: number, mood: Mood, gaps: PfcGap[] | null, alerts: 
   return MOOD_MESSAGE[mood]
 }
 
-type InfoTab = 'summary' | 'pfc' | 'nutrients' | 'slots' | 'energy'
+type InfoTab = 'summary' | 'foods' | 'pfc' | 'nutrients' | 'slots' | 'energy'
 
 const CARD = 'rounded-[var(--radius-card)] bg-[#fff1df] p-4 shadow-sm'
 
 // 1日の食事の下に出す情報。スマホ・タブレットはタブで1種類ずつ、広い画面ではタブなしで並べる
 export function DayInfo({
   totals,
+  foods,
   targets,
   profile,
   profileSet,
@@ -115,6 +118,8 @@ export function DayInfo({
   onEditProfile,
 }: {
   totals: MenuTotals
+  // 料理の材料から数えた、食べものの単位のバランス
+  foods: DayFoods | null
   targets: Targets
   profile: Profile
   // プロフィールを入れたか（まだなら、仮の目安で計算していることを結果のそばで伝える）
@@ -147,6 +152,7 @@ export function DayInfo({
   const overCount = alerts.filter((a) => a.level === 'over').length
   const tabs: { key: InfoTab; label: string; badge?: number }[] = [
     { key: 'summary', label: 'まとめ', badge: overCount || undefined },
+    { key: 'foods', label: '食品' },
     { key: 'pfc', label: 'PFC' },
     { key: 'nutrients', label: '栄養素' },
     { key: 'slots', label: '区分ごと' },
@@ -223,6 +229,8 @@ export function DayInfo({
               {gaps ? <PfcDangoView gaps={gaps} gramRanges={targets.pfcGrams} /> : <Empty />}
             </div>
           </div>
+          {/* 主食・主菜・副菜、野菜と果物、食べた食品の種類 */}
+          <div className={`${CARD} ${panel('foods')}`}>{foods && hasAny ? <FoodBalanceView foods={foods} targets={targets} /> : <Empty />}</div>
           {/* 食べる・使うカロリーと、続けたときの体重 */}
           <div className="contents lg:grid lg:grid-cols-2 lg:items-stretch lg:gap-4">
             <div className={`${CARD} ${panel('energy')}`}>
