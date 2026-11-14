@@ -20,13 +20,16 @@ import { Sheet } from './SavedMenus'
 // 保存した1日の食事を呼び出すのは、別の入口（SavedMenusDialog）
 export type BuildMode = 'day' | 'meal'
 
-const MODES: Record<BuildMode, { label: string; lead: string; how: string }> = {
-  day: { label: '1日でバランス', lead: '朝・昼・晩の合計で、1日の栄養の目安がそろう', how: '1日分の献立をまとめてえらぶ' },
-  meal: { label: '毎食バランス', lead: '朝・昼・晩のどれも、1食で目安に収まる', how: '朝ごはんから順に、1食ずつえらぶ' },
+// card は2択のカードに書く短い説明（区切りごとに折り返す）。lead は窓の見出しの説明
+const MODES: Record<BuildMode, { label: string; card: string[]; lead: string }> = {
+  // スマホのカードは1行7字ほど（360pxで約115px）なので、区切りは7字まで
+  day: { label: '1日でバランス', card: ['1日の合計で、', '目安がそろう。', '1日分をえらぶ'], lead: '朝・昼・晩の合計で、1日の栄養の目安がそろう' },
+  meal: { label: '毎食バランス', card: ['どの食事も、', '目安に収まる。', '1食ずつえらぶ'], lead: '朝・昼・晩のどれも、1食で目安に収まる' },
 }
 
+// スマホは2つを横に並べて、絵・名前・説明をたてに（最初の画面で2つとも見えるように）。広い画面は右に矢印
 const OPTION =
-  'group flex w-full items-center gap-3 rounded-[var(--radius-card)] border-2 border-coral bg-white p-4 text-left shadow-md transition hover:-translate-y-0.5 hover:bg-coral/5 hover:shadow-lg focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-coral/40 active:translate-y-0'
+  'group flex w-full flex-col items-start rounded-[var(--radius-card)] border-2 border-coral bg-white p-3 text-left shadow-md transition hover:-translate-y-0.5 hover:bg-coral/5 hover:shadow-lg focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-coral/40 active:translate-y-0 sm:flex-row sm:items-center sm:gap-3 sm:p-4'
 
 function Check({ className = '' }: { className?: string }) {
   return (
@@ -39,12 +42,13 @@ function Check({ className = '' }: { className?: string }) {
 }
 
 // ちがいを絵で：1日でバランスは朝・昼・晩をまとめて1つの✓、毎食バランスは朝・昼・晩それぞれに✓
+// small は窓の見出しの小さな絵。ふだんの大きさはスマホのカードの幅（360pxで約110px）に収まるように、狭いほど小さく
 function ModeDiagram({ mode, small = false }: { mode: BuildMode; small?: boolean }) {
-  const icon = small ? 'h-6 w-6' : 'h-8 w-8'
-  const check = small ? 'h-4 w-4' : 'h-5 w-5'
+  const icon = small ? 'h-6 w-6' : 'h-6 w-6 min-[390px]:h-7 min-[390px]:w-7 sm:h-8 sm:w-8'
+  const check = small ? 'h-4 w-4' : 'h-4 w-4 sm:h-5 sm:w-5'
   if (mode === 'day')
     return (
-      <span className="relative inline-flex items-center gap-1 rounded-2xl border-2 border-dashed border-ok bg-white px-1.5 py-1.5" aria-hidden>
+      <span className="relative flex w-fit items-center gap-1 rounded-2xl border-2 border-dashed border-ok bg-white px-1.5 py-1.5" aria-hidden>
         {MEAL_SLOTS.map((s) => (
           <SlotIcon key={s} slot={s} className={icon} />
         ))}
@@ -52,9 +56,9 @@ function ModeDiagram({ mode, small = false }: { mode: BuildMode; small?: boolean
       </span>
     )
   return (
-    <span className="inline-flex items-center gap-1.5 py-1" aria-hidden>
+    <span className={`flex w-fit items-center py-1 ${small ? 'gap-1.5' : 'gap-1 sm:gap-1.5'}`} aria-hidden>
       {MEAL_SLOTS.map((s) => (
-        <span key={s} className="relative rounded-xl border-2 border-dashed border-ok bg-white p-0.5">
+        <span key={s} className="relative flex rounded-xl border-2 border-dashed border-ok bg-white p-0.5">
           <SlotIcon slot={s} className={icon} />
           <Check className={`absolute -top-2 -right-2 ${check}`} />
         </span>
@@ -77,18 +81,23 @@ function Arrow() {
 // opensDialog：最初の画面では、押すと献立をつくる窓がひらく
 export function BuildModeOptions({ onChoose, opensDialog = false }: { onChoose: (mode: BuildMode) => void; opensDialog?: boolean }) {
   return (
-    <div className="grid gap-3 sm:grid-cols-2">
+    <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
       {(['day', 'meal'] as const).map((mode) => (
         <button key={mode} type="button" onClick={() => onChoose(mode)} aria-haspopup={opensDialog ? 'dialog' : undefined} className={OPTION}>
-          <span className="min-w-0 flex-1">
+          <span className="w-full min-w-0 flex-1">
             <ModeDiagram mode={mode} />
-            <span className="mt-2 block text-lg font-bold">{MODES[mode].label}</span>
-            <span className="mt-0.5 block text-xs leading-snug text-pretty text-ink-soft">
-              <span className="inline-block">{MODES[mode].lead}。</span>
-              <span className="inline-block">{MODES[mode].how}</span>
+            <span className="mt-1.5 block text-base font-bold sm:mt-2 sm:text-lg">{MODES[mode].label}</span>
+            <span className="mt-0.5 block text-xs leading-snug text-ink-soft">
+              {MODES[mode].card.map((part) => (
+                <span key={part} className="inline-block">
+                  {part}
+                </span>
+              ))}
             </span>
           </span>
-          <Arrow />
+          <span className="hidden sm:block">
+            <Arrow />
+          </span>
         </button>
       ))}
     </div>
