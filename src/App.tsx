@@ -90,13 +90,13 @@ function FeatureTabs({ view, onChange }: { view: View; onChange: (v: View) => vo
             href={VIEW_PATH[f.view]}
             aria-current={active ? 'page' : undefined}
             onClick={(e) => inAppLink(e, () => onChange(f.view))}
-            className={`block min-h-14 rounded-2xl border-2 px-1 py-1.5 text-center transition sm:min-h-16 sm:px-4 sm:py-2 sm:text-left ${
+            className={`block min-h-14 rounded-2xl border-2 px-0.5 py-1.5 text-center transition sm:min-h-16 sm:px-4 sm:py-2 sm:text-left ${
               active ? 'border-coral bg-white shadow-sm' : 'border-transparent bg-white/60 text-ink-soft hover:bg-white'
             }`}
           >
             {/* スマホは3つ並ぶので、アイコンの下に名前だけ。広い画面では横並びに説明も添える */}
             <span
-              className={`flex flex-col items-center gap-0.5 text-[12px] leading-[1.3] font-bold tracking-tight sm:flex-row sm:gap-1.5 sm:text-sm sm:tracking-normal lg:text-base lg:whitespace-nowrap ${active ? 'text-coral-ink' : 'text-ink'}`}
+              className={`flex flex-col items-center gap-0.5 text-2xs leading-[1.3] font-bold tracking-tight sm:flex-row sm:gap-1.5 sm:text-sm sm:tracking-normal lg:text-base lg:whitespace-nowrap ${active ? 'text-coral-ink' : 'text-ink'}`}
             >
               {f.icon}
               <span className="[word-break:keep-all]">
@@ -400,7 +400,7 @@ export default function App() {
           ) : (
             <span className="flex flex-col text-left">
               <span className="font-bold text-coral-ink">プロフィールを入れる</span>
-              <span className="text-[12px] font-normal text-ink-soft">いまは{DEFAULT_PROFILE_LABEL}</span>
+              <span className="text-2xs font-normal text-ink-soft">いまは{DEFAULT_PROFILE_LABEL}</span>
             </span>
           )}
         </button>

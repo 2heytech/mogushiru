@@ -171,7 +171,7 @@ export function Picker({
             ×
           </button>
         </div>
-        <div className="mb-3 flex shrink-0 gap-1 rounded-full bg-white p-1" role="tablist">
+        <div className="mb-3 flex shrink-0 gap-0.5 rounded-full bg-white p-1 sm:gap-1" role="tablist">
           {TABS.map((t) => (
             <button
               key={t.id}
@@ -179,11 +179,11 @@ export function Picker({
               role="tab"
               aria-selected={tab === t.id}
               onClick={() => switchTab(t.id)}
-              className={`min-h-10 flex-1 rounded-full px-1 text-sm leading-tight whitespace-nowrap ${tab === t.id ? 'bg-coral font-bold text-ink-strong' : 'text-ink-soft'}`}
+              className={`min-h-10 flex-1 rounded-full px-0.5 text-xs leading-tight whitespace-nowrap sm:px-1 sm:text-sm ${tab === t.id ? 'bg-coral font-bold text-ink-strong' : 'text-ink-soft'}`}
             >
               {t.label}
               {counts && (
-                <span className={`block text-[12px] leading-tight ${tab === t.id ? 'text-ink-strong' : counts[t.id] === 0 ? 'text-ink-soft/60' : ''}`}>
+                <span className={`block text-2xs leading-tight ${tab === t.id ? 'text-ink-strong' : counts[t.id] === 0 ? 'text-ink-soft/60' : ''}`}>
                   {counts[t.id] > 999 ? '999+' : counts[t.id]}件
                 </span>
               )}
@@ -260,17 +260,17 @@ export function Picker({
                             <span className="min-w-0 flex-1">
                               <span className="line-clamp-2 text-sm leading-snug font-bold">{c.name}</span>
                               <span className="mt-0.5 block truncate text-xs text-ink-soft">
-                                {tab === 'all' && query && <span className={`mr-1.5 rounded-full px-1.5 py-px text-[12px] font-bold ${KIND_BADGE[c.kind].className}`}>{KIND_BADGE[c.kind].label}</span>}
+                                {tab === 'all' && query && <span className={`mr-1.5 rounded-full px-1.5 py-px text-2xs font-bold ${KIND_BADGE[c.kind].className}`}>{KIND_BADGE[c.kind].label}</span>}
                                 {c.sub}
                               </span>
                             </span>
                             {added[c.key] ? (
-                              <span className="shrink-0 rounded-full bg-ok/25 px-2 py-0.5 text-[12px] font-bold whitespace-nowrap text-ok-ink">✓ 追加</span>
+                              <span className="shrink-0 rounded-full bg-ok/25 px-2 py-0.5 text-2xs font-bold whitespace-nowrap text-ok-ink">✓ 追加</span>
                             ) : (
                               c.kcal !== null && (
                                 <span className="shrink-0 text-right text-sm font-bold whitespace-nowrap tabular-nums">
                                   {Math.round(c.kcal)}
-                                  <span className="ml-0.5 text-[12px] font-normal text-ink-soft">kcal</span>
+                                  <span className="ml-0.5 text-2xs font-normal text-ink-soft">kcal</span>
                                 </span>
                               )
                             )}
@@ -303,12 +303,12 @@ export function Picker({
                           className={`group relative flex h-full w-full flex-col items-center rounded-2xl bg-white p-3 text-center shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${added[c.key] ? 'ring-2 ring-ok' : ''}`}
                         >
                           {tab === 'all' && query && (
-                            <span className={`absolute top-2 left-2 rounded-full px-2 py-0.5 text-[12px] font-bold ${KIND_BADGE[c.kind].className}`}>
+                            <span className={`absolute top-2 left-2 rounded-full px-2 py-0.5 text-2xs font-bold ${KIND_BADGE[c.kind].className}`}>
                               {KIND_BADGE[c.kind].label}
                             </span>
                           )}
                           {added[c.key] && (
-                            <span className="absolute top-2 right-2 rounded-full bg-ok px-2 py-0.5 text-[12px] font-bold text-ink-strong">✓ 追加</span>
+                            <span className="absolute top-2 right-2 rounded-full bg-ok px-2 py-0.5 text-2xs font-bold text-ink-strong">✓ 追加</span>
                           )}
                           {c.image ? (
                             <img src={c.image} alt="" className="mb-2 h-20 w-20 object-contain transition-transform group-hover:scale-110 group-hover:-rotate-3" loading="lazy" />
@@ -320,7 +320,12 @@ export function Picker({
                           <span className="line-clamp-2 text-sm font-bold">{c.name}</span>
                           <span className="mt-1 text-xs text-ink-soft">
                             {c.sub}
-                            {c.kcal !== null && ` ・ ${Math.round(c.kcal)}kcal`}
+                            {c.kcal !== null && (
+                              <>
+                                {' ・ '}
+                                <span className="inline-block">{Math.round(c.kcal)}kcal</span>
+                              </>
+                            )}
                           </span>
                         </button>
                       </li>
@@ -339,8 +344,15 @@ export function Picker({
           )}
         </div>
         <footer className="mt-3 flex shrink-0 items-center gap-3">
-          <p className="min-w-0 flex-1 truncate text-sm text-ink-soft" aria-live="polite">
-            {lastAction ? `${lastAction}（${totalAdded}品）` : 'タップで追加、もう一度で取り消し'}
+          <p className="line-clamp-2 min-w-0 flex-1 text-sm leading-snug text-ink-soft" aria-live="polite">
+            {lastAction ? (
+              `${lastAction}（${totalAdded}品）`
+            ) : (
+              <>
+                <span className="inline-block">タップで追加、</span>
+                <span className="inline-block">もう一度で取り消し</span>
+              </>
+            )}
           </p>
           <button type="button" onClick={onClose} className="min-h-11 shrink-0 rounded-full bg-coral px-6 text-sm font-bold text-ink-strong hover:bg-coral-dark">
             {totalAdded > 0 ? 'できた' : '閉じる'}

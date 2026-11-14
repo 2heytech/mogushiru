@@ -19,7 +19,7 @@ const itemCount = (menu: DayMenu) => SLOTS.reduce((n, s) => n + menu[s].length, 
 const PRIMARY = 'flex items-center justify-center gap-1.5 rounded-full bg-coral font-bold text-ink-strong shadow-sm transition hover:bg-coral-dark/90'
 const SECONDARY = 'flex min-h-11 items-center justify-center gap-1.5 rounded-full bg-white pr-4 pl-2.5 text-sm shadow-sm transition hover:bg-cream disabled:opacity-40'
 // スマホの下のバーの「保存」「リセット」。アイコンの下に名前
-const BAR_SMALL = 'flex min-h-13 flex-col items-center justify-center gap-0.5 rounded-2xl bg-cream text-[12px] transition disabled:opacity-40'
+const BAR_SMALL = 'flex min-h-13 flex-col items-center justify-center gap-0.5 rounded-2xl bg-cream text-2xs transition disabled:opacity-40'
 
 export type MenuActionsLayout = 'row' | 'bar'
 
@@ -48,7 +48,7 @@ export function MenuActions({
   if (layout === 'bar')
     return (
       <div className="grid grid-cols-[auto_1fr_1fr] gap-2">
-        <button type="button" onClick={onOpenLoad} aria-haspopup="dialog" className={`${PRIMARY} min-h-13 px-4 text-[15px] whitespace-nowrap`}>
+        <button type="button" onClick={onOpenLoad} aria-haspopup="dialog" className={`${PRIMARY} min-h-13 px-4 text-base whitespace-nowrap`}>
           <UiIcon name="load" className="h-6 w-6 shrink-0" />
           献立を呼び出す
           {count}

@@ -180,19 +180,19 @@ function IdealMealCard({ meal, catalog, targets, storesLoaded, onLoad }: Omit<Pr
           <p className="font-bold leading-snug">{name}</p>
           <p className="mt-0.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs text-ink-soft">
             <span>「{ideal.name}」より</span>
-            {meal.balanced && <span className="rounded-full bg-ok/25 px-2 py-0.5 text-[12px] font-bold whitespace-nowrap text-ok-ink">毎食バランス</span>}
+            {meal.balanced && <span className="rounded-full bg-ok/25 px-2 py-0.5 text-2xs font-bold whitespace-nowrap text-ok-ink">毎食バランス</span>}
           </p>
         </div>
       </div>
       {plan && (
-        <p className="mt-2 text-[13px] leading-snug">
+        <p className="mt-2 text-xs leading-snug">
           <MealItems items={items} catalog={catalog} />
         </p>
       )}
       <div className="mt-1.5 flex items-end gap-2">
         <div className="min-w-0 flex-1 text-xs text-ink-soft">
           {plan ? <MealStats slot={slot} menu={plan.menu} summary={plan.summary} targets={targets} /> : 'コンビニ・メーカーの商品を読み込んでいます…'}
-          {items.some((item) => item.kind === 'product') && <p className="mt-0.5 text-[12px] leading-snug">※ 市販品はパッケージの栄養成分表示にある成分だけで計算しています</p>}
+          {items.some((item) => item.kind === 'product') && <p className="mt-0.5 text-2xs leading-snug">※ 市販品はパッケージの栄養成分表示にある成分だけで計算しています</p>}
         </div>
         <button
           type="button"

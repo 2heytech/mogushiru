@@ -156,7 +156,7 @@ export function CustomizeView({
                       {formatPortion(portion)}
                       {kcal !== null && ` ・ ${kcal}kcal`}
                     </span>
-                    <span className="mt-0.5 text-[12px] text-coral-ink">{slotsText(prioritySlots(my))}で上に</span>
+                    <span className="mt-0.5 text-2xs text-coral-ink">{slotsText(prioritySlots(my))}で上に</span>
                   </button>
                   <button
                     type="button"

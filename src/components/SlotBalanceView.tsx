@@ -42,11 +42,11 @@ export function SlotBalanceView({ totals, slot, targets, alerts }: { totals: Nut
   return (
     <div className="mt-3 space-y-2 rounded-2xl bg-cream/70 p-3 text-xs">
       <Metric slot={slot} mood={moods.energy} what="カロリー">
-        <div className="mb-1 flex justify-between">
-          <span className="text-ink-soft">
+        <div className="mb-1 flex flex-wrap justify-between gap-x-2">
+          <span className="whitespace-nowrap text-ink-soft">
             カロリー <strong className="text-ink">{ENERGY_TEXT[b.energy]}</strong>
           </span>
-          <span className="tabular-nums text-ink-soft">目安 {b.targetKcal} kcal</span>
+          <span className="whitespace-nowrap tabular-nums text-ink-soft">目安 {b.targetKcal} kcal</span>
         </div>
         <div className="relative h-2 rounded-full bg-white" role="img" aria-label={`${Math.round(b.kcal)} kcal、目安 ${b.targetKcal} kcal`}>
           <div

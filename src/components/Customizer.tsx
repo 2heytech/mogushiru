@@ -1,4 +1,4 @@
-import { useMemo, useState, type CSSProperties } from 'react'
+import { Fragment, useMemo, useState, type CSSProperties } from 'react'
 import { clampPortion, customDishName, formatPortion, gramStep, PORTION_MAX, PORTION_MIN, PORTION_STEP, round1, swapIngredient } from '../domain/customize'
 import { ingredientsTotals, scaleTotals } from '../domain/nutrition'
 import { rankAndFilter } from '../domain/search'
@@ -12,13 +12,26 @@ import { useDialog } from './useDialog'
 const SUGGEST_LIMIT = 8
 const ADD_GRAMS = 50
 
+// 文を区切りごとにまとめ、区切りの途中では折り返さない（「反／映」「C／53.4」のように折れないように）
+function InlineParts({ parts, gap = false }: { parts: string[]; gap?: boolean }) {
+  return parts.map((part, i) => (
+    <Fragment key={i}>
+      {gap && i > 0 && ' '}
+      <span className="inline-block">{part}</span>
+    </Fragment>
+  ))
+}
+
 function Summary({ label, kcal, p, f, c, salt }: { label: string; kcal: number; p: number; f: number; c: number; salt: number }) {
   return (
     <div className="flex-1 rounded-2xl bg-white px-3 py-2 text-center">
-      <p className="text-xs text-ink-soft">{label}</p>
+      {/* 折り返すときは「（1人前）」や「P 4.2」をひとまとまりのまま次の行へ */}
+      <p className="text-xs text-ink-soft">
+        <InlineParts parts={label.split(/(?=（)/)} />
+      </p>
       <p className="text-lg font-bold tabular-nums">{Math.round(kcal)} kcal</p>
       <p className="text-xs tabular-nums text-ink-soft">
-        P {p.toFixed(1)} ・ F {f.toFixed(1)} ・ C {c.toFixed(1)} ・ 食塩 {salt.toFixed(1)}g
+        <InlineParts parts={[`P ${p.toFixed(1)} ・`, `F ${f.toFixed(1)} ・`, `C ${c.toFixed(1)} ・`, `食塩 ${salt.toFixed(1)}g`]} gap />
       </p>
     </div>
   )
@@ -376,12 +389,8 @@ export function Customizer({
                   onClick={() => onApply(result, portion)}
                   className="min-h-11 flex-1 rounded-full bg-white text-sm font-bold text-coral-ink disabled:opacity-50"
                 >
-                  {/* 「この1日の食事に／反映」の区切りでだけ折り返す（「反／映」で折れないように） */}
-                  {applyLabel.split(/(?<=に)/).map((part) => (
-                    <span key={part} className="inline-block">
-                      {part}
-                    </span>
-                  ))}
+                  {/* 「この1日の／食事に／反映」の区切りでだけ折り返す（「反／映」で折れないように） */}
+                  <InlineParts parts={applyLabel.split(/(?<=1日の|に)/)} />
                 </button>
               )}
               <button
@@ -390,7 +399,7 @@ export function Customizer({
                 onClick={() => onSave(name.trim(), result, portion, slots)}
                 className="min-h-11 flex-1 rounded-full bg-coral text-sm font-bold text-ink-strong disabled:opacity-50"
               >
-                {saveLabel}
+                <InlineParts parts={saveLabel.split(/(?<=[にを])(?=[^にを]*$)/)} />
               </button>
             </div>
           </footer>
