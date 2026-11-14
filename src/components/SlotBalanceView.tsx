@@ -13,6 +13,10 @@ import { BowlMogu } from './Mascot'
 import type { ReactNode } from 'react'
 
 
+// 1食のたんぱく質がこれより少ないときだけ一言（1日の推奨量50〜65gを3食に分けた量の半分ほど）。
+// 毎食の量をそろえる効果は研究で一貫しないので、合否はつけない
+const LOW_MEAL_PROTEIN_G = 10
+
 const ENERGY_TEXT: Record<Exclude<EnergyLevel, 'empty'>, string> = { low: '少なめ', ok: 'ちょうどいい', high: '多め' }
 const ENERGY_COLOR: Record<Exclude<EnergyLevel, 'empty'>, string> = { low: 'bg-coral', ok: 'bg-ok', high: 'bg-alert' }
 
@@ -73,6 +77,9 @@ export function SlotBalanceView({ totals, slot, targets, alerts }: { totals: Nut
                     .map((h) => `${PFC_LABEL[h.key]}が目標より${gapText(h.gap)}`)
                     .join('、')}
             </p>
+          )}
+          {slot !== 'other' && v.protein < LOW_MEAL_PROTEIN_G && (
+            <p className="mt-1 text-ink-soft">たんぱく質が {v.protein.toFixed(1)}g と少なめです。卵や豆腐、納豆、ヨーグルトなどをひとつ足すのも手です。</p>
           )}
         </Metric>
       )}

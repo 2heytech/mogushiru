@@ -8,6 +8,9 @@
 //       ・INFORMATION 8「身体活動とエネルギー・栄養素について」：
 //         体脂肪1kgを減らすのに必要なエネルギー量は約7,000kcal、
 //         運動で使う分は「メッツ×時間(h)×体重(kg)」から安静時の分を引いた値
+//       ・成人版の推奨事項「筋力トレーニングを週2〜3日」
+//       運動で使った分の打ち消し：Careau V, et al. Curr Biol 2021;31:4659（1,754人。平均で約28%を
+//         基礎代謝などが下がって打ち消す） https://pubmed.ncbi.nlm.nih.gov/34453886/
 import { BMR_PER_KG, MIN_SUPPORTED_AGE, PAL, REFERENCE_WEIGHT, pick } from './dri'
 import type { Exercise, Profile } from './types'
 
@@ -24,7 +27,8 @@ export const EXERCISE_GROUP_LABEL: Record<ExerciseGroup, string> = {
 }
 
 // 運動の種類。mets はガイド2023のメッツ表の値。steps: true は歩数でも入れられるもの
-export type ExerciseType = { id: string; label: string; mets: number; group: ExerciseGroup; steps?: boolean }
+// strength: true は筋トレ（ガイド2023の「筋力トレーニング」）として日数を数えるもの
+export type ExerciseType = { id: string; label: string; mets: number; group: ExerciseGroup; steps?: boolean; strength?: boolean }
 
 export const EXERCISE_TYPES: ExerciseType[] = [
   { id: 'walk', label: 'ウォーキング（ふつう・散歩）', mets: 3.5, group: 'walk', steps: true },
@@ -50,9 +54,9 @@ export const EXERCISE_TYPES: ExerciseType[] = [
   { id: 'taichi', label: '太極拳', mets: 3.0, group: 'gym' },
   { id: 'power-yoga', label: 'パワーヨガ', mets: 4.0, group: 'gym' },
   { id: 'aerobics', label: 'エアロビクス', mets: 7.3, group: 'gym' },
-  { id: 'strength', label: '筋トレ（腕立て・腹筋）', mets: 3.8, group: 'gym' },
-  { id: 'squat', label: '筋トレ（スクワット）', mets: 5.0, group: 'gym' },
-  { id: 'weights', label: 'ウェイトトレーニング（高強度）', mets: 6.0, group: 'gym' },
+  { id: 'strength', label: '筋トレ（腕立て・腹筋）', mets: 3.8, group: 'gym', strength: true },
+  { id: 'squat', label: '筋トレ（スクワット）', mets: 5.0, group: 'gym', strength: true },
+  { id: 'weights', label: 'ウェイトトレーニング（高強度）', mets: 6.0, group: 'gym', strength: true },
   { id: 'dance', label: 'ダンス（バレエ・ジャズ）', mets: 5.0, group: 'gym' },
   { id: 'ballroom', label: '社交ダンス', mets: 3.0, group: 'gym' },
   { id: 'golf', label: 'ゴルフ（手引きカート）', mets: 3.5, group: 'sport' },
@@ -108,14 +112,27 @@ export type Expenditure = {
   perKg: number
 }
 
-// 1日に使うカロリー。基礎代謝基準値×体重×身体活動レベル＋運動
-export function expenditure(profile: Profile, weightKg?: number): Expenditure {
+// 筋トレをする日（週あたり）。ガイド2023の目安は週2〜3日
+export const STRENGTH_DAYS_GOAL = 2
+
+// 入れた筋トレの週の回数の合計（7日まで）。種類が別なら別の日にしているとみなす
+export function strengthDaysPerWeek(exercises: Exercise[] | undefined): number {
+  const sum = (exercises ?? []).filter((e) => EXERCISE_TYPE.get(e.type)?.strength).reduce((s, e) => s + e.perWeek, 0)
+  return Math.min(sum, 7)
+}
+
+// 運動で使った分のうち、体が打ち消さずに残る割合の目安（Careau ら 2021：平均で約28%を打ち消す）
+export const EXERCISE_KEPT_LOW = 0.72
+
+// 1日に使うカロリー。基礎代謝基準値×体重×身体活動レベル＋運動。
+// exerciseKept は運動で使う分のうち数える割合（体重の予測の幅を出すときだけ 1 より小さくする）
+export function expenditure(profile: Profile, weightKg?: number, exerciseKept = 1): Expenditure {
   const age = Math.max(profile.age, MIN_SUPPORTED_AGE)
   const bmrPerKg = pick(BMR_PER_KG, age)[profile.sex]
   const usedReferenceWeight = weightKg === undefined && !profile.weightKg
   const w = weightKg ?? profile.weightKg ?? pick(REFERENCE_WEIGHT, age)[profile.sex]
   const pal = pick(PAL, age)[profile.activity]
-  const exPerKg = exerciseKcalPerKgPerDay(profile.exercises)
+  const exPerKg = exerciseKcalPerKgPerDay(profile.exercises) * exerciseKept
   const bmr = bmrPerKg * w
   const daily = bmr * (pal - 1)
   const exercise = exPerKg * w
@@ -134,8 +151,9 @@ export type WeightSimulation = {
 // 毎日 intakeKcal を食べ、運動を続けたときの体重。
 // 体重が変わると消費も変わる（体重1kgあたりの消費 k は一定）として、
 // dW/dt = (摂取 − k·W) / 7,000 を解く：W(t) = W∞ + (W0 − W∞)·e^(−k·t/7000)、W∞ = 摂取 / k
-export function simulateWeight(intakeKcal: number, profile: Profile): WeightSimulation {
-  const { weightKg: start, perKg } = expenditure(profile)
+// exerciseKept を 1 より小さくすると、運動で使う分の一部を体が打ち消したときの体重になる
+export function simulateWeight(intakeKcal: number, profile: Profile, exerciseKept = 1): WeightSimulation {
+  const { weightKg: start, perKg } = expenditure(profile, undefined, exerciseKept)
   const settle = intakeKcal / perKg
   return {
     start,

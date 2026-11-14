@@ -1,4 +1,14 @@
-import { EXERCISE_GROUP_LABEL, EXERCISE_TYPE, EXERCISE_TYPES, STEPS_PER_MINUTE, exerciseKcalPerSession, type ExerciseGroup } from '../domain/energy'
+import {
+  EXERCISE_GROUP_LABEL,
+  EXERCISE_TYPE,
+  EXERCISE_TYPES,
+  STEPS_PER_MINUTE,
+  STRENGTH_DAYS_GOAL,
+  exerciseKcalPerSession,
+  strengthDaysPerWeek,
+  type ExerciseGroup,
+} from '../domain/energy'
+import type { Exercise } from '../domain/types'
 import { EXERCISE_LIMIT as LIMIT, fromDraft, newDraftKey as newKey, numOrUndef as num, within, type ExerciseDraft } from './exerciseDraft'
 
 const GROUPS = Object.keys(EXERCISE_GROUP_LABEL) as ExerciseGroup[]
@@ -10,6 +20,7 @@ const stepBtn = 'grid h-9 w-9 shrink-0 place-items-center rounded-full bg-cream 
 export function ExerciseEditor({ value, onChange, weightKg }: { value: ExerciseDraft[]; onChange: (v: ExerciseDraft[]) => void; weightKg: number }) {
   const update = (key: string, patch: Partial<ExerciseDraft>) => onChange(value.map((d) => (d.key === key ? { ...d, ...patch } : d)))
   const add = () => onChange([...value, { key: newKey(), type: 'walk', unit: 'minutes', amount: '30', perWeek: 3, mets: '' }])
+  const strengthDays = strengthDaysPerWeek(value.map(fromDraft).filter((e): e is Exercise => e !== null))
   return (
     <div className="space-y-2">
       {value.map((d) => {
@@ -124,6 +135,10 @@ export function ExerciseEditor({ value, onChange, weightKg }: { value: ExerciseD
       <button type="button" onClick={add} className="min-h-11 w-full rounded-2xl border-2 border-dashed border-coral/60 bg-white/60 text-sm font-bold text-coral-ink">
         ＋ 運動を追加
       </button>
+      <p className="text-xs text-ink-soft">
+        筋トレ（腕立て・スクワットなど）は週2〜3日が目安です（厚生労働省「健康づくりのための身体活動・運動ガイド2023」）。
+        {strengthDays > 0 && <strong className={strengthDays >= STRENGTH_DAYS_GOAL ? 'text-ok-ink' : 'text-ink'}>いまは週{strengthDays}日。</strong>}
+      </p>
     </div>
   )
 }

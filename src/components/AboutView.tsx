@@ -71,7 +71,11 @@ const SOURCES: { name: ReactNode; note: ReactNode }[] = [
   },
   {
     name: <Ext href="https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/kenkou_iryou/kenkou/undou/index.html">厚生労働省「健康づくりのための身体活動・運動ガイド2023」</Ext>,
-    note: '運動で使うカロリー（メッツ表）。加工して作成',
+    note: '運動で使うカロリー（メッツ表）と、筋トレを週2〜3日の目安。加工して作成',
+  },
+  {
+    name: <Ext href="https://pubmed.ncbi.nlm.nih.gov/34453886/">Careau V, et al. Current Biology 2021（運動で使ったエネルギーの打ち消し）</Ext>,
+    note: '体重の予測の幅。運動で使った分の平均約28%を体が打ち消すという結果をもとに計算',
   },
   {
     name: <Ext href="https://www.mhlw.go.jp/stf/newpage_38541.html">厚生労働省「健康に配慮した飲酒に関するガイドライン」</Ext>,

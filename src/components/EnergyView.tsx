@@ -1,5 +1,14 @@
 import { useState, type PointerEvent, type ReactNode } from 'react'
-import { SIM_PERIODS, bmi, simulateWeight, type Expenditure } from '../domain/energy'
+import {
+  EXERCISE_KEPT_LOW,
+  SIM_PERIODS,
+  STRENGTH_DAYS_GOAL,
+  bmi,
+  simulateWeight,
+  strengthDaysPerWeek,
+  type Expenditure,
+  type WeightSimulation,
+} from '../domain/energy'
 import type { MenuTotals } from '../domain/nutrition'
 import type { Targets } from '../domain/targets'
 import type { Profile, Slot } from '../domain/types'
@@ -112,6 +121,8 @@ export function EnergyBalanceView({
         </p>
       )}
 
+      <StrengthNote days={strengthDaysPerWeek(profile.exercises)} />
+
       <div className="space-y-1 text-2xs leading-relaxed text-ink-soft">
         {intake > 0 && missing.length > 0 && asFullDay && <p>{slotNames(missing)}は空のまま、いま入っている分を1日ぶんとして計算しています。</p>}
         {energy.usedReferenceWeight && <p>体重が未入力のため、使うカロリーは年齢・性別の標準的な体重で計算しています。</p>}
@@ -124,6 +135,27 @@ export function EnergyBalanceView({
         <p>使うカロリーは、基礎代謝（年齢・性別・体重から）×ふだんの活動量に、入れた運動の分を足した目安です。</p>
       </div>
     </div>
+  )
+}
+
+// 筋トレの日数（ガイド2023の目安は週2〜3日）。届いていなければ、たんぱく質とあわせて一言
+function StrengthNote({ days }: { days: number }) {
+  const ok = days >= STRENGTH_DAYS_GOAL
+  return (
+    <p className={`rounded-2xl px-4 py-2 text-sm ${ok ? 'bg-ok/20' : 'bg-white/70'}`}>
+      {ok ? (
+        <>
+          <strong className="text-ok-ink">筋トレ 週{days}日</strong>
+          <span className="block text-xs text-ink-soft">目安の週2〜3日に届いています</span>
+        </>
+      ) : (
+        <>
+          <strong>筋トレは週2〜3日が目安です</strong>
+          {days > 0 && <span className="text-ink-soft">（いまは週{days}日）</span>}
+          <span className="block text-xs text-ink-soft">腕立てやスクワットなど。たんぱく質もしっかりとると、筋肉を保ちやすくなります。</span>
+        </>
+      )}
+    </p>
   )
 }
 
@@ -228,6 +260,8 @@ export function WeightSimView({
     )
   }
   const sim = simulateWeight(intake, profile)
+  // 運動で使った分の一部（平均で約28%）を体が打ち消したときの体重。運動を入れていなければ出さない
+  const low = energy.exercise > 0 ? simulateWeight(intake, profile, EXERCISE_KEPT_LOW) : null
   const height = profile.heightCm
   const year = sim.at(365)
   const yearBmi = height ? bmi(year, height) : null
@@ -249,7 +283,7 @@ export function WeightSimView({
           <span className="block text-xs">食事がすべて入っているか、たしかめてください。この量を長く続ける計算は、実際とはずれやすくなります。</span>
         </p>
       )}
-      <WeightChart sim={sim} />
+      <WeightChart sim={sim} band={low} />
       <ul className="grid grid-cols-4 gap-1.5">
         {SIM_PERIODS.map((p) => {
           const kg = sim.at(p.days)
@@ -271,6 +305,12 @@ export function WeightSimView({
         {Math.abs(sim.settle - sim.start) >= 0.5 && <p>体重が変わると使うカロリーも変わるので、変化はだんだんゆるやかになり、{fmtKg(sim.settle)}kgくらいに落ち着いていきます。</p>}
         {yearBmi !== null && yearBmi < 18.5 && <p className="font-bold text-alert-ink">1年後はBMIが18.5を下回ります。やせすぎに気をつけてください。</p>}
         {yearBmi !== null && yearBmi >= 25 && bmi(sim.start, height!) < 25 && <p className="font-bold text-alert-ink">1年後はBMIが25をこえます。</p>}
+        {low && (
+          <p>
+            うすい帯は予測の幅です。運動で使った分の一部（平均で約3割）は、体が基礎代謝などを下げて打ち消すという研究があり、その分を引くと1年後は
+            {signedKg(low.at(365) - low.start)}kg くらいになります（Careau ら、2021年）。
+          </p>
+        )}
         <p>体脂肪1kg＝約7,000kcalとして計算しています。体の水分などでも体重は変わるので、実際とは同じになりません。</p>
       </div>
     </div>
@@ -312,12 +352,12 @@ function niceStep(span: number) {
   return 20
 }
 
-function WeightChart({ sim }: { sim: ReturnType<typeof simulateWeight> }) {
+function WeightChart({ sim, band }: { sim: WeightSimulation; band?: WeightSimulation | null }) {
   const [hover, setHover] = useState<number | null>(null)
   const at = sim.at
   const start = sim.start
   const months = Array.from({ length: 13 }, (_, m) => m)
-  const values = months.map((m) => at(monthDays(m)))
+  const values = months.flatMap((m) => (band ? [at(monthDays(m)), band.at(monthDays(m))] : [at(monthDays(m))]))
   const lo0 = Math.min(...values)
   const hi0 = Math.max(...values)
   // 変化が小さくても上下に2kgは見せる
@@ -331,9 +371,15 @@ function WeightChart({ sim }: { sim: ReturnType<typeof simulateWeight> }) {
   const ticks: number[] = []
   for (let v = lo; v <= hi + 1e-9; v += step) ticks.push(Math.round(v * 10) / 10)
   // 線はなめらかに見えるよう細かく取る
-  const path = Array.from({ length: 74 }, (_, i) => (i * 365) / 73)
-    .map((d, i) => `${i === 0 ? 'M' : 'L'}${x(d).toFixed(1)},${y(at(d)).toFixed(1)}`)
-    .join(' ')
+  const days = Array.from({ length: 74 }, (_, i) => (i * 365) / 73)
+  const path = days.map((d, i) => `${i === 0 ? 'M' : 'L'}${x(d).toFixed(1)},${y(at(d)).toFixed(1)}`).join(' ')
+  // 幅の帯：いまの計算の線から、打ち消しを入れた線までをぬる
+  const bandPath = band
+    ? `${path} ${[...days]
+        .reverse()
+        .map((d) => `L${x(d).toFixed(1)},${y(band.at(d)).toFixed(1)}`)
+        .join(' ')} Z`
+    : null
   const marks = SIM_PERIODS.map((p) => ({ ...p, kg: at(p.days) }))
   const tickLabel = (t: number) => (t % 1 === 0 ? String(t) : t.toFixed(1))
   const fmt = (kg: number) => `${fmtKg(kg)}kg`
@@ -359,7 +405,7 @@ function WeightChart({ sim }: { sim: ReturnType<typeof simulateWeight> }) {
         viewBox={`0 0 ${W} ${H}`}
         className="h-auto w-full touch-pan-y select-none"
         role="img"
-        aria-label={`体重の変化：${marks.map((m) => `${m.label} ${fmt(m.kg)}`).join('、')}`}
+        aria-label={`体重の変化：${marks.map((m) => `${m.label} ${fmt(m.kg)}`).join('、')}${band ? `（運動の打ち消しを入れると1年後 ${fmt(band.at(365))}）` : ''}`}
         onPointerMove={onMove}
         onPointerDown={onMove}
         onPointerLeave={() => setHover(null)}
@@ -379,6 +425,7 @@ function WeightChart({ sim }: { sim: ReturnType<typeof simulateWeight> }) {
             {l.label}
           </text>
         ))}
+        {bandPath && <path d={bandPath} fill="#e8704b" fillOpacity={0.15} stroke="none" />}
         <path d={path} fill="none" stroke="#e8704b" strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
         {hoverDay !== null && hoverKg !== null && (
           <line x1={x(hoverDay)} x2={x(hoverDay)} y1={PAD.t} y2={H - PAD.b} stroke="#5b4636" strokeOpacity={0.3} strokeWidth={1} />
