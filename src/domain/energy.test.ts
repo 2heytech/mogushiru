@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  EXERCISE_KEPT_LOW,
   EXERCISE_TYPES,
   KCAL_PER_KG_FAT,
   SIM_PERIODS,
@@ -7,6 +8,7 @@ import {
   exerciseMinutes,
   expenditure,
   simulateWeight,
+  strengthDaysPerWeek,
 } from './energy'
 import { computeTargets, estimatedEnergy } from './targets'
 import type { Profile } from './types'
@@ -86,9 +88,28 @@ describe('体重の変化', () => {
     expect(simulateWeight(intake, withRun).at(91)).toBeLessThan(70)
   })
 
+  it('運動の打ち消し（約28%）を入れると、運動で減る分が小さくなる。運動がなければ同じ', () => {
+    const withRun: Profile = { ...base, exercises: [{ type: 'jog', minutes: 30, perWeek: 3 }] }
+    const intake = expenditure(base).total
+    const full = 70 - simulateWeight(intake, withRun).at(91)
+    const kept = 70 - simulateWeight(intake, withRun, EXERCISE_KEPT_LOW).at(91)
+    expect(kept).toBeLessThan(full)
+    expect(kept / full).toBeCloseTo(EXERCISE_KEPT_LOW, 1)
+    expect(simulateWeight(1800, base, EXERCISE_KEPT_LOW).at(91)).toBe(simulateWeight(1800, base).at(91))
+  })
+
   it('体重が未入力なら参照体重から計算する', () => {
     const p: Profile = { sex: 'female', age: 35, activity: 'normal' }
     expect(simulateWeight(1500, p).start).toBe(53.3)
     expect(expenditure(p).usedReferenceWeight).toBe(true)
+  })
+})
+
+describe('筋トレの日数', () => {
+  it('筋トレの種類の週の回数を足す（7日まで）', () => {
+    expect(strengthDaysPerWeek(undefined)).toBe(0)
+    expect(strengthDaysPerWeek([{ type: 'walk', minutes: 30, perWeek: 5 }])).toBe(0)
+    expect(strengthDaysPerWeek([{ type: 'squat', minutes: 10, perWeek: 1 }, { type: 'strength', minutes: 10, perWeek: 1 }])).toBe(2)
+    expect(strengthDaysPerWeek([{ type: 'weights', minutes: 60, perWeek: 5 }, { type: 'squat', minutes: 10, perWeek: 5 }])).toBe(7)
   })
 })
