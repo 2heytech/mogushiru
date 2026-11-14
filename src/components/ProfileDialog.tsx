@@ -33,7 +33,7 @@ function Choice<T extends string>({ value, options, onChange }: { value: T; opti
           className={`min-h-11 rounded-2xl px-1 py-2 text-sm ${value === o.id ? 'bg-coral font-bold text-ink-strong' : 'bg-white'}`}
         >
           {o.label}
-          {o.desc && <span className={`mt-0.5 block text-[12px] leading-snug font-normal [text-wrap:balance] [word-break:auto-phrase] ${value === o.id ? 'text-ink-strong' : 'text-ink-soft'}`}>{o.desc}</span>}
+          {o.desc && <span className={`mt-0.5 block text-2xs leading-snug font-normal [text-wrap:balance] [word-break:auto-phrase] ${value === o.id ? 'text-ink-strong' : 'text-ink-soft'}`}>{o.desc}</span>}
         </button>
       ))}
     </div>
@@ -215,7 +215,7 @@ export function ProfileDialog({
                   { id: 'no', label: 'なし' },
                 ]}
               />
-              <p className="mt-1 text-[12px] text-ink-soft">鉄の目安を選ぶために使います（月経ありのほうが多くなります）</p>
+              <p className="mt-1 text-2xs text-ink-soft">鉄の目安を選ぶために使います（月経ありのほうが多くなります）</p>
             </div>
           )}
           <div>
@@ -225,7 +225,7 @@ export function ProfileDialog({
           <div ref={exerciseRef} className="scroll-mt-4">
             <p className="mb-1 text-sm">ふだんの運動（任意）</p>
             <ExerciseEditor value={exercises} onChange={setExercises} weightKg={energy?.weightKg ?? 60} />
-            <p className="mt-1 text-[12px] text-ink-soft">
+            <p className="mt-1 text-2xs text-ink-soft">
               {exercises.length > 0 && energy
                 ? `運動で 1日あたり 約${Math.round(energy.exercise).toLocaleString()} kcal（週の回数でならした分）を足します。通勤や家事の動きは「ふだんの活動量」に入っています。`
                 : '続けている運動を入れると、使うカロリーに足して計算します。通勤や家事の動きは「ふだんの活動量」に入っています。'}
@@ -238,7 +238,7 @@ export function ProfileDialog({
           <div ref={slotShareRef}>
             <p className="mb-1 text-sm">朝・昼・晩・その他の配分</p>
             <SlotShareEditor value={slotShare} onChange={setSlotShare} dayKcal={dayKcal} />
-            <p className="mt-1 text-[12px] text-ink-soft">1日の目安をこの割合で分けて、区分ごとのカロリーや栄養素の目安にします</p>
+            <p className="mt-1 text-2xs text-ink-soft">1日の目安をこの割合で分けて、区分ごとのカロリーや栄養素の目安にします</p>
           </div>
           {preview && (
             <p className="rounded-2xl bg-white px-4 py-3 text-sm">

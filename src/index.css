@@ -43,13 +43,35 @@
   --color-coral-ink: #b8482a;
   --color-ok-ink: #2c7752;
   --color-alert-ink: #bf3030;
-  /* 字の大きさの下限：補足（text-xs）は13px、いちばん小さい注記でも12px */
+  /* 字の大きさの下限：補足（text-xs）は13px、いちばん小さい注記（text-2xs）でも12px。スマホでは下でひとまわり大きくする */
+  /* 行の高さは決めない（まわりの字の行の高さを引きつぐ。前の text-[12px] と同じ） */
+  --text-2xs: 0.75rem;
   --text-xs: 0.8125rem;
   --text-xs--line-height: 1.45;
 }
 
+/* スマホ（幅640px未満）は字をひとまわり大きくする（docs/design.md 8.3）。
+   余白やボタンの大きさは変えず、字の大きさだけを上げる。小さい字ほど大きく上げ、見出しは少しだけ（字の大きさの差は残す）。
+   字の大きさは text-2xs〜text-xl を使い、text-[12px] のように px で決めない（ここで大きくならないため） */
+@media (width < 40rem) {
+  :root {
+    --text-2xs: 0.875rem; /* 12 → 14px */
+    --text-xs: 0.9375rem; /* 13 → 15px */
+    --text-sm: 1rem; /* 14 → 16px */
+    --text-base: 1.0625rem; /* 16 → 17px */
+    --text-lg: 1.1875rem; /* 18 → 19px */
+    --text-xl: 1.3125rem; /* 20 → 21px */
+  }
+  /* 字が大きくなって行が増えるぶん、最後の行に1〜2文字だけ残る折り返し（「このままいこ／う」）を、対応しているブラウザでは避ける */
+  body {
+    text-wrap: pretty;
+  }
+}
+
 body {
   @apply bg-cream text-ink font-sans antialiased;
+  /* クラスのない字もスマホでは大きくなるように */
+  font-size: var(--text-base);
 }
 
 /* 量のスライダー。ブラウザ任せだと線が黒っぽく太く出るので、やわらかい色にそろえる（--fill＝いまの位置） */

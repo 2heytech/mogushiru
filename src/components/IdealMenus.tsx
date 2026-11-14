@@ -81,7 +81,7 @@ export function FacetRow<T extends string>({
 }) {
   return (
     <div role="group" aria-label={`${label}でしぼる`} className="flex items-center gap-1.5">
-      <span className="flex w-14 shrink-0 items-center gap-1 text-xs text-ink-soft md:w-auto md:pr-0.5">
+      <span className="flex w-16 shrink-0 items-center gap-1 text-xs whitespace-nowrap text-ink-soft md:w-auto md:pr-0.5">
         {icon}
         {label}
       </span>
@@ -182,7 +182,7 @@ export function IdealMenuList({ catalog, targets, storesLoaded, onLoad, onLoadSl
           onClick={() => setHelp((v) => !v)}
           className="flex min-h-9 shrink-0 items-center gap-1 text-xs text-ink-soft md:min-w-0 md:shrink"
         >
-          <span className="grid h-7 w-7 place-items-center rounded-full bg-white text-xs font-bold shadow-sm md:h-5 md:w-5 md:text-[12px]" aria-hidden>
+          <span className="grid h-7 w-7 place-items-center rounded-full bg-white text-xs font-bold shadow-sm md:h-5 md:w-5 md:text-2xs" aria-hidden>
             ?
           </span>
           <span className="hidden truncate md:inline">{mode.short}</span>
@@ -284,7 +284,7 @@ function IdealMenuCard({ ideal, found, catalog, targets, storesLoaded, onLoad, o
   const title = (
     <p className="font-bold leading-snug">
       {ideal.name}
-      <span className="ml-1.5 inline-block rounded-full bg-cream px-2 py-0.5 align-[1px] text-[12px] font-normal text-ink-soft">{ideal.genre}</span>
+      <span className="ml-1.5 inline-block rounded-full bg-cream px-2 py-0.5 align-[1px] text-2xs font-normal text-ink-soft">{ideal.genre}</span>
     </p>
   )
   if (!plan)
@@ -362,7 +362,7 @@ function IdealMenuCard({ ideal, found, catalog, targets, storesLoaded, onLoad, o
             if (!face) return null
             const src = menuItemImage(face, catalog)
             return (
-              <li key={slot} className="flex items-center gap-1.5 text-[13px] leading-snug">
+              <li key={slot} className="flex items-center gap-1.5 text-xs leading-snug">
                 {src ? <img src={src} alt="" className="h-8 w-8 shrink-0" /> : <span className="h-8 w-8 shrink-0 rounded-full bg-cream" aria-hidden />}
                 <span className="shrink-0 text-xs text-ink-soft">{SLOT_LABEL[slot]}</span>
                 <span className="min-w-0 flex-1">{leads ? leads[slot] : itemName(face, catalog)}</span>
@@ -394,7 +394,7 @@ function IdealMenuCard({ ideal, found, catalog, targets, storesLoaded, onLoad, o
             {short.length > 0 && <>。少なめ：{short.map((c) => NUTRIENT_INFO[c.key].label).join('・')}</>}
           </p>
           {withProducts && (
-            <p className="mt-1 text-[12px] leading-snug text-ink-soft">※ 市販品はパッケージの栄養成分表示にある成分だけで計算しています（ビタミン・ミネラルは実際より少なく出ます）</p>
+            <p className="mt-1 text-2xs leading-snug text-ink-soft">※ 市販品はパッケージの栄養成分表示にある成分だけで計算しています（ビタミン・ミネラルは実際より少なく出ます）</p>
           )}
           <div className="-mb-1 flex justify-end">{toggle}</div>
         </>
@@ -441,7 +441,7 @@ export function MealStats({ slot, menu, summary, targets }: { slot: Slot; menu: 
   const totals = summary.totals.bySlot[slot]
   const b = slotBalance(totals, slot, targets)
   return (
-    <span className="block text-[12px] text-ink-soft tabular-nums">
+    <span className="block text-2xs text-ink-soft tabular-nums">
       <span className="whitespace-nowrap">
         {Math.round(b.kcal).toLocaleString()} kcal（目安 {b.targetKcal.toLocaleString()}）
       </span>

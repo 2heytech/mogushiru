@@ -115,7 +115,10 @@ export function RankingView({
             >
               <span className="shrink-0 font-bold">成分</span>
               <span className="min-w-0 flex-1 truncate font-bold text-coral-ink">{info.label}</span>
-              <span className="shrink-0 text-xs text-ink-soft">{nutrientOpen ? 'とじる' : 'ほかの成分をえらぶ'}</span>
+              <span className="shrink-0 text-xs text-ink-soft">
+                {/* スマホは成分の名前が切れないよう「えらぶ」だけ */}
+                {nutrientOpen ? 'とじる' : <><span className="max-sm:hidden">ほかの成分を</span>えらぶ</>}
+              </span>
               <span aria-hidden className={`shrink-0 text-xs transition ${nutrientOpen ? 'rotate-180' : ''}`}>
                 ▼
               </span>
@@ -124,7 +127,7 @@ export function RankingView({
             <div id="ranking-nutrients" className={`space-y-2 lg:block ${nutrientOpen ? 'mt-2' : 'hidden'}`}>
               {NUTRIENT_GROUPS.map((g) => (
                 <div key={g.label}>
-                  <p className="mb-1 text-[12px] text-ink-soft">{g.label}</p>
+                  <p className="mb-1 text-2xs text-ink-soft">{g.label}</p>
                   <div className="flex flex-wrap gap-1.5">
                     {g.keys.map((k) => {
                       const n = RANKING_NUTRIENTS.find((x) => x.key === k)!
@@ -205,7 +208,7 @@ export function RankingView({
                   type="button"
                   aria-pressed={m.key === activeMetric}
                   onClick={() => (setMetric(m.key), reset())}
-                  className={`min-h-8 rounded-full px-3.5 text-[13px] whitespace-nowrap ${m.key === activeMetric ? 'bg-coral font-bold text-ink-strong' : 'text-ink-soft hover:bg-white'}`}
+                  className={`min-h-8 rounded-full px-3.5 text-xs whitespace-nowrap ${m.key === activeMetric ? 'bg-coral font-bold text-ink-strong' : 'text-ink-soft hover:bg-white'}`}
                 >
                   {m.label}
                 </button>
@@ -231,7 +234,7 @@ export function RankingView({
                     <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-full text-sm font-bold ${i < 3 ? 'bg-coral text-ink-strong' : 'bg-cream text-ink-soft'}`}>{i + 1}</span>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-baseline justify-between gap-2">
-                        <p className="truncate font-bold" title={r.food.name.replace(/　/g, ' ')}>
+                        <p className="min-w-0 font-bold max-sm:line-clamp-2 sm:truncate" title={r.food.name.replace(/　/g, ' ')}>
                           {r.food.displayName}
                         </p>
                         <p className="shrink-0 text-sm">

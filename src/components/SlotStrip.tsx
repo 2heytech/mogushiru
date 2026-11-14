@@ -92,11 +92,11 @@ export function SlotStrip(props: Props) {
                       {items.slice(0, 3).map((item) => (
                         <ItemThumb key={item.uid} item={item} catalog={catalog} className="h-6 w-6 rounded-full bg-white ring-2 ring-white" />
                       ))}
-                      {items.length > 3 && <span className="pl-2.5 text-[12px] text-ink-soft">+{items.length - 3}</span>}
+                      {items.length > 3 && <span className="pl-2.5 text-2xs text-ink-soft">+{items.length - 3}</span>}
                     </>
                   )}
                 </span>
-                <span className="text-[12px] text-ink-soft tabular-nums">{Math.round(b.kcal)} kcal</span>
+                <span className="text-2xs text-ink-soft tabular-nums">{Math.round(b.kcal)} kcal</span>
                 <SlotKcalBar kcal={b.kcal} target={b.targetKcal} level={b.energy} className="w-[85%]" />
                 <span className="sr-only">{items.length === 0 ? '料理をえらぶ' : `${items.length}品。押すと料理が見られます`}</span>
               </button>
@@ -161,7 +161,7 @@ function SlotItems({ menu, catalog, onEdit, onRemove, slot }: Props & { slot: Sl
             <ItemThumb item={item} catalog={catalog} className="h-7 w-7 shrink-0" />
             <span className="min-w-0 flex-1 leading-snug">
               {itemName(item, catalog)}
-              <span className="block text-[12px] text-ink-soft tabular-nums">
+              <span className="block text-2xs text-ink-soft tabular-nums">
                 {portionLabel(item, catalog)}
                 {portionLabel(item, catalog) && '・'}
                 {Math.round(itemTotals(item, catalog).values.energyKcal)} kcal

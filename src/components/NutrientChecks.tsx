@@ -83,7 +83,7 @@ function CheckRow({ c, perSlot }: { c: NutrientCheck; perSlot: boolean }) {
         <span className="ml-auto text-right whitespace-nowrap tabular-nums">
           <strong className="text-sm">{fmt(c.key, c.amount)}</strong>
           <span className="text-ink-soft">{unit}</span>
-          {goal && <span className="ml-1.5 text-[12px] text-ink-soft">／ {goal}</span>}
+          {goal && <span className="ml-1.5 text-2xs text-ink-soft">／ {goal}</span>}
         </span>
       </div>
       {c.goal && c.percent !== null ? (
@@ -97,17 +97,17 @@ function CheckRow({ c, perSlot }: { c: NutrientCheck; perSlot: boolean }) {
           </span>
           <span className="flex w-[5.25rem] shrink-0 justify-start">
             {quiet ? (
-              <span className="grid h-5 w-5 place-items-center rounded-full bg-ok/25 text-[12px] leading-none font-bold text-ok-ink" role="img" aria-label={status}>
+              <span className="grid h-5 w-5 place-items-center rounded-full bg-ok/25 text-2xs leading-none font-bold text-ok-ink" role="img" aria-label={status}>
                 ✓
               </span>
             ) : (
-              <span className={`rounded-full px-2 py-0.5 text-[12px] leading-tight font-bold whitespace-nowrap ${CHIP[c.status]}`}>{status}</span>
+              <span className={`rounded-full px-2 py-0.5 text-2xs leading-tight font-bold whitespace-nowrap ${CHIP[c.status]}`}>{status}</span>
             )}
           </span>
         </div>
       ) : null}
       {c.upperScope === 'supplement' && c.upper !== null && c.upperAmount > 0 && (
-        <span className="block text-[12px] text-ink-soft tabular-nums">
+        <span className="block text-2xs text-ink-soft tabular-nums">
           サプリ {fmt(c.key, c.upperAmount)}・上限 {fmt(c.key, c.upper)}
         </span>
       )}
@@ -143,7 +143,7 @@ function Group({
         <UiIcon name={st.icon} className="h-7 w-7 shrink-0" />
         <span className="min-w-0 leading-tight">
           <span className={`block text-sm font-bold ${st.title}`}>{title}</span>
-          <span className="block text-[12px] text-ink-soft">{st.note}</span>
+          <span className="block text-2xs text-ink-soft">{st.note}</span>
         </span>
       </h3>
       <ul className="space-y-2.5 text-xs">
@@ -186,8 +186,8 @@ export function NutrientChecks({
       <summary className="cursor-pointer list-none [&::-webkit-details-marker]:hidden">
         <span className="flex min-h-9 flex-wrap items-center gap-x-1.5 gap-y-1 text-sm font-bold">
           <span className="whitespace-nowrap">{perSlot ? 'くわしい栄養素' : '栄養素チェック'}</span>
-          <span className="text-[12px] font-normal text-ink-soft">{CHECKED_COUNT}項目</span>
-          <span className={`ml-auto flex items-center gap-1 rounded-full px-2.5 py-1 text-[12px] whitespace-nowrap shadow-sm ${perSlot ? 'bg-coral text-ink-strong' : 'bg-white font-normal text-ink-soft'}`}>
+          <span className="text-2xs font-normal text-ink-soft">{CHECKED_COUNT}項目</span>
+          <span className={`ml-auto flex items-center gap-1 rounded-full px-2.5 py-1 text-2xs whitespace-nowrap shadow-sm ${perSlot ? 'bg-coral text-ink-strong' : 'bg-white font-normal text-ink-soft'}`}>
             <span className="group-open:hidden">ひらいて見る</span>
             <span className="hidden group-open:inline">とじる</span>
             <span className="transition-transform group-open:rotate-180" aria-hidden>
@@ -196,7 +196,7 @@ export function NutrientChecks({
           </span>
         </span>
         {/* 畳んでいるときも、何が分かるかを少しだけ見せる */}
-        <span className="mt-1 flex flex-wrap items-center gap-1 text-[12px] font-bold group-open:hidden">
+        <span className="mt-1 flex flex-wrap items-center gap-1 text-2xs font-bold group-open:hidden">
           {counts.map((c) => (
             <span key={c.text} className={`rounded-full px-2 py-0.5 ${c.cls}`}>
               {c.text}
@@ -212,7 +212,7 @@ export function NutrientChecks({
       </summary>
       <div className="mt-2 space-y-3 pb-1">
         {!perSlot && (
-          <p className="flex flex-wrap gap-1 text-[12px] font-bold">
+          <p className="flex flex-wrap gap-1 text-2xs font-bold">
             {counts.map((c) => (
               <span key={c.text} className={`rounded-full px-2.5 py-0.5 ${c.cls}`}>
                 {c.text}
@@ -224,10 +224,10 @@ export function NutrientChecks({
         <Group kind="want" title="しっかりとりたい" keys={WANT_NUTRIENTS} checks={checks} perSlot={perSlot} />
         <Group kind="info" title="基準のないもの" keys={INFO_NUTRIENTS} checks={checks} perSlot={perSlot} />
         {/* 出典と注意書きは長いので畳んでおく */}
-        <details className="group/notes text-[12px] leading-relaxed text-ink-soft">
+        <details className="group/notes text-2xs leading-relaxed text-ink-soft">
           <summary className="flex min-h-9 cursor-pointer list-none items-center gap-1 font-bold [&::-webkit-details-marker]:hidden">
             目安の出典と注意書き
-            <span className="text-[12px] transition-transform group-open/notes:rotate-180" aria-hidden>
+            <span className="text-2xs transition-transform group-open/notes:rotate-180" aria-hidden>
               ▼
             </span>
           </summary>

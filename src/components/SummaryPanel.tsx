@@ -59,7 +59,7 @@ function SlotShare({ totals, targets, onEdit }: { totals: MenuTotals; targets: T
     <div>
       <p className="mb-1 text-sm text-ink-soft">カロリーの配分</p>
       {day > 0 && (
-        <div className="flex h-6 overflow-hidden rounded-full bg-white text-[12px] font-bold text-ink-strong">
+        <div className="flex h-6 overflow-hidden rounded-full bg-white text-2xs font-bold text-ink-strong">
           {SLOTS.map((slot, i) => {
             const share = (totals.bySlot[slot].values.energyKcal / day) * 100
             if (share <= 0) return null
@@ -187,7 +187,7 @@ export function DayInfo({
           >
             {t.label}
             {t.badge && (
-              <span className="grid h-[18px] min-w-[18px] place-items-center rounded-full bg-alert px-1 text-[12px] leading-none font-bold text-ink-strong" aria-label={`とりすぎ ${t.badge}件`}>
+              <span className="grid h-[18px] min-w-[18px] place-items-center rounded-full bg-alert px-1 text-2xs leading-none font-bold text-ink-strong" aria-label={`とりすぎ ${t.badge}件`}>
                 {t.badge}
               </span>
             )}
@@ -205,7 +205,14 @@ export function DayInfo({
               <h2 className="hidden font-bold lg:block">まとめ</h2>
               <div className="flex items-center gap-3">
                 <BowlMogu slot="dinner" mood={bowlMood} className="h-16 w-16 shrink-0" label={`モグは${MOOD_LABEL[bowlMood]}`} />
-                <p className="rounded-2xl bg-white px-4 py-2 text-sm shadow-sm">{message}</p>
+                <p className="rounded-2xl bg-white px-4 py-2 text-sm shadow-sm">
+                  {/* 「！」「、」「。」のあとで折り返す（「このままいこ／う」のように1文字だけ次の行に残らないように） */}
+                  {message.split(/(?<=[！、。])/).map((part, i) => (
+                    <span key={i} className="inline-block">
+                      {part}
+                    </span>
+                  ))}
+                </p>
               </div>
               <EnergyGauge value={v.energyKcal} target={targets.energyKcal} partial={partial} />
               <SlotShare totals={totals} targets={targets} onEdit={onEditSlotShare} />

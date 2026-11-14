@@ -108,7 +108,7 @@ export function ExerciseEditor({ value, onChange, weightKg }: { value: ExerciseD
                 </label>
               )}
             </div>
-            {d.type === 'custom' && <p className="mt-1 text-[12px] text-ink-soft">メッツは、じっと座っているときの何倍のエネルギーを使うか（ふつうに歩く＝3.5）</p>}
+            {d.type === 'custom' && <p className="mt-1 text-2xs text-ink-soft">メッツは、じっと座っているときの何倍のエネルギーを使うか（ふつうに歩く＝3.5）</p>}
             <p className={`mt-1.5 text-xs ${ex ? 'text-ink-soft' : 'font-bold text-alert-ink'}`}>
               {ex && kcal !== null
                 ? `1回 約${Math.round(kcal).toLocaleString()} kcal（${(t?.id === 'custom' ? ex.mets : t?.mets)?.toFixed(1)}メッツ）`

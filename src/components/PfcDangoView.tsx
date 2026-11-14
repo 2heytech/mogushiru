@@ -28,7 +28,7 @@ export function PfcDangoView({ gaps, gramRanges }: { gaps: PfcGap[]; gramRanges:
     <div className="h-full rounded-2xl bg-white/70 p-3">
       <div className="mb-1 flex items-baseline justify-between gap-2">
         <p className="text-sm font-bold">PFCバランス</p>
-        <p className="flex items-center gap-1 text-[12px] text-ink-soft">
+        <p className="flex items-center gap-1 text-2xs text-ink-soft">
           <span className="inline-block h-3 w-3 rounded-full border border-dashed border-ink/50" aria-hidden />
           点線＝目標の大きさ
         </p>
@@ -48,7 +48,7 @@ export function PfcDangoView({ gaps, gramRanges }: { gaps: PfcGap[]; gramRanges:
           <p className="text-xl leading-none font-bold tabular-nums">{Math.round(g.ratio)}%</p>
         ))}
         {row((g) => (
-          <p className="text-[12px] leading-tight whitespace-nowrap text-ink-soft tabular-nums">
+          <p className="text-2xs leading-tight whitespace-nowrap text-ink-soft tabular-nums">
             目標 {g.range.lo}〜{g.range.hi}%
           </p>
         ))}
@@ -60,7 +60,7 @@ export function PfcDangoView({ gaps, gramRanges }: { gaps: PfcGap[]; gramRanges:
       <div className="mt-3 border-t border-dashed border-ink/15 pt-2">
         <div className="mb-1 flex items-baseline justify-between gap-2">
           <p className="text-xs font-bold">とった量</p>
-          <p className="flex items-center gap-1 text-[12px] text-ink-soft">
+          <p className="flex items-center gap-1 text-2xs text-ink-soft">
             <span className="inline-block h-2.5 w-3 rounded-sm border border-dashed border-ink/40 bg-ink/5" aria-hidden />
             帯＝目標の量
           </p>
@@ -76,7 +76,7 @@ export function PfcDangoView({ gaps, gramRanges }: { gaps: PfcGap[]; gramRanges:
             <GramBar g={g} range={gramRanges[g.key]} />
           ))}
           {row((g) => (
-            <p className="text-[12px] leading-tight text-ink-soft tabular-nums">
+            <p className="text-2xs leading-tight text-ink-soft tabular-nums">
               <span className="block whitespace-nowrap">
                 目標 {Math.round(gramRanges[g.key].lo)}〜{Math.round(gramRanges[g.key].hi)}g
               </span>
@@ -116,7 +116,7 @@ function GramBar({ g, range }: { g: PfcGap; range: { lo: number; hi: number } })
         aria-hidden
       />
       {overflow && (
-        <span className="absolute inset-x-0 -top-1 text-center text-[12px] leading-none font-bold text-alert-ink" aria-hidden>
+        <span className="absolute inset-x-0 -top-1 text-center text-2xs leading-none font-bold text-alert-ink" aria-hidden>
           ▲
         </span>
       )}
