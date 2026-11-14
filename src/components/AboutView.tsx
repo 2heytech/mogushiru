@@ -46,6 +46,18 @@ const SOURCES: { name: ReactNode; note: ReactNode }[] = [
     note: '1日の目安量・上限量。報告書の値をもとに加工して作成',
   },
   {
+    name: <Ext href="https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/kenkou_iryou/kenkou/kenkounippon21_00006.html">厚生労働省「健康日本21（第三次）」</Ext>,
+    note: '主食・主菜・副菜をそろえた食事（1日2回以上）、野菜350g・果物200gの目標。加工して作成',
+  },
+  {
+    name: <Ext href="https://www.maff.go.jp/j/syokuiku/zissen_navi/balance/division.html">農林水産省「食事バランスガイド」</Ext>,
+    note: '主食・主菜・副菜の数え方（1つ（SV）の基準）。料理の材料から数えるように加工して作成',
+  },
+  {
+    name: <Ext href="https://www.city.fukuoka.lg.jp/hofuku/shika-eiyo/documents/02283point10shokuhinngnncheck.pdf">福岡市「フレイル予防の食事３つのポイント（10食品群チェック表）」</Ext>,
+    note: '10の食品群（さあにぎやかにいただく）と1日7つ以上の目安。東京都健康長寿医療センター研究所の食品摂取の多様性スコアにもとづくもの',
+  },
+  {
     name: <Ext href="https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/kenkou_iryou/kenkou/undou/index.html">厚生労働省「健康づくりのための身体活動・運動ガイド2023」</Ext>,
     note: '運動で使うカロリー（メッツ表）。加工して作成',
   },
