@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { MEAL_SLOTS, idealMeals, isMealSlot } from './idealMeals'
+import { MEAL_SLOTS, fitsMealAlone, idealMeals, isMealSlot, soloMeals } from './idealMeals'
 import { BREAKFAST_STYLES, DINNER_MAINS, LUNCH_STYLES, idealMealLeads, idealMenuFacets, idealSearchIndex, idealSearchTokens, matchesIdealSearch } from './idealMenuFacets'
 import { IDEAL_MENUS, type IdealMenu } from './idealMenus'
-import { catalog, planned } from './idealMenus.testkit'
+import { PROFILES, catalog, label, planned } from './idealMenus.testkit'
 import { slotBalance } from './slotBalance'
+import { computeTargets } from './targets'
 import type { Profile } from './types'
 
 // プロフィール未入力の目安（女性30〜49歳・ふつう）
@@ -103,5 +104,46 @@ describe('理想の献立を1食ずつ呼び出す', { timeout: 30_000 }, () => 
         expect(menu[slot].length, `${slot} ${m.menu.id}`).toBeGreaterThan(0)
         expect(slotBalance(summary.totals.bySlot[slot], slot, t).energy, `${slot} ${m.menu.id}`).toBe('ok')
       }
+  })
+})
+
+// 毎食バランスで、朝・昼・晩を1食ずつえらぶときの候補
+describe('毎食バランスで1食ずつえらぶ', { timeout: 120_000 }, () => {
+  const solo = (slot: (typeof MEAL_SLOTS)[number], profile: Profile) => {
+    const t = computeTargets(profile)
+    return { t, meals: soloMeals(slot, IDEAL_MENUS, catalog, t, (m) => planned(m, profile).menu) }
+  }
+  const perMealKeys = (slot: (typeof MEAL_SLOTS)[number]) => new Set(IDEAL_MENUS.filter((m) => m.balance === 'meal').map((m) => ids(m, slot)))
+
+  it('どのプロフィールでも、毎食バランスの献立の1食はぜんぶ入り、ほかの1食はその1食だけで区分の目安に収まるものだけ', () => {
+    for (const profile of PROFILES)
+      for (const slot of MEAL_SLOTS) {
+        const { t, meals } = solo(slot, profile)
+        const keys = meals.map((m) => m.key)
+        expect(new Set(keys).size, `${label(profile)} ${slot}`).toBe(keys.length)
+        for (const k of perMealKeys(slot)) expect(keys, `${label(profile)} ${slot}`).toContain(k)
+        // 毎食バランスの1食が先
+        const firstDay = meals.findIndex((m) => !m.balanced)
+        if (firstDay >= 0) expect(meals.slice(firstDay).every((m) => !m.balanced), `${label(profile)} ${slot}`).toBe(true)
+        for (const m of meals) {
+          const totals = planned(m.menu, profile).summary.totals.bySlot[slot]
+          // 毎食バランスの献立の1食も、画面の「ちょうどいい」と食塩・飽和脂肪酸の目安に収まっている
+          expect(fitsMealAlone(totals, slot, t), `${label(profile)} ${slot} ${m.menu.id}`).toBe(true)
+        }
+      }
+  })
+
+  it('毎食バランスの献立の1食だけより多くからえらべる（プロフィール未入力の目安では、朝・昼・晩とも8種以上）', () => {
+    for (const slot of MEAL_SLOTS) {
+      const n = solo(slot, F35).meals.length
+      expect(n, slot).toBeGreaterThanOrEqual(8)
+      expect(n, slot).toBeGreaterThan(perMealKeys(slot).size)
+    }
+  })
+
+  it('配分が0%の区分（朝食をとらない設定）には候補を出さない', () => {
+    const noBreakfast: Profile = { ...F35, slotShare: { breakfast: 0, lunch: 45, dinner: 40, other: 15 } }
+    expect(solo('breakfast', noBreakfast).meals).toEqual([])
+    expect(solo('lunch', noBreakfast).meals.length).toBeGreaterThan(0)
   })
 })

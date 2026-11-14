@@ -570,6 +570,21 @@ export function adjustIdealMenu(menu: IdealMenu, catalog: Catalog, targets: Targ
   return planIdealMenu(menu, catalog, targets).menu
 }
 
+// 同じ目安・同じデータでの量の調整は、一覧を切り替えたり戻ったりするたびに計算しなおさない
+// （毎食バランスで1食ずつえらぶときは、その区分の候補をしぼるために献立をまとめて調整するので）。
+// 返す1日の食事は共有するので、書きかえずに使う
+const planCache = new WeakMap<Targets, WeakMap<Catalog, Map<string, DayMenu>>>()
+export const hasAdjustedIdealMenu = (menu: IdealMenu, catalog: Catalog, targets: Targets): boolean => Boolean(planCache.get(targets)?.get(catalog)?.has(menu.id))
+export function adjustIdealMenuCached(menu: IdealMenu, catalog: Catalog, targets: Targets): DayMenu {
+  let byCatalog = planCache.get(targets)
+  if (!byCatalog) planCache.set(targets, (byCatalog = new WeakMap()))
+  let byMenu = byCatalog.get(catalog)
+  if (!byMenu) byCatalog.set(catalog, (byMenu = new Map()))
+  let planned = byMenu.get(menu.id)
+  if (!planned) byMenu.set(menu.id, (planned = adjustIdealMenu(menu, catalog, targets)))
+  return planned
+}
+
 // repairs は、配分どおりに割り振ったあと目安に収めるために動かした回数（0.1人前ずつ）
 export function planIdealMenu(menu: IdealMenu, catalog: Catalog, targets: Targets, repair = true): { menu: DayMenu; repairs: number } {
   const share = targets.slotShare

@@ -24,7 +24,7 @@ function Kcal({ kcal, target, className = '' }: { kcal: number; target: number; 
   )
 }
 
-// 1日の食事のかたまり。見出し（献立名・合計kcal）と「献立を呼び出す」「保存」「リセット」を、朝・昼・晩・その他と一緒に置く。
+// 1日の食事のかたまり。見出し（献立名・合計kcal）と「献立をつくる」「保存」「呼び出す」「リセット」を、朝・昼・晩・その他と一緒に置く。
 // スマホはボタンを画面の下に固定、PCは見出しの右に置き、見出しが画面の外に出たら上にうすいバーを出す
 export function DayMenuPanel({
   source,

@@ -1,7 +1,10 @@
 // 理想の献立を、朝・昼・晩の1食ずつに分けて出す（「朝に追加」などの画面から、その1食だけ呼び出すため）。
 // 同じ料理の組み合わせの1食は、いくつの献立に入っていても1つにまとめる
 import { idealMenuHasProducts, type IdealMenu, type IdealMenuItem } from './idealMenus'
-import type { Slot } from './types'
+import { menuTotals, type Catalog } from './nutrition'
+import { slotBalance } from './slotBalance'
+import type { Targets } from './targets'
+import type { DayMenu, MenuItem, NutrientTotals, Slot } from './types'
 
 export const MEAL_SLOTS = ['breakfast', 'lunch', 'dinner'] as const satisfies readonly Slot[]
 export type MealSlot = (typeof MEAL_SLOTS)[number]
@@ -38,4 +41,39 @@ export function idealMeals(slot: MealSlot, menus: readonly IdealMenu[]): IdealMe
   }
   const meals = [...byKey].map(([key, menu]): IdealMeal => ({ menu, slot, key, balanced: menu.balance === 'meal' }))
   return [...meals.filter((m) => m.balanced), ...meals.filter((m) => !m.balanced)]
+}
+
+// 1食だけで区分の目安に収まるか。画面の「区分ごとのバランス」で「ちょうどいい」になる（カロリーが区分の目安の±20%、
+// PFCが目標の範囲）うえに、食塩と飽和脂肪酸が1日の目安 × 区分の割合まで
+export function fitsMealAlone(totals: NutrientTotals, slot: MealSlot, targets: Targets): boolean {
+  const share = targets.slotShare[slot]
+  if (share <= 0) return false
+  const b = slotBalance(totals, slot, targets)
+  const eps = 1e-9
+  return b.energy === 'ok' && b.hints.length === 0 && totals.values.salt <= targets.saltMax * share + eps && totals.values.satFat <= targets.satFatMaxG * share + eps
+}
+
+const slotTotals = (slot: Slot, items: MenuItem[], catalog: Catalog) =>
+  menuTotals({ breakfast: [], lunch: [], dinner: [], other: [], [slot]: items }, catalog).bySlot[slot]
+
+// 毎食バランスで1食ずつえらぶときの、その区分の候補。理想の献立の1食のうち、プロフィールの目安に合わせた量（plan）で、
+// その1食だけでも区分の目安に収まるもの。毎食バランスの献立の1食はいつも入れる（どの目安でも収まるように組んでいる）。
+// 同じ組み合わせの1食は1つにまとめ、代表は idealMeals と同じ順（収まらないときは次の献立）。毎食バランスの献立の1食を先に、あとは献立の並び順
+export function soloMeals(slot: MealSlot, menus: readonly IdealMenu[], catalog: Catalog, targets: Targets, plan: (menu: IdealMenu) => DayMenu): IdealMeal[] {
+  if (targets.slotShare[slot] <= 0) return []
+  const order = new Map(menus.map((m, i) => [m.id, i]))
+  const byRank = [...menus].sort((a, b) => rank(a) - rank(b) || order.get(a.id)! - order.get(b.id)!)
+  const found = new Map<string, IdealMeal>()
+  for (const menu of byRank) {
+    if (menu.slots[slot].length === 0) continue
+    const key = mealKey(menu.slots[slot])
+    if (found.has(key)) continue
+    const balanced = menu.balance === 'meal'
+    const items = plan(menu)[slot]
+    if (items.length === 0) continue
+    if (!balanced && !fitsMealAlone(slotTotals(slot, items, catalog), slot, targets)) continue
+    found.set(key, { menu, slot, key, balanced })
+  }
+  const meals = [...found.values()]
+  return meals.sort((a, b) => Number(b.balanced) - Number(a.balanced) || order.get(a.menu.id)! - order.get(b.menu.id)!)
 }
