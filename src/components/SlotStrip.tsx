@@ -3,8 +3,9 @@ import { itemTotals, type Catalog, type MenuTotals } from '../domain/nutrition'
 import { slotBalance, type EnergyLevel } from '../domain/slotBalance'
 import type { Targets } from '../domain/targets'
 import { SLOTS, type DayMenu, type MenuItem, type Slot } from '../domain/types'
+import { canStepDown, drinkAmount, drinkAmountLabel, drinkCount, drinkCup, drinkSpec, nextCount, prevCount } from '../domain/drinks'
 import { menuItemImage } from './illustration'
-import { itemName, portionLabel } from './itemName'
+import { drinkItemName, portionLabel } from './itemName'
 import { SLOT_LABEL } from './labels'
 import { SlotIcon } from './Mascot'
 
@@ -50,6 +51,8 @@ type Props = {
   catalog: Catalog
   onAdd: (slot: Slot) => void
   onRemove: (slot: Slot, uid: string) => void
+  // 飲み物の杯数を＋−で変える
+  onDrink: (slot: Slot, item: MenuItem, amount: Pick<MenuItem, 'portion' | 'cup'>) => void
   // 献立の項目をタップしたら、その場で編集画面を開く
   onEdit: (slot: Slot, uid: string) => void
 }
@@ -144,43 +147,69 @@ export function SlotStrip(props: Props) {
   )
 }
 
-// 区分に入っている料理の一覧。名前を押すと編集、×で外す
-function SlotItems({ menu, catalog, onEdit, onRemove, slot }: Props & { slot: Slot }) {
+const STEP_BUTTON = 'grid h-9 w-8 shrink-0 place-items-center rounded-full text-base leading-none font-bold text-coral-ink hover:bg-white disabled:text-ink-soft/40 disabled:hover:bg-transparent'
+
+// 区分に入っている料理の一覧。名前を押すと編集、×で外す。飲み物は＋−で杯数を変えられる
+function SlotItems({ menu, catalog, onEdit, onRemove, onDrink, slot }: Props & { slot: Slot }) {
   const items = menu[slot]
   if (items.length === 0) return <p className="py-1 text-center text-xs text-ink-soft">まだ料理がありません</p>
   return (
     <ul className="space-y-1">
-      {items.map((item) => (
-        <li key={item.uid} className="flex items-center gap-1 rounded-xl bg-cream/70 pr-0.5">
-          <button
-            type="button"
-            onClick={() => onEdit(slot, item.uid)}
-            aria-haspopup="dialog"
-            className="flex min-h-10 min-w-0 flex-1 items-center gap-1.5 py-1 pl-1 text-left text-sm"
-          >
-            <ItemThumb item={item} catalog={catalog} className="h-7 w-7 shrink-0" />
-            <span className="min-w-0 flex-1 leading-snug">
-              {itemName(item, catalog)}
-              <span className="block text-2xs text-ink-soft tabular-nums">
-                {portionLabel(item, catalog)}
-                {portionLabel(item, catalog) && '・'}
-                {Math.round(itemTotals(item, catalog).values.energyKcal)} kcal
+      {items.map((item) => {
+        const drink = drinkSpec(item, catalog)
+        const cup = drink && drinkCup(item, drink)
+        const count = drink ? drinkCount(item, drink) : 0
+        const name = drinkItemName(item, catalog, drink?.short)
+        const amount = drink && cup ? drinkAmountLabel(cup, count) : portionLabel(item, catalog)
+        return (
+          <li key={item.uid} className="flex items-center gap-1 rounded-xl bg-cream/70 pr-0.5">
+            <button
+              type="button"
+              onClick={() => onEdit(slot, item.uid)}
+              aria-haspopup="dialog"
+              className="flex min-h-10 min-w-0 flex-1 items-center gap-1.5 py-1 pl-1 text-left text-sm"
+            >
+              <ItemThumb item={item} catalog={catalog} className="h-7 w-7 shrink-0" />
+              <span className="min-w-0 flex-1 leading-snug">
+                {name}
+                <span className="block text-2xs text-ink-soft tabular-nums">
+                  {amount && <span className="inline-block">{amount}・</span>}
+                  <span className="inline-block">{Math.round(itemTotals(item, catalog).values.energyKcal)} kcal</span>
+                </span>
               </span>
-            </span>
-            <span aria-hidden className="text-xs text-coral-ink">
-              ✎
-            </span>
-          </button>
-          <button
-            type="button"
-            onClick={() => onRemove(slot, item.uid)}
-            className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-ink-soft hover:bg-white"
-            aria-label={`${itemName(item, catalog)}を外す`}
-          >
-            ×
-          </button>
-        </li>
-      ))}
+              {!drink && (
+                <span aria-hidden className="text-xs text-coral-ink">
+                  ✎
+                </span>
+              )}
+            </button>
+            {drink && cup && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => onDrink(slot, item, drinkAmount(drink, prevCount(count), cup))}
+                  disabled={!canStepDown(count)}
+                  className={STEP_BUTTON}
+                  aria-label={`${name}を1${cup.unit}へらす`}
+                >
+                  −
+                </button>
+                <button type="button" onClick={() => onDrink(slot, item, drinkAmount(drink, nextCount(count), cup))} className={STEP_BUTTON} aria-label={`${name}を1${cup.unit}ふやす`}>
+                  ＋
+                </button>
+              </>
+            )}
+            <button
+              type="button"
+              onClick={() => onRemove(slot, item.uid)}
+              className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-ink-soft hover:bg-white"
+              aria-label={`${name}を外す`}
+            >
+              ×
+            </button>
+          </li>
+        )
+      })}
     </ul>
   )
 }

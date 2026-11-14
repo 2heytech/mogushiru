@@ -4,7 +4,8 @@ import { DEFAULT_PROFILE } from '../domain/targets'
 import { isSupplement } from '../domain/supplement'
 import { withSlot } from '../domain/customize'
 import { clampServings, DEFAULT_SERVINGS } from '../domain/recipe'
-import type { DayMenu, Ingredient, MenuItem, MyDish, Product, Profile, Slot } from '../domain/types'
+import { rememberDrink, type RecentDrink } from '../domain/drinks'
+import type { DayMenu, DrinkSize, Ingredient, MenuItem, MyDish, Product, Profile, Slot } from '../domain/types'
 
 export const emptyMenu = (): DayMenu => ({ breakfast: [], lunch: [], dinner: [], other: [] })
 
@@ -34,10 +35,15 @@ type State = {
   // 作り方を何人分で見るか。栄養の計算の人前とは別（自分の分だけ数えて、家族の分まで作ることがあるため）。料理をまたいで覚えておく
   recipeServings: number
   setRecipeServings: (n: number) => void
+  // 最近入れた飲み物（「dish:beer」などのキーと、そのときの1杯の量）。料理をえらぶ画面で先に出す
+  recentDrinks: RecentDrink[]
+  rememberDrink: (key: string, cup?: DrinkSize) => void
   setProfile: (p: Profile) => void
   // 追加した項目の uid を返す（料理を選ぶ画面で、もう一度押したら外すため）
   addItem: (slot: Slot, item: Omit<MenuItem, 'uid'>) => string
   updatePortion: (slot: Slot, uid: string, portion: number) => void
+  // 飲み物の杯数・1杯の量を変える（cup が undefined なら1人前・1本の量にもどす）
+  updateDrink: (slot: Slot, uid: string, amount: Pick<MenuItem, 'portion' | 'cup'>) => void
   // 献立の料理をアレンジした材料で置き換える（null で元のレシピに戻す）
   customizeItem: (slot: Slot, uid: string, ingredients: Ingredient[] | null) => void
   // 献立の料理をお気に入りの料理に置き換える（portion を渡せば人前も変える）
@@ -108,6 +114,8 @@ export const useAppStore = create<State>()(
       menuSource: null,
       recipeServings: DEFAULT_SERVINGS,
       setRecipeServings: (n) => set({ recipeServings: clampServings(n) }),
+      recentDrinks: [],
+      rememberDrink: (key, cup) => set((s) => ({ recentDrinks: rememberDrink(s.recentDrinks, key, cup) })),
       setProfile: (profile) => set({ profile, profileSet: true }),
       // カスタマイズした料理を別の区分にも入れたら、その区分でも上に出すようにする
       addItem: (slot, item) => {
@@ -124,6 +132,18 @@ export const useAppStore = create<State>()(
       },
       updatePortion: (slot, id, portion) =>
         set((s) => ({ ...touched(s), menu: { ...s.menu, [slot]: s.menu[slot].map((i) => (i.uid === id ? { ...i, portion } : i)) } })),
+      updateDrink: (slot, id, { portion, cup }) =>
+        set((s) => ({
+          ...touched(s),
+          menu: {
+            ...s.menu,
+            [slot]: s.menu[slot].map((i) => {
+              if (i.uid !== id) return i
+              const { cup: _, ...rest } = i
+              return cup ? { ...rest, portion, cup } : { ...rest, portion }
+            }),
+          },
+        })),
       customizeItem: (slot, id, ingredients) =>
         set((s) => ({
           ...touched(s),
@@ -141,7 +161,7 @@ export const useAppStore = create<State>()(
           ...touched(s),
           menu: {
             ...s.menu,
-            [slot]: s.menu[slot].map((i) => (i.uid === id ? { uid: i.uid, kind: 'myDish', refId: myDishId, portion: portion ?? i.portion } : i)),
+            [slot]: s.menu[slot].map((i) => (i.uid === id ? { uid: i.uid, kind: 'myDish', refId: myDishId, portion: portion ?? i.portion, ...(i.cup ? { cup: i.cup } : {}) } : i)),
           },
         })),
       removeItem: (slot, id) => set((s) => ({ ...touched(s), menu: { ...s.menu, [slot]: s.menu[slot].filter((i) => i.uid !== id) } })),
@@ -218,7 +238,7 @@ export const useAppStore = create<State>()(
       name: 'mogushiru',
       version: SCHEMA_VERSION,
       storage: safeStorage,
-      partialize: ({ profile, profileSet, menu, menuSource, myDishes, myProducts, favoriteProductIds, savedMenus, recipeServings }) => ({
+      partialize: ({ profile, profileSet, menu, menuSource, myDishes, myProducts, favoriteProductIds, savedMenus, recipeServings, recentDrinks }) => ({
         profile,
         profileSet,
         menu,
@@ -228,6 +248,7 @@ export const useAppStore = create<State>()(
         favoriteProductIds,
         savedMenus,
         recipeServings,
+        recentDrinks,
       }),
     },
   ),

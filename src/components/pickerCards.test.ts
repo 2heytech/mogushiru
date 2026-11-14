@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { Catalog } from '../domain/nutrition'
 import { NUTRIENT_KEYS, type Dish, type MyDish, type Nutrients, type Product, type Slot } from '../domain/types'
-import { buildCards, cardSegments, productStore, type Card, type Kind } from './pickerCards'
+import { buildCards, cardSegments, drinkStripCards, productStore, type Card, type Kind } from './pickerCards'
 
 // テスト用の架空の料理（実データではない）
 const n = (): Nutrients => Object.fromEntries(NUTRIENT_KEYS.map((k) => [k, 0])) as Nutrients
@@ -79,5 +79,24 @@ describe('カードと行の分け方', () => {
   })
   it('空のときは何も返さない', () => {
     expect(cardSegments([], 'all', false)).toEqual([])
+  })
+})
+
+describe('料理をえらぶ画面の「飲み物」の列', () => {
+  // テスト用の架空の飲み物
+  const drink = (id: string, category: 'drink' | 'alcohol'): Dish => ({ ...dish(id, id), category, ingredients: [{ foodId: '00001', grams: 200 }] })
+  const c: Catalog = {
+    ...catalog,
+    dishes: new Map(
+      [drink('beer', 'alcohol'), drink('drink-green-tea', 'drink'), drink('drink-coffee', 'drink'), drink('drink-oolong', 'drink'), dish('d1', 'ふつうの料理')].map((d) => [d.id, d]),
+    ),
+  }
+  const strip = (showAlcohol: boolean, recent: string[]) =>
+    drinkStripCards({ catalog: c, slot: 'dinner', showAlcohol }, recent.map((key) => ({ key }))).map((x) => x.key)
+  it('最近入れたものを先に、そのあとにこの区分の定番を並べる（同じものは1回）', () => {
+    expect(strip(true, ['dish:drink-coffee', 'dish:beer'])).toEqual(['dish:drink-coffee', 'dish:beer', 'dish:drink-green-tea', 'dish:drink-oolong'])
+  })
+  it('20歳未満のプロフィールではお酒を出さず、なくなったもの・飲み物でないものも出さない', () => {
+    expect(strip(false, ['dish:gone', 'dish:d1', 'dish:beer'])).toEqual(['dish:drink-green-tea', 'dish:drink-oolong'])
   })
 })
