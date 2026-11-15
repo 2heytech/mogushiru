@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type { Catalog } from '../domain/nutrition'
 import { itemTotals } from '../domain/nutrition'
 import { supplementLines } from './labels'
@@ -9,9 +10,11 @@ import { PortionEditor } from './PortionEditor'
 import { useDialog } from './useDialog'
 
 // 市販品・食材・飲み物の編集（量・お気に入り）。料理は材料まで変えられる Customizer で開く。
-// 飲み物（料理の飲み物も）は、1杯の量と何杯かで量を変える
+// 飲み物（料理の飲み物も）は、1杯の量と何杯かで量を変える。
+// 量は、この窓の中で変えてから「この食事に反映」で1日の食事に入れる（×でとじたら変えない）。
+// いちばん目立つボタンは「この食事に反映」の1つだけにして、ほかの操作は下の行に分ける
 export function ItemEditor({
-  item,
+  item: saved,
   catalog,
   favorite,
   onPortion,
@@ -37,12 +40,22 @@ export function ItemEditor({
   onClose: () => void
 }) {
   const dialogRef = useDialog(onClose)
+  // 反映するまでの、この窓の中だけの量
+  const [amount, setAmount] = useState<Pick<MenuItem, 'portion' | 'cup'>>({ portion: saved.portion, cup: saved.cup })
+  const item: MenuItem = { ...saved, ...amount }
+  const changed = amount.portion !== saved.portion || amount.cup !== saved.cup
   const v = itemTotals(item, catalog).values
   const drink = onDrink ? drinkSpec(item, catalog) : null
   const name = drinkItemName(item, catalog, drink?.short)
   const product = item.kind === 'product' || item.kind === 'supplement' ? catalog.products.get(item.refId) : undefined
   // サプリは入っている成分を並べる
   const lines = item.kind === 'supplement' ? supplementLines(v) : null
+  const apply = () => {
+    if (!changed) return
+    if (drink && onDrink) onDrink(amount)
+    else onPortion(amount.portion)
+  }
+  const SUB = 'min-h-11 rounded-full bg-white px-4 text-sm shadow-sm'
   return (
     <div className="fixed inset-0 z-30 flex items-end bg-ink/30 md:items-center md:justify-center" onClick={onClose}>
       <div
@@ -61,7 +74,11 @@ export function ItemEditor({
           </button>
         </div>
         <div className="space-y-3">
-          {drink && onDrink ? <DrinkAmountEditor item={item} spec={drink} onChange={onDrink} /> : <PortionEditor item={item} catalog={catalog} onPortion={onPortion} />}
+          {drink && onDrink ? (
+            <DrinkAmountEditor item={item} spec={drink} onChange={setAmount} />
+          ) : (
+            <PortionEditor item={item} catalog={catalog} onPortion={(portion) => setAmount((a) => ({ ...a, portion }))} />
+          )}
           {lines ? (
             <p className="rounded-2xl bg-white px-3 py-2 text-sm tabular-nums">
               {product?.servingLabel && <span className="mr-2 text-xs text-ink-soft">1回分 {product.servingLabel}</span>}
@@ -92,27 +109,42 @@ export function ItemEditor({
               （{formatFetchedAt(product.source.fetchedAt)}時点）。地域や時期で中身が変わることがあります
             </p>
           )}
-          <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              apply()
+              onClose()
+            }}
+            className="min-h-12 w-full rounded-full bg-coral px-4 text-base font-bold text-ink-strong shadow-sm"
+          >
+            この食事に反映
+          </button>
+          <div className="flex flex-wrap items-center gap-2">
             {onToggleFavorite && (
-              <button type="button" aria-pressed={favorite} onClick={onToggleFavorite} className="min-h-11 rounded-full bg-white px-4 text-sm font-bold">
+              <button type="button" aria-pressed={favorite} onClick={onToggleFavorite} className={`${SUB} font-bold`}>
                 {favorite ? '★ お気に入り' : '☆ お気に入りに追加'}
               </button>
             )}
             {onCustomize && (
-              <button type="button" onClick={onCustomize} className="min-h-11 rounded-full bg-white px-4 text-sm">
+              <button
+                type="button"
+                onClick={() => {
+                  // 変えた量を入れてから、材料を変える画面へ
+                  apply()
+                  onCustomize()
+                }}
+                className={SUB}
+              >
                 材料を変える
               </button>
             )}
             {onEditProduct && (
-              <button type="button" onClick={onEditProduct} className="min-h-11 rounded-full bg-white px-4 text-sm">
+              <button type="button" onClick={onEditProduct} className={SUB}>
                 {lines ? '成分を直す' : '栄養成分を直す'}
               </button>
             )}
-            <button type="button" onClick={onRemove} className="min-h-11 rounded-full bg-white px-4 text-sm text-alert-ink">
+            <button type="button" onClick={onRemove} className="ml-auto min-h-11 rounded-full px-3 text-sm text-alert-ink underline decoration-alert/40 underline-offset-4 hover:bg-white">
               1日の食事から外す
-            </button>
-            <button type="button" onClick={onClose} className="min-h-11 flex-1 rounded-full bg-coral px-4 text-sm font-bold text-ink-strong">
-              OK
             </button>
           </div>
         </div>

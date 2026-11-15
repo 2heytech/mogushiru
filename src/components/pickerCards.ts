@@ -22,6 +22,19 @@ export type Entry = { card: Card; fields: (string | undefined)[] }
 
 // 料理の絞り込みの「郷土料理」（農水省「うちの郷土料理」をもとにした料理）
 export const KYODO = 'kyodo'
+// 料理の絞り込みの「果物」（材料の半分以上が果物の料理。ジュースなどの飲み物は入れない）
+export const FRUIT = 'fruit'
+const FRUIT_GROUP = '07'
+export function isFruitDish(d: Dish, catalog: Catalog): boolean {
+  if (d.category === 'drink' || d.category === 'alcohol') return false
+  let fruit = 0
+  let total = 0
+  for (const i of d.ingredients) {
+    total += i.grams
+    if (catalog.foods.get(i.foodId)?.group === FRUIT_GROUP) fruit += i.grams
+  }
+  return total > 0 && fruit >= total / 2
+}
 
 export type Filter = { catalog: Catalog; slot: Slot; query: string; category: string; showAlcohol: boolean; favorites: Set<string> }
 
@@ -37,7 +50,7 @@ function entries(kind: Kind, { catalog, slot, query, category, showAlcohol, favo
     case 'dish':
       return [...catalog.dishes.values()]
         .filter((d) => showAlcohol || d.category !== 'alcohol')
-        .filter((d) => category === 'all' || (category === KYODO ? Boolean(d.source) : d.category === category))
+        .filter((d) => category === 'all' || (category === KYODO ? Boolean(d.source) : category === FRUIT ? isFruitDish(d, catalog) : d.category === category))
         // その区分でよく食べられる料理 → 区分に合う料理 → その他 の順。郷土料理は数が多いので基本の料理の後に
         // （検索中は一致の度合いが優先で、同じ度合いならこの順）
         .sort(

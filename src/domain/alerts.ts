@@ -1,5 +1,4 @@
 import { CHECKED_NUTRIENTS, tolerableUpper, upperScopeOf } from './nutrientChecks'
-import { pfcRatio } from './nutrition'
 import type { MenuTotals } from './nutrition'
 import type { CheckedNutrient, Targets } from './targets'
 import type { NutrientKey, Slot } from './types'
@@ -108,20 +107,3 @@ export function computeAlerts(totals: MenuTotals, targets: Targets): Alert[] {
 }
 
 export type Mood = 'happy' | 'okay' | 'worried'
-
-// マスコットの表情。カロリー差・PFC範囲内の数・超過アラート数で決める
-export function balanceMood(totals: MenuTotals, targets: Targets, alerts: Alert[]): Mood {
-  const v = totals.day.values
-  if (v.energyKcal === 0) return 'okay'
-  const ratio = pfcRatio(v)
-  const inRange = (x: number, r: { lo: number; hi: number }) => x >= r.lo && x <= r.hi
-  const pfcOk = ratio
-    ? [inRange(ratio.p, targets.pfcRatio.p), inRange(ratio.f, targets.pfcRatio.f), inRange(ratio.c, targets.pfcRatio.c)].filter(Boolean)
-        .length
-    : 0
-  const energyDiff = Math.abs(v.energyKcal - targets.energyKcal) / targets.energyKcal
-  const overs = alerts.filter((a) => a.level === 'over').length
-  if (overs === 0 && pfcOk === 3 && energyDiff <= 0.1) return 'happy'
-  if (overs >= 2 || pfcOk <= 1 || energyDiff > 0.25) return 'worried'
-  return 'okay'
-}

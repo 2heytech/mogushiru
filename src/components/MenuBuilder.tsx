@@ -14,22 +14,18 @@ import { SLOT_LABEL } from './labels'
 import { SlotIcon } from './Mascot'
 import { Sheet } from './SavedMenus'
 
-// 献立をつくる：理想の献立から、1日の食事をつくる。はじめにバランスのとり方をえらぶ。
-//   1日でバランス … 1日の合計で目安がそろう献立を、1日分まとめてえらぶ
-//   毎食バランス … 朝ごはん → 昼ごはん → 晩ごはんの順に、その1食だけで区分の目安に収まる1食をえらぶ
+// 献立案から選ぶ：理想の献立から、1日の食事をつくる。上の切り替えで、えらび方を変えられる。
+//   1日分まとめて … 1日の合計で目安がそろう献立を、1日分まとめてえらぶ（はじめはこちら）
+//   1食ずつ … 朝ごはん → 昼ごはん → 晩ごはんの順に、その1食だけで区分の目安に収まる1食をえらぶ
+// はじめに「どちらのバランスにするか」を聞かず、まず候補を見せる（ちがいが分からなくても進めるように）。
 // 保存した1日の食事を呼び出すのは、別の入口（SavedMenusDialog）
 export type BuildMode = 'day' | 'meal'
 
-// card は2択のカードに書く短い説明（区切りごとに折り返す）。lead は窓の見出しの説明
-const MODES: Record<BuildMode, { label: string; card: string[]; lead: string }> = {
-  // スマホのカードは1行7字ほど（360pxで約115px）なので、区切りは7字まで
-  day: { label: '1日でバランス', card: ['1日の合計で、', '目安がそろう。', '1日分をえらぶ'], lead: '朝・昼・晩の合計で、1日の栄養の目安がそろう' },
-  meal: { label: '毎食バランス', card: ['どの食事も、', '目安に収まる。', '1食ずつえらぶ'], lead: '朝・昼・晩のどれも、1食で目安に収まる' },
+const MODES: Record<BuildMode, { label: string; lead: string }> = {
+  day: { label: '1日分まとめて', lead: '朝・昼・晩の合計で、1日の栄養の目安がそろう献立です。' },
+  meal: { label: '1食ずつ', lead: '朝・昼・晩を1食ずつえらびます。どの1食も、その1食だけで目安に収まります。' },
 }
-
-// スマホは2つを横に並べて、絵・名前・説明をたてに（最初の画面で2つとも見えるように）。広い画面は右に矢印
-const OPTION =
-  'group flex w-full flex-col items-start rounded-[var(--radius-card)] border-2 border-coral bg-white p-3 text-left shadow-md transition hover:-translate-y-0.5 hover:bg-coral/5 hover:shadow-lg focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-coral/40 active:translate-y-0 sm:flex-row sm:items-center sm:gap-3 sm:p-4'
+const MODE_KEYS = ['day', 'meal'] as const
 
 function Check({ className = '' }: { className?: string }) {
   return (
@@ -41,66 +37,26 @@ function Check({ className = '' }: { className?: string }) {
   )
 }
 
-// ちがいを絵で：1日でバランスは朝・昼・晩をまとめて1つの✓、毎食バランスは朝・昼・晩それぞれに✓
-// small は窓の見出しの小さな絵。ふだんの大きさはスマホのカードの幅（360pxで約110px）に収まるように、狭いほど小さく
-function ModeDiagram({ mode, small = false }: { mode: BuildMode; small?: boolean }) {
-  const icon = small ? 'h-6 w-6' : 'h-6 w-6 min-[390px]:h-7 min-[390px]:w-7 sm:h-8 sm:w-8'
-  const check = small ? 'h-4 w-4' : 'h-4 w-4 sm:h-5 sm:w-5'
+// ちがいを絵で：1日分まとめては朝・昼・晩をまとめて1つの✓、1食ずつは朝・昼・晩それぞれに✓
+function ModeDiagram({ mode }: { mode: BuildMode }) {
   if (mode === 'day')
     return (
-      <span className="relative flex w-fit items-center gap-1 rounded-2xl border-2 border-dashed border-ok bg-white px-1.5 py-1.5" aria-hidden>
+      <span className="relative flex w-fit items-center gap-0.5 rounded-xl border-2 border-dashed border-ok bg-white px-1 py-0.5" aria-hidden>
         {MEAL_SLOTS.map((s) => (
-          <SlotIcon key={s} slot={s} className={icon} />
+          <SlotIcon key={s} slot={s} className="h-5 w-5" />
         ))}
-        <Check className={`absolute -top-2 -right-2 ${check}`} />
+        <Check className="absolute -top-1.5 -right-1.5 h-3.5 w-3.5" />
       </span>
     )
   return (
-    <span className={`flex w-fit items-center py-1 ${small ? 'gap-1.5' : 'gap-1 sm:gap-1.5'}`} aria-hidden>
+    <span className="flex w-fit items-center gap-1" aria-hidden>
       {MEAL_SLOTS.map((s) => (
-        <span key={s} className="relative flex rounded-xl border-2 border-dashed border-ok bg-white p-0.5">
-          <SlotIcon slot={s} className={icon} />
-          <Check className={`absolute -top-2 -right-2 ${check}`} />
+        <span key={s} className="relative flex rounded-lg border-2 border-dashed border-ok bg-white p-px">
+          <SlotIcon slot={s} className="h-5 w-5" />
+          <Check className="absolute -top-1.5 -right-1.5 h-3.5 w-3.5" />
         </span>
       ))}
     </span>
-  )
-}
-
-function Arrow() {
-  return (
-    <span aria-hidden="true" className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-coral text-ink-strong transition group-hover:translate-x-0.5">
-      <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M9 5l7 7-7 7" />
-      </svg>
-    </span>
-  )
-}
-
-// 「1日でバランス」「毎食バランス」の2択（最初の画面と、献立をつくる窓のはじめ）
-// opensDialog：最初の画面では、押すと献立をつくる窓がひらく
-export function BuildModeOptions({ onChoose, opensDialog = false }: { onChoose: (mode: BuildMode) => void; opensDialog?: boolean }) {
-  return (
-    <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
-      {(['day', 'meal'] as const).map((mode) => (
-        <button key={mode} type="button" onClick={() => onChoose(mode)} aria-haspopup={opensDialog ? 'dialog' : undefined} className={OPTION}>
-          <span className="w-full min-w-0 flex-1">
-            <ModeDiagram mode={mode} />
-            <span className="mt-1.5 block text-base font-bold sm:mt-2 sm:text-lg">{MODES[mode].label}</span>
-            <span className="mt-0.5 block text-xs leading-snug text-ink-soft">
-              {MODES[mode].card.map((part) => (
-                <span key={part} className="inline-block">
-                  {part}
-                </span>
-              ))}
-            </span>
-          </span>
-          <span className="hidden sm:block">
-            <Arrow />
-          </span>
-        </button>
-      ))}
-    </div>
   )
 }
 
@@ -109,34 +65,37 @@ const HELP: Record<BuildMode, string> = {
   meal: 'どの1食も、その1食だけでカロリー・PFCバランス・食塩・飽和脂肪酸が、朝・昼・晩それぞれの目安（1日の目安 × 配分）に収まります。ごはん・パン・麺を中心に量を変え、足りない分は「＋」の一品を足します。えらぶと、いまのその食事と置き換わります（その他はそのまま）。',
 }
 
-// えらんだバランスのとり方の見出し。もどるとえらびなおせる
-function ModeHeader({ mode, targets, onBack }: { mode: BuildMode; targets: Targets; onBack: () => void }) {
+// えらび方の切り替え（1日分まとめて／1食ずつ）と、そのひとこと
+function ModeTabs({ mode, targets, onChange }: { mode: BuildMode; targets: Targets; onChange: (mode: BuildMode) => void }) {
   const [help, setHelp] = useState(false)
   return (
     <div className="mb-3">
-      <button type="button" onClick={onBack} className="-ml-2 flex min-h-9 items-center gap-0.5 rounded-full px-2 text-xs font-bold text-coral-ink hover:bg-white">
-        <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-          <path d="M15 5l-7 7 7 7" />
-        </svg>
-        バランスのとり方をえらびなおす
-      </button>
-      <div className="mt-1 flex items-center gap-2.5">
-        <span className="hidden sm:inline-flex">
-          <ModeDiagram mode={mode} small />
-        </span>
-        <div className="min-w-0 flex-1">
-          <p data-autofocus tabIndex={-1} className="font-bold leading-snug outline-none">
-            {MODES[mode].label}
-          </p>
-          <p className="text-xs leading-snug text-pretty text-ink-soft">
-            {MODES[mode].lead}献立。量はプロフィールの目安（{targets.energyKcal.toLocaleString()} kcal）に合わせます。
-          </p>
-        </div>
+      <div role="tablist" aria-label="献立のえらび方" className="flex gap-1 rounded-full bg-white p-1 shadow-sm md:max-w-md">
+        {MODE_KEYS.map((m) => (
+          <button
+            key={m}
+            type="button"
+            role="tab"
+            aria-selected={mode === m}
+            onClick={() => onChange(m)}
+            className={`flex min-h-11 flex-1 items-center justify-center gap-2 rounded-full px-2 text-sm whitespace-nowrap transition ${mode === m ? 'bg-coral font-bold text-ink-strong' : 'text-ink-soft hover:bg-cream'}`}
+          >
+            <span className="hidden sm:inline-flex">
+              <ModeDiagram mode={m} />
+            </span>
+            {MODES[m].label}
+          </button>
+        ))}
+      </div>
+      <div className="mt-1.5 flex items-start gap-2">
+        <p className="min-w-0 flex-1 pt-1.5 text-xs leading-snug text-pretty text-ink-soft">
+          {MODES[mode].lead}量は、あなたの目安（{targets.energyKcal.toLocaleString()} kcal）に合わせます。
+        </p>
         <button type="button" aria-expanded={help} onClick={() => setHelp((v) => !v)} className="min-h-9 shrink-0 rounded-full px-2 text-xs font-bold whitespace-nowrap text-coral-ink">
           {help ? 'とじる' : 'くわしく'}
         </button>
       </div>
-      {help && <p className="mt-2 rounded-2xl bg-white/60 px-3 py-2 text-xs leading-relaxed text-ink-soft">{HELP[mode]}</p>}
+      {help && <p className="mt-1 rounded-2xl bg-white/60 px-3 py-2 text-xs leading-relaxed text-ink-soft">{HELP[mode]}</p>}
     </div>
   )
 }
@@ -164,7 +123,7 @@ function useAdjustedIdealMenus(menus: IdealMenu[], catalog: Catalog, targets: Ta
 }
 
 export function MenuBuilderDialog({
-  initialMode,
+  initialMode = 'day',
   menu,
   catalog,
   targets,
@@ -174,80 +133,56 @@ export function MenuBuilderDialog({
   onDone,
   onClose,
 }: {
-  // 最初の画面でえらんで来たときは、そのとり方でひらく
-  initialMode: BuildMode | null
+  // はじめにひらくえらび方
+  initialMode?: BuildMode
   menu: DayMenu
   catalog: Catalog
   targets: Targets
   storesLoaded: boolean
   onLoadDay: (ideal: IdealMenu, menu: DayMenu) => void
-  // 毎食バランスで1食えらぶたびに、その区分を置き換える
+  // 1食ずつで1食えらぶたびに、その区分を置き換える
   onLoadMeal: (slot: MealSlot, items: MenuItem[]) => void
-  // 毎食バランスで、晩ごはんまでえらび終えた
+  // 1食ずつで、晩ごはんまでえらび終えた
   onDone: () => void
   onClose: () => void
 }) {
-  const [mode, setMode] = useState<BuildMode | null>(initialMode)
+  const [mode, setMode] = useState<BuildMode>(initialMode)
   // ひらいたときに1日の食事に何か入っていたか（入っていれば、えらぶと置き換わることを先に伝える）
   const [startedWithItems] = useState(() => SLOTS.some((s) => menu[s].length > 0))
   const empty = SLOTS.every((s) => menu[s].length === 0)
   // いまのデータにある市販品だけで組める献立
   const available = useMemo(() => IDEAL_MENUS.filter((m) => idealMenuAvailable(m, catalog)), [catalog])
   const adjusted = useAdjustedIdealMenus(available, catalog, targets)
-  // 窓の中でとり方をえらんだ・えらびなおすときは、押したボタンが消えるので、次に読むところへ移る
-  const bodyRef = useRef<HTMLDivElement>(null)
-  const switched = useRef(false)
-  useEffect(() => {
-    if (!switched.current) return
-    bodyRef.current?.querySelector<HTMLElement>('[data-autofocus]')?.focus()
-  }, [mode])
-  const choose = (m: BuildMode | null) => {
-    switched.current = true
-    setMode(m)
-  }
   return (
-    <Sheet title="献立をつくる" onClose={onClose} wide tall={mode !== null}>
-      <div ref={bodyRef} className="contents">
-        {mode === null ? (
-          <div className="mx-auto max-w-3xl pb-2">
-            <p data-autofocus tabIndex={-1} className="mb-3 font-bold outline-none">
-              どちらのバランスで献立をつくる？
-            </p>
-            <BuildModeOptions onChoose={choose} />
-          </div>
-        ) : (
-          <>
-            <ModeHeader mode={mode} targets={targets} onBack={() => choose(null)} />
-            {mode === 'day' ? (
-              <IdealMenuList
-                catalog={catalog}
-                targets={targets}
-                storesLoaded={storesLoaded}
-                onLoad={async (ideal, m) => {
-                  if (empty || (await confirmDialog(`いまの1日の食事を「${ideal.name}」に置き換えますか？`, { okLabel: '置き換える' }))) onLoadDay(ideal, m)
-                }}
-              />
-            ) : (
-              <MealSteps
-                menus={adjusted ? available : null}
-                catalog={catalog}
-                targets={targets}
-                storesLoaded={storesLoaded}
-                replacing={startedWithItems}
-                onLoadMeal={onLoadMeal}
-                onDone={onDone}
-              />
-            )}
-          </>
-        )}
-      </div>
+    <Sheet title="献立案から選ぶ" onClose={onClose} wide tall>
+      <ModeTabs mode={mode} targets={targets} onChange={setMode} />
+      {mode === 'day' ? (
+        <IdealMenuList
+          catalog={catalog}
+          targets={targets}
+          storesLoaded={storesLoaded}
+          onLoad={async (ideal, m) => {
+            if (empty || (await confirmDialog(`いまの1日の食事を「${ideal.name}」に置き換えますか？`, { okLabel: '置き換える' }))) onLoadDay(ideal, m)
+          }}
+        />
+      ) : (
+        <MealSteps
+          menus={adjusted ? available : null}
+          catalog={catalog}
+          targets={targets}
+          storesLoaded={storesLoaded}
+          replacing={startedWithItems}
+          onLoadMeal={onLoadMeal}
+          onDone={onDone}
+        />
+      )}
     </Sheet>
   )
 }
 
 type Pick = { key: string; name: string; image: string | null }
 
-// 毎食バランス：朝ごはん → 昼ごはん → 晩ごはんの順に1食ずつ。えらぶとその区分に入れて次へ。上の3つを押すと、その食事にもどれる。
+// 1食ずつ：朝ごはん → 昼ごはん → 晩ごはんの順に1食ずつ。えらぶとその区分に入れて次へ。上の3つを押すと、その食事にもどれる。
 // 配分が0%の区分（朝食をとらない設定など）はとばす
 function MealSteps({
   menus,

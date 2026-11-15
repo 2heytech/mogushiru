@@ -2,7 +2,7 @@
 const INK = '#5b4636'
 const CHEEK = '#ffa99a'
 
-export type UiIconName = 'menu' | 'ranking' | 'profile' | 'save' | 'load' | 'reset' | 'limit' | 'want' | 'info' | 'pick' | 'build'
+export type UiIconName = 'menu' | 'ranking' | 'profile' | 'save' | 'load' | 'reset' | 'limit' | 'want' | 'info' | 'pick' | 'build' | 'sample'
 
 const TILE_BG: Record<UiIconName, string> = {
   menu: '#ffe6bf',
@@ -16,6 +16,7 @@ const TILE_BG: Record<UiIconName, string> = {
   info: '#f3ebe1',
   pick: '#ffe6bf',
   build: '#ffe1db',
+  sample: '#dcf1e2',
 }
 
 export function UiIcon({ name, className }: { name: UiIconName; className?: string }) {
@@ -120,6 +121,16 @@ export function UiIcon({ name, className }: { name: UiIconName; className?: stri
           <path d="M26 23 h14 a7 7 0 0 1 -14 0 z" fill="#c9714f" {...s} />
           <path d="M27.5 23 h11" fill="none" stroke="#ffc94d" strokeWidth={2} strokeLinecap="round" />
           <path d="M39 6 l1.1 2.6 l2.6 1.1 l-2.6 1.1 l-1.1 2.6 l-1.1 -2.6 l-2.6 -1.1 l2.6 -1.1 z" fill="#ffc94d" />
+        </>
+      )}
+      {name === 'sample' && (
+        // サンプルで結果を見る：棒グラフ（PFCの3色）ときらっと
+        <>
+          <rect x="11" y="24" width="7" height="14" rx="2.2" fill="#f47c7c" {...s} strokeWidth={1.8} />
+          <rect x="20.5" y="16" width="7" height="22" rx="2.2" fill="#ffc94d" {...s} strokeWidth={1.8} />
+          <rect x="30" y="21" width="7" height="17" rx="2.2" fill="#7cc98a" {...s} strokeWidth={1.8} />
+          <path d="M8 38.5 h32" fill="none" {...s} />
+          <path d="M38 5 l1.2 2.8 l2.8 1.2 l-2.8 1.2 l-1.2 2.8 l-1.2 -2.8 l-2.8 -1.2 l2.8 -1.2 z" fill="#ffc94d" />
         </>
       )}
       {name === 'info' && (
