@@ -1,78 +1,100 @@
 import { BowlMogu } from './Mascot'
-import { BuildModeOptions, type BuildMode } from './MenuBuilder'
-import { UiIcon } from './UiIcon'
+import { UiIcon, type UiIconName } from './UiIcon'
 
-const OTHER =
-  'flex min-h-11 items-center gap-1.5 rounded-full bg-white pr-4 pl-2 text-sm shadow-sm transition hover:bg-coral/5 focus-visible:ring-4 focus-visible:ring-coral/40 focus-visible:outline-none'
+// スマホは横長の行（絵・名前と説明・矢印）をたてに3つ、広い画面はたて長のカードを横に3つ
+const ENTRY =
+  'group flex h-full w-full items-center gap-3 rounded-[var(--radius-card)] border-2 border-coral bg-white px-3 py-2.5 text-left shadow-md transition hover:-translate-y-0.5 hover:bg-coral/5 hover:shadow-lg focus-visible:ring-4 focus-visible:ring-coral/40 focus-visible:outline-none active:translate-y-0 sm:flex-col sm:items-start sm:gap-2 sm:p-4'
+
+function Entry({ icon, title, desc, onClick, opensDialog = false }: { icon: UiIconName; title: string; desc: string; onClick: () => void; opensDialog?: boolean }) {
+  return (
+    <button type="button" onClick={onClick} aria-haspopup={opensDialog ? 'dialog' : undefined} className={ENTRY}>
+      <UiIcon name={icon} className="h-11 w-11 shrink-0 sm:h-12 sm:w-12" />
+      <span className="min-w-0 flex-1">
+        <span className="block text-base leading-snug font-bold sm:text-lg">{title}</span>
+        <span className="mt-0.5 block text-xs leading-snug text-pretty text-ink-soft">{desc}</span>
+      </span>
+      {/* 幅のせまいスマホでは、矢印の丸をはぶいて字の幅をとる */}
+      <span aria-hidden="true" className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-coral text-ink-strong transition group-hover:translate-x-0.5 max-[359px]:hidden sm:self-end">
+        <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M9 5l7 7-7 7" />
+        </svg>
+      </span>
+    </button>
+  )
+}
 
 // 1日の食事が空のとき、ほかの表示の代わりに出す最初の画面。
-// まず「何がわかるアプリか」をひとことで伝え、献立をつくるバランスのとり方（1日でバランス／毎食バランス）をえらんでもらう。
-// 自分で1品ずつえらぶ・保存した食事を呼び出す（保存したものがあるとき）は「ほかの入れ方」として小さく。
-// どちらも選ぶ前に結果を見てみたい人のために、献立の例を1つそのまま入れるボタン（sampleName があるとき）も置く
+// まず「何がわかるアプリか」をひとことで伝え、やりたいことから入口をえらんでもらう：
+//   自分の食事で試す … 朝・昼・晩に、食べた料理を入れていく画面へ
+//   献立案から選ぶ … 栄養バランスの整った献立（1日分まとめて／1食ずつ）からえらぶ窓へ
+//   サンプルで結果を見る … 献立の例を1つそのまま入れて、結果の画面を先に見る（sampleName があるとき）
+// 「1日でバランス／毎食バランス」のちがいは、献立案から選ぶ窓の中でえらぶ（ここでは聞かない）。
+// 保存した食事を呼び出す（保存したものがあるとき）は、その下に小さく
 export function StartChoice({
   savedCount,
   sampleName,
-  onBuild,
   onPickSelf,
+  onBuild,
   onOpenSaved,
   onTrySample,
 }: {
   savedCount: number
-  // 「献立の例で試す」で入れる献立の名前（入れられないときは undefined でボタンを出さない）
+  // 「サンプルで結果を見る」で入れる献立の名前（入れられないときは undefined でボタンを出さない）
   sampleName?: string
-  onBuild: (mode: BuildMode) => void
   onPickSelf: () => void
+  onBuild: () => void
   onOpenSaved: () => void
   onTrySample?: () => void
 }) {
   return (
-    // スマホでは、2択のカードまでが最初の画面に収まるように：モグは見出しの横に小さく、説明の文ははぶく
+    // スマホでは、3つの入口までが最初の画面に収まるように：モグは見出しの横に小さく、説明の文ははぶく
     <section aria-labelledby="start-title" className="rounded-[var(--radius-card)] bg-[#fff1df] px-4 py-4 shadow-sm sm:px-8 sm:py-8">
       <div className="mb-3 flex items-center justify-center gap-2.5 sm:mb-5 sm:flex-col sm:gap-0 sm:text-center">
-        <BowlMogu slot="breakfast" mood="happy" className="h-12 w-12 shrink-0 sm:h-20 sm:w-20" label="モグ" />
+        {/* 幅のせまいスマホでは、見出しが2行に収まるようにモグをはぶく（上のロゴにもいる） */}
+        <BowlMogu slot="breakfast" mood="happy" className="h-12 w-12 shrink-0 max-[359px]:hidden sm:h-20 sm:w-20" label="モグ" />
         <h2 id="start-title" className="text-lg leading-snug font-bold sm:mt-2 sm:text-2xl sm:text-balance">
           {/* 折り返すときは「、」のあとで */}
           <span className="inline-block">料理を選ぶだけで、</span>
           <span className="inline-block">1日の栄養バランスがわかる</span>
         </h2>
-        <p className="mt-1.5 hidden max-w-xl text-sm text-balance text-ink-soft sm:block">カロリーやPFCバランス、ビタミン・ミネラルが、1日の目安に足りているかを見られます。</p>
+        <p className="mt-1.5 hidden text-sm text-ink-soft sm:block">
+          <span className="inline-block">カロリーやPFCバランス、ビタミン・ミネラルが、</span>
+          <span className="inline-block">1日の目安に足りているかを見られます。</span>
+        </p>
       </div>
       <div className="mx-auto max-w-4xl">
-        <h3 id="start-choice-title" className="mb-2.5 text-center text-base font-bold text-balance sm:mb-3 sm:text-lg">
-          どちらのバランスで献立をつくる？
+        <h3 id="start-choice-title" className="mb-2 text-center text-base font-bold text-balance sm:mb-3 sm:text-lg">
+          なにから始める？
         </h3>
-        <BuildModeOptions onChoose={onBuild} opensDialog />
+        <ul aria-labelledby="start-choice-title" className="grid gap-2 sm:grid-cols-3 sm:gap-3">
+          <li>
+            <Entry icon="pick" title="自分の食事で試す" desc="食べた料理を、朝・昼・晩に入れていく" onClick={onPickSelf} />
+          </li>
+          <li>
+            <Entry icon="build" title="献立案から選ぶ" desc="バランスの整った献立を、1日分か1食ずつ選ぶ" onClick={onBuild} opensDialog />
+          </li>
+          {sampleName && onTrySample && (
+            <li>
+              <Entry icon="sample" title="サンプルで結果を見る" desc="例の献立を入れて、結果の画面を先に見る" onClick={onTrySample} />
+            </li>
+          )}
+        </ul>
 
-        <div className="mt-5 flex flex-col items-center gap-2 text-center sm:mt-6">
-          <p className="text-sm text-ink-soft">ほかの入れ方</p>
-          <div className="flex flex-wrap justify-center gap-2">
-            <button type="button" onClick={onPickSelf} aria-haspopup="dialog" className={OTHER}>
-              <UiIcon name="pick" className="h-7 w-7 shrink-0" />
-              自分で1品ずつえらぶ
-            </button>
-            {savedCount > 0 && (
-              <button type="button" onClick={onOpenSaved} aria-haspopup="dialog" className={OTHER}>
-                <UiIcon name="load" className="h-7 w-7 shrink-0" />
-                保存した食事を呼び出す
-                <span className="rounded-full bg-cream px-1.5 text-xs tabular-nums text-ink-soft">{savedCount}</span>
-              </button>
-            )}
-          </div>
-        </div>
-        {sampleName && onTrySample && (
-          <p className="mt-4 text-center text-xs text-pretty text-ink-soft">
-            <span className="inline-block">どんな結果が出るか、先に見てみたいときは</span>
+        {savedCount > 0 && (
+          <div className="mt-3 flex justify-center sm:mt-4">
             <button
               type="button"
-              onClick={onTrySample}
-              className="mx-1 min-h-9 rounded-full px-1 font-bold text-coral-ink underline decoration-coral/50 underline-offset-4 hover:decoration-coral"
+              onClick={onOpenSaved}
+              aria-haspopup="dialog"
+              className="flex min-h-11 items-center gap-1.5 rounded-full bg-white pr-4 pl-2 text-sm shadow-sm transition hover:bg-coral/5 focus-visible:ring-4 focus-visible:ring-coral/40 focus-visible:outline-none"
             >
-              献立の例で試す
+              <UiIcon name="load" className="h-7 w-7 shrink-0" />
+              保存した食事を呼び出す
+              <span className="rounded-full bg-cream px-1.5 text-xs tabular-nums text-ink-soft">{savedCount}</span>
             </button>
-            <span className="inline-block">（「{sampleName}」の1日分が入ります）</span>
-          </p>
+          </div>
         )}
-        <p className="mt-4 text-center text-xs text-pretty text-ink-soft">登録はいりません。入れた内容は、このブラウザにのみ保存されます。</p>
+        <p className="mt-3 text-center text-xs text-pretty text-ink-soft sm:mt-4">登録はいりません。入れた内容は、このブラウザにのみ保存されます。</p>
       </div>
     </section>
   )

@@ -7,7 +7,9 @@ import { ItemEditor } from './components/ItemEditor'
 import { ProductForm } from './components/ProductForm'
 import { SupplementForm } from './components/SupplementForm'
 import { isSupplement } from './domain/supplement'
-import { Picker } from './components/Picker'
+import { Picker, type PickerStart } from './components/Picker'
+import { FRUIT } from './components/pickerCards'
+import type { Step } from './domain/daySummary'
 import { ProfileDialog, type ProfileFocus } from './components/ProfileDialog'
 import { SlotStrip } from './components/SlotStrip'
 import { DayMenuPanel } from './components/DayMenuPanel'
@@ -21,7 +23,7 @@ import { isMealSlot, type MealSlot } from './domain/idealMeals'
 import { legacyRedirect, nutrientFromSlug, VIEW_META, VIEW_PATH, viewFromLocation, type View } from './routes'
 import { ConfirmHost } from './components/ConfirmDialog'
 import { IdealMealDialog, MenuActions, SaveMenuDialog, SavedMenusDialog } from './components/SavedMenus'
-import { MenuBuilderDialog, type BuildMode } from './components/MenuBuilder'
+import { MenuBuilderDialog } from './components/MenuBuilder'
 import { DayInfo } from './components/SummaryPanel'
 import { useCatalog, withMyData } from './data/catalog'
 import { usePrices } from './data/prices'
@@ -44,7 +46,7 @@ const sameIngredients = (a: Ingredient[], b: Ingredient[]) =>
 const NAV_BUTTON =
   'flex min-h-11 items-center justify-center gap-1 whitespace-nowrap rounded-full bg-white pr-3 pl-2 text-xs leading-tight font-bold shadow-sm sm:pr-4 sm:pl-3 sm:text-sm sm:font-normal'
 
-// 最初の画面の「献立の例で試す」で入れる理想の献立（市販品を使わないので、すぐ入れられる）
+// 最初の画面の「サンプルで結果を見る」で入れる理想の献立（市販品を使わないので、すぐ入れられる）
 const SAMPLE_MENU_ID = 'washoku'
 
 // lg（ヘッダーに1段で並べる幅）は、「栄養の目安を設定」のボタンと並ぶので少し小さく
@@ -205,13 +207,16 @@ export default function App() {
     menuSource,
   } = useAppStore()
   const [savedDialog, setSavedDialog] = useState<'save' | 'load' | null>(null)
-  // 献立をつくる窓（mode は最初の画面でえらんだバランスのとり方。ヘッダーのボタンからはえらぶところから）
-  const [builder, setBuilder] = useState<{ mode: BuildMode | null } | null>(null)
-  // 1日の食事が空のときに出す最初の画面（献立をつくる／自分でえらぶ）。どれかで料理が入ったら、あとで全部外してもリセットするまで出さない
+  // 献立案から選ぶ窓
+  const [builderOpen, setBuilderOpen] = useState(false)
+  // 1日の食事が空のときに出す最初の画面（自分の食事で試す／献立案から選ぶ／サンプルで結果を見る）。どれかで料理が入ったら、あとで全部外してもリセットするまで出さない
   const [startDismissed, setStartDismissed] = useState(() => SLOTS.some((s) => useAppStore.getState().menu[s].length > 0))
   const [profileOpen, setProfileOpen] = useState(false)
   const [profileFocus, setProfileFocus] = useState<ProfileFocus | undefined>()
-  const [pickerSlot, setPickerSlot] = useState<Slot | null>(null)
+  // 料理をえらぶ画面。start は、はじめにひらく種類としぼりこみ（まとめの「副菜を1品追加する」から来たときなど）
+  const [picker, setPicker] = useState<{ slot: Slot; start?: PickerStart } | null>(null)
+  const pickerSlot = picker?.slot ?? null
+  const setPickerSlot = (slot: Slot | null) => setPicker(slot ? { slot } : null)
   // 料理をえらぶ画面（朝・昼・晩）から、理想の献立のその1食だけをえらぶ画面
   const [idealMealSlot, setIdealMealSlot] = useState<MealSlot | null>(null)
   // full: 飲み物の料理でも、材料まで変えられる画面（Customizer）でひらく
@@ -245,7 +250,7 @@ export default function App() {
   }, [catalog])
 
   // 成分ランキングのページから「くらべ方を変えて見る」で来たとき（/ranking/?n=iron）は、その成分をえらんだ状態で開く
-  const [rankingStart] = useState(() => nutrientFromSlug(queryParam('n')) ?? undefined)
+  const [rankingStart, setRankingStart] = useState(() => nutrientFromSlug(queryParam('n')) ?? undefined)
   useEffect(() => dropQueryParam('n'), [])
 
   // 料理の作り方のページから来たとき（/customize/?dish=<料理id>）は、その料理の編集の窓を「つくり方」でひらく
@@ -276,6 +281,17 @@ export default function App() {
   const changeDrink = (slot: Slot, item: MenuItem, amount: Pick<MenuItem, 'portion' | 'cup'>) => {
     updateDrink(slot, item.uid, amount)
     if (!item.customIngredients) rememberDrink(`${item.kind}:${item.refId}`, amount.cup)
+  }
+
+  // まとめの「次に試すこと」のボタン
+  const runStep = (step: Step) => {
+    if (step.kind === 'addMeal') setPicker({ slot: step.slot })
+    else if (step.kind === 'addDish') setPicker({ slot: step.slot, start: { tab: 'dish', category: step.part } })
+    else if (step.kind === 'addFruit') setPicker({ slot: 'other', start: { tab: 'dish', category: FRUIT } })
+    else if (step.kind === 'ranking') {
+      setRankingStart(step.key)
+      setView('ranking')
+    }
   }
 
   function renderEditor(catalog: Catalog, { slot, uid, full }: { slot: Slot; uid: string; full?: boolean }) {
@@ -487,12 +503,12 @@ export default function App() {
                 setStartDismissed(true)
                 window.scrollTo({ top: 0 })
               }}
-              onBuild={(mode) => setBuilder({ mode })}
+              onBuild={() => setBuilderOpen(true)}
               onOpenSaved={() => setSavedDialog('load')}
+              // 朝・昼・晩に料理を入れていく画面へ（どの食事から入れるかは、そこでえらぶ）
               onPickSelf={() => {
                 setStartDismissed(true)
-                // 朝食をとらない配分なら昼から
-                setPickerSlot(SLOTS.find((s) => targets.slotShare[s] > 0) ?? 'breakfast')
+                window.scrollTo({ top: 0 })
               }}
             />
           ) : (
@@ -507,7 +523,7 @@ export default function App() {
                     menu={menu}
                     layout={layout}
                     savedCount={savedMenus.length}
-                    onOpenBuild={() => setBuilder({ mode: null })}
+                    onOpenBuild={() => setBuilderOpen(true)}
                     onOpenSave={() => setSavedDialog('save')}
                     onOpenSaved={() => setSavedDialog('load')}
                     onReset={() => {
@@ -546,6 +562,7 @@ export default function App() {
                   setProfileOpen(true)
                 }}
                 onEditProfile={() => setProfileOpen(true)}
+                onStep={runStep}
               />
             </>
           )}
@@ -556,7 +573,10 @@ export default function App() {
 
       {catalog && pickerSlot && (
         <Picker
+          // 同じ区分でも、ひらき方（しぼりこみ）がちがえば作り直す
+          key={`${pickerSlot}:${picker?.start?.tab ?? ''}:${picker?.start?.category ?? ''}`}
           slot={pickerSlot}
+          start={picker?.start}
           items={menu[pickerSlot]}
           recentDrinks={recentDrinks}
           catalog={catalog}
@@ -608,9 +628,8 @@ export default function App() {
         />
       )}
 
-      {catalog && builder && (
+      {catalog && builderOpen && (
         <MenuBuilderDialog
-          initialMode={builder.mode}
           menu={menu}
           catalog={catalog}
           targets={targets}
@@ -618,19 +637,19 @@ export default function App() {
           onLoadDay={(ideal, m) => {
             replaceMenu(m, ideal.name)
             setStartDismissed(true)
-            setBuilder(null)
+            setBuilderOpen(false)
             window.scrollTo({ top: 0 })
           }}
-          // 毎食バランスは、1食えらぶたびにその区分に入れる（途中で閉じても、えらんだところまでは残る）
+          // 1食ずつのときは、1食えらぶたびにその区分に入れる（途中で閉じても、えらんだところまでは残る）
           onLoadMeal={(slot, items) => {
             replaceSlot(slot, items)
             setStartDismissed(true)
           }}
           onDone={() => {
-            setBuilder(null)
+            setBuilderOpen(false)
             window.scrollTo({ top: 0 })
           }}
-          onClose={() => setBuilder(null)}
+          onClose={() => setBuilderOpen(false)}
         />
       )}
 

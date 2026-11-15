@@ -63,8 +63,16 @@ type Props = {
 export function SlotStrip(props: Props) {
   const { menu, totals, targets, catalog, onAdd } = props
   const [open, setOpen] = useState<Slot | null>(null)
+  const empty = SLOTS.every((slot) => menu[slot].length === 0)
   return (
     <section aria-label="朝・昼・晩・その他">
+      {/* まだ何も入っていないとき（「自分の食事で試す」で来たとき）は、どこを押すかをひとことで */}
+      {empty && (
+        <p className="mb-2 text-sm text-pretty">
+          <span className="inline-block">朝・昼・晩の「＋」を押して、</span>
+          <span className="inline-block">食べた料理を入れてみましょう。</span>
+        </p>
+      )}
       {/* スマホ */}
       <div className="md:hidden">
         <div className="grid grid-cols-4 gap-1.5">

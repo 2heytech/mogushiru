@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { computeAlerts, balanceMood } from './alerts'
+import { computeAlerts } from './alerts'
 import { swapIngredient } from './customize'
 import { ingredientsTotals, itemTotals, knownItemsOnly, menuTotals, pfcKcal, pfcRatio, sodiumMgToSaltG, type Catalog } from './nutrition'
 import { DRI_VERIFIED } from './dri'
@@ -220,11 +220,5 @@ describe('アラートとマスコット', () => {
     const alcohol = computeAlerts(menuTotals(menu, catalog), targets).find((a) => a.key === 'alcohol')!
     expect(alcohol.amount).toBeCloseTo(20)
     expect(alcohol.level).toBe('over')
-  })
-
-  it('空の献立では普通の表情', () => {
-    const empty: DayMenu = { breakfast: [], lunch: [], dinner: [], other: [] }
-    const t = menuTotals(empty, catalog)
-    expect(balanceMood(t, targets, computeAlerts(t, targets))).toBe('okay')
   })
 })

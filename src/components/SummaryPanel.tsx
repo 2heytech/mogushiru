@@ -1,36 +1,34 @@
-import { useState } from 'react'
-import { balanceMood, computeAlerts, type Alert, type Mood } from '../domain/alerts'
+import { useMemo, useRef, useState } from 'react'
+import { computeAlerts } from '../domain/alerts'
+import { ENERGY_TOLERANCE, daySummary, type Step } from '../domain/daySummary'
 import type { MenuTotals } from '../domain/nutrition'
 import { nutrientChecks } from '../domain/nutrientChecks'
-import { pfcGaps, type PfcGap } from '../domain/pfcGap'
+import { pfcGaps } from '../domain/pfcGap'
 import { expenditure } from '../domain/energy'
 import type { Targets } from '../domain/targets'
 import { SLOTS, type Profile, type Slot } from '../domain/types'
 import { EnergyBalanceView, WeightSimView } from './EnergyView'
 import { DEFAULT_PROFILE_LABEL, MOOD_LABEL, SLOT_LABEL } from './labels'
-import type { MascotMood } from '../domain/mascotMood'
 import { BowlMogu, SlotIcon } from './Mascot'
 import { SlotBalanceView } from './SlotBalanceView'
 import { PfcDangoView } from './PfcDangoView'
 import { NutrientChecks } from './NutrientChecks'
 import { SaltPotassiumView } from './SaltPotassiumView'
-import { NUTRIENT_INFO } from './labels'
+import { DaySummaryView } from './DaySummaryView'
+import { energyDiffText, moguMessage } from './daySummaryText'
 import type { DayFoods } from '../domain/foodBalance'
 import type { SwapIdea } from '../domain/swaps'
 import { FoodBalanceView } from './FoodBalanceView'
 
 
-const alertLabel = (a: Alert) => (a.key === 'energy' ? 'カロリー' : NUTRIENT_INFO[a.key].label)
-const alertDigits = (a: Alert) => (a.key === 'energy' ? 0 : NUTRIENT_INFO[a.key].digits)
-const fmtAlert = (a: Alert, v: number) => v.toLocaleString(undefined, { minimumFractionDigits: alertDigits(a), maximumFractionDigits: alertDigits(a) })
-
 // partial: 入力の途中（朝・昼・晩のどれかがまだ）。合計が1日ぶんではないことを数字のそばで伝える
 function EnergyGauge({ value, target, partial }: { value: number; target: number; partial: boolean }) {
   const max = target * 1.5
   const pct = Math.min(value / max, 1) * 100
-  const bandLo = ((target * 0.9) / max) * 100
-  const bandHi = ((target * 1.1) / max) * 100
-  const color = value > target * 1.1 ? 'bg-alert' : value >= target * 0.9 ? 'bg-ok' : 'bg-coral'
+  const bandLo = ((target * (1 - ENERGY_TOLERANCE)) / max) * 100
+  const bandHi = ((target * (1 + ENERGY_TOLERANCE)) / max) * 100
+  const within = value >= target * (1 - ENERGY_TOLERANCE) && value <= target * (1 + ENERGY_TOLERANCE)
+  const color = value > target * (1 + ENERGY_TOLERANCE) ? 'bg-alert' : within ? 'bg-ok' : 'bg-coral'
   return (
     <div>
       <div className="mb-1 flex items-baseline justify-between">
@@ -46,8 +44,9 @@ function EnergyGauge({ value, target, partial }: { value: number; target: number
         <div className="absolute inset-y-0 bg-ok/25" style={{ left: `${bandLo}%`, width: `${bandHi - bandLo}%` }} />
         <div className={`h-full rounded-full transition-all duration-500 ${color}`} style={{ width: `${pct}%` }} />
       </div>
-      <p className="mt-1 text-xs text-ink-soft">
-        {value === 0 ? '料理を選ぶと計算されます' : value < target ? `あと ${Math.round(target - value)} kcal` : `${Math.round(value - target)} kcal オーバー`}
+      {/* 目安との差が小さいときは「オーバー」と言わず、範囲内であることを先に伝える。入力の途中は、足りないと決めつけない */}
+      <p className={`mt-1 text-xs ${within && !partial ? 'font-bold text-ok-ink' : 'text-ink-soft'}`}>
+        {partial && value < target ? '朝・昼・晩がそろうと、目安とくらべられます' : energyDiffText(value, target, ENERGY_TOLERANCE)}
       </p>
     </div>
   )
@@ -87,22 +86,6 @@ function SlotShare({ totals, targets, onEdit }: { totals: MenuTotals; targets: T
   )
 }
 
-const MOOD_MESSAGE: Record<Mood, string> = {
-  happy: 'いいバランス！このままいこう',
-  okay: 'いい感じ。もうひと工夫してみる？',
-  worried: 'ちょっと偏ってるかも…',
-}
-const PFC_NAME = { p: 'たんぱく質', f: '脂質', c: '炭水化物' } as const
-
-function moguMessage(energy: number, mood: Mood, gaps: PfcGap[] | null, alerts: Alert[]): string {
-  if (energy === 0) return '料理をえらんで、1日の食事をつくってみよう！'
-  const over = alerts.find((a) => a.level === 'over')
-  if (over) return `${alertLabel(over)}が${over.limitKind === 'upper' ? '上限' : '目安'}をこえてるよ！`
-  const off = (gaps ?? []).filter((g) => g.gap !== 0)
-  if (off.length > 0) return `${off.map((g) => `${PFC_NAME[g.key]}が${g.gap < 0 ? '少なめ' : '多め'}`).join('、')}かも`
-  return MOOD_MESSAGE[mood]
-}
-
 type InfoTab = 'summary' | 'foods' | 'pfc' | 'nutrients' | 'slots' | 'energy'
 
 const CARD = 'rounded-[var(--radius-card)] bg-[#fff1df] p-4 shadow-sm'
@@ -120,6 +103,7 @@ export function DayInfo({
   onEditSlotShare,
   onEditExercise,
   onEditProfile,
+  onStep,
 }: {
   totals: MenuTotals
   // 料理の材料から数えた、食べものの単位のバランス
@@ -136,6 +120,8 @@ export function DayInfo({
   onEditSlotShare?: () => void
   onEditExercise?: () => void
   onEditProfile?: () => void
+  // まとめの「次に試すこと」のボタン（料理を足す・食品を調べる）
+  onStep?: (step: Step) => void
 }) {
   const [tab, setTab] = useState<InfoTab>('summary')
   // 「この内容を1日ぶんとして計算する」をえらんだときの、空の区分の組み合わせ。料理を足したり外したりして組み合わせが変わると、もう一度たしかめる
@@ -148,12 +134,20 @@ export function DayInfo({
   const partial = v.energyKcal > 0 && missingSlots.length > 0 && !asFullDay
   const gaps = pfcGaps(v, targets)
   const alerts = computeAlerts(totals, targets)
-  const mood = balanceMood(totals, targets, alerts)
-  const isOver = alerts.some((a) => a.level === 'over')
+  const checks = useMemo(() => nutrientChecks(totals.day, targets, undefined, totals.supplement), [totals, targets])
   const missingNames = missingSlots.map((s) => SLOT_LABEL[s]).join('・')
-  // 入力の途中は、足りない・かたよっていると決めつけない（とりすぎだけは、途中でも知らせる）
-  const bowlMood: MascotMood = isOver ? 'alert' : partial ? 'okay' : mood
-  const message = partial && !isOver ? `${missingNames}も入れると、1日のバランスがわかるよ` : moguMessage(v.energyKcal, mood, gaps, alerts)
+  // 範囲内のもの・気になる点・次に試すことに分ける。マスコットの表情とひとことも、同じ結果から決める
+  const summary = daySummary({ totals, targets, foods, alerts, gaps, checks, missing: asFullDay ? [] : missingSlots, hasSaltSwap: swaps.some((x) => x.kind === 'salt') })
+  const bowlMood = summary.mood
+  const message = moguMessage(summary)
+  // 「置きかえの案」は栄養素のタブの中にあるので、そこへ移る。ほかは親（料理を足す画面・食品を調べる）へ
+  const swapRef = useRef<HTMLDivElement>(null)
+  const step = (s: Step) => {
+    if (s.kind !== 'swapSalt') return onStep?.(s)
+    setTab('nutrients')
+    // タブを切り替えて表示されてから、その場所へ
+    requestAnimationFrame(() => swapRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
+  }
   // サプリだけ（0kcal）でも成分の取りすぎを見られるように、何か入っていれば出す
   const hasAny = Object.values(v).some((x) => x > 0)
   const overCount = alerts.filter((a) => a.level === 'over').length
@@ -228,8 +222,8 @@ export function DayInfo({
                 </p>
               </div>
               <EnergyGauge value={v.energyKcal} target={targets.energyKcal} partial={partial} />
+              <DaySummaryView summary={summary} onStep={step} />
               <SlotShare totals={totals} targets={targets} onEdit={onEditSlotShare} />
-              <AlertList alerts={alerts} />
             </div>
 
             <div className={`${CARD} ${panel('pfc')}`}>
@@ -280,12 +274,12 @@ export function DayInfo({
         <div className={`space-y-3 ${panel('nutrients')}`}>
           {/* 表示するものがなければ、カードごと出さない */}
           {hasAny && (
-            <div className={`${CARD} empty:hidden`}>
+            <div ref={swapRef} className={`${CARD} scroll-mt-20 empty:hidden`}>
               <SaltPotassiumView totals={totals.day} targets={targets} ideas={swaps} onSwap={onSwap} />
             </div>
           )}
           <div className={CARD}>
-            {hasAny ? <NutrientChecks checks={nutrientChecks(totals.day, targets, undefined, totals.supplement)} defaultOpen /> : <Empty />}
+            {hasAny ? <NutrientChecks checks={checks} defaultOpen /> : <Empty />}
           </div>
         </div>
       </div>
@@ -295,20 +289,4 @@ export function DayInfo({
 
 function Empty() {
   return <p className="py-6 text-center text-sm text-ink-soft">料理をえらぶと、ここに出ます</p>
-}
-
-function AlertList({ alerts }: { alerts: Alert[] }) {
-  if (alerts.length === 0) return null
-  return (
-    <ul className="space-y-1">
-      {alerts.map((a) => (
-        <li key={a.key} className={`rounded-xl px-3 py-2 text-sm ${a.level === 'over' ? 'bg-alert/15' : 'bg-caution/20'}`}>
-          ⚠ {alertLabel(a)}{a.supplementOnly && '（サプリの分）'} {fmtAlert(a, a.amount)}
-          {a.unit}（{a.limitKind === 'upper' ? '耐容上限量' : '目安'} {fmtAlert(a, a.limit)}
-          {a.unit}）
-          {a.limitKind === 'upper' && a.level === 'over' && <span className="font-bold"> とりすぎ注意</span>}{a.topSlot && <span className="inline-block text-ink-soft">&nbsp;いちばん多いのは{SLOT_LABEL[a.topSlot]}</span>}
-        </li>
-      ))}
-    </ul>
-  )
 }

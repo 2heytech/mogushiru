@@ -18,7 +18,7 @@ import {
 import type { DishCategory, DrinkSize, MenuItem, Slot } from '../domain/types'
 import { MY_PRODUCT_PREFIX } from '../store/useAppStore'
 import { DISH_CATEGORY_LABEL, PRODUCT_CATEGORY_LAST, PRODUCT_STORES, SLOT_LABEL, STORE_FILTER_PREFIX } from './labels'
-import { buildCards, cardSegments, drinkStripCards, KYODO, productStore, type Card, type Kind, type Tab } from './pickerCards'
+import { buildCards, cardSegments, drinkStripCards, FRUIT, KYODO, productStore, type Card, type Kind, type Tab } from './pickerCards'
 import { UiIcon } from './UiIcon'
 import { useDialog } from './useDialog'
 
@@ -59,8 +59,12 @@ type DrinkState = { spec: DrinkSpec; item?: MenuItem; cup: DrinkSize; count: num
 // −ボタン（飲み物を1杯へらす。1杯のときは外す）
 const MINUS_BUTTON = 'grid h-9 w-9 shrink-0 place-items-center rounded-full border border-ink/15 bg-white text-lg leading-none font-bold text-ink shadow-sm hover:bg-cream'
 
+// はじめにひらく種類としぼりこみ（まとめの「野菜の副菜を1品追加する」から来たときは、料理の「副菜」）
+export type PickerStart = { tab: Tab; category?: string }
+
 export function Picker({
   slot,
+  start,
   items,
   recentDrinks,
   catalog,
@@ -79,6 +83,7 @@ export function Picker({
   onClose,
 }: {
   slot: Slot
+  start?: PickerStart
   // いまこの区分に入っているもの（飲み物の杯数を出すため）
   items: MenuItem[]
   // 最近入れた飲み物（「飲み物」の列で先に出し、前と同じ1杯の量で入れる）
@@ -107,9 +112,9 @@ export function Picker({
   onClose: () => void
 }) {
   const dialogRef = useDialog(onClose)
-  const [tab, setTab] = useState<Tab>('all')
+  const [tab, setTab] = useState<Tab>(start?.tab ?? 'all')
   const [query, setQuery] = useState('')
-  const [category, setCategory] = useState('all')
+  const [category, setCategory] = useState(start?.category ?? 'all')
   const favorites = useMemo(() => new Set(favoriteProductIds), [favoriteProductIds])
   const cards = useMemo(
     () => buildCards(tab, { catalog, slot, query, category, showAlcohol, favorites }),
@@ -136,7 +141,7 @@ export function Picker({
     .sort((a, b) => Number(PRODUCT_CATEGORY_LAST.includes(a)) - Number(PRODUCT_CATEGORY_LAST.includes(b)))
   const chips: { id: string; label: string }[] =
     tab === 'dish'
-      ? [...dishCategories.map((c) => ({ id: c, label: DISH_CATEGORY_LABEL[c] })), ...(hasKyodo ? [{ id: KYODO, label: '郷土料理' }] : [])]
+      ? [...dishCategories.map((c) => ({ id: c, label: DISH_CATEGORY_LABEL[c] })), { id: FRUIT, label: '果物' }, ...(hasKyodo ? [{ id: KYODO, label: '郷土料理' }] : [])]
       : tab === 'product'
         ? [
             ...PRODUCT_STORES.filter((st) => hasStore.has(st.id)).map((st) => ({ id: `${STORE_FILTER_PREFIX}${st.id}`, label: st.label })),

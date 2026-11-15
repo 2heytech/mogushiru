@@ -76,14 +76,15 @@ function PortionSlider({ portion, onChange }: { portion: number; onChange: (p: n
           {formatPortion(portion)}
         </output>
       </div>
-      <div className="mt-1 flex justify-end gap-1">
+      {/* スマホでは4つを同じ幅で横いっぱいに（押しやすい高さにして、「1.5人／前」と折れないように） */}
+      <div className="mt-1 flex gap-1 sm:justify-end">
         {[0.5, 1, 1.5, 2].map((p) => (
           <button
             key={p}
             type="button"
             aria-pressed={portion === p}
             onClick={() => set(p)}
-            className={`min-h-8 rounded-full px-3 text-xs ${portion === p ? 'bg-coral font-bold text-ink-strong' : 'bg-cream'}`}
+            className={`min-h-11 flex-1 rounded-full px-1 text-xs whitespace-nowrap sm:flex-none sm:px-4 ${portion === p ? 'bg-coral font-bold text-ink-strong' : 'bg-cream'}`}
           >
             {p === 0.5 ? '½' : p}人前
           </button>
@@ -126,7 +127,7 @@ export function Customizer({
   initialTab = 'edit',
   foods,
   saveLabel,
-  applyLabel = 'この1日の食事に反映',
+  applyLabel = 'この食事に反映',
   initialSlots,
   onApply,
   onSave,
@@ -147,6 +148,7 @@ export function Customizer({
   initialTab?: 'edit' | 'recipe'
   foods: Map<string, Food>
   saveLabel: string
+  // 1日の食事の中の料理をひらいたとき（onApply があるとき）の、いちばん目立つボタンの名前
   applyLabel?: string
   // 保存したとき、料理をえらぶ画面で上に出す区分の初期値
   initialSlots: Slot[]
@@ -171,6 +173,9 @@ export function Customizer({
   const setServings = useAppStore((s) => s.setRecipeServings)
   // 名前を自分で直すまでは、人前や変えた材料に合わせて初期値を作り直す
   const [typedName, setTypedName] = useState<string | null>(initialName ?? null)
+  // 1日の食事の中の料理は「この食事に反映」が主で、お気に入りに保存するときだけ名前と「上に出す」を出す。
+  // 「料理をアレンジ」からひらいたとき（onApply がない）は、保存するための画面なので、はじめから出す
+  const [saving, setSaving] = useState(!onApply)
 
   const before = useMemo(() => ingredientsTotals(original, foods).values, [original, foods])
   const result = useMemo(() => rows.map((r) => r.ing).filter((i) => i.grams > 0), [rows])
@@ -191,6 +196,10 @@ export function Customizer({
   const add = (food: Food) => {
     setRows((xs) => [...xs, ...toRows([{ foodId: food.id, grams: ADD_GRAMS }])])
     setQuery('')
+  }
+  const reset = () => {
+    setRows(toRows(original))
+    setPortion(1)
   }
 
   return (
@@ -353,55 +362,67 @@ export function Customizer({
           </ul>
 
           <footer className="mt-3 shrink-0 space-y-2">
-            <label className="flex items-center gap-2 text-sm">
-              名前
-              <input value={name} onChange={(e) => setTypedName(e.target.value)} className="min-h-10 min-w-0 flex-1 rounded-full bg-white px-4 text-base" />
-            </label>
-            <div className="flex flex-wrap items-center gap-1.5 text-sm" role="group" aria-label="料理をえらぶとき上に出す食事">
-              <span className="mr-1">上に出す</span>
-              {SLOTS.map((slot) => (
-                <button
-                  key={slot}
-                  type="button"
-                  aria-pressed={slots.includes(slot)}
-                  onClick={() => toggleSlot(slot)}
-                  className={`min-h-9 rounded-full px-3 text-sm ${slots.includes(slot) ? 'bg-coral font-bold text-ink-strong' : 'bg-white text-ink-soft'}`}
-                >
-                  {SLOT_LABEL[slot]}
-                </button>
-              ))}
-            </div>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  setRows(toRows(original))
-                  setPortion(1)
-                }}
-                className="min-h-11 rounded-full bg-white px-4 text-sm"
-              >
-                元に戻す
-              </button>
-              {onApply && (
+            {saving ? (
+              <>
+                {onApply && <p className="text-sm font-bold">お気に入りに保存</p>}
+                <label className="flex items-center gap-2 text-sm">
+                  名前
+                  <input value={name} onChange={(e) => setTypedName(e.target.value)} className="min-h-11 min-w-0 flex-1 rounded-full bg-white px-4 text-base" />
+                </label>
+                <div className="flex flex-wrap items-center gap-1.5 text-sm" role="group" aria-label="料理をえらぶとき上に出す食事">
+                  <span className="mr-1">上に出す</span>
+                  {SLOTS.map((slot) => (
+                    <button
+                      key={slot}
+                      type="button"
+                      aria-pressed={slots.includes(slot)}
+                      onClick={() => toggleSlot(slot)}
+                      className={`min-h-11 min-w-11 rounded-full px-3 text-sm ${slots.includes(slot) ? 'bg-coral font-bold text-ink-strong' : 'bg-white text-ink-soft'}`}
+                    >
+                      {SLOT_LABEL[slot]}
+                    </button>
+                  ))}
+                </div>
+                <div className="flex gap-2">
+                  {onApply ? (
+                    <button type="button" onClick={() => setSaving(false)} className="min-h-12 rounded-full bg-white px-4 text-sm shadow-sm">
+                      もどる
+                    </button>
+                  ) : (
+                    <button type="button" onClick={reset} className="min-h-12 rounded-full bg-white px-4 text-sm shadow-sm">
+                      元に戻す
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    disabled={result.length === 0 || !name.trim()}
+                    onClick={() => onSave(name.trim(), result, portion, slots)}
+                    className="min-h-12 flex-1 rounded-full bg-coral px-3 text-base font-bold text-ink-strong shadow-sm disabled:opacity-50"
+                  >
+                    <InlineParts parts={saveLabel.split(/(?<=[にを])(?=[^にを]*$)/)} />
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
                 <button
                   type="button"
                   disabled={result.length === 0}
-                  onClick={() => onApply(result, portion)}
-                  className="min-h-11 flex-1 rounded-full bg-white text-sm font-bold text-coral-ink disabled:opacity-50"
+                  onClick={() => onApply?.(result, portion)}
+                  className="min-h-12 w-full rounded-full bg-coral px-3 text-base font-bold text-ink-strong shadow-sm disabled:opacity-50"
                 >
-                  {/* 「この1日の／食事に／反映」の区切りでだけ折り返す（「反／映」で折れないように） */}
-                  <InlineParts parts={applyLabel.split(/(?<=1日の|に)/)} />
+                  {applyLabel}
                 </button>
-              )}
-              <button
-                type="button"
-                disabled={result.length === 0 || !name.trim()}
-                onClick={() => onSave(name.trim(), result, portion, slots)}
-                className="min-h-11 flex-1 rounded-full bg-coral text-sm font-bold text-ink-strong disabled:opacity-50"
-              >
-                <InlineParts parts={saveLabel.split(/(?<=[にを])(?=[^にを]*$)/)} />
-              </button>
-            </div>
+                <div className="flex gap-2">
+                  <button type="button" onClick={reset} className="min-h-11 rounded-full bg-white px-4 text-sm shadow-sm">
+                    元に戻す
+                  </button>
+                  <button type="button" onClick={() => setSaving(true)} className="min-h-11 flex-1 rounded-full bg-white px-3 text-sm font-bold text-coral-ink shadow-sm">
+                    ☆ <InlineParts parts={saveLabel.split(/(?<=[にを])(?=[^にを]*$)/)} />
+                  </button>
+                </div>
+              </>
+            )}
           </footer>
           </>
         )}
