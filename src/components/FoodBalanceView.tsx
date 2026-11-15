@@ -50,7 +50,7 @@ export function FoodBalanceView({ foods, targets }: { foods: DayFoods; targets: 
       <h2 className="font-bold">食べもののバランス</h2>
 
       {/* 広い画面では、主食・主菜・副菜と野菜・果物を横に並べる */}
-      <div className="space-y-5 lg:grid lg:grid-cols-2 lg:gap-6 lg:space-y-0">
+      <div className="space-y-5 xl:grid xl:grid-cols-2 xl:gap-6 xl:space-y-0">
         <section aria-labelledby="food-meal-title" className="space-y-2">
           <div className="flex flex-wrap items-baseline justify-between gap-x-2">
             <h3 id="food-meal-title" className="font-bold">

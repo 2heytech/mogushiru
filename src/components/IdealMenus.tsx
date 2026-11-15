@@ -37,6 +37,7 @@ import { menuItemImage } from './illustration'
 import { itemName, portionLabel } from './itemName'
 import { BREAKFAST_LABEL, DINNER_LABEL, LUNCH_LABEL, NUTRIENT_INFO, SLOT_LABEL } from './labels'
 import { SlotIcon } from './Mascot'
+import { useMediaQuery } from './useMediaQuery'
 
 // 一度に出す数。献立ごとに量の調整を計算するので、見える分だけ計算する
 const PAGE = 12
@@ -108,6 +109,8 @@ export function IdealMenuList({ catalog, targets, storesLoaded, onLoad }: ListPr
   const [shown, setShown] = useState(PAGE)
   // スマホでは、しぼりこみの条件をたたんでおく（候補の一覧を上に見せる）。「絞り込み」でひらく
   const [filtersOpen, setFiltersOpen] = useState(false)
+  // 広い画面（lg 以上）では、左に候補の一覧、右にえらんでいる献立の中身を並べる
+  const wide = useMediaQuery('(min-width: 1024px)')
   // データにない市販品を使う献立は出さない（読み込み中は出しておく）
   const entries = useMemo<Entry[]>(
     () =>
@@ -146,6 +149,11 @@ export function IdealMenuList({ catalog, targets, storesLoaded, onLoad }: ListPr
     ...(filters.lunch ? [{ key: 'lunch' as const, label: `昼：${LUNCH_LABEL[filters.lunch]}` }] : []),
     ...(filters.dinner ? [{ key: 'dinner' as const, label: `晩：${DINNER_LABEL[filters.dinner]}` }] : []),
   ]
+  const more = list.length > shown && (
+    <button type="button" onClick={() => setShown((n) => n + PAGE)} className="mt-3 min-h-11 w-full rounded-full border border-coral/40 bg-white text-sm text-ink">
+      もっと見る（あと{list.length - shown}件）
+    </button>
+  )
   return (
     <>
       {/* えらび方：食べたい料理でさがすか、ジャンルと朝・昼・晩の好みでしぼる */}
@@ -237,45 +245,262 @@ export function IdealMenuList({ catalog, targets, storesLoaded, onLoad }: ListPr
       </p>
       {list.length === 0 ? (
         <p className="rounded-2xl bg-white/60 px-4 py-3 text-sm text-ink-soft">この条件に合う献立はありません。条件をへらすか、ほかの言葉でさがしてみてください。</p>
+      ) : wide ? (
+        <IdealMenuCompare entries={list.slice(0, shown)} tokens={tokens} catalog={catalog} targets={targets} storesLoaded={storesLoaded} onLoad={onLoad} more={more} />
       ) : (
-        <ul className="grid grid-cols-1 gap-2 md:grid-cols-2 md:items-start lg:grid-cols-3">
-          {list.slice(0, shown).map((e) => (
-            <IdealMenuCard
-              key={e.menu.id}
-              ideal={e.menu}
-              found={tokens.length > 0 ? matchedItemNames(e.index, tokens) : []}
-              catalog={catalog}
-              targets={targets}
-              storesLoaded={storesLoaded}
-              onLoad={onLoad}
-            />
-          ))}
-        </ul>
-      )}
-      {list.length > shown && (
-        <button type="button" onClick={() => setShown((n) => n + PAGE)} className="mt-3 min-h-11 w-full rounded-full border border-coral/40 bg-white text-sm text-ink">
-          もっと見る（あと{list.length - shown}件）
-        </button>
+        <>
+          <ul className="grid grid-cols-1 gap-2 md:grid-cols-2 md:items-start">
+            {list.slice(0, shown).map((e) => (
+              <IdealMenuCard
+                key={e.menu.id}
+                ideal={e.menu}
+                found={tokens.length > 0 ? matchedItemNames(e.index, tokens) : []}
+                catalog={catalog}
+                targets={targets}
+                storesLoaded={storesLoaded}
+                onLoad={onLoad}
+              />
+            ))}
+          </ul>
+          {more}
+        </>
       )}
     </>
   )
 }
 
-// 献立1つ分のカード。量の調整はカードが出たときに計算する。
+// 献立を目安の量に合わせたものと、その合計。データにない市販品を使う献立（読み込み中をふくむ）は null
+function useIdealPlan(ideal: IdealMenu, catalog: Catalog, targets: Targets) {
+  return useMemo(() => {
+    if (!idealMenuAvailable(ideal, catalog)) return null
+    const menu = adjustIdealMenuCached(ideal, catalog, targets)
+    return { menu, summary: summarizeIdealMenu(menu, catalog, targets) }
+  }, [ideal, catalog, targets])
+}
+
+function GenreChip({ genre }: { genre: IdealGenre }) {
+  return <span className="ml-1.5 inline-block rounded-full bg-cream px-2 py-0.5 align-[1px] text-2xs font-normal text-ink-soft">{genre}</span>
+}
+
+// 広い画面の一覧の列：献立の名前・カロリー・食塩。どの行も同じ位置に出して、見くらべやすくする
+const COMPARE_COLS = 'grid grid-cols-[minmax(0,1fr)_5rem_3.75rem] items-center gap-x-2'
+
+// 広い画面：左に候補の一覧（名前・カロリー・食塩の位置をそろえた行）、右にえらんでいる献立の中身。
+// 行を押すと右の中身が切り替わり、「これにする」で1日の食事に入れる。はじめは、いちばん上の献立をえらんでおく
+function IdealMenuCompare({ entries, tokens, catalog, targets, storesLoaded, onLoad, more }: ListProps & { entries: Entry[]; tokens: string[]; more: ReactNode }) {
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+  // えらんでいた献立が一覧から外れたら（しぼりこみを変えたときなど）、いちばん上のものに。読み込み中のものはえらべない
+  const ready = entries.filter((e) => idealMenuAvailable(e.menu, catalog))
+  const selected = ready.find((e) => e.menu.id === selectedId) ?? ready[0]
+  return (
+    <div className="grid grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] items-start gap-3">
+      <div>
+        <div className={`${COMPARE_COLS} px-3.5 pb-1 text-2xs text-ink-soft`} aria-hidden>
+          <span>献立（押すと、右に中身が出ます）</span>
+          <span className="text-right">カロリー</span>
+          <span className="text-right">食塩</span>
+        </div>
+        <ul className="space-y-1.5">
+          {entries.map((e) => (
+            <IdealMenuRow
+              key={e.menu.id}
+              ideal={e.menu}
+              found={tokens.length > 0 ? matchedItemNames(e.index, tokens) : []}
+              selected={e === selected}
+              catalog={catalog}
+              targets={targets}
+              storesLoaded={storesLoaded}
+              onSelect={() => setSelectedId(e.menu.id)}
+            />
+          ))}
+        </ul>
+        {more}
+      </div>
+      {selected && <IdealMenuDetail key={selected.menu.id} ideal={selected.menu} catalog={catalog} targets={targets} onLoad={onLoad} />}
+    </div>
+  )
+}
+
+// 広い画面の一覧の1行。名前とジャンル、朝・昼・晩の顔になる料理、カロリー、食塩
+function IdealMenuRow({
+  ideal,
+  found,
+  selected,
+  catalog,
+  targets,
+  storesLoaded,
+  onSelect,
+}: {
+  ideal: IdealMenu
+  found: string[]
+  selected: boolean
+  catalog: Catalog
+  targets: Targets
+  storesLoaded: boolean
+  onSelect: () => void
+}) {
+  const plan = useIdealPlan(ideal, catalog, targets)
+  if (!plan)
+    return idealMenuHasProducts(ideal) && !storesLoaded ? (
+      <li className="rounded-2xl bg-white/60 px-3.5 py-2">
+        <p className="font-bold leading-snug text-ink-soft">
+          {ideal.name}
+          <GenreChip genre={ideal.genre} />
+        </p>
+        <p className="text-xs text-ink-soft">コンビニ・メーカーの商品を読み込んでいます…</p>
+      </li>
+    ) : null
+  const { menu, summary } = plan
+  const leads = idealMealLeads(ideal)
+  return (
+    <li>
+      <button
+        type="button"
+        aria-pressed={selected}
+        aria-controls="ideal-menu-detail"
+        onClick={onSelect}
+        className={`${COMPARE_COLS} w-full rounded-2xl border-2 px-3 py-2 text-left transition ${selected ? 'border-coral bg-white shadow-sm' : 'border-transparent bg-white/70 hover:bg-white'}`}
+      >
+        <span className="min-w-0">
+          <span className="block font-bold leading-snug">
+            {ideal.name}
+            <GenreChip genre={ideal.genre} />
+          </span>
+          {/* 朝・昼・晩を、その食事の顔になる料理の絵とひとことで（絵とひとことの間では折り返さない） */}
+          <span className="mt-0.5 flex flex-wrap gap-x-2.5 gap-y-0.5 text-xs leading-snug text-ink-soft">
+            {MEAL_SLOTS.map((slot) => {
+              const face = mealFaceItem(
+                menu[slot].filter((item) => !isIdealExtra(item)),
+                catalog,
+              )
+              if (!face) return null
+              const src = menuItemImage(face, catalog)
+              return (
+                <span key={slot} className="flex min-w-0 items-center gap-1">
+                  {src ? <img src={src} alt="" className="h-6 w-6 shrink-0" /> : <span className="h-6 w-6 shrink-0 rounded-full bg-cream" aria-hidden />}
+                  <span className="sr-only">{SLOT_LABEL[slot]}：</span>
+                  <span className="truncate">{leads ? leads[slot] : itemName(face, catalog)}</span>
+                </span>
+              )
+            })}
+          </span>
+          {found.length > 0 && (
+            <span className="mt-0.5 block text-xs leading-snug">
+              <span className="text-ink-soft">入っている料理：</span>
+              <span className="font-bold">{found.join('・')}</span>
+            </span>
+          )}
+        </span>
+        <span className="text-right whitespace-nowrap tabular-nums">
+          <strong className="text-sm">{Math.round(summary.kcal).toLocaleString()}</strong>
+          <span className="text-2xs text-ink-soft"> kcal</span>
+        </span>
+        <span className="text-right whitespace-nowrap tabular-nums">
+          <span className="sr-only">食塩 </span>
+          <strong className="text-sm">{summary.totals.day.values.salt.toFixed(1)}</strong>
+          <span className="text-2xs text-ink-soft"> g</span>
+        </span>
+      </button>
+    </li>
+  )
+}
+
+// 広い画面の右側：えらんでいる献立の中身。朝・昼・晩・その他の料理と量、1日の合計、栄養のポイント。
+// 一覧をスクロールしてもついてくる（窓の見出しの下に止める）。長いときは、この中だけスクロールする
+function IdealMenuDetail({ ideal, catalog, targets, onLoad }: { ideal: IdealMenu; catalog: Catalog; targets: Targets; onLoad: ListProps['onLoad'] }) {
+  const plan = useIdealPlan(ideal, catalog, targets)
+  if (!plan) return null
+  const { menu, summary } = plan
+  const short = summary.checks.filter((c) => (WANT_NUTRIENTS as readonly string[]).includes(c.key) && c.status === 'low' && !c.partial)
+  const salt = summary.totals.day.values.salt
+  const stat = 'rounded-xl bg-cream px-2 py-1.5'
+  return (
+    <section
+      id="ideal-menu-detail"
+      aria-label={`えらんでいる献立：${ideal.name}`}
+      className="sticky top-16 max-h-[calc(90dvh-5rem)] overflow-y-auto rounded-2xl bg-white p-4 shadow-sm"
+    >
+      <p className="text-2xs text-ink-soft">えらんでいる献立</p>
+      <div className="flex items-start gap-2">
+        <h3 className="min-w-0 flex-1 pt-1 text-lg leading-snug font-bold">
+          {ideal.name}
+          <GenreChip genre={ideal.genre} />
+        </h3>
+        <button
+          type="button"
+          onClick={() => onLoad(ideal, menu)}
+          aria-label={`これにする：${ideal.name}`}
+          className="min-h-11 shrink-0 rounded-full bg-coral px-5 text-sm font-bold whitespace-nowrap text-ink-strong shadow-sm transition hover:brightness-105"
+        >
+          これにする
+        </button>
+      </div>
+      {/* 1日の合計 */}
+      <dl className="mt-2 grid grid-cols-[1fr_1.3fr_1fr] gap-1.5 text-center tabular-nums">
+        <div className={stat}>
+          <dt className="text-2xs text-ink-soft">カロリー</dt>
+          <dd className="text-sm whitespace-nowrap">
+            <strong className="text-base">{Math.round(summary.kcal).toLocaleString()}</strong> kcal
+          </dd>
+          <dd className="text-2xs whitespace-nowrap text-ink-soft">目安 {targets.energyKcal.toLocaleString()}</dd>
+        </div>
+        <div className={stat}>
+          <dt className="text-2xs text-ink-soft">PFCバランス</dt>
+          {summary.ratio && (
+            <dd className="text-sm whitespace-nowrap">
+              P <strong>{Math.round(summary.ratio.p)}</strong>・F <strong>{Math.round(summary.ratio.f)}</strong>・C <strong>{Math.round(summary.ratio.c)}</strong>
+              <span className="text-2xs"> %</span>
+            </dd>
+          )}
+          <dd className="text-2xs whitespace-nowrap text-ink-soft">たんぱく質・脂質・炭水化物</dd>
+        </div>
+        <div className={stat}>
+          <dt className="text-2xs text-ink-soft">食塩</dt>
+          <dd className="text-sm whitespace-nowrap">
+            <strong className="text-base">{salt.toFixed(1)}</strong> g
+          </dd>
+          <dd className="text-2xs whitespace-nowrap text-ink-soft">目安 {targets.saltMax}g未満</dd>
+        </div>
+      </dl>
+      {/* 朝・昼・晩・その他の料理と量 */}
+      <dl className="mt-3 space-y-2.5">
+        {SLOTS.map((slot) =>
+          menu[slot].length === 0 ? null : (
+            <div key={slot} className="flex items-start gap-2">
+              <dt className="flex w-[4.5rem] shrink-0 items-center gap-1 text-sm font-bold whitespace-nowrap">
+                <SlotIcon slot={slot} className="h-6 w-6 shrink-0" />
+                {SLOT_LABEL[slot]}
+              </dt>
+              <dd className="min-w-0 flex-1 text-sm leading-snug">
+                <MealItems items={menu[slot]} catalog={catalog} />
+                <MealStats slot={slot} menu={menu} summary={summary} targets={targets} />
+              </dd>
+            </div>
+          ),
+        )}
+      </dl>
+      <p className="mt-3 rounded-xl bg-cream px-3 py-2 text-xs leading-relaxed">
+        <span className="font-bold">栄養のポイント：</span>
+        {ideal.point}
+        {short.length > 0 && <>。少なめ：{short.map((c) => NUTRIENT_INFO[c.key].label).join('・')}</>}
+      </p>
+      {idealMenuHasProducts(ideal) && (
+        <p className="mt-1.5 text-2xs leading-snug text-ink-soft">※ 市販品はパッケージの栄養成分表示にある成分だけで計算しています（ビタミン・ミネラルは実際より少なく出ます）</p>
+      )}
+    </section>
+  )
+}
+
+// 献立1つ分のカード（スマホ・タブレット）。量の調整はカードが出たときに計算する。
 // ふだんは名前、朝・昼・晩の絵とひとこと、カロリーと食塩だけ。料理の一覧・PFC・栄養のポイントは「中身を見る」でひらく
 function IdealMenuCard({ ideal, found, catalog, targets, storesLoaded, onLoad }: ListProps & { ideal: IdealMenu; found: string[] }) {
   const [open, setOpen] = useState(false)
   const withProducts = idealMenuHasProducts(ideal)
-  const ready = idealMenuAvailable(ideal, catalog)
-  const plan = useMemo(() => {
-    if (!ready) return null
-    const menu = adjustIdealMenuCached(ideal, catalog, targets)
-    return { menu, summary: summarizeIdealMenu(menu, catalog, targets) }
-  }, [ideal, ready, catalog, targets])
+  const plan = useIdealPlan(ideal, catalog, targets)
   const title = (
     <p className="font-bold leading-snug">
       {ideal.name}
-      <span className="ml-1.5 inline-block rounded-full bg-cream px-2 py-0.5 align-[1px] text-2xs font-normal text-ink-soft">{ideal.genre}</span>
+      <GenreChip genre={ideal.genre} />
     </p>
   )
   if (!plan)

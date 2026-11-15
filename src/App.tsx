@@ -514,44 +514,47 @@ export default function App() {
               }}
             />
           ) : (
-            <>
-              {/* いちばん上に1日の食事（見出し・ボタン・朝〜その他）、その下に情報 */}
-              <DayMenuPanel
-                source={menuSource}
-                totals={totals}
-                targets={targets}
-                actions={(layout) => (
-                  <MenuActions
-                    menu={menu}
-                    totals={totals}
-                    layout={layout}
-                    savedCount={savedMenus.length}
-                    openSlot={openSlot}
-                    onAdd={setPickerSlot}
-                    onOpenBuild={() => setBuilderOpen(true)}
-                    onOpenSave={() => setSavedDialog('save')}
-                    onOpenSaved={() => setSavedDialog('load')}
-                    onReset={() => {
-                      clearMenu()
-                      setOpenSlot(null)
-                      setStartDismissed(false)
-                    }}
-                  />
-                )}
-              >
-                <SlotStrip
-                  menu={menu}
+            // スマホ：上に1日の食事（見出し・朝〜その他）、その下に結果。
+            // 広い画面（lg 以上）：左に1日の食事、右にまとめを並べて、料理や量を変えた結果をすぐ横で見られるようにする。くわしい内容はその下
+            <div className="space-y-4 lg:grid lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] lg:items-start lg:gap-4 lg:space-y-0">
+              <div className="min-w-0 lg:col-start-1 lg:row-start-1">
+                <DayMenuPanel
+                  source={menuSource}
                   totals={totals}
                   targets={targets}
-                  catalog={catalog}
-                  open={openSlot}
-                  onOpenChange={setOpenSlot}
-                  onAdd={setPickerSlot}
-                  onRemove={removeItem}
-                  onDrink={(slot, item, amount) => changeDrink(slot, item, amount)}
-                  onEdit={(slot, uid) => setEditing({ slot, uid })}
-                />
-              </DayMenuPanel>
+                  actions={(layout) => (
+                    <MenuActions
+                      menu={menu}
+                      totals={totals}
+                      layout={layout}
+                      savedCount={savedMenus.length}
+                      openSlot={openSlot}
+                      onAdd={setPickerSlot}
+                      onOpenBuild={() => setBuilderOpen(true)}
+                      onOpenSave={() => setSavedDialog('save')}
+                      onOpenSaved={() => setSavedDialog('load')}
+                      onReset={() => {
+                        clearMenu()
+                        setOpenSlot(null)
+                        setStartDismissed(false)
+                      }}
+                    />
+                  )}
+                >
+                  <SlotStrip
+                    menu={menu}
+                    totals={totals}
+                    targets={targets}
+                    catalog={catalog}
+                    open={openSlot}
+                    onOpenChange={setOpenSlot}
+                    onAdd={setPickerSlot}
+                    onRemove={removeItem}
+                    onDrink={(slot, item, amount) => changeDrink(slot, item, amount)}
+                    onEdit={(slot, uid) => setEditing({ slot, uid })}
+                  />
+                </DayMenuPanel>
+              </div>
               <DayInfo
                 totals={totals}
                 foods={foods}
@@ -572,7 +575,7 @@ export default function App() {
                 onEditProfile={() => setProfileOpen(true)}
                 onStep={runStep}
               />
-            </>
+            </div>
           )}
         </main>
       ) : (

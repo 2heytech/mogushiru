@@ -33,8 +33,10 @@ export function DrinkAmountEditor({ item, spec, onChange }: { item: MenuItem; sp
           {cup.approx && <p className="mt-1.5 text-xs text-ink-soft">{cup.label}の量はお店によってちがいます（350〜500mLほど）</p>}
         </fieldset>
       )}
+      {/* 何杯飲むか。合計の量（mL）を横に出す */}
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-        <div className="flex items-center gap-2" role="group" aria-label={`何${cup.unit}`}>
+        <span className="w-full text-sm font-bold">飲む量</span>
+        <div className="flex items-center gap-2" role="group" aria-label={`飲む量（何${cup.unit}）`}>
           <button type="button" onClick={() => onChange(drinkAmount(spec, prevCount(count), cup))} disabled={!canStepDown(count)} aria-label={`1${cup.unit}へらす`} className={STEP_BUTTON}>
             −
           </button>
