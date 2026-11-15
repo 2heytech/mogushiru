@@ -64,7 +64,7 @@ export function EnergyBalanceView({
       <div className="flex items-center justify-between gap-2">
         <h2 className="font-bold">食べる・使うカロリー</h2>
         {onEditExercise && (
-          <button type="button" onClick={onEditExercise} className="min-h-9 shrink-0 rounded-full bg-white px-3.5 text-xs font-bold shadow-sm">
+          <button type="button" onClick={onEditExercise} className="min-h-11 shrink-0 rounded-full bg-white px-3.5 text-xs font-bold shadow-sm">
             {hasExercise ? '運動を変える' : '運動を入れる'}
           </button>
         )}
@@ -220,7 +220,7 @@ export function WeightSimView({
               <>
                 {slotNames(missing)}がまだ入っていません
                 {onTreatAsFullDay && (
-                  <button type="button" onClick={onTreatAsFullDay} className="mt-1.5 block min-h-9 rounded-full bg-white px-3.5 text-xs font-bold text-ink shadow-sm">
+                  <button type="button" onClick={onTreatAsFullDay} className="mt-1.5 block min-h-11 rounded-full bg-white px-3.5 text-xs font-bold text-ink shadow-sm">
                     この内容を1日ぶんとして計算する
                   </button>
                 )}
@@ -234,7 +234,7 @@ export function WeightSimView({
               <>
                 まだ入っていません
                 {onEditProfile && (
-                  <button type="button" onClick={onEditProfile} className="mt-1.5 block min-h-9 rounded-full bg-white px-3.5 text-xs font-bold text-ink shadow-sm">
+                  <button type="button" onClick={onEditProfile} className="mt-1.5 block min-h-11 rounded-full bg-white px-3.5 text-xs font-bold text-ink shadow-sm">
                     体重を入れる
                   </button>
                 )}

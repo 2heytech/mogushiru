@@ -91,7 +91,7 @@ function ModeTabs({ mode, targets, onChange }: { mode: BuildMode; targets: Targe
         <p className="min-w-0 flex-1 pt-1.5 text-xs leading-snug text-pretty text-ink-soft">
           {MODES[mode].lead}量は、あなたの目安（{targets.energyKcal.toLocaleString()} kcal）に合わせます。
         </p>
-        <button type="button" aria-expanded={help} onClick={() => setHelp((v) => !v)} className="min-h-9 shrink-0 rounded-full px-2 text-xs font-bold whitespace-nowrap text-coral-ink">
+        <button type="button" aria-expanded={help} onClick={() => setHelp((v) => !v)} className="min-h-11 shrink-0 rounded-full px-2 text-xs font-bold whitespace-nowrap text-coral-ink">
           {help ? 'とじる' : 'くわしく'}
         </button>
       </div>
@@ -285,7 +285,7 @@ function MealSteps({
           <button
             type="button"
             onClick={() => (last ? onDone() : go(index + 1))}
-            className="min-h-9 shrink-0 rounded-full bg-white px-3 text-xs text-ink-soft shadow-sm transition hover:bg-cream"
+            className="min-h-11 shrink-0 rounded-full bg-white px-3 text-xs text-ink-soft shadow-sm transition hover:bg-cream"
           >
             {last ? 'ここで終わる' : `${label}ごはんはとばす`}
           </button>

@@ -8,7 +8,6 @@ import {
   drinkCup,
   drinkSpec,
   findDrinkItem,
-  formatCount,
   nextCount,
   pickCup,
   prevCount,
@@ -41,7 +40,7 @@ const KIND_BADGE: Record<Kind, { label: string; className: string }> = {
 
 const MAX_CARDS = 60
 // リストにないものを自分で登録するボタン（点線の枠）
-const REGISTER_BUTTON = 'min-h-10 w-full shrink-0 rounded-full border-2 border-dashed border-coral/60 px-4 text-sm font-bold text-coral-ink hover:bg-coral/10'
+const REGISTER_BUTTON = 'min-h-11 w-full shrink-0 rounded-full border-2 border-dashed border-coral/60 px-4 text-sm font-bold text-coral-ink hover:bg-coral/10'
 
 const PLACEHOLDER: Record<Tab, string> = {
   all: '料理・市販品・食材をさがす',
@@ -56,8 +55,25 @@ const PLACEHOLDER: Record<Tab, string> = {
 // 飲み物のカードの、いまの杯数（この区分に入っていなければ count は 0）
 type DrinkState = { spec: DrinkSpec; item?: MenuItem; cup: DrinkSize; count: number }
 
-// −ボタン（飲み物を1杯へらす。1杯のときは外す）
-const MINUS_BUTTON = 'grid h-9 w-9 shrink-0 place-items-center rounded-full border border-ink/15 bg-white text-lg leading-none font-bold text-ink shadow-sm hover:bg-cream'
+// 飲み物の − ＋ ボタン（−は1杯へらす。1杯のときは外す）。指で押しやすい大きさに
+const STEP_BUTTON = 'grid h-11 w-11 shrink-0 place-items-center rounded-full text-xl leading-none font-bold text-coral-ink hover:bg-coral/10'
+
+// 入れた飲み物の「− コップ2杯 ＋」
+function DrinkStepper({ name, state, onMinus, onPlus, className = '' }: { name: string; state: DrinkState; onMinus: () => void; onPlus: () => void; className?: string }) {
+  return (
+    <div role="group" aria-label={`${name}の量`} className={`flex items-center rounded-full bg-ok/15 ${className}`}>
+      <button type="button" onClick={onMinus} aria-label={`${name}を1${state.cup.unit}へらす`} className={STEP_BUTTON}>
+        −
+      </button>
+      <output className="min-w-0 flex-1 px-0.5 text-center text-xs leading-tight font-bold whitespace-nowrap text-ok-ink tabular-nums" aria-live="polite">
+        {drinkAmountLabel(state.cup, state.count)}
+      </output>
+      <button type="button" onClick={onPlus} aria-label={`${name}を1${state.cup.unit}ふやす`} className={STEP_BUTTON}>
+        ＋
+      </button>
+    </div>
+  )
+}
 
 // はじめにひらく種類としぼりこみ（まとめの「野菜の副菜を1品追加する」から来たときは、料理の「副菜」）
 export type PickerStart = { tab: Tab; category?: string }
@@ -260,7 +276,22 @@ export function Picker({
             ×
           </button>
         </div>
-        <div className="mb-3 flex shrink-0 gap-0.5 rounded-full bg-white p-1 sm:gap-1" role="tablist">
+        {/* さがす欄をいちばん上に。種類（料理・市販品…）は、その下でしぼる */}
+        <div className="relative mb-2 shrink-0">
+          <svg viewBox="0 0 24 24" aria-hidden className="pointer-events-none absolute top-1/2 left-3.5 h-5 w-5 -translate-y-1/2 text-ink-soft" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
+            <circle cx="11" cy="11" r="6.5" />
+            <path d="M16 16l4.5 4.5" />
+          </svg>
+          <input
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder={PLACEHOLDER[tab]}
+            aria-label={PLACEHOLDER[tab]}
+            className="min-h-12 w-full rounded-full border-2 border-white bg-white pr-4 pl-11 text-base shadow-sm outline-none focus:border-coral"
+          />
+        </div>
+        <div className="mb-2 flex shrink-0 gap-0.5 rounded-full bg-white p-1 sm:gap-1" role="tablist" aria-label="さがす種類">
           {TABS.map((t) => (
             <button
               key={t.id}
@@ -268,7 +299,7 @@ export function Picker({
               role="tab"
               aria-selected={tab === t.id}
               onClick={() => switchTab(t.id)}
-              className={`min-h-10 flex-1 rounded-full px-0.5 text-xs leading-tight whitespace-nowrap sm:px-1 sm:text-sm ${tab === t.id ? 'bg-coral font-bold text-ink-strong' : 'text-ink-soft'}`}
+              className={`min-h-11 flex-1 rounded-full px-0.5 text-xs leading-tight whitespace-nowrap sm:px-1 sm:text-sm ${tab === t.id ? 'bg-coral font-bold text-ink-strong' : 'text-ink-soft'}`}
             >
               {t.label}
               {counts && (
@@ -279,29 +310,23 @@ export function Picker({
             </button>
           ))}
         </div>
-        <input
-          type="search"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder={PLACEHOLDER[tab]}
-          className="mb-3 min-h-11 w-full shrink-0 rounded-full border-2 border-white bg-white px-4 text-base outline-none focus:border-coral"
-        />
         {chips.length > 0 && (
-          <div ref={chipsRef} className="mb-3 flex shrink-0 gap-2 overflow-x-auto pb-1">
+          <div ref={chipsRef} className="mb-2 flex shrink-0 gap-1.5 overflow-x-auto pb-1">
             {[{ id: 'all', label: tab === 'product' ? 'おすすめ' : 'すべて' }, ...chips].map((c) => (
               <button
                 key={c.id}
                 type="button"
                 aria-pressed={category === c.id}
                 onClick={() => setCategory(c.id)}
-                className={`shrink-0 rounded-full px-3 py-1 text-sm ${category === c.id ? 'bg-ink text-white' : 'bg-white'}`}
+                className={`min-h-11 shrink-0 rounded-full px-3.5 text-sm ${category === c.id ? 'bg-ink text-white' : 'bg-white'}`}
               >
                 {c.label}
               </button>
             ))}
           </div>
         )}
-        {(tab === 'myDish' || tab === 'product') && (
+        {/* さがしているあいだは、結果を先に見せて、登録は一覧の下に置く */}
+        {(tab === 'myDish' || tab === 'product') && !query && (
           <button type="button" onClick={onRegisterProduct} className={`mb-3 ${REGISTER_BUTTON}`}>
             ＋ リストにない市販品を登録する
           </button>
@@ -330,59 +355,64 @@ export function Picker({
           ) : (
             <>
               {tab === 'all' && !query && drinkStrip.length > 0 && (
-                <section aria-labelledby="picker-drinks" className="mb-4">
-                  <div className="mb-1 flex items-baseline gap-2">
-                    <h3 id="picker-drinks" className="shrink-0 text-sm font-bold">
-                      飲み物
-                    </h3>
-                    <p className="mr-auto min-w-0 truncate text-xs text-ink-soft">押すたびに＋1杯</p>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setTab('dish')
-                        setCategory('drink')
-                      }}
-                      className="shrink-0 text-xs font-bold whitespace-nowrap text-coral-ink underline underline-offset-2"
-                    >
-                      ほかの飲み物
-                    </button>
-                  </div>
-                  <ul className="-mx-1 flex gap-2 overflow-x-auto px-1 pt-1 pb-2">
+                // 飲み物は1行にまとめる（料理の候補を広く見せる）。押すと1杯入り、入れたものは − ＋ で杯数を変える
+                <section aria-labelledby="picker-drinks" className="mb-3">
+                  <ul className="-mx-1 flex items-center gap-1.5 overflow-x-auto px-1 py-1">
+                    <li className="shrink-0 pr-0.5">
+                      <h3 id="picker-drinks" className="text-sm font-bold">
+                        飲み物
+                      </h3>
+                    </li>
                     {drinkStrip.map((c) => {
                       const d = drinkState(c)!
                       const name = d.spec.short ?? c.name
+                      const image = c.image ? (
+                        <img src={c.image} alt="" className="h-8 w-8 shrink-0 object-contain" loading="lazy" />
+                      ) : (
+                        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-cream text-base" aria-hidden>
+                          🥤
+                        </span>
+                      )
                       return (
-                        <li key={c.key} className="relative w-24 shrink-0">
-                          <button
-                            type="button"
-                            onClick={() => drinkPlus(c, d)}
-                            aria-label={d.count > 0 ? `${name}を1${d.cup.unit}ふやす（いま${drinkAmountLabel(d.cup, d.count)}）` : `${name}を${drinkAmountLabel(d.cup, 1)}追加`}
-                            className={`flex h-full w-full flex-col items-center rounded-2xl bg-white px-1.5 pt-2 pb-1.5 text-center shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${d.count > 0 ? 'ring-2 ring-ok' : ''}`}
-                          >
-                            {c.image ? (
-                              <img src={c.image} alt="" className="h-12 w-12 object-contain" loading="lazy" />
-                            ) : (
-                              <span className="grid h-12 w-12 place-items-center rounded-full bg-cream text-2xl" aria-hidden>
-                                🥤
+                        <li key={c.key} className="shrink-0">
+                          {d.count > 0 ? (
+                            <div className="flex min-h-11 items-center gap-1 rounded-full bg-white pl-1.5 shadow-sm ring-2 ring-ok">
+                              {image}
+                              <span className="text-xs font-bold whitespace-nowrap">{name}</span>
+                              <DrinkStepper name={name} state={d} onMinus={() => drinkMinus(c, d)} onPlus={() => drinkPlus(c, d)} />
+                            </div>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => drinkPlus(c, d)}
+                              aria-label={`${name}を${drinkAmountLabel(d.cup, 1)}追加`}
+                              className="flex min-h-11 items-center gap-1 rounded-full bg-white pr-3 pl-1.5 text-xs font-bold whitespace-nowrap shadow-sm transition hover:bg-coral/5"
+                            >
+                              {image}
+                              {name}
+                              <span aria-hidden className="text-base leading-none text-coral-ink">
+                                ＋
                               </span>
-                            )}
-                            <span className="mt-1 line-clamp-2 text-xs leading-snug font-bold">{name}</span>
-                            <span className={`mt-auto pt-0.5 text-2xs tabular-nums ${d.count > 0 ? 'font-bold text-ok-ink' : 'text-ink-soft'}`}>
-                              {d.count > 0 ? drinkAmountLabel(d.cup, d.count) : `＋${drinkAmountLabel(d.cup, 1)}`}
-                            </span>
-                          </button>
-                          {d.count > 0 && (
-                            <button type="button" onClick={() => drinkMinus(c, d)} aria-label={`${name}を1${d.cup.unit}へらす`} className={`absolute -top-1 -left-1 ${MINUS_BUTTON}`}>
-                              −
                             </button>
                           )}
                         </li>
                       )
                     })}
+                    <li className="shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setTab('dish')
+                          setCategory('drink')
+                        }}
+                        className="min-h-11 px-2 text-xs font-bold whitespace-nowrap text-coral-ink underline underline-offset-2"
+                      >
+                        ほかの飲み物
+                      </button>
+                    </li>
                   </ul>
                 </section>
               )}
-              {tab === 'all' && !query && <p className="mb-2 text-xs text-ink-soft">料理・市販品・食材をまとめてさがせます</p>}
               {segments.map((seg, si) =>
                 seg.row ? (
                   // 市販品・食材は絵が種類ごとの共通なので、名前を全部読める1行ずつの並びに
@@ -414,12 +444,7 @@ export function Picker({
                                 {c.sub}
                               </span>
                             </span>
-                            {d && d.count > 0 ? (
-                              <span className="shrink-0 rounded-full bg-ok/25 px-2 py-0.5 text-2xs font-bold whitespace-nowrap text-ok-ink tabular-nums">
-                                ✓ {formatCount(d.count)}
-                                {d.cup.unit}
-                              </span>
-                            ) : added[c.key] ? (
+                            {d && d.count > 0 ? null : added[c.key] ? (
                               <span className="shrink-0 rounded-full bg-ok/25 px-2 py-0.5 text-2xs font-bold whitespace-nowrap text-ok-ink">✓ 追加</span>
                             ) : (
                               c.kcal !== null && (
@@ -430,11 +455,7 @@ export function Picker({
                               )
                             )}
                           </button>
-                          {d && d.count > 0 && (
-                            <button type="button" onClick={() => drinkMinus(c, d)} aria-label={`${c.name}を1${d.cup.unit}へらす`} className={`ml-1 ${MINUS_BUTTON}`}>
-                              −
-                            </button>
-                          )}
+                          {d && d.count > 0 && <DrinkStepper name={c.name} state={d} onMinus={() => drinkMinus(c, d)} onPlus={() => drinkPlus(c, d)} className="ml-1 w-32 shrink-0" />}
                           {star ? (
                             <button
                               type="button"
@@ -457,26 +478,40 @@ export function Picker({
                     {seg.cards.map((c) => {
                       const d = drinkState(c)
                       const on = d ? d.count > 0 : Boolean(added[c.key])
+                      // 入れた飲み物は、カードの下に「− コップ2杯 ＋」を出す（カードを押しても1杯ふえる）
+                      if (d && d.count > 0) {
+                        const name = d.spec.short ?? c.name
+                        return (
+                          <li key={c.key} className="flex flex-col rounded-2xl bg-white p-2 text-center shadow-sm ring-2 ring-ok">
+                            <button type="button" onClick={() => pick(c)} aria-label={`${c.name}を1${d.cup.unit}ふやす（いま${drinkAmountLabel(d.cup, d.count)}）`} className="flex w-full flex-1 flex-col items-center px-1 pt-1">
+                              {c.image ? (
+                                <img src={c.image} alt="" className="mb-2 h-20 w-20 object-contain" loading="lazy" />
+                              ) : (
+                                <span className="mb-2 grid h-20 w-20 place-items-center rounded-full bg-cream text-3xl" aria-hidden>
+                                  🍽️
+                                </span>
+                              )}
+                              <span className="line-clamp-2 text-sm font-bold">{name}</span>
+                              <span className="mt-0.5 text-xs text-ink-soft tabular-nums">{Math.round(drinkKcal(c, d))}kcal</span>
+                            </button>
+                            <DrinkStepper name={name} state={d} onMinus={() => drinkMinus(c, d)} onPlus={() => drinkPlus(c, d)} className="mt-1.5" />
+                          </li>
+                        )
+                      }
                       return (
                         <li key={c.key} className="relative">
                           <button
                             type="button"
                             onClick={() => pick(c)}
                             aria-pressed={d ? undefined : on}
-                            aria-label={d && d.count > 0 ? `${c.name}を1${d.cup.unit}ふやす（いま${drinkAmountLabel(d.cup, d.count)}）` : undefined}
                             className={`group relative flex h-full w-full flex-col items-center rounded-2xl bg-white p-3 text-center shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${on ? 'ring-2 ring-ok' : ''}`}
                           >
-                            {/* 飲み物を入れたら、左上は−ボタンにする */}
-                            {tab === 'all' && query && !(d && d.count > 0) && (
+                            {tab === 'all' && query && (
                               <span className={`absolute top-2 left-2 rounded-full px-2 py-0.5 text-2xs font-bold ${KIND_BADGE[c.kind].className}`}>
                                 {KIND_BADGE[c.kind].label}
                               </span>
                             )}
-                            {on && (
-                              <span className="absolute top-2 right-2 rounded-full bg-ok px-2 py-0.5 text-2xs font-bold text-ink-strong tabular-nums">
-                                {d ? `✓ ${formatCount(d.count)}${d.cup.unit}` : '✓ 追加'}
-                              </span>
-                            )}
+                            {on && <span className="absolute top-2 right-2 rounded-full bg-ok px-2 py-0.5 text-2xs font-bold text-ink-strong">✓ 追加</span>}
                             {c.image ? (
                               <img src={c.image} alt="" className="mb-2 h-20 w-20 object-contain transition-transform group-hover:scale-110 group-hover:-rotate-3" loading="lazy" />
                             ) : (
@@ -486,9 +521,9 @@ export function Picker({
                             )}
                             <span className="line-clamp-2 text-sm font-bold">{d?.spec.short ?? c.name}</span>
                             {d ? (
-                              // 飲み物は量（入れたらいまの量）とそのカロリー
-                              <span className={`mt-1 text-xs tabular-nums ${d.count > 0 ? 'font-bold text-ok-ink' : 'text-ink-soft'}`}>
-                                {drinkAmountLabel(d.cup, d.count || 1)}
+                              // 飲み物は1杯の量とそのカロリー（押すと1杯入る）
+                              <span className="mt-1 text-xs text-ink-soft tabular-nums">
+                                {drinkAmountLabel(d.cup, 1)}
                                 {' ・ '}
                                 <span className="inline-block">{Math.round(drinkKcal(c, d))}kcal</span>
                               </span>
@@ -504,11 +539,6 @@ export function Picker({
                               </span>
                             )}
                           </button>
-                          {d && d.count > 0 && (
-                            <button type="button" onClick={() => drinkMinus(c, d)} aria-label={`${c.name}を1${d.cup.unit}へらす`} className={`absolute top-1.5 left-1.5 ${MINUS_BUTTON}`}>
-                              −
-                            </button>
-                          )}
                         </li>
                       )
                     })}
@@ -519,7 +549,7 @@ export function Picker({
           )}
           {cards.length > MAX_CARDS && <p className="py-3 text-center text-xs text-ink-soft">ほか {cards.length - MAX_CARDS} 件。検索でしぼりこめます</p>}
           {/* まとめてさがしたときは、結果を先に見せて、登録はそのあとに置く */}
-          {tab === 'all' && query && (
+          {(tab === 'all' || tab === 'product' || tab === 'myDish') && query && (
             <button type="button" onClick={onRegisterProduct} className={`mt-3 mb-1 ${REGISTER_BUTTON}`}>
               ＋ リストにない市販品を登録する
             </button>
@@ -531,12 +561,12 @@ export function Picker({
               `${lastAction}（${totalAdded}品）`
             ) : (
               <>
-                <span className="inline-block">タップで追加、</span>
-                <span className="inline-block">もう一度で取り消し</span>
+                <span className="inline-block">押すと追加、</span>
+                <span className="inline-block">もう一度押すと取り消し</span>
               </>
             )}
           </p>
-          <button type="button" onClick={onClose} className="min-h-11 shrink-0 rounded-full bg-coral px-6 text-sm font-bold text-ink-strong hover:bg-coral-dark">
+          <button type="button" onClick={onClose} className="min-h-12 shrink-0 rounded-full bg-coral px-6 text-base font-bold text-ink-strong hover:bg-coral-dark">
             {totalAdded > 0 ? 'できた' : '閉じる'}
           </button>
         </footer>

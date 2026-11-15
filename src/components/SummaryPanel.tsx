@@ -77,7 +77,7 @@ function SlotShare({ totals, targets, onEdit }: { totals: MenuTotals; targets: T
       <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-ink-soft">
         <span>目安の配分 {goal}%</span>
         {onEdit && (
-          <button type="button" onClick={onEdit} className="min-h-9 rounded-full bg-white px-3.5 font-bold text-ink shadow-sm">
+          <button type="button" onClick={onEdit} className="min-h-11 rounded-full bg-white px-3.5 font-bold text-ink shadow-sm">
             配分を変える
           </button>
         )}
@@ -86,9 +86,17 @@ function SlotShare({ totals, targets, onEdit }: { totals: MenuTotals; targets: T
   )
 }
 
-type InfoTab = 'summary' | 'foods' | 'pfc' | 'nutrients' | 'slots' | 'energy'
+// スマホのタブ。「栄養の詳細」に、PFCバランス・食べもののバランス・栄養素をまとめる
+type InfoTab = 'summary' | 'detail' | 'slots' | 'energy'
+type DetailPart = 'pfc' | 'foods' | 'nutrients'
+const DETAIL_PARTS: { key: DetailPart; label: string }[] = [
+  { key: 'pfc', label: 'PFCバランス' },
+  { key: 'foods', label: '食べもののバランス' },
+  { key: 'nutrients', label: '栄養素' },
+]
 
-const CARD = 'rounded-[var(--radius-card)] bg-[#fff1df] p-4 shadow-sm'
+// min-w-0：中身の幅でカードが画面より広がらないように。幅のせまいスマホは余白を少しつめる
+const CARD = 'min-w-0 rounded-[var(--radius-card)] bg-[#fff1df] p-4 shadow-sm max-[359px]:p-3'
 
 // 1日の食事の下に出す情報。スマホ・タブレットはタブで1種類ずつ、広い画面ではタブなしで並べる
 export function DayInfo({
@@ -144,19 +152,22 @@ export function DayInfo({
   const swapRef = useRef<HTMLDivElement>(null)
   const step = (s: Step) => {
     if (s.kind !== 'swapSalt') return onStep?.(s)
-    setTab('nutrients')
+    setTab('detail')
     // タブを切り替えて表示されてから、その場所へ
     requestAnimationFrame(() => swapRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
   }
+  // 「栄養の詳細」の中の、PFCバランス・食べもののバランス・栄養素へ移る
+  const pfcRef = useRef<HTMLDivElement>(null)
+  const foodsRef = useRef<HTMLDivElement>(null)
+  const nutrientsRef = useRef<HTMLDivElement>(null)
+  const jump = (part: DetailPart) => (part === 'pfc' ? pfcRef : part === 'foods' ? foodsRef : nutrientsRef).current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   // サプリだけ（0kcal）でも成分の取りすぎを見られるように、何か入っていれば出す
   const hasAny = Object.values(v).some((x) => x > 0)
   const overCount = alerts.filter((a) => a.level === 'over').length
   const tabs: { key: InfoTab; label: string; badge?: number }[] = [
     { key: 'summary', label: 'まとめ', badge: overCount || undefined },
-    { key: 'foods', label: '食品' },
-    { key: 'pfc', label: 'PFC' },
-    { key: 'nutrients', label: '栄養素' },
-    { key: 'slots', label: '区分ごと' },
+    { key: 'detail', label: '栄養の詳細' },
+    { key: 'slots', label: '食事別' },
     { key: 'energy', label: '体重' },
   ]
   // lg 以上ではタブを使わず全部見せる
@@ -172,10 +183,23 @@ export function DayInfo({
               {missingNames}がまだ入っていません。
             </p>
           )}
+          {/* 目安が仮のものであることは短く伝える（結果を下に押し下げない）。変えるところはすぐ横に */}
           {!profileSet && (
-            <p>
-              <strong className="text-ink">仮の目安（{DEFAULT_PROFILE_LABEL}）で計算中。</strong>
-              右上の「栄養の目安を設定」から変えられます。入れた内容は、このブラウザにのみ保存されます。
+            <p className="flex flex-wrap items-center gap-x-2">
+              <span>
+                <strong className="text-ink">仮の目安</strong> {DEFAULT_PROFILE_LABEL}
+              </span>
+              {onEditProfile && (
+                <button
+                  type="button"
+                  onClick={onEditProfile}
+                  aria-haspopup="dialog"
+                  aria-label="栄養の目安を変更する"
+                  className="-my-1.5 min-h-11 rounded-full px-2 font-bold text-coral-ink underline decoration-coral/60 underline-offset-2"
+                >
+                  変更
+                </button>
+              )}
             </p>
           )}
         </div>
@@ -188,7 +212,7 @@ export function DayInfo({
             role="tab"
             aria-selected={tab === t.key}
             onClick={() => setTab(t.key)}
-            className={`flex min-h-10 flex-1 items-center justify-center gap-1 rounded-full text-sm whitespace-nowrap transition ${
+            className={`flex min-h-11 flex-1 items-center justify-center gap-1 rounded-full px-1 text-sm whitespace-nowrap transition ${
               tab === t.key ? 'bg-white font-bold text-ink shadow-sm' : 'text-ink-soft'
             }`}
           >
@@ -226,12 +250,27 @@ export function DayInfo({
               <SlotShare totals={totals} targets={targets} onEdit={onEditSlotShare} />
             </div>
 
-            <div className={`${CARD} ${panel('pfc')}`}>
+            {/* スマホの「栄養の詳細」：下に3つ続くので、はじめに中身を並べて、押すとそこへ移る */}
+            {hasAny && (
+              <nav aria-label="栄養の詳細の中身" className={`flex flex-wrap gap-1.5 lg:hidden ${tab === 'detail' ? '' : 'hidden'}`}>
+                {DETAIL_PARTS.map((part) => (
+                  <button key={part.key} type="button" onClick={() => jump(part.key)} className="min-h-11 rounded-full bg-white px-3.5 text-sm whitespace-nowrap shadow-sm">
+                    {part.label}
+                    <span aria-hidden className="ml-1 text-coral-ink">
+                      ↓
+                    </span>
+                  </button>
+                ))}
+              </nav>
+            )}
+            <div ref={pfcRef} className={`${CARD} scroll-mt-4 ${panel('detail')}`}>
               {gaps ? <PfcDangoView gaps={gaps} gramRanges={targets.pfcGrams} /> : <Empty />}
             </div>
           </div>
           {/* 主食・主菜・副菜、野菜と果物、食べた食品の種類 */}
-          <div className={`${CARD} ${panel('foods')}`}>{foods && hasAny ? <FoodBalanceView foods={foods} targets={targets} /> : <Empty />}</div>
+          <div ref={foodsRef} className={`${CARD} scroll-mt-4 ${panel('detail')}`}>
+            {foods && hasAny ? <FoodBalanceView foods={foods} targets={targets} /> : <Empty />}
+          </div>
           {/* 食べる・使うカロリーと、続けたときの体重 */}
           <div className="contents lg:grid lg:grid-cols-2 lg:items-stretch lg:gap-4">
             <div className={`${CARD} ${panel('energy')}`}>
@@ -250,7 +289,7 @@ export function DayInfo({
             </div>
           </div>
           <div className={panel('slots')}>
-            <h2 className="mb-2 hidden font-bold lg:block">区分ごとのバランス</h2>
+            <h2 className="mb-2 hidden font-bold lg:block">食事別のバランス</h2>
             <div className="grid items-start gap-3 md:grid-cols-2">
               {SLOTS.map((slot) => (
                 <div key={slot} className={CARD}>
@@ -271,7 +310,7 @@ export function DayInfo({
           </div>
         </div>
 
-        <div className={`space-y-3 ${panel('nutrients')}`}>
+        <div ref={nutrientsRef} className={`min-w-0 scroll-mt-4 space-y-3 ${panel('detail')}`}>
           {/* 表示するものがなければ、カードごと出さない */}
           {hasAny && (
             <div ref={swapRef} className={`${CARD} scroll-mt-20 empty:hidden`}>

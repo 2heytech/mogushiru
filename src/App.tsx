@@ -217,6 +217,8 @@ export default function App() {
   const [picker, setPicker] = useState<{ slot: Slot; start?: PickerStart } | null>(null)
   const pickerSlot = picker?.slot ?? null
   const setPickerSlot = (slot: Slot | null) => setPicker(slot ? { slot } : null)
+  // スマホで、料理の一覧をひらいている食事（下のバーの「料理を追加」は、この食事に足す）
+  const [openSlot, setOpenSlot] = useState<Slot | null>(null)
   // 料理をえらぶ画面（朝・昼・晩）から、理想の献立のその1食だけをえらぶ画面
   const [idealMealSlot, setIdealMealSlot] = useState<MealSlot | null>(null)
   // full: 飲み物の料理でも、材料まで変えられる画面（Customizer）でひらく
@@ -521,13 +523,17 @@ export default function App() {
                 actions={(layout) => (
                   <MenuActions
                     menu={menu}
+                    totals={totals}
                     layout={layout}
                     savedCount={savedMenus.length}
+                    openSlot={openSlot}
+                    onAdd={setPickerSlot}
                     onOpenBuild={() => setBuilderOpen(true)}
                     onOpenSave={() => setSavedDialog('save')}
                     onOpenSaved={() => setSavedDialog('load')}
                     onReset={() => {
                       clearMenu()
+                      setOpenSlot(null)
                       setStartDismissed(false)
                     }}
                   />
@@ -538,6 +544,8 @@ export default function App() {
                   totals={totals}
                   targets={targets}
                   catalog={catalog}
+                  open={openSlot}
+                  onOpenChange={setOpenSlot}
                   onAdd={setPickerSlot}
                   onRemove={removeItem}
                   onDrink={(slot, item, amount) => changeDrink(slot, item, amount)}
@@ -594,7 +602,11 @@ export default function App() {
           onUnpick={(uid) => removeItem(pickerSlot, uid)}
           onDrink={(uid, amount) => updateDrink(pickerSlot, uid, amount)}
           onRememberDrink={rememberDrink}
-          onClose={() => setPickerSlot(null)}
+          onClose={() => {
+            // スマホでは、足した料理がすぐ見えるように、その食事をひらいておく
+            if (menu[pickerSlot].length > 0) setOpenSlot(pickerSlot)
+            setPickerSlot(null)
+          }}
         />
       )}
 

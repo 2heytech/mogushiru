@@ -99,7 +99,7 @@ export function SaltPotassiumView({
                           onSwap(idea)
                           setDone(`${SLOT_LABEL[idea.slot]}の${idea.itemName}を、${idea.toLabel}にしました。もとに戻すときは、その料理の編集から。`)
                         }}
-                        className="min-h-9 shrink-0 rounded-full bg-coral px-3.5 text-xs font-bold text-ink-strong shadow-sm"
+                        className="min-h-11 shrink-0 rounded-full bg-coral px-3.5 text-xs font-bold text-ink-strong shadow-sm"
                       >
                         置きかえる
                       </button>

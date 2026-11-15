@@ -44,7 +44,7 @@ type Row = { key: number; ing: Ingredient; max: number; step: number }
 let nextKey = 0
 const toRows = (xs: Ingredient[]): Row[] => xs.map((ing) => ({ key: nextKey++, ing, max: sliderMax(ing.grams), step: gramStep(ing.grams) }))
 
-const STEP_BUTTON = 'grid h-10 w-10 shrink-0 place-items-center rounded-full bg-cream text-lg font-bold text-coral-ink hover:bg-coral/15 disabled:opacity-40'
+const STEP_BUTTON = 'grid h-11 w-11 shrink-0 place-items-center rounded-full bg-cream text-lg font-bold text-coral-ink hover:bg-coral/15 disabled:opacity-40'
 
 // 人前のスライダー。0.1人前きざみで、−・＋でも1きざみずつ動かせる
 function PortionSlider({ portion, onChange }: { portion: number; onChange: (p: number) => void }) {
@@ -233,7 +233,7 @@ export function Customizer({
                 role="tab"
                 aria-selected={tab === id}
                 onClick={() => setTab(id)}
-                className={`min-h-10 flex-1 rounded-full text-sm ${tab === id ? 'bg-coral font-bold text-ink-strong' : 'text-ink-soft'}`}
+                className={`min-h-11 flex-1 rounded-full text-sm ${tab === id ? 'bg-coral font-bold text-ink-strong' : 'text-ink-soft'}`}
               >
                 {label}
               </button>
@@ -282,7 +282,7 @@ export function Customizer({
                       <select
                         value={ing.foodId}
                         onChange={(e) => update(key, (x) => swapIngredient(x, e.target.value))}
-                        className="min-h-10 flex-1 rounded-full bg-cream px-3 text-sm font-bold"
+                        className="min-h-11 min-w-0 flex-1 rounded-full bg-cream px-3 text-sm font-bold"
                         aria-label="食材を入れ替える"
                       >
                         {alternatives.map((id) => (
@@ -297,7 +297,7 @@ export function Customizer({
                     <button
                       type="button"
                       onClick={() => remove(key)}
-                      className="grid h-10 w-10 place-items-center rounded-full text-ink-soft hover:bg-cream"
+                      className="grid h-11 w-11 shrink-0 place-items-center rounded-full text-ink-soft hover:bg-cream"
                       aria-label={`${food?.displayName ?? '材料'}を外す`}
                     >
                       🗑
@@ -329,7 +329,7 @@ export function Customizer({
                         inputMode="decimal"
                         value={ing.grams}
                         onChange={(e) => setGrams(key, Number(e.target.value) || 0)}
-                        className="min-h-10 w-20 rounded-full bg-cream px-3 text-right text-base tabular-nums"
+                        className="min-h-11 w-16 rounded-full bg-cream px-2 text-right text-base tabular-nums sm:w-20 sm:px-3"
                         aria-label={`${food?.displayName ?? '材料'}のグラム数`}
                       />
                       g

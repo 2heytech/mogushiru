@@ -23,7 +23,7 @@ export function DrinkAmountEditor({ item, spec, onChange }: { item: MenuItem; sp
                   type="button"
                   aria-pressed={on}
                   onClick={() => onChange(drinkAmount(spec, count, s))}
-                  className={`min-h-10 rounded-full px-3 text-sm whitespace-nowrap tabular-nums ${on ? 'bg-coral font-bold text-ink-strong' : 'bg-white'}`}
+                  className={`min-h-11 rounded-full px-3 text-sm whitespace-nowrap tabular-nums ${on ? 'bg-coral font-bold text-ink-strong' : 'bg-white'}`}
                 >
                   {drinkSizeLabel(s)}
                 </button>
