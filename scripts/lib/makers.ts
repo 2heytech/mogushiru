@@ -27,6 +27,9 @@ export type MakerLabel = {
   note?: string
 }
 
+// JAN の中の空白（全角も）をとる
+export const normalizeJan = (jan: string): string => jan.replace(/[\s\u3000]+/g, '')
+
 // data/makers/ のファイル（labels.json は売れ筋・定番、ほかは食品カテゴリーごとの主要メーカーの商品）をまとめて読む。
 // 同じ商品（同じJAN、または同じページの同じ名前）は先に読んだものを使う
 export function readMakerLabels(dir = 'data/makers'): MakerLabel[] {
@@ -34,7 +37,9 @@ export function readMakerLabels(dir = 'data/makers'): MakerLabel[] {
   const seen = new Set<string>()
   const items: MakerLabel[] = []
   for (const f of files) {
-    for (const l of (JSON.parse(readFileSync(`${dir}/${f}`, 'utf8')) as { items: MakerLabel[] }).items) {
+    for (const raw of (JSON.parse(readFileSync(`${dir}/${f}`, 'utf8')) as { items: MakerLabel[] }).items) {
+      // JAN は数字だけにそろえる（「4902571 203902」のように空白が入っていると、メーカー品として数えられない）
+      const l = { ...raw, jan: normalizeJan(raw.jan) }
       const keys = [l.jan, `${l.url} ${l.name}`]
       if (keys.some((k) => seen.has(k))) continue
       keys.forEach((k) => seen.add(k))

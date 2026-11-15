@@ -40,24 +40,25 @@ import { UiIcon } from './components/UiIcon'
 const sameIngredients = (a: Ingredient[], b: Ingredient[]) =>
   a.length === b.length && a.every((x, i) => x.foodId === b[i].foodId && x.grams === b[i].grams)
 
-// スマホではアイコンの下に小さく名前、広い画面では横並び
+// 右上の「栄養の目安を設定」
 const NAV_BUTTON =
-  'flex min-h-10 items-center justify-center gap-1 whitespace-nowrap rounded-full bg-white px-3 text-xs leading-tight font-bold shadow-sm sm:min-h-11 sm:px-4 sm:text-sm sm:font-normal'
+  'flex min-h-11 items-center justify-center gap-1 whitespace-nowrap rounded-full bg-white pr-3 pl-2 text-xs leading-tight font-bold shadow-sm sm:pr-4 sm:pl-3 sm:text-sm sm:font-normal'
 
 // 最初の画面の「献立の例で試す」で入れる理想の献立（市販品を使わないので、すぐ入れられる）
 const SAMPLE_MENU_ID = 'washoku'
 
-// lg（ヘッダーに1段で並べる幅）は、プロフィールのボタンと並ぶので少し小さく
+// lg（ヘッダーに1段で並べる幅）は、「栄養の目安を設定」のボタンと並ぶので少し小さく
 const ICON_CLASS = 'h-6 w-6 shrink-0 sm:h-9 sm:w-9 lg:h-7 lg:w-7 xl:h-9 xl:w-9'
 
-// アプリの機能。title の | は狭い画面で折り返してよい位置。いつも上に並べて、いまどれを見ているかと、ほかに何があるかが分かるようにする
+// アプリの機能。title の | は狭い画面で折り返してよい位置。いつも上に並べて、いまどれを見ているかと、ほかに何があるかが分かるようにする。
+// 名前は、幅320pxのスマホでも3つ並んで収まる短さにする（「1日の栄養バランスを確認」→「栄養バランス」など）
 const FEATURES: { view: View; icon: ReactNode; title: string; lead: string }[] = [
-  { view: 'menu', icon: <UiIcon name="menu" className={ICON_CLASS} />, title: '1日の|栄養|バランス|を確認', lead: '朝・昼・晩の料理を選んで確かめる' },
-  { view: 'ranking', icon: <UiIcon name="ranking" className={ICON_CLASS} />, title: '食品成分|ランキング', lead: '成分の多い食品をさがす' },
-  { view: 'customize', icon: <CustomizeIcon className={ICON_CLASS} />, title: '料理を|カスタマイズ', lead: '人前や材料の量を変えて保存' },
+  { view: 'menu', icon: <UiIcon name="menu" className={ICON_CLASS} />, title: '栄養|バランス', lead: '朝・昼・晩の料理を選んで確かめる' },
+  { view: 'ranking', icon: <UiIcon name="ranking" className={ICON_CLASS} />, title: '食品を|調べる', lead: '成分の多い食品をさがす' },
+  { view: 'customize', icon: <CustomizeIcon className={ICON_CLASS} />, title: '料理を|アレンジ', lead: '人前や材料の量を変えて保存' },
 ]
 
-// 広い画面（lg）ではロゴとプロフィールの間に1段で並べる小さな形
+// 広い画面（lg）ではロゴと「栄養の目安を設定」の間に1段で並べる小さな形
 function FeatureTabsCompact({ view, onChange }: { view: View; onChange: (v: View) => void }) {
   return (
     <nav aria-label="機能の切り替え" className="flex gap-1.5 xl:gap-2">
@@ -419,31 +420,28 @@ export default function App() {
   return (
     // スマホは1日の食事のボタンを下に固定するので、そのぶん下をあける
     <div className={`mx-auto max-w-6xl px-4 ${view === 'menu' && !showStart ? 'pb-32 md:pb-16' : 'pb-16'}`}>
-      <header className="flex items-center justify-between gap-4 py-2.5 sm:py-4 lg:gap-3 xl:gap-4">
-        <h1 className="flex shrink-0 items-center gap-1.5">
+      <header className="flex items-center justify-between gap-2 py-2.5 sm:gap-4 sm:py-4 lg:gap-3 xl:gap-4">
+        <h1 className="flex shrink-0 items-center gap-1 min-[360px]:gap-1.5">
           <LogoMogu className="h-10 w-10 sm:h-12 sm:w-12" />
           <span className="font-logo text-2xl leading-none tracking-wide text-ink sm:text-[28px]">モグシル</span>
         </h1>
         <div className="hidden lg:block">
           <FeatureTabsCompact view={view} onChange={setView} />
         </div>
-        {/* プロフィールの入口はここ1つ。まだ入れていないあいだは、仮の目安で計算していることもこのボタンで伝える */}
+        {/* 栄養の目安（プロフィール）の入口はここ1つ。まだ入れていないあいだは、枠と字の色で目立たせる。
+            幅320pxでもロゴと並んで収まるように、1行で。いちばん狭い幅では「目安を設定」まで縮める */}
         <button
           type="button"
           onClick={() => setProfileOpen(true)}
+          aria-haspopup="dialog"
+          aria-label="栄養の目安を設定"
           title={profileSet ? undefined : `目安はいま「${DEFAULT_PROFILE_LABEL}・ふつう」で計算しています`}
-          className={`${NAV_BUTTON} ${profileSet ? '' : 'ring-2 ring-coral/50'}`}
+          className={`${NAV_BUTTON} min-w-0 ${profileSet ? '' : 'font-bold text-coral-ink ring-2 ring-coral/50 sm:font-bold'}`}
         >
-          {/* 2行になるぶん横に広いので、狭い幅（小さなスマホと、タブが横に並ぶ lg）ではアイコンをはぶく */}
-          <UiIcon name="profile" className={`h-6 w-6 shrink-0 ${profileSet ? '' : 'hidden min-[390px]:block lg:hidden xl:block'}`} />
-          {profileSet ? (
-            <span>プロフィール</span>
-          ) : (
-            <span className="flex flex-col text-left">
-              <span className="font-bold text-coral-ink">プロフィールを入れる</span>
-              <span className="text-2xs font-normal text-ink-soft">いまは{DEFAULT_PROFILE_LABEL}</span>
-            </span>
-          )}
+          <UiIcon name="profile" className="h-6 w-6 shrink-0" />
+          <span>
+            <span className="max-[359px]:hidden">栄養の</span>目安を設定
+          </span>
         </button>
       </header>
 
