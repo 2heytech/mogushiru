@@ -78,7 +78,7 @@ export function IdealMealList({ slot, catalog, targets, storesLoaded, onLoad }: 
     <>
       <div className="mb-2 flex items-start gap-2">
         <p className="min-w-0 flex-1 pt-1 text-xs text-ink-soft">
-          理想の献立から、{label}ごはんだけを入れます。量はプロフィールの目安に合わせます。
+          理想の献立から、{label}ごはんだけを入れます。量は、あなたの栄養の目安に合わせます。
         </p>
         <button type="button" aria-expanded={help} onClick={() => setHelp((v) => !v)} className="min-h-11 shrink-0 rounded-full px-2 text-xs font-bold whitespace-nowrap text-coral-ink">
           {help ? 'とじる' : 'くわしく'}

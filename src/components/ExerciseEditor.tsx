@@ -14,7 +14,7 @@ import { EXERCISE_LIMIT as LIMIT, fromDraft, newDraftKey as newKey, numOrUndef a
 const GROUPS = Object.keys(EXERCISE_GROUP_LABEL) as ExerciseGroup[]
 
 const field = 'min-h-11 rounded-2xl border-2 border-cream bg-cream px-3 text-base outline-none focus:border-coral'
-const stepBtn = 'grid h-9 w-9 shrink-0 place-items-center rounded-full bg-cream text-lg font-bold disabled:opacity-30'
+const stepBtn = 'grid h-11 w-11 shrink-0 place-items-center rounded-full bg-cream text-lg font-bold disabled:opacity-30'
 
 // ふだんの運動の一覧。種類・1回の時間（歩くものは歩数でも）・週の回数を入れる
 export function ExerciseEditor({ value, onChange, weightKg }: { value: ExerciseDraft[]; onChange: (v: ExerciseDraft[]) => void; weightKg: number }) {
@@ -54,7 +54,7 @@ export function ExerciseEditor({ value, onChange, weightKg }: { value: ExerciseD
               <button
                 type="button"
                 aria-label="この運動を消す"
-                className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-cream text-ink-soft"
+                className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-cream text-ink-soft"
                 onClick={() => onChange(value.filter((x) => x.key !== d.key))}
               >
                 ×
@@ -74,7 +74,7 @@ export function ExerciseEditor({ value, onChange, weightKg }: { value: ExerciseD
                       const a = num(d.amount)
                       update(d.key, { unit: u, amount: a === undefined ? d.amount : String(u === 'steps' ? Math.round(a * STEPS_PER_MINUTE) : Math.round(a / STEPS_PER_MINUTE)) })
                     }}
-                    className={`min-h-8 rounded-full px-3 ${d.unit === u ? 'bg-white font-bold shadow-sm' : 'text-ink-soft'}`}
+                    className={`min-h-11 rounded-full px-4 ${d.unit === u ? 'bg-white font-bold shadow-sm' : 'text-ink-soft'}`}
                   >
                     {u === 'minutes' ? '時間で' : '歩数で'}
                   </button>
@@ -82,11 +82,11 @@ export function ExerciseEditor({ value, onChange, weightKg }: { value: ExerciseD
               </div>
             )}
 
-            <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm">
+            <div className="mt-2 flex flex-wrap items-center gap-x-2.5 gap-y-2 text-sm">
               <label className="flex items-center gap-1.5 whitespace-nowrap">
                 1回
                 <input
-                  className={`${field} w-24 text-right tabular-nums`}
+                  className={`${field} w-20 text-right tabular-nums`}
                   inputMode="numeric"
                   value={d.amount}
                   onChange={(e) => update(d.key, { amount: e.target.value })}

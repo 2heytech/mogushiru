@@ -20,7 +20,7 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, { failed: 
         <div role="alert" className="w-full rounded-[var(--radius-card)] bg-white/80 p-6 shadow-sm">
           <p className="text-lg font-bold">うまく表示できませんでした</p>
           <p className="mt-2 text-sm leading-relaxed text-ink-soft">
-            ごめんなさい。読み込み直すと、たいていは元に戻ります。入れた食事やプロフィールはこの端末に残っています。
+            ごめんなさい。読み込み直すと、たいていは元に戻ります。入れた食事や栄養の目安の設定は、この端末に残っています。
           </p>
           <button type="button" onClick={() => location.reload()} className="mt-5 min-h-11 w-full rounded-full bg-coral font-bold text-ink-strong hover:bg-coral-dark">
             読み込み直す
