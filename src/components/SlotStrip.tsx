@@ -145,7 +145,8 @@ export function SlotStrip(props: Props) {
       </div>
 
       {/* 広い画面 */}
-      <div className="hidden gap-3 md:grid md:grid-cols-2 lg:grid-cols-4">
+      {/* 広い画面は、右にまとめを置くので2列（朝・昼／晩・その他） */}
+      <div className="hidden gap-3 md:grid md:grid-cols-2">
         {SLOTS.map((slot) => {
           const b = slotBalance(totals.bySlot[slot], slot, targets)
           return (
