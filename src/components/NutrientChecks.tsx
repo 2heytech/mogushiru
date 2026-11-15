@@ -106,7 +106,7 @@ function CheckRow({ c, perSlot, onRanking }: { c: NutrientCheck; perSlot: boolea
           <span className="w-9 shrink-0 text-right text-xs leading-none font-bold tabular-nums" aria-label={`${c.target.kind === 'max' ? '上限' : '目安'}の${pct(c.percent)}%`}>
             {pct(c.percent)}%
           </span>
-          <span className="flex w-[5.25rem] shrink-0 justify-start">
+          <span className="flex w-[5.75rem] shrink-0 justify-start sm:w-[5.25rem]">
             {quiet ? (
               <span className="grid h-5 w-5 place-items-center rounded-full bg-ok/25 text-2xs leading-none font-bold text-ok-ink" role="img" aria-label={status}>
                 ✓

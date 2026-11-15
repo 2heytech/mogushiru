@@ -75,7 +75,14 @@ export function MenuActions({
             <span aria-hidden className="text-xl leading-none">
               ＋
             </span>
-            {openSlot ? `${SLOT_LABEL[openSlot]}に料理を追加` : '料理を追加'}
+            {/* 幅のせまいスマホでは「その他に料理を追加」がボタンに入らないので、「その他に追加」にする */}
+            {openSlot ? (
+              <span>
+                {SLOT_LABEL[openSlot]}に<span className="max-[359px]:hidden">料理を</span>追加
+              </span>
+            ) : (
+              '料理を追加'
+            )}
           </button>
           <button type="button" onClick={onOpenSave} disabled={empty} aria-haspopup="dialog" className={BAR_SMALL}>
             <UiIcon name="save" className="h-6 w-6 shrink-0" />
