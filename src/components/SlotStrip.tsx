@@ -118,11 +118,13 @@ export function SlotStrip(props: Props) {
           <div id="slot-strip-detail" className="mt-2 rounded-[var(--radius-card)] bg-white p-3 shadow-sm">
             <div className="mb-2 flex items-center gap-1.5">
               <h2 className="flex min-w-0 flex-1 items-center gap-1.5 font-bold">
-                <SlotIcon slot={open} className="h-7 w-7 shrink-0" />
+                {/* 幅のせまいスマホでは、品数とカロリーが「＋ 追加」に重ならないよう、アイコンをかくして、入らないときは「・」で折り返す */}
+                <SlotIcon slot={open} className="h-7 w-7 shrink-0 max-[359px]:hidden" />
                 <span className="min-w-0">
-                  {slotTitle(open)}
-                  <span className="ml-1.5 text-xs font-normal whitespace-nowrap text-ink-soft tabular-nums">
-                    {menu[open].length}品・{Math.round(totals.bySlot[open].values.energyKcal)} kcal
+                  <span className="inline-block">{slotTitle(open)}</span>
+                  <span className="ml-1.5 text-xs font-normal text-ink-soft tabular-nums max-[359px]:ml-0 max-[359px]:block">
+                    <span className="inline-block">{menu[open].length}品・</span>
+                    <span className="inline-block">{Math.round(totals.bySlot[open].values.energyKcal)} kcal</span>
                   </span>
                 </span>
               </h2>
@@ -131,7 +133,7 @@ export function SlotStrip(props: Props) {
                 onClick={() => onAdd(open)}
                 aria-haspopup="dialog"
                 aria-label={`${slotTitle(open)}に料理を追加`}
-                className="min-h-11 shrink-0 rounded-full border-2 border-coral px-3.5 text-sm font-bold whitespace-nowrap text-coral-ink hover:bg-coral/10"
+                className="min-h-11 shrink-0 rounded-full border-2 border-coral px-3.5 text-sm font-bold whitespace-nowrap text-coral-ink hover:bg-coral/10 max-[359px]:px-2.5"
               >
                 ＋ 追加
               </button>
@@ -171,7 +173,8 @@ export function SlotStrip(props: Props) {
 
 const STEP_BUTTON = 'grid h-11 w-11 shrink-0 place-items-center rounded-full text-base leading-none font-bold text-coral-ink hover:bg-white disabled:text-ink-soft/40 disabled:hover:bg-transparent'
 
-// 区分に入っている料理の一覧。名前を押すと編集、×で外す。飲み物は＋−で杯数を変えられる
+// 区分に入っている料理の一覧。名前を押すと編集、×で外す。飲み物は＋−で杯数を変えられる。
+// 幅のせまいスマホ（375px未満）では、飲み物の＋−を名前の下の行に下ろす（横に並べると、名前が5〜7文字ごとに折れる）
 function SlotItems({ menu, catalog, onEdit, onRemove, onDrink, slot }: Props & { slot: Slot }) {
   const items = menu[slot]
   if (items.length === 0) return <p className="py-1 text-center text-xs text-ink-soft">まだ料理がありません</p>
@@ -184,7 +187,7 @@ function SlotItems({ menu, catalog, onEdit, onRemove, onDrink, slot }: Props & {
         const name = drinkItemName(item, catalog, drink?.short)
         const amount = drink && cup ? drinkAmountLabel(cup, count) : portionLabel(item, catalog)
         return (
-          <li key={item.uid} className="flex items-center rounded-xl bg-cream/70">
+          <li key={item.uid} className="flex items-center rounded-xl bg-cream/70 max-[374px]:flex-wrap">
             <button
               type="button"
               onClick={() => onEdit(slot, item.uid)}
@@ -206,7 +209,7 @@ function SlotItems({ menu, catalog, onEdit, onRemove, onDrink, slot }: Props & {
               )}
             </button>
             {drink && cup && (
-              <>
+              <span className="flex shrink-0 max-[374px]:order-last max-[374px]:-mt-1.5 max-[374px]:w-full max-[374px]:justify-end">
                 <button
                   type="button"
                   onClick={() => onDrink(slot, item, drinkAmount(drink, prevCount(count), cup))}
@@ -219,7 +222,7 @@ function SlotItems({ menu, catalog, onEdit, onRemove, onDrink, slot }: Props & {
                 <button type="button" onClick={() => onDrink(slot, item, drinkAmount(drink, nextCount(count), cup))} className={STEP_BUTTON} aria-label={`${name}を1${cup.unit}ふやす`}>
                   ＋
                 </button>
-              </>
+              </span>
             )}
             <button
               type="button"

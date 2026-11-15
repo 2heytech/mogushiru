@@ -269,7 +269,10 @@ export function Picker({
               className="flex min-h-10 min-w-0 items-center gap-1 rounded-full border border-coral bg-white pr-3 pl-3 text-xs font-bold whitespace-nowrap text-coral-ink shadow-sm transition hover:bg-coral/10 min-[360px]:pl-2"
             >
               <UiIcon name="load" className="hidden h-6 w-6 shrink-0 min-[360px]:block" />
-              理想の献立からえらぶ
+              {/* 幅のせまいスマホでは、枠に入るよう「理想の献立から」まで */}
+              <span>
+                理想の献立から<span className="max-[359px]:hidden">えらぶ</span>
+              </span>
             </button>
           )}
           <button type="button" onClick={onClose} className="grid h-11 w-11 shrink-0 place-items-center rounded-full hover:bg-white" aria-label="閉じる">
@@ -299,7 +302,7 @@ export function Picker({
               role="tab"
               aria-selected={tab === t.id}
               onClick={() => switchTab(t.id)}
-              className={`min-h-11 flex-1 rounded-full px-0.5 text-xs leading-tight whitespace-nowrap sm:px-1 sm:text-sm ${tab === t.id ? 'bg-coral font-bold text-ink-strong' : 'text-ink-soft'}`}
+              className={`min-h-11 flex-1 rounded-full px-0.5 text-xs leading-tight whitespace-nowrap max-[359px]:text-2xs max-[359px]:tracking-tighter sm:px-1 sm:text-sm ${tab === t.id ? 'bg-coral font-bold text-ink-strong' : 'text-ink-soft'}`}
             >
               {t.label}
               {counts && (

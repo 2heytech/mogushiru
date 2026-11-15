@@ -113,7 +113,7 @@ function MealRow({ slot, meal }: { slot: Slot; meal: MealFoods }) {
   const empty = BASIC_PARTS.every((p) => meal.servings[p] === 0) && meal.uncounted === 0 && meal.groups.size === 0
   const ok = BASIC_PARTS.every((p) => meal.servings[p] >= 1)
   return (
-    <li className="flex items-center gap-2">
+    <li className="flex flex-wrap items-center gap-x-2 gap-y-0.5 max-[359px]:gap-x-1">
       <span className="w-6 shrink-0 font-bold">{SLOT_LABEL[slot]}</span>
       {empty ? (
         <span className="text-sm text-ink-soft">まだ料理がありません</span>
@@ -125,7 +125,7 @@ function MealRow({ slot, meal }: { slot: Slot; meal: MealFoods }) {
               return (
                 <span
                   key={p}
-                  className={`rounded-full px-2.5 py-0.5 text-sm whitespace-nowrap ${n >= 1 ? 'bg-ok/25 font-bold text-ok-ink' : 'border border-dashed border-ink/20 bg-white/60 text-ink-soft'}`}
+                  className={`rounded-full px-2.5 py-0.5 text-sm whitespace-nowrap max-[359px]:px-1.5 ${n >= 1 ? 'bg-ok/25 font-bold text-ok-ink' : 'border border-dashed border-ink/20 bg-white/60 text-ink-soft'}`}
                 >
                   {MEAL_PART_LABEL[p]}
                   <span className="sr-only">{n >= 1 ? `あり（${n}つ）` : 'なし'}</span>
