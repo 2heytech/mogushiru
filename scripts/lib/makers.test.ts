@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { containerMl, isImplausible, toMakerProduct, type MakerLabel } from './makers'
+import { containerMl, isImplausible, normalizeJan, readMakerLabels, toMakerProduct, type MakerLabel } from './makers'
 
 const label = (over: Partial<MakerLabel>): MakerLabel => ({
   jan: '4900000000001',
@@ -24,6 +24,18 @@ describe('containerMl', () => {
     expect(containerMl('お茶　ペット　６００ｍｌ')).toBe(600)
     expect(containerMl('コーラ 1.5L')).toBe(1500)
     expect(containerMl('ポテトチップス 55g')).toBeUndefined()
+  })
+})
+
+describe('normalizeJan', () => {
+  it('JAN の中の空白をとる', () => {
+    expect(normalizeJan('4900000 000001')).toBe('4900000000001')
+    expect(normalizeJan(' 4900000　000001 ')).toBe('4900000000001')
+    expect(normalizeJan('maker-123')).toBe('maker-123')
+  })
+
+  it('収録しているメーカー品の JAN に空白はない（空白があると「メーカー品」のしぼりこみに出ない）', () => {
+    expect(readMakerLabels().filter((l) => /\s/.test(l.jan))).toEqual([])
   })
 })
 

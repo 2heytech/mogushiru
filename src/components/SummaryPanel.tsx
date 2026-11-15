@@ -180,8 +180,8 @@ export function DayInfo({
           )}
           {!profileSet && (
             <p>
-              <strong className="text-ink">プロフィール未設定・仮の目安（{DEFAULT_PROFILE_LABEL}）で計算中。</strong>
-              右上の「プロフィールを入れる」から変えられます。入れた内容は、このブラウザにのみ保存されます。
+              <strong className="text-ink">仮の目安（{DEFAULT_PROFILE_LABEL}）で計算中。</strong>
+              右上の「栄養の目安を設定」から変えられます。入れた内容は、このブラウザにのみ保存されます。
             </p>
           )}
         </div>
