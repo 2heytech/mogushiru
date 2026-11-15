@@ -84,7 +84,7 @@ export function FacetRow<T extends string>({
               aria-pressed={active}
               disabled={!active && o.count === 0}
               onClick={() => onChange(active ? null : o.key)}
-              className={`min-h-9 rounded-full border px-3 text-xs whitespace-nowrap transition disabled:opacity-40 ${
+              className={`min-h-11 rounded-full border px-3 text-xs whitespace-nowrap transition disabled:opacity-40 md:min-h-9 ${
                 active ? 'border-coral bg-coral/20 font-bold text-ink' : 'border-ink/10 bg-white text-ink'
               }`}
             >
@@ -106,6 +106,8 @@ export function IdealMenuList({ catalog, targets, storesLoaded, onLoad }: ListPr
   const [filters, setFilters] = useState<Filters>(NO_FILTERS)
   const [query, setQuery] = useState('')
   const [shown, setShown] = useState(PAGE)
+  // スマホでは、しぼりこみの条件をたたんでおく（候補の一覧を上に見せる）。「絞り込み」でひらく
+  const [filtersOpen, setFiltersOpen] = useState(false)
   // データにない市販品を使う献立は出さない（読み込み中は出しておく）
   const entries = useMemo<Entry[]>(
     () =>
@@ -137,6 +139,13 @@ export function IdealMenuList({ catalog, targets, storesLoaded, onLoad }: ListPr
   }
   // 1件もないジャンルは出さない（いまえらんでいるものは外せるように残す）
   const genres = options('genre', IDEAL_GENRES, (g) => g).filter((o) => o.key === filters.genre || entries.some((e) => e.menu.genre === o.key))
+  // えらんでいる条件（スマホで、たたんだままでも見えるように並べる。押すと外れる）
+  const picked: { key: keyof Filters; label: string }[] = [
+    ...(filters.genre ? [{ key: 'genre' as const, label: filters.genre }] : []),
+    ...(filters.breakfast ? [{ key: 'breakfast' as const, label: `朝：${BREAKFAST_LABEL[filters.breakfast]}` }] : []),
+    ...(filters.lunch ? [{ key: 'lunch' as const, label: `昼：${LUNCH_LABEL[filters.lunch]}` }] : []),
+    ...(filters.dinner ? [{ key: 'dinner' as const, label: `晩：${DINNER_LABEL[filters.dinner]}` }] : []),
+  ]
   return (
     <>
       {/* えらび方：食べたい料理でさがすか、ジャンルと朝・昼・晩の好みでしぼる */}
@@ -152,6 +161,43 @@ export function IdealMenuList({ catalog, targets, storesLoaded, onLoad }: ListPr
           placeholder="料理名でさがす（例：刺身、カツ）"
           className="min-h-11 w-full rounded-full border-2 border-white bg-white px-4 text-base outline-none focus:border-coral md:max-w-md"
         />
+        {/* スマホ：「絞り込み」と、えらんでいる条件、件数だけを出す */}
+        <div className="flex flex-wrap items-center gap-1.5 md:hidden">
+          <button
+            type="button"
+            aria-expanded={filtersOpen}
+            aria-controls="ideal-menu-filters"
+            onClick={() => setFiltersOpen((v) => !v)}
+            className={`flex min-h-11 items-center gap-1.5 rounded-full border px-3.5 text-sm font-bold whitespace-nowrap shadow-sm ${filtersOpen ? 'border-coral bg-coral/15 text-ink' : 'border-coral/60 bg-white text-coral-ink'}`}
+          >
+            <svg viewBox="0 0 20 20" aria-hidden className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+              <path d="M3 5h14M6 10h8M8.5 15h3" />
+            </svg>
+            絞り込み
+            <span aria-hidden>{filtersOpen ? '▴' : '▾'}</span>
+          </button>
+          {picked.map((f) => (
+            <button
+              key={f.key}
+              type="button"
+              onClick={() => change({ [f.key]: null })}
+              aria-label={`${f.label}の条件を外す`}
+              className="flex min-h-11 items-center gap-1 rounded-full border border-coral bg-coral/20 pr-2.5 pl-3 text-xs font-bold whitespace-nowrap"
+            >
+              {f.label}
+              <span aria-hidden className="text-sm text-ink-soft">
+                ×
+              </span>
+            </button>
+          ))}
+          {/* しぼっているときは、下の行に「32 件（81件中）」と解除のボタンを出す */}
+          {!narrowed && (
+            <span className="ml-auto text-xs whitespace-nowrap text-ink-soft" aria-hidden>
+              <strong className="text-sm text-ink tabular-nums">{list.length}</strong> 件
+            </span>
+          )}
+        </div>
+        <div id="ideal-menu-filters" className={`space-y-2 ${filtersOpen ? '' : 'hidden md:block'}`}>
         <FacetRow label="ジャンル" options={genres} value={filters.genre} onChange={(genre) => change({ genre })} />
         <div className="space-y-2 md:flex md:flex-wrap md:gap-x-4 md:gap-y-2 md:space-y-0">
           <FacetRow
@@ -176,13 +222,15 @@ export function IdealMenuList({ catalog, targets, storesLoaded, onLoad }: ListPr
             onChange={(dinner) => change({ dinner })}
           />
         </div>
+        </div>
       </div>
-      <p className="mb-2 flex min-h-6 items-center gap-2 text-xs text-ink-soft" aria-live="polite">
-        <span>
+      {/* 件数。スマホでは上の「絞り込み」の行に出すので、しぼっているときの「解除」だけ */}
+      <p className={`mb-2 min-h-6 items-center gap-2 text-xs text-ink-soft ${narrowed ? 'flex' : 'hidden md:flex'}`} aria-live="polite">
+        <span className={narrowed ? '' : 'max-md:sr-only'}>
           <strong className="text-sm text-ink tabular-nums">{list.length}</strong> 件{narrowed && `（${entries.length}件中）`}
         </span>
         {narrowed && (
-          <button type="button" onClick={clear} className="min-h-9 rounded-full bg-white px-3 font-bold text-coral-ink shadow-sm">
+          <button type="button" onClick={clear} className="min-h-11 rounded-full bg-white px-3 font-bold text-coral-ink shadow-sm md:min-h-9">
             しぼりこみを解除
           </button>
         )}
@@ -238,7 +286,7 @@ function IdealMenuCard({ ideal, found, catalog, targets, storesLoaded, onLoad }:
             {title}
             <p className="text-xs text-ink-soft">{ideal.lead}</p>
           </div>
-          <button type="button" disabled className="min-h-10 shrink-0 rounded-full bg-coral px-3.5 text-sm font-bold whitespace-nowrap text-ink-strong opacity-40">
+          <button type="button" disabled className="min-h-11 shrink-0 rounded-full bg-coral px-3.5 text-sm font-bold whitespace-nowrap text-ink-strong opacity-40">
             これにする
           </button>
         </div>
@@ -252,7 +300,7 @@ function IdealMenuCard({ ideal, found, catalog, targets, storesLoaded, onLoad }:
   const salt = summary.totals.day.values.salt
   const leads = idealMealLeads(ideal)
   const toggle = (
-    <button type="button" aria-expanded={open} onClick={() => setOpen((v) => !v)} className="min-h-9 shrink-0 rounded-full px-2 text-xs font-bold whitespace-nowrap text-coral-ink">
+    <button type="button" aria-expanded={open} onClick={() => setOpen((v) => !v)} className="min-h-11 shrink-0 rounded-full px-2 text-xs font-bold whitespace-nowrap text-coral-ink md:min-h-9">
       {open ? 'とじる ▴' : '中身を見る ▾'}
     </button>
   )
@@ -264,7 +312,7 @@ function IdealMenuCard({ ideal, found, catalog, targets, storesLoaded, onLoad }:
           type="button"
           onClick={() => onLoad(ideal, menu)}
           aria-label={`これにする：${ideal.name}`}
-          className="min-h-10 shrink-0 rounded-full bg-coral px-3.5 text-sm font-bold whitespace-nowrap text-ink-strong"
+          className="min-h-11 shrink-0 rounded-full bg-coral px-3.5 text-sm font-bold whitespace-nowrap text-ink-strong"
         >
           これにする
         </button>

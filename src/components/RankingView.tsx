@@ -187,7 +187,7 @@ export function RankingView({
                 onChange={(e) => (setQuery(e.target.value), reset())}
                 placeholder="食品名でしぼる"
                 aria-label="食品名でしぼる"
-                className="min-h-10 min-w-40 flex-1 rounded-full bg-white px-4 text-sm shadow-sm outline-coral"
+                className="min-h-11 min-w-40 flex-1 rounded-full bg-white px-4 text-sm shadow-sm outline-coral"
               />
               <label className="flex min-h-10 items-center gap-2 text-sm">
                 <input type="checkbox" checked={familiarOnly} onChange={(e) => (setFamiliarOnly(e.target.checked), reset())} className="h-4 w-4 accent-coral" />

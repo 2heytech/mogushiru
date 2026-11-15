@@ -47,7 +47,7 @@ export function PfcBars({ ideal, actual, thin }: { ideal: Record<PfcKey, number>
 export function GapBadge({ gap, compact = false }: { gap: number; compact?: boolean }) {
   const cls = gap === 0 ? 'bg-ok/20' : gap < 0 ? 'bg-coral/20' : 'bg-alert/20'
   return (
-    <span className={`rounded-full py-0.5 font-bold whitespace-nowrap ${compact ? 'px-1.5 text-[0.8125rem] sm:px-2 sm:text-2xs' : 'px-2 text-xs'} ${cls}`}>
+    <span className={`rounded-full py-0.5 font-bold whitespace-nowrap ${compact ? 'px-1.5 text-[0.8125rem] max-[359px]:px-1 max-[359px]:text-[0.75rem] sm:px-2 sm:text-2xs' : 'px-2 text-xs'} ${cls}`}>
       {gap === 0 && !compact ? '◎ ' : ''}
       {gapText(gap)}
     </span>

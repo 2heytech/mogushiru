@@ -25,7 +25,7 @@ export function PfcDangoView({ gaps, gramRanges }: { gaps: PfcGap[]; gramRanges:
       </div>
     ))
   return (
-    <div className="h-full rounded-2xl bg-white/70 p-3">
+    <div className="h-full rounded-2xl bg-white/70 p-3 max-[359px]:p-2">
       <div className="mb-1 flex items-baseline justify-between gap-2">
         <p className="text-sm font-bold">PFCバランス</p>
         <p className="flex items-center gap-1 text-2xs text-ink-soft">
@@ -48,8 +48,12 @@ export function PfcDangoView({ gaps, gramRanges }: { gaps: PfcGap[]; gramRanges:
           <p className="text-xl leading-none font-bold tabular-nums">{Math.round(g.ratio)}%</p>
         ))}
         {row((g) => (
-          <p className="text-2xs leading-tight whitespace-nowrap text-ink-soft tabular-nums">
-            目標 {g.range.lo}〜{g.range.hi}%
+          // せまい幅では「目標」のあとで折り返す
+          <p className="text-2xs leading-tight text-ink-soft tabular-nums">
+            <span className="inline-block">目標</span>{' '}
+            <span className="inline-block whitespace-nowrap">
+              {g.range.lo}〜{g.range.hi}%
+            </span>
           </p>
         ))}
         {row((g) => (
@@ -77,8 +81,11 @@ export function PfcDangoView({ gaps, gramRanges }: { gaps: PfcGap[]; gramRanges:
           ))}
           {row((g) => (
             <p className="text-2xs leading-tight text-ink-soft tabular-nums">
-              <span className="block whitespace-nowrap">
-                目標 {Math.round(gramRanges[g.key].lo)}〜{Math.round(gramRanges[g.key].hi)}g
+              <span className="block">
+                <span className="inline-block">目標</span>{' '}
+                <span className="inline-block whitespace-nowrap">
+                  {Math.round(gramRanges[g.key].lo)}〜{Math.round(gramRanges[g.key].hi)}g
+                </span>
               </span>
               <span className="block whitespace-nowrap">{Math.round(g.kcal).toLocaleString()} kcal</span>
             </p>

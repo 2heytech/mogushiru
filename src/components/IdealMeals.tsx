@@ -80,7 +80,7 @@ export function IdealMealList({ slot, catalog, targets, storesLoaded, onLoad }: 
         <p className="min-w-0 flex-1 pt-1 text-xs text-ink-soft">
           理想の献立から、{label}ごはんだけを入れます。量はプロフィールの目安に合わせます。
         </p>
-        <button type="button" aria-expanded={help} onClick={() => setHelp((v) => !v)} className="min-h-9 shrink-0 rounded-full px-2 text-xs font-bold whitespace-nowrap text-coral-ink">
+        <button type="button" aria-expanded={help} onClick={() => setHelp((v) => !v)} className="min-h-11 shrink-0 rounded-full px-2 text-xs font-bold whitespace-nowrap text-coral-ink">
           {help ? 'とじる' : 'くわしく'}
         </button>
       </div>
@@ -112,7 +112,7 @@ export function IdealMealList({ slot, catalog, targets, storesLoaded, onLoad }: 
           <strong className="text-sm text-ink tabular-nums">{list.length}</strong> 件{narrowed && `（${entries.length}件中）`}
         </span>
         {narrowed && (
-          <button type="button" onClick={clear} className="min-h-9 rounded-full bg-white px-3 font-bold text-coral-ink shadow-sm">
+          <button type="button" onClick={clear} className="min-h-11 rounded-full bg-white px-3 font-bold text-coral-ink shadow-sm">
             しぼりこみを解除
           </button>
         )}
@@ -195,7 +195,7 @@ export function IdealMealCard({
           // 見えている言葉を名前の中に入れる（音声で「これにする」と言って押せるように）
           aria-label={`${actionLabel}：${title}`}
           onClick={() => onLoad(title, items)}
-          className="min-h-10 shrink-0 rounded-full bg-coral px-3.5 text-sm font-bold whitespace-nowrap text-ink-strong disabled:opacity-40"
+          className="min-h-11 shrink-0 rounded-full bg-coral px-3.5 text-sm font-bold whitespace-nowrap text-ink-strong disabled:opacity-40"
         >
           {actionLabel}
         </button>

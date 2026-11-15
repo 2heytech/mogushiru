@@ -47,7 +47,7 @@ export function FoodBalanceView({ foods, targets }: { foods: DayFoods; targets: 
   const d = foods.day
   return (
     <div className="space-y-5">
-      <h2 className="hidden font-bold lg:block">食べもののバランス</h2>
+      <h2 className="font-bold">食べもののバランス</h2>
 
       {/* 広い画面では、主食・主菜・副菜と野菜・果物を横に並べる */}
       <div className="space-y-5 lg:grid lg:grid-cols-2 lg:gap-6 lg:space-y-0">

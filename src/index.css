@@ -77,7 +77,8 @@ body {
 /* 量のスライダー。ブラウザ任せだと線が黒っぽく太く出るので、やわらかい色にそろえる（--fill＝いまの位置） */
 input[type='range'].range {
   appearance: none;
-  height: 1.75rem;
+  /* 指で押しやすい高さ（44px）。線の太さは下で決める */
+  height: 2.75rem;
   background: transparent;
   cursor: pointer;
 }

@@ -114,7 +114,7 @@ export function SupplementForm({
             </fieldset>
           ))}
           {!more && (
-            <button type="button" onClick={() => setMore(true)} className="min-h-10 w-full rounded-full bg-white px-4 text-sm font-bold text-coral-ink">
+            <button type="button" onClick={() => setMore(true)} className="min-h-11 w-full rounded-full bg-white px-4 text-sm font-bold text-coral-ink">
               ＋ DHA・EPAやカロリーなども入れる
             </button>
           )}
