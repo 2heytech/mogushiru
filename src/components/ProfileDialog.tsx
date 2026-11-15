@@ -47,13 +47,13 @@ const sameShare = (a: Record<Slot, number>, b: Record<Slot, number>) => SLOTS.ev
 function SlotShareEditor({ value, onChange, dayKcal }: { value: Record<Slot, number>; onChange: (v: Record<Slot, number>) => void; dayKcal: number | null }) {
   const total = SLOTS.reduce((a, s) => a + value[s], 0)
   const step = (slot: Slot, d: number) => onChange({ ...value, [slot]: Math.min(100, Math.max(0, value[slot] + d)) })
-  const btn = 'grid h-9 w-9 shrink-0 place-items-center rounded-full bg-cream text-lg font-bold disabled:opacity-30'
+  const btn = 'grid h-11 w-11 shrink-0 place-items-center rounded-full bg-cream text-lg font-bold disabled:opacity-30'
   return (
-    <div className="rounded-2xl bg-white px-4 py-3">
-      <ul className="space-y-1.5">
+    <div className="rounded-2xl bg-white px-3 py-2.5">
+      <ul className="space-y-1">
         {SLOTS.map((slot) => (
-          <li key={slot} className="flex items-center gap-2 text-sm">
-            <span className="w-12 shrink-0">{SLOT_LABEL[slot]}</span>
+          <li key={slot} className="flex items-center gap-1.5 text-sm">
+            <span className="w-11 shrink-0 whitespace-nowrap">{SLOT_LABEL[slot]}</span>
             <button type="button" className={btn} aria-label={`${SLOT_LABEL[slot]}を減らす`} disabled={value[slot] <= 0} onClick={() => step(slot, -SHARE_STEP)}>
               −
             </button>
@@ -70,7 +70,7 @@ function SlotShareEditor({ value, onChange, dayKcal }: { value: Record<Slot, num
           合計 {total}%{total !== 100 && `（あと ${total < 100 ? `${100 - total}% 増やして` : `${total - 100}% 減らして`}ください）`}
         </span>
         {!sameShare(value, DEFAULT_SLOT_SHARE_PERCENT) && (
-          <button type="button" className="shrink-0 rounded-full bg-cream px-3 py-1" onClick={() => onChange(DEFAULT_SLOT_SHARE_PERCENT)}>
+          <button type="button" className="min-h-11 shrink-0 rounded-full bg-cream px-3" onClick={() => onChange(DEFAULT_SLOT_SHARE_PERCENT)}>
             はじめの配分に戻す
           </button>
         )}
@@ -154,6 +154,10 @@ export function ProfileDialog({
   const energy = basics ? expenditure(basics) : null
 
   const field = 'min-h-11 w-full rounded-2xl border-2 border-white bg-white px-4 text-base outline-none focus:border-coral'
+  // 追加の設定（運動・体重の目標・配分）は、スマホではたたんでおく（はじめは基本の3つだけ見せる）。
+  // その欄をひらくために来たとき（focus）と、もう何か入れてあるときは、はじめからひらく。広い画面は右の列にいつも出す
+  const [moreOpen, setMoreOpen] = useState(() => Boolean(focus) || (profile.exercises?.length ?? 0) > 0 || (profile.goal ?? 'keep') !== 'keep' || Boolean(profile.slotShare))
+  const heading = 'flex items-baseline gap-2 text-base font-bold'
 
   return (
     <div className="fixed inset-0 z-20 flex items-end bg-ink/30 md:items-center md:justify-center" onClick={onClose}>
@@ -162,104 +166,145 @@ export function ProfileDialog({
         tabIndex={-1}
         role="dialog"
         aria-modal="true"
-        aria-label="プロフィール"
-        className="outline-none max-h-[90vh] w-full overflow-y-auto rounded-t-[var(--radius-card)] bg-cream px-5 pb-5 shadow-xl md:max-w-md md:rounded-[var(--radius-card)]"
+        aria-label="栄養の目安を設定"
+        className="outline-none max-h-[90vh] w-full overflow-y-auto rounded-t-[var(--radius-card)] bg-cream px-5 pb-5 shadow-xl md:max-w-3xl md:rounded-[var(--radius-card)] lg:max-w-4xl"
         onClick={(e) => e.stopPropagation()}
       >
         {/* 見出しと×は、長い入力欄をスクロールしても上に残す */}
         <div className="sticky top-0 z-10 -mx-5 mb-1 flex items-center justify-between bg-cream px-5 pt-3 pb-1">
-          <h2 className="text-lg font-bold">プロフィール</h2>
+          <h2 className="text-lg font-bold">栄養の目安を設定</h2>
           <button type="button" onClick={onClose} className="-mr-2 grid h-11 w-11 shrink-0 place-items-center rounded-full hover:bg-white" aria-label="閉じる">
             ×
           </button>
         </div>
-        <p className="mb-4 text-xs text-ink-soft">目安のカロリーを計算するために使います。入力内容はこの端末のブラウザにだけ保存されます。</p>
-        <div className="space-y-4">
-          <div>
-            <p className="mb-1 text-sm">性別</p>
-            <Choice value={sex} onChange={setSex} options={[{ id: 'female', label: '女性' }, { id: 'male', label: '男性' }]} />
-          </div>
-          <div className="grid grid-cols-3 gap-2">
-            <label className="text-sm">
-              年齢
-              <input className={field} inputMode="numeric" value={age} onChange={(e) => setAge(e.target.value)} />
-            </label>
-            <label className="text-sm">
-              身長(cm)
-              <input className={field} inputMode="decimal" value={height} onChange={(e) => setHeight(e.target.value)} placeholder="任意" />
-            </label>
-            <label className="text-sm">
-              体重(kg)
-              <input className={field} inputMode="decimal" value={weight} onChange={(e) => setWeight(e.target.value)} placeholder="任意" />
-            </label>
-          </div>
-          {(!heightOk || !weightOk) && (
-            <p className="text-xs font-bold text-alert-ink">
-              {!heightOk && `身長は${BODY_LIMIT.heightCm.min}〜${BODY_LIMIT.heightCm.max}cm`}
-              {!heightOk && !weightOk && '、'}
-              {!weightOk && `体重は${BODY_LIMIT.weightKg.min}〜${BODY_LIMIT.weightKg.max}kg`}
-              の数字で入れてください（空のままでもかまいません）
-            </p>
-          )}
-          {ageNum !== undefined && ageNum < MIN_SUPPORTED_AGE && (
-            <p className="text-xs text-ink-soft">※ {MIN_SUPPORTED_AGE}歳未満の方は、成長に必要な分を含めた計算に対応していないため、{MIN_SUPPORTED_AGE}歳の目安で表示します。</p>
-          )}
-          {askMenstruation && (
+        <p className="mb-4 text-xs text-pretty text-ink-soft">年齢や体の大きさから、1日のカロリーと栄養の目安を計算します。入れた内容は、この端末のブラウザにだけ保存されます。</p>
+        {/* 広い画面は、左に基本の設定、右に追加の設定 */}
+        <div className="space-y-5 md:grid md:grid-cols-2 md:items-start md:gap-x-6 md:space-y-0">
+          <section aria-labelledby="profile-basic-title" className="space-y-4">
+            <h3 id="profile-basic-title" className={heading}>
+              基本の設定
+              <span className="text-xs font-normal text-ink-soft">まずはここだけ</span>
+            </h3>
             <div>
-              <p className="mb-1 text-sm">月経</p>
-              <Choice
-                value={menstruationValue ? 'yes' : 'no'}
-                onChange={(v) => setMenstruation(v === 'yes')}
-                options={[
-                  { id: 'yes', label: 'あり' },
-                  { id: 'no', label: 'なし' },
-                ]}
-              />
-              <p className="mt-1 text-2xs text-ink-soft">鉄の目安を選ぶために使います（月経ありのほうが多くなります）</p>
+              <p className="mb-1 text-sm">性別</p>
+              <Choice value={sex} onChange={setSex} options={[{ id: 'female', label: '女性' }, { id: 'male', label: '男性' }]} />
             </div>
-          )}
-          <div>
-            <p className="mb-1 text-sm">ふだんの活動量</p>
-            <Choice value={activity} onChange={setActivity} options={activityOptions(exercises.length > 0)} />
-          </div>
-          <div ref={exerciseRef} className="scroll-mt-4">
-            <p className="mb-1 text-sm">ふだんの運動（任意）</p>
-            <ExerciseEditor value={exercises} onChange={setExercises} weightKg={energy?.weightKg ?? 60} />
-            <p className="mt-1 text-2xs text-ink-soft">
-              {exercises.length > 0 && energy
-                ? `運動で 1日あたり 約${Math.round(energy.exercise).toLocaleString()} kcal（週の回数でならした分）を足します。通勤や家事の動きは「ふだんの活動量」に入っています。`
-                : '続けている運動を入れると、使うカロリーに足して計算します。通勤や家事の動きは「ふだんの活動量」に入っています。'}
-            </p>
-          </div>
-          <div>
-            <p className="mb-1 text-sm">体重の目標</p>
-            <Choice value={goal} onChange={setGoal} options={GOAL} />
-          </div>
-          <div ref={slotShareRef}>
-            <p className="mb-1 text-sm">朝・昼・晩・その他の配分</p>
-            <SlotShareEditor value={slotShare} onChange={setSlotShare} dayKcal={dayKcal} />
-            <p className="mt-1 text-2xs text-ink-soft">1日の目安をこの割合で分けて、区分ごとのカロリーや栄養素の目安にします</p>
-          </div>
-          {preview && (
-            <p className="rounded-2xl bg-white px-4 py-3 text-sm">
-              1日の目安：<strong className="text-lg">{preview.energyKcal.toLocaleString()} kcal</strong>
-              {preview.usedReferenceWeight && <span className="block text-xs text-ink-soft">体重が未入力のため、年齢・性別の標準的な体重で計算しています</span>}
-            </p>
-          )}
+            <div className="grid grid-cols-3 gap-2">
+              <label className="text-sm">
+                年齢
+                <input className={field} inputMode="numeric" value={age} onChange={(e) => setAge(e.target.value)} />
+              </label>
+              <label className="text-sm">
+                身長(cm)
+                <input className={field} inputMode="decimal" value={height} onChange={(e) => setHeight(e.target.value)} placeholder="任意" />
+              </label>
+              <label className="text-sm">
+                体重(kg)
+                <input className={field} inputMode="decimal" value={weight} onChange={(e) => setWeight(e.target.value)} placeholder="任意" />
+              </label>
+            </div>
+            {/* 体重が空のときは、何で計算しているかを欄のすぐ下に（下の「1日の目安」は短くしておく） */}
+            {preview?.usedReferenceWeight && heightOk && weightOk && (
+              <p className="-mt-2 text-2xs leading-snug text-ink-soft">体重が未入力のため、年齢・性別の標準的な体重で計算しています</p>
+            )}
+            {(!heightOk || !weightOk) && (
+              <p className="text-xs font-bold text-alert-ink">
+                {!heightOk && `身長は${BODY_LIMIT.heightCm.min}〜${BODY_LIMIT.heightCm.max}cm`}
+                {!heightOk && !weightOk && '、'}
+                {!weightOk && `体重は${BODY_LIMIT.weightKg.min}〜${BODY_LIMIT.weightKg.max}kg`}
+                の数字で入れてください（空のままでもかまいません）
+              </p>
+            )}
+            {ageNum !== undefined && ageNum < MIN_SUPPORTED_AGE && (
+              <p className="text-xs text-ink-soft">※ {MIN_SUPPORTED_AGE}歳未満の方は、成長に必要な分を含めた計算に対応していないため、{MIN_SUPPORTED_AGE}歳の目安で表示します。</p>
+            )}
+            {askMenstruation && (
+              <div>
+                <p className="mb-1 text-sm">月経</p>
+                <Choice
+                  value={menstruationValue ? 'yes' : 'no'}
+                  onChange={(v) => setMenstruation(v === 'yes')}
+                  options={[
+                    { id: 'yes', label: 'あり' },
+                    { id: 'no', label: 'なし' },
+                  ]}
+                />
+                <p className="mt-1 text-2xs text-ink-soft">鉄の目安を選ぶために使います（月経ありのほうが多くなります）</p>
+              </div>
+            )}
+            <div>
+              <p className="mb-1 text-sm">ふだんの活動量</p>
+              <Choice value={activity} onChange={setActivity} options={activityOptions(exercises.length > 0)} />
+            </div>
+          </section>
+
+          <section aria-labelledby="profile-more-title" className="space-y-4">
+            <h3 id="profile-more-title" className={`${heading} max-md:hidden`}>
+              追加の設定
+              <span className="text-xs font-normal text-ink-soft">必要な人だけ</span>
+            </h3>
+            {/* スマホ：押すとひらく */}
+            <button
+              type="button"
+              aria-expanded={moreOpen}
+              aria-controls="profile-more"
+              onClick={() => setMoreOpen((v) => !v)}
+              className="flex min-h-12 w-full items-center gap-2 rounded-2xl bg-white px-4 text-left shadow-sm md:hidden"
+            >
+              <span className="min-w-0 flex-1">
+                <span className="block text-base font-bold">追加の設定</span>
+                <span className="block text-xs text-ink-soft">運動・体重の目標・朝昼晩の配分</span>
+              </span>
+              <span aria-hidden className={`shrink-0 text-xs text-coral-ink transition ${moreOpen ? 'rotate-180' : ''}`}>
+                ▼
+              </span>
+            </button>
+            <div id="profile-more" className={`space-y-4 ${moreOpen ? '' : 'max-md:hidden'}`}>
+              <div ref={exerciseRef} className="scroll-mt-16">
+                <p className="mb-1 text-sm">ふだんの運動（任意）</p>
+                <ExerciseEditor value={exercises} onChange={setExercises} weightKg={energy?.weightKg ?? 60} />
+                <p className="mt-1 text-2xs text-ink-soft">
+                  {exercises.length > 0 && energy
+                    ? `運動で 1日あたり 約${Math.round(energy.exercise).toLocaleString()} kcal（週の回数でならした分）を足します。通勤や家事の動きは「ふだんの活動量」に入っています。`
+                    : '続けている運動を入れると、使うカロリーに足して計算します。通勤や家事の動きは「ふだんの活動量」に入っています。'}
+                </p>
+              </div>
+              <div>
+                <p className="mb-1 text-sm">体重の目標</p>
+                <Choice value={goal} onChange={setGoal} options={GOAL} />
+              </div>
+              <div ref={slotShareRef} className="scroll-mt-16">
+                <p className="mb-1 text-sm">朝・昼・晩・その他の配分</p>
+                <SlotShareEditor value={slotShare} onChange={setSlotShare} dayKcal={dayKcal} />
+                <p className="mt-1 text-2xs text-ink-soft">1日の目安をこの割合で分けて、区分ごとのカロリーや栄養素の目安にします</p>
+              </div>
+            </div>
+          </section>
         </div>
-        {/* 保存・キャンセルは、長い入力欄をスクロールしても画面の下に出しておく */}
-        <div className="sticky -bottom-5 -mx-5 -mb-5 mt-5 flex gap-2 border-t border-ink/5 bg-cream px-5 pt-3 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
-          <button type="button" onClick={onClose} className="min-h-11 flex-1 rounded-full bg-white">
-            キャンセル
-          </button>
-          <button
-            type="button"
-            disabled={!draft}
-            onClick={() => draft && onSave(draft)}
-            className="min-h-11 flex-1 rounded-full bg-coral font-bold text-ink-strong disabled:opacity-50"
-          >
-            保存
-          </button>
+        {/* 計算した目安と、保存・キャンセルは、長い入力欄をスクロールしても画面の下に出しておく（入れた数字で目安がどう変わるかを、すぐ見られるように） */}
+        <div className="sticky -bottom-5 -mx-5 -mb-5 mt-5 border-t border-ink/5 bg-cream px-5 pt-2.5 pb-[max(1.25rem,env(safe-area-inset-bottom))] md:flex md:items-center md:gap-4">
+          <p className="mb-1.5 min-w-0 flex-1 text-sm md:mb-0" aria-live="polite">
+            {preview ? (
+              <>
+                1日の目安：<strong className="text-lg tabular-nums">{preview.energyKcal.toLocaleString()} kcal</strong>
+              </>
+            ) : (
+              <span className="text-xs font-bold text-alert-ink">{!ageOk ? '年齢を1〜120の数字で入れてください' : !shareOk ? '配分の合計を100%にしてください' : '入力した内容をたしかめてください'}</span>
+            )}
+          </p>
+          <div className="flex gap-2 md:w-80 md:shrink-0">
+            <button type="button" onClick={onClose} className="min-h-11 flex-1 rounded-full bg-white">
+              キャンセル
+            </button>
+            <button
+              type="button"
+              disabled={!draft}
+              onClick={() => draft && onSave(draft)}
+              className="min-h-11 flex-1 rounded-full bg-coral font-bold text-ink-strong disabled:opacity-50"
+            >
+              保存
+            </button>
+          </div>
         </div>
       </div>
     </div>

@@ -20,6 +20,9 @@ import { nutrientPagePath } from '../routes'
 
 const PAGE = 30
 
+// 一覧の見出しに出す、くらべる単位
+const METRIC_BASIS: Record<RankingMetric, string> = { serving: '1回に食べる量あたり', per100g: '100gあたり', per100kcal: '100kcalあたり', per100yen: '100円あたり' }
+
 // 数字のキーは Object.entries で順番が崩れるので食品群番号で並べ直す
 const FOOD_GROUPS = Object.entries(FOOD_GROUP_LABEL).sort(([a], [b]) => a.localeCompare(b))
 
@@ -29,7 +32,7 @@ function Chip({ active, onClick, children }: { active: boolean; onClick: () => v
       type="button"
       aria-pressed={active}
       onClick={onClick}
-      className={`min-h-9 shrink-0 whitespace-nowrap rounded-full px-3 text-sm transition lg:min-h-8 lg:px-2.5 lg:text-[13px] ${active ? 'bg-coral font-bold text-ink-strong' : 'bg-white text-ink shadow-sm'}`}
+      className={`min-h-11 shrink-0 whitespace-nowrap rounded-full px-3 text-sm transition lg:min-h-8 lg:px-2.5 lg:text-xs ${active ? 'bg-coral font-bold text-ink-strong' : 'bg-white text-ink shadow-sm'}`}
     >
       {children}
     </button>
@@ -87,7 +90,10 @@ export function RankingView({
   return (
     <section aria-labelledby="ranking-title" className="space-y-4">
       <div>
-        <h2 id="ranking-title" className="text-xl font-bold">食品成分ランキング</h2>
+        <h2 id="ranking-title" className="text-xl font-bold">
+          食品を調べる
+          <span className="block text-sm font-normal text-ink-soft sm:ml-2 sm:inline">成分の多い順のランキング</span>
+        </h2>
         <p className="mt-1 text-sm text-ink-soft">
           肉・魚・野菜・調味料などの食品（料理ではなく材料）を、成分の多い順に並べます。
           {info.caution ? `いまは${info.label}が多い食品。とりすぎに気をつけたいときの目安にどうぞ。` : `いまは${info.label}をとりやすい食品の順です。`}
@@ -147,7 +153,7 @@ export function RankingView({
             aria-expanded={filtersOpen}
             aria-controls="ranking-filters"
             onClick={() => setFiltersOpen(!filtersOpen)}
-            className="flex min-h-10 w-full items-center gap-2 rounded-full bg-cream px-4 text-left text-sm lg:hidden"
+            className="flex min-h-11 w-full items-center gap-2 rounded-full bg-cream px-4 text-left text-sm lg:hidden"
           >
             <span className="shrink-0 font-bold">しぼりこみ</span>
             <span className="min-w-0 flex-1 truncate text-xs text-ink-soft">{filterSummary}</span>
@@ -189,8 +195,8 @@ export function RankingView({
                 aria-label="食品名でしぼる"
                 className="min-h-11 min-w-40 flex-1 rounded-full bg-white px-4 text-sm shadow-sm outline-coral"
               />
-              <label className="flex min-h-10 items-center gap-2 text-sm">
-                <input type="checkbox" checked={familiarOnly} onChange={(e) => (setFamiliarOnly(e.target.checked), reset())} className="h-4 w-4 accent-coral" />
+              <label className="flex min-h-11 items-center gap-2 text-sm">
+                <input type="checkbox" checked={familiarOnly} onChange={(e) => (setFamiliarOnly(e.target.checked), reset())} className="h-5 w-5 accent-coral" />
                 よく使う食品だけ
               </label>
             </div>
@@ -216,12 +222,40 @@ export function RankingView({
             </div>
             <p className="min-w-0 flex-1 text-xs text-ink-soft">{metrics.find((m) => m.key === activeMetric)?.hint}</p>
           </div>
-          {activeMetric === 'serving' && (
-            <p className="text-xs text-ink-soft">
-              {SERVING_NOTE}
-              {ref && `％は${ref.kind === 'max' ? '1日の上限' : '1日の目安'}（${fmt(ref.value)}${info.unit}）に対する割合です。`}
-            </p>
-          )}
+          {/* 何を・どの単位でくらべているかと、棒の長さの意味を、一覧のすぐ上に書く。％と「1回の量」の説明は「数字の見方」でひらく */}
+          <div className="rounded-2xl bg-white/70 px-4 py-2">
+            <h3 className="text-base leading-snug font-bold">
+              <span className="inline-block">{info.label}の多い順</span>
+              <span className="inline-block text-sm font-normal text-ink-soft">
+                （{METRIC_BASIS[activeMetric]}・単位 {info.unit}）
+              </span>
+            </h3>
+            <div className="flex flex-wrap items-center gap-x-3">
+              <p className="flex min-w-0 items-center gap-1.5 text-xs text-ink-soft">
+                <span className={`inline-block h-2 w-6 shrink-0 rounded-full ${info.caution ? 'bg-caution' : 'bg-ok'}`} aria-hidden />
+                棒の長さは、1位の食品とくらべた割合
+              </p>
+              {activeMetric === 'serving' && (
+                <details className="group/help min-w-0 text-xs text-ink-soft">
+                  <summary className="flex min-h-11 w-fit cursor-pointer list-none items-center gap-1 font-bold text-coral-ink lg:min-h-8 [&::-webkit-details-marker]:hidden">
+                    数字の見方
+                    <span aria-hidden className="text-2xs transition-transform group-open/help:rotate-180">
+                      ▼
+                    </span>
+                  </summary>
+                  <div className="space-y-1 pb-1.5">
+                    {ref && (
+                      <p>
+                        「{ref.kind === 'max' ? '上限' : '目安'}の◯%」は、あなたの{ref.kind === 'max' ? '1日の上限' : '1日の目安'}（{fmt(ref.value)}
+                        {info.unit}）に対する割合です。
+                      </p>
+                    )}
+                    <p>{SERVING_NOTE}</p>
+                  </div>
+                </details>
+              )}
+            </div>
+          </div>
 
           {rows.length === 0 ? (
             <p className="rounded-xl bg-white px-4 py-6 text-center text-sm text-ink-soft">条件に合う食品がありません</p>
@@ -229,14 +263,13 @@ export function RankingView({
             <ol className="space-y-2">
               {rows.slice(0, limit).map((r, i) => {
                 const pct = ref ? (r.servingAmount / ref.value) * 100 : null
+                const official = r.food.name.replace(/　/g, ' ')
                 return (
                   <li key={r.food.id} className="flex items-center gap-3 rounded-2xl bg-white px-3 py-2.5 shadow-sm">
                     <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-full text-sm font-bold ${i < 3 ? 'bg-coral text-ink-strong' : 'bg-cream text-ink-soft'}`}>{i + 1}</span>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-baseline justify-between gap-2">
-                        <p className="min-w-0 font-bold max-sm:line-clamp-2 sm:truncate" title={r.food.name.replace(/　/g, ' ')}>
-                          {r.food.displayName}
-                        </p>
+                        <p className="min-w-0 font-bold max-sm:line-clamp-2 sm:truncate">{r.food.displayName}</p>
                         <p className="shrink-0 text-sm">
                           <strong>{fmt(r.value)}</strong>
                           <span className="text-xs text-ink-soft">
@@ -255,6 +288,12 @@ export function RankingView({
                         {pct !== null && <>・{ref?.kind === 'max' ? '上限' : '目安'}の {pct >= 10 ? Math.round(pct) : pct.toFixed(1)}%</>}
                         {r.yenPer100g !== undefined && <>・100gで約{Math.round(r.yenPer100g)}円</>}
                       </p>
+                      {/* 上の名前はふだんの呼び名。成分表での正式な名前は、補足として小さく添える */}
+                      {official !== r.food.displayName && (
+                        <p className="truncate text-2xs text-ink-soft" title={official}>
+                          成分表の名前：{official}
+                        </p>
+                      )}
                     </div>
                   </li>
                 )

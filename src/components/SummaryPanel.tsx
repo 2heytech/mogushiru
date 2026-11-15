@@ -310,7 +310,7 @@ export function DayInfo({
           </div>
           {/* 栄養素の一覧は長いので、右の列にこれだけを置く（左の3つと高さが近くなる） */}
           <div ref={nutrientsRef} className={`${CARD} scroll-mt-4`}>
-            {hasAny ? <NutrientChecks checks={checks} defaultOpen /> : <Empty />}
+            {hasAny ? <NutrientChecks checks={checks} defaultOpen onRanking={onStep && ((key) => onStep({ kind: 'ranking', key }))} /> : <Empty />}
           </div>
         </div>
 

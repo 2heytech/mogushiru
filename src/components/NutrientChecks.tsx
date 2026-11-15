@@ -8,6 +8,7 @@ import {
   type CheckStatus,
   type NutrientCheck,
 } from '../domain/nutrientChecks'
+import { RANKING_NUTRIENTS } from '../domain/ranking'
 import type { CheckedNutrient } from '../domain/targets'
 import { SLOT_ENERGY_SHARE } from '../domain/slotBalance'
 import { SLOTS, type Slot } from '../domain/types'
@@ -65,7 +66,11 @@ function goalText(c: NutrientCheck, perSlot: boolean): string {
 // 達成の割合。0 でない少量は 1% と出す（0% に見えて「とれていない」と誤解されないように）
 const pct = (p: number) => (p > 0 && p < 1 ? 1 : Math.round(p))
 
-function CheckRow({ c, perSlot }: { c: NutrientCheck; perSlot: boolean }) {
+// 食品のランキングがある栄養素（アルコールなどはない）
+const HAS_RANKING = new Set<string>(RANKING_NUTRIENTS.map((n) => n.key))
+
+// onRanking：行を押すと、その栄養素の多い食品のランキングへ移る（ランキングがある栄養素だけ）
+function CheckRow({ c, perSlot, onRanking }: { c: NutrientCheck; perSlot: boolean; onRanking?: (key: CheckedNutrient) => void }) {
   const { label, unit } = NUTRIENT_INFO[c.key]
   // 目安の線を 2/3 の位置に置き、目安の 1.5 倍までを描く
   const scale = c.goal ? Math.min(c.amount / c.goal, 1.5) / 1.5 : 0
@@ -73,25 +78,31 @@ function CheckRow({ c, perSlot }: { c: NutrientCheck; perSlot: boolean }) {
   const status = statusText(c)
   // 達成・OK は小さな印だけにして、足りない・こえているものだけ言葉で目立たせる
   const quiet = c.status === 'ok'
-  return (
-    <li>
-      <div className="flex flex-wrap items-baseline justify-between gap-x-2">
+  const linked = onRanking && HAS_RANKING.has(c.key)
+  const body = (
+    <>
+      <span className="flex flex-wrap items-baseline justify-between gap-x-2">
         <span className="leading-snug">
           {label}
           {c.partial && <span className="text-ink-soft" title="成分が未収録の食品を含みます">※</span>}
+          {linked && (
+            <span aria-hidden className="ml-1 font-bold text-coral-ink">
+              ›
+            </span>
+          )}
         </span>
         <span className="ml-auto text-right whitespace-nowrap tabular-nums">
           <strong className="text-sm">{fmt(c.key, c.amount)}</strong>
           <span className="text-ink-soft">{unit}</span>
           {goal && <span className="ml-1.5 text-2xs text-ink-soft">／ {goal}</span>}
         </span>
-      </div>
+      </span>
       {c.goal && c.percent !== null ? (
-        <div className="mt-1 flex items-center gap-2">
-          <div className="relative h-2 flex-1 rounded-full bg-ink/10" aria-hidden>
-            <div className={`h-full rounded-full transition-all duration-500 ${BAR_COLOR[c.status]}`} style={{ width: `${scale * 100}%` }} />
-            <div className="absolute -inset-y-0.5 left-2/3 w-0.5 rounded-full bg-ink/40" />
-          </div>
+        <span className="mt-1 flex items-center gap-2">
+          <span className="relative block h-2 flex-1 rounded-full bg-ink/10" aria-hidden>
+            <span className={`block h-full rounded-full transition-all duration-500 ${BAR_COLOR[c.status]}`} style={{ width: `${scale * 100}%` }} />
+            <span className="absolute -inset-y-0.5 left-2/3 w-0.5 rounded-full bg-ink/40" />
+          </span>
           <span className="w-9 shrink-0 text-right text-xs leading-none font-bold tabular-nums" aria-label={`${c.target.kind === 'max' ? '上限' : '目安'}の${pct(c.percent)}%`}>
             {pct(c.percent)}%
           </span>
@@ -104,12 +115,27 @@ function CheckRow({ c, perSlot }: { c: NutrientCheck; perSlot: boolean }) {
               <span className={`rounded-full px-2 py-0.5 text-2xs leading-tight font-bold whitespace-nowrap ${CHIP[c.status]}`}>{status}</span>
             )}
           </span>
-        </div>
+        </span>
       ) : null}
       {c.upperScope === 'supplement' && c.upper !== null && c.upperAmount > 0 && (
         <span className="block text-2xs text-ink-soft tabular-nums">
           サプリ {fmt(c.key, c.upperAmount)}・上限 {fmt(c.key, c.upper)}
         </span>
+      )}
+    </>
+  )
+  if (!onRanking) return <li>{body}</li>
+  // ランキングへ移れる一覧では、押せない行（アルコールなど）も同じ余白にして、行の位置をそろえる
+  const box = '-mx-1.5 flex min-h-11 w-[calc(100%+0.75rem)] flex-col justify-center rounded-lg px-1.5 py-1 text-left'
+  return (
+    <li>
+      {linked ? (
+        <button type="button" onClick={() => onRanking(c.key)} className={`${box} transition hover:bg-white/80 focus-visible:bg-white/80`}>
+          {body}
+          <span className="sr-only">（押すと、{label}の多い食品のランキングへ）</span>
+        </button>
+      ) : (
+        <span className={box}>{body}</span>
       )}
     </li>
   )
@@ -128,12 +154,14 @@ function Group({
   keys,
   checks,
   perSlot,
+  onRanking,
 }: {
   kind: keyof typeof GROUP_STYLE
   title: string
   keys: readonly CheckedNutrient[]
   checks: NutrientCheck[]
   perSlot: boolean
+  onRanking?: (key: CheckedNutrient) => void
 }) {
   const rows = keys.map((k) => checks.find((c) => c.key === k)!).filter((c) => !(perSlot && ((c.key === 'alcohol' && c.amount < 0.5) || (c.key === 'caffeine' && c.amount < 1))))
   const st = GROUP_STYLE[kind]
@@ -146,9 +174,9 @@ function Group({
           <span className="block text-2xs text-ink-soft">{st.note}</span>
         </span>
       </h3>
-      <ul className="space-y-2.5 text-xs">
+      <ul className={`text-xs ${onRanking ? 'space-y-0.5' : 'space-y-2.5'}`}>
         {rows.map((c) => (
-          <CheckRow key={c.key} c={c} perSlot={perSlot} />
+          <CheckRow key={c.key} c={c} perSlot={perSlot} onRanking={onRanking} />
         ))}
       </ul>
     </section>
@@ -162,11 +190,14 @@ export function NutrientChecks({
   perSlot = false,
   slotShare,
   defaultOpen = false,
+  onRanking,
 }: {
   checks: NutrientCheck[]
   perSlot?: boolean
   slotShare?: Record<Slot, number>
   defaultOpen?: boolean
+  // 栄養素の行を押したとき、その栄養素の多い食品のランキングへ移る（1日のまとめだけ）
+  onRanking?: (key: CheckedNutrient) => void
 }) {
   const s = summarizeChecks(checks)
   // 区分カードでは混み合わないよう、こえているものだけ数を出す
@@ -220,9 +251,14 @@ export function NutrientChecks({
             ))}
           </p>
         )}
-        <Group kind="limit" title="とりすぎに気をつけたい" keys={LIMIT_NUTRIENTS} checks={checks} perSlot={perSlot} />
-        <Group kind="want" title="しっかりとりたい" keys={WANT_NUTRIENTS} checks={checks} perSlot={perSlot} />
-        <Group kind="info" title="基準のないもの" keys={INFO_NUTRIENTS} checks={checks} perSlot={perSlot} />
+        {onRanking && (
+          <p className="text-xs text-ink-soft">
+            栄養素を押すと、その成分の多い食品が見られます<span aria-hidden>（<strong className="text-coral-ink">›</strong> の付いたもの）</span>
+          </p>
+        )}
+        <Group kind="limit" title="とりすぎに気をつけたい" keys={LIMIT_NUTRIENTS} checks={checks} perSlot={perSlot} onRanking={onRanking} />
+        <Group kind="want" title="しっかりとりたい" keys={WANT_NUTRIENTS} checks={checks} perSlot={perSlot} onRanking={onRanking} />
+        <Group kind="info" title="基準のないもの" keys={INFO_NUTRIENTS} checks={checks} perSlot={perSlot} onRanking={onRanking} />
         {/* 出典と注意書きは長いので畳んでおく */}
         <details className="group/notes text-2xs leading-relaxed text-ink-soft">
           <summary className="flex min-h-9 cursor-pointer list-none items-center gap-1 font-bold [&::-webkit-details-marker]:hidden">
@@ -235,7 +271,7 @@ export function NutrientChecks({
             {perSlot ? (
               <p>
                 区分の目安は、1日の目安を{SLOTS.map((s) => `${SLOT_LABEL[s]}${Math.round((slotShare ?? SLOT_ENERGY_SHARE)[s] * 100)}%`).join('・')}
-                で分けた値です（プロフィールで変えられます。アルコール・カフェインは1日の値）。
+                で分けた値です（右上の「栄養の目安を設定」で変えられます。アルコール・カフェインは1日の値）。
               </p>
             ) : (
               <p>目安は「日本人の食事摂取基準（2025年版）」の推奨量・目安量・目標量、アルコールは「健康に配慮した飲酒に関するガイドライン」の値です。</p>
