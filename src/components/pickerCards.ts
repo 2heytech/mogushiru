@@ -119,7 +119,7 @@ function entries(kind: Kind, { catalog, slot, query, category, showAlcohol, favo
   }
 }
 
-function dishCard(d: Dish): Card {
+export function dishCard(d: Dish): Card {
   return {
     key: `dish:${d.id}`,
     kind: 'dish',
@@ -131,7 +131,7 @@ function dishCard(d: Dish): Card {
   }
 }
 
-function productCard(p: Product): Card {
+export function productCard(p: Product): Card {
   // 1食量が分かれば1食分、分からなければ100g(mL)で追加する
   const grams = p.servingGrams ?? 100
   const per = p.basis === 'serving' ? 1 : grams / 100
@@ -146,7 +146,7 @@ function productCard(p: Product): Card {
   }
 }
 
-function myDishCard(d: MyDish, catalog: Catalog): Card {
+export function myDishCard(d: MyDish, catalog: Catalog): Card {
   // 保存したときの人前で追加する
   const portion = d.portion ?? 1
   const item = { kind: 'myDish', refId: d.id, portion } as const

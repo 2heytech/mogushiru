@@ -78,6 +78,12 @@ export function matcher(query: string): (...fields: (string | undefined)[]) => b
   return q ? (...fields) => rankOf(q, fields) !== null : () => true
 }
 
+// 同じ検索語でたくさんの候補の一致の度合いを調べるとき用（matchRank と同じ結果。検索語の正規化を1回だけにする）
+export function ranker(query: string): (...fields: (string | undefined)[]) => number | null {
+  const q = normalizeForSearch(query)
+  return q ? (...fields) => rankOf(q, fields) : () => 0
+}
+
 // 短い検索語（2文字以下）の途中一致は誤ヒットが多い（例：「つな」で「こまつな」）ので、
 // 先頭一致が1件でもあれば途中一致は出さない
 export const SHORT_QUERY_LENGTH = 2

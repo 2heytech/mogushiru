@@ -4,7 +4,7 @@ import { PFC_COLOR, PFC_LABEL } from './labels'
 
 const SHORT: Record<PfcKey, string> = { p: 'P', f: 'F', c: 'C' }
 
-function StackedBar({ ratio, thin }: { ratio: Record<PfcKey, number>; thin?: boolean }) {
+export function StackedBar({ ratio, thin }: { ratio: Record<PfcKey, number>; thin?: boolean }) {
   return (
     <div className={`flex overflow-hidden rounded-full font-bold text-ink-strong ${thin ? 'h-3' : 'h-5 text-2xs'}`}>
       {(['p', 'f', 'c'] as const).map((k) => (

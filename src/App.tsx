@@ -57,7 +57,7 @@ const ICON_CLASS = 'h-6 w-6 shrink-0 sm:h-9 sm:w-9 lg:h-7 lg:w-7 xl:h-9 xl:w-9'
 // 名前は、幅320pxのスマホでも3つ並んで収まる短さにする（「1日の栄養バランスを確認」→「栄養バランス」など）
 const FEATURES: { view: View; icon: ReactNode; title: string; lead: string }[] = [
   { view: 'menu', icon: <UiIcon name="menu" className={ICON_CLASS} />, title: '栄養|バランス', lead: '朝・昼・晩の料理を選んで確かめる' },
-  { view: 'ranking', icon: <UiIcon name="ranking" className={ICON_CLASS} />, title: '食品を|調べる', lead: '成分の多い食品をさがす' },
+  { view: 'ranking', icon: <UiIcon name="ranking" className={ICON_CLASS} />, title: '食品を|調べる', lead: '名前でさがす・成分の多い順に見る' },
   { view: 'customize', icon: <CustomizeIcon className={ICON_CLASS} />, title: '料理を|アレンジ', lead: '人前や材料の量を変えて保存' },
 ]
 
@@ -201,7 +201,14 @@ export default function App() {
   const catalogState = useCatalog()
   const prices = usePrices()
   const { view, screen, go } = useView()
-  const setView = (v: View) => go(v)
+  // 「食品を調べる」で食品を1日の食事に足したあとは、「栄養バランス」を1日の食事からひらく（最初の画面のままだと、足したものを見るのにもう1回押すことになる）
+  const addedInLookup = useRef(false)
+  const setView = (v: View) => {
+    if (v === 'menu' && addedInLookup.current) {
+      addedInLookup.current = false
+      go('menu', 'day')
+    } else go(v)
+  }
   // 1日の食事の画面へ（入口をえらんだ・献立を入れた）と、最初の画面へ（入れた料理はそのまま）
   const openDay = () => go('menu', 'day')
   const openStart = () => go('menu', 'start')
@@ -536,7 +543,20 @@ export default function App() {
         </main>
       ) : catalog && view === 'ranking' ? (
         <main tabIndex={-1} className="outline-none">
-          <RankingView catalog={catalog} targets={targets} prices={prices} initialNutrient={rankingStart} />
+          <RankingView
+            catalog={catalog}
+            targets={targets}
+            prices={prices}
+            initialNutrient={rankingStart}
+            storesLoaded={storesLoaded}
+            showAlcohol={profile.age >= 20}
+            profileSet={profileSet}
+            // 栄養素を見た食品を、その量のまま1日の食事に足す
+            onAdd={(slot, item) => {
+              addItem(slot, item)
+              addedInLookup.current = true
+            }}
+          />
         </main>
       ) : catalog && totals && !waitingForStores ? (
         <main tabIndex={-1} className="space-y-4 outline-none">
