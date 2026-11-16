@@ -164,9 +164,12 @@ export function dailyReference(nutrient: NutrientKey, t: Targets): { value: numb
   }
 }
 
-// 表示名を付けた食材（data/food-names.json）と料理の材料を「よく使う食材」とする
+// ふだんの呼び名（表示名）を付けた食材（data/food-names.json）
+export const NAMED_FOOD_IDS: ReadonlySet<string> = new Set(foodNames.displayNames.map((d) => d.id))
+
+// 表示名を付けた食材と料理の材料を「よく使う食材」とする
 export function familiarFoodIds(catalog: Pick<Catalog, 'dishes'>): Set<string> {
-  const ids = new Set(foodNames.displayNames.map((d) => d.id))
+  const ids = new Set(NAMED_FOOD_IDS)
   for (const dish of catalog.dishes.values()) for (const ing of dish.ingredients) ids.add(ing.foodId)
   return ids
 }

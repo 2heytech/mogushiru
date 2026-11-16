@@ -15,8 +15,11 @@ import {
 import { matches } from '../domain/search'
 import { SERVING_NOTE } from '../domain/serving'
 import type { Targets } from '../domain/targets'
-import type { NutrientKey } from '../domain/types'
+import type { NutrientKey, Slot } from '../domain/types'
 import { nutrientPagePath } from '../routes'
+import { FoodDetailDialog } from './FoodDetailDialog'
+import { FoodLookup } from './FoodLookup'
+import { lookupItemExists, type LookupItem } from './lookupCards'
 
 const PAGE = 30
 
@@ -44,12 +47,24 @@ export function RankingView({
   targets,
   prices,
   initialNutrient = 'protein',
+  storesLoaded = true,
+  showAlcohol = true,
+  profileSet = true,
+  onAdd,
 }: {
   catalog: Catalog
   targets: Targets
   prices: PriceTable
   initialNutrient?: NutrientKey
+  // 名前でさがす（FoodLookup）と、栄養素の一覧の窓（FoodDetailDialog）に渡すもの
+  storesLoaded?: boolean
+  showAlcohol?: boolean
+  profileSet?: boolean
+  // 栄養素の一覧の窓から、見ている量のまま1日の食事に足す
+  onAdd: (slot: Slot, item: LookupItem) => void
 }) {
+  // 栄養素の一覧をひらいている食品（名前でさがした候補か、ランキングの行を押したもの）
+  const [detail, setDetail] = useState<LookupItem | null>(null)
   const [nutrient, setNutrient] = useState<NutrientKey>(initialNutrient)
   const [metric, setMetric] = useState<RankingMetric>('serving')
   const [group, setGroup] = useState<string | null>(null)
@@ -89,11 +104,15 @@ export function RankingView({
 
   return (
     <section aria-labelledby="ranking-title" className="space-y-4">
+      <h2 id="ranking-title" className="text-xl font-bold">
+        食品を調べる
+      </h2>
+
+      {/* 名前でさがして、その食品の栄養素をすぐ見る */}
+      <FoodLookup catalog={catalog} storesLoaded={storesLoaded} showAlcohol={showAlcohol} onOpen={setDetail} />
+
       <div>
-        <h2 id="ranking-title" className="text-xl font-bold">
-          食品を調べる
-          <span className="block text-sm font-normal text-ink-soft sm:ml-2 sm:inline">成分の多い順のランキング</span>
-        </h2>
+        <h3 className="text-lg font-bold">成分の多い順のランキング</h3>
         <p className="mt-1 text-sm text-ink-soft">
           肉・魚・野菜・調味料などの食品（料理ではなく材料）を、成分の多い順に並べます。
           {info.caution ? `いまは${info.label}が多い食品。とりすぎに気をつけたいときの目安にどうぞ。` : `いまは${info.label}をとりやすい食品の順です。`}
@@ -224,17 +243,18 @@ export function RankingView({
           </div>
           {/* 何を・どの単位でくらべているかと、棒の長さの意味を、一覧のすぐ上に書く。％と「1回の量」の説明は「数字の見方」でひらく */}
           <div className="rounded-2xl bg-white/70 px-4 py-2">
-            <h3 className="text-base leading-snug font-bold">
+            <h4 className="text-base leading-snug font-bold">
               <span className="inline-block">{info.label}の多い順</span>
               <span className="inline-block text-sm font-normal text-ink-soft">
                 （{METRIC_BASIS[activeMetric]}・単位 {info.unit}）
               </span>
-            </h3>
+            </h4>
             <div className="flex flex-wrap items-center gap-x-3">
               <p className="flex min-w-0 items-center gap-1.5 text-xs text-ink-soft">
                 <span className={`inline-block h-2 w-6 shrink-0 rounded-full ${info.caution ? 'bg-caution' : 'bg-ok'}`} aria-hidden />
                 棒の長さは、1位の食品とくらべた割合
               </p>
+              <p className="text-xs text-ink-soft">食品を押すと、ほかの栄養素も見られます</p>
               {activeMetric === 'serving' && (
                 <details className="group/help min-w-0 text-xs text-ink-soft">
                   <summary className="flex min-h-11 w-fit cursor-pointer list-none items-center gap-1 font-bold text-coral-ink lg:min-h-8 [&::-webkit-details-marker]:hidden">
@@ -265,36 +285,47 @@ export function RankingView({
                 const pct = ref ? (r.servingAmount / ref.value) * 100 : null
                 const official = r.food.name.replace(/　/g, ' ')
                 return (
-                  <li key={r.food.id} className="flex items-center gap-3 rounded-2xl bg-white px-3 py-2.5 shadow-sm">
-                    <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-full text-sm font-bold ${i < 3 ? 'bg-coral text-ink-strong' : 'bg-cream text-ink-soft'}`}>{i + 1}</span>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-baseline justify-between gap-2">
-                        <p className="min-w-0 font-bold max-sm:line-clamp-2 sm:truncate">{r.food.displayName}</p>
-                        <p className="shrink-0 text-sm">
-                          <strong>{fmt(r.value)}</strong>
-                          <span className="text-xs text-ink-soft">
-                            {' '}
-                            {info.unit}
-                            {unitSuffix[activeMetric]}
+                  <li key={r.food.id}>
+                    {/* 押すと、その食品の栄養素の一覧（いまの「1回の量」で）がひらく */}
+                    <button
+                      type="button"
+                      aria-haspopup="dialog"
+                      onClick={() => setDetail({ kind: 'food', refId: r.food.id, portion: r.serving.grams })}
+                      className="flex w-full items-center gap-3 rounded-2xl bg-white px-3 py-2.5 text-left shadow-sm transition hover:bg-coral/5"
+                    >
+                      <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-full text-sm font-bold ${i < 3 ? 'bg-coral text-ink-strong' : 'bg-cream text-ink-soft'}`}>{i + 1}</span>
+                      <span className="block min-w-0 flex-1">
+                        <span className="flex items-baseline justify-between gap-2">
+                          <span className="min-w-0 font-bold max-sm:line-clamp-2 sm:truncate">{r.food.displayName}</span>
+                          <span className="shrink-0 text-sm">
+                            <strong>{fmt(r.value)}</strong>
+                            <span className="text-xs text-ink-soft">
+                              {' '}
+                              {info.unit}
+                              {unitSuffix[activeMetric]}
+                            </span>
                           </span>
-                        </p>
-                      </div>
-                      <div className="mt-1 h-2 overflow-hidden rounded-full bg-cream">
-                        <div className={`h-full rounded-full ${info.caution ? 'bg-caution' : 'bg-ok'}`} style={{ width: `${Math.max((r.value / top) * 100, 2)}%` }} />
-                      </div>
-                      <p className="mt-1 text-xs text-ink-soft">
-                        {FOOD_GROUP_LABEL[r.food.group]}・1回 {r.serving.grams}g「{r.serving.label}」
-                        {activeMetric !== 'serving' && <>で {fmt(r.servingAmount)}{info.unit}</>}
-                        {pct !== null && <>・{ref?.kind === 'max' ? '上限' : '目安'}の {pct >= 10 ? Math.round(pct) : pct.toFixed(1)}%</>}
-                        {r.yenPer100g !== undefined && <>・100gで約{Math.round(r.yenPer100g)}円</>}
-                      </p>
-                      {/* 上の名前はふだんの呼び名。成分表での正式な名前は、補足として小さく添える */}
-                      {official !== r.food.displayName && (
-                        <p className="truncate text-2xs text-ink-soft" title={official}>
-                          成分表の名前：{official}
-                        </p>
-                      )}
-                    </div>
+                        </span>
+                        <span className="mt-1 block h-2 overflow-hidden rounded-full bg-cream">
+                          <span className={`block h-full rounded-full ${info.caution ? 'bg-caution' : 'bg-ok'}`} style={{ width: `${Math.max((r.value / top) * 100, 2)}%` }} />
+                        </span>
+                        <span className="mt-1 block text-xs text-ink-soft">
+                          {FOOD_GROUP_LABEL[r.food.group]}・1回 {r.serving.grams}g「{r.serving.label}」
+                          {activeMetric !== 'serving' && <>で {fmt(r.servingAmount)}{info.unit}</>}
+                          {pct !== null && <>・{ref?.kind === 'max' ? '上限' : '目安'}の {pct >= 10 ? Math.round(pct) : pct.toFixed(1)}%</>}
+                          {r.yenPer100g !== undefined && <>・100gで約{Math.round(r.yenPer100g)}円</>}
+                        </span>
+                        {/* 上の名前はふだんの呼び名。成分表での正式な名前は、補足として小さく添える */}
+                        {official !== r.food.displayName && (
+                          <span className="block truncate text-2xs text-ink-soft" title={official}>
+                            成分表の名前：{official}
+                          </span>
+                        )}
+                      </span>
+                      <span aria-hidden className="shrink-0 font-bold text-coral-ink">
+                        ›
+                      </span>
+                    </button>
                   </li>
                 )
               })}
@@ -308,6 +339,19 @@ export function RankingView({
           <p className="text-xs text-ink-soft">{rows.length.toLocaleString()} 件の食品から。値は文部科学省「日本食品標準成分表（八訂）増補2023年」をもとに計算しています。{prices.size > 0 && '価格は総務省「小売物価統計調査（動向編）」2025年平均をもとに、可食部100gあたりに直したものです。'}</p>
         </div>
       </div>
+
+      {detail && lookupItemExists(detail, catalog) && (
+        <FoodDetailDialog
+          // 別の食品をひらいたら、量などを作り直す
+          key={`${detail.kind}:${detail.refId}`}
+          item={detail}
+          catalog={catalog}
+          targets={targets}
+          profileSet={profileSet}
+          onAdd={onAdd}
+          onClose={() => setDetail(null)}
+        />
+      )}
     </section>
   )
 }
