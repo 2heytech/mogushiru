@@ -2,7 +2,7 @@
 const INK = '#5b4636'
 const CHEEK = '#ffa99a'
 
-export type UiIconName = 'menu' | 'ranking' | 'profile' | 'save' | 'load' | 'reset' | 'limit' | 'want' | 'info' | 'pick' | 'build' | 'sample'
+export type UiIconName = 'menu' | 'ranking' | 'profile' | 'save' | 'load' | 'reset' | 'limit' | 'want' | 'info' | 'pick' | 'build' | 'sample' | 'start'
 
 const TILE_BG: Record<UiIconName, string> = {
   menu: '#ffe6bf',
@@ -17,6 +17,7 @@ const TILE_BG: Record<UiIconName, string> = {
   pick: '#ffe6bf',
   build: '#ffe1db',
   sample: '#dcf1e2',
+  start: '#f3ebe1',
 }
 
 export function UiIcon({ name, className }: { name: UiIconName; className?: string }) {
@@ -131,6 +132,14 @@ export function UiIcon({ name, className }: { name: UiIconName; className?: stri
           <rect x="30" y="21" width="7" height="17" rx="2.2" fill="#7cc98a" {...s} strokeWidth={1.8} />
           <path d="M8 38.5 h32" fill="none" {...s} />
           <path d="M38 5 l1.2 2.8 l2.8 1.2 l-2.8 1.2 l-1.2 2.8 l-1.2 -2.8 l-2.8 -1.2 l2.8 -1.2 z" fill="#ffc94d" />
+        </>
+      )}
+      {name === 'start' && (
+        // 最初の画面にもどる：小さな家（屋根はコーラル、戸は黄色）
+        <>
+          <rect x="13" y="22" width="22" height="16" rx="2.5" fill="#fff" {...s} />
+          <path d="M8.5 24.5 L24 10.5 L39.5 24.5 Z" fill="#ff8a65" {...s} />
+          <rect x="20.5" y="28.5" width="7" height="9.5" rx="2" fill="#ffc94d" {...s} strokeWidth={1.8} />
         </>
       )}
       {name === 'info' && (

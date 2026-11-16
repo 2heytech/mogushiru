@@ -30,7 +30,7 @@ const slotTitle = (slot: Slot) => `${SLOT_LABEL[slot]}${slot === 'other' ? '' : 
 // 1日の食事の操作。
 // row＝見出しやPCの上のバーに横並び：「献立案から選ぶ」「保存」「呼び出す」「リセット」（料理を足すのは、朝・昼・晩それぞれの「＋ 料理をえらぶ」）
 // bar＝スマホの下に固定のバー：料理を足したり直したりしている間は「料理を追加」をいちばん目立たせ、
-//   献立全体の選びなおし・保存した食事の呼び出し・リセットは「メニュー」の中に置く（3.8）
+//   献立全体の選びなおし・保存した食事の呼び出し・リセット・最初の画面にもどるは「メニュー」の中に置く（3.8）
 export function MenuActions({
   menu,
   totals,
@@ -41,6 +41,7 @@ export function MenuActions({
   onOpenBuild,
   onOpenSave,
   onOpenSaved,
+  onBackToStart,
   onReset,
 }: {
   menu: DayMenu
@@ -53,6 +54,8 @@ export function MenuActions({
   onOpenBuild: () => void
   onOpenSave: () => void
   onOpenSaved: () => void
+  // 最初の画面（3つの入口）へ。料理は外さない
+  onBackToStart: () => void
   onReset: () => void
 }) {
   const [sheet, setSheet] = useState<'slot' | 'more' | null>(null)
@@ -88,7 +91,7 @@ export function MenuActions({
             <UiIcon name="save" className="h-6 w-6 shrink-0" />
             保存
           </button>
-          <button type="button" onClick={() => setSheet('more')} aria-haspopup="dialog" aria-label="ほかの操作（献立案から選ぶ・呼び出す・リセット）" className={BAR_SMALL}>
+          <button type="button" onClick={() => setSheet('more')} aria-haspopup="dialog" aria-label="ほかの操作（献立案から選ぶ・呼び出す・リセット・最初の画面にもどる）" className={BAR_SMALL}>
             <svg viewBox="0 0 24 24" className="h-6 w-6 shrink-0 text-ink-soft" fill="currentColor" aria-hidden>
               <circle cx="5" cy="12" r="2.2" />
               <circle cx="12" cy="12" r="2.2" />
@@ -175,6 +178,22 @@ export function MenuActions({
                   <span className="min-w-0 flex-1">
                     <span className="block font-bold">リセット</span>
                     <span className="block text-xs text-ink-soft">朝・昼・晩・その他の料理をすべて外す</span>
+                  </span>
+                </button>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSheet(null)
+                    onBackToStart()
+                  }}
+                  className={SHEET_ROW}
+                >
+                  <UiIcon name="start" className="h-9 w-9 shrink-0" />
+                  <span className="min-w-0 flex-1">
+                    <span className="block font-bold">最初の画面にもどる</span>
+                    <span className="block text-xs text-ink-soft">{empty ? '始め方をえらびなおす' : '入れた料理は、そのまま残ります'}</span>
                   </span>
                 </button>
               </li>

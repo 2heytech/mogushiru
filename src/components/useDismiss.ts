@@ -52,20 +52,40 @@ function listen() {
   })
 }
 
+// 画面の移動（App.tsx の go）で履歴を足すときは、history.pushState の代わりにこれを使う。
+// ダイアログをひらいたまま・閉じてすぐに移動するとき（確認の「置き換える」を押した、献立案の窓で献立をえらんだ など）は、
+// ダイアログ用に足した履歴がいちばん上にある。その上に足すと、ダイアログを閉じたあとの「履歴を戻す」で移動まで取り消されるので、
+// ダイアログ用の履歴を移動先として使い（書きかえ）、まだひらいているダイアログがあれば、その上に足し直す
+export function pushHistory(state: unknown, url: string) {
+  if (!pushed) {
+    history.pushState(state, '', url)
+    return
+  }
+  if (pendingBack !== null) {
+    clearTimeout(pendingBack)
+    pendingBack = null
+  }
+  history.replaceState(state, '', url)
+  pushed = false
+  if (stack.length > 0) ensurePushed()
+}
+
+// ダイアログが1つひらいた。返す関数は、閉じたときに呼ぶ（フックの中身。テストから直接よべるように分けてある）
+export function openDismissable(close: () => void): () => void {
+  listen()
+  stack.push(close)
+  ensurePushed()
+  return () => {
+    stack.splice(stack.lastIndexOf(close), 1)
+    if (stack.length > 0) ensurePushed()
+    else releaseLater()
+  }
+}
+
 export function useDismiss(onClose: () => void) {
   const latest = useRef(onClose)
   useEffect(() => {
     latest.current = onClose
   })
-  useEffect(() => {
-    const close = () => latest.current()
-    listen()
-    stack.push(close)
-    ensurePushed()
-    return () => {
-      stack.splice(stack.lastIndexOf(close), 1)
-      if (stack.length > 0) ensurePushed()
-      else releaseLater()
-    }
-  }, [])
+  useEffect(() => openDismissable(() => latest.current()), [])
 }

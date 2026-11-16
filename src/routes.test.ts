@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { IDEAL_MENUS } from './domain/idealMenus'
 import { RANKING_NUTRIENTS } from './domain/ranking'
 import { menusFor } from './pages/menuPages'
-import { legacyRedirect, MENU_PAGES, NUTRIENT_SLUG, nutrientFromSlug, nutrientPagePath, rankingAppPath, VIEW_PATH, viewFromLocation } from './routes'
+import { legacyRedirect, MENU_PAGES, menuScreenFromState, menuScreenState, NUTRIENT_SLUG, nutrientFromSlug, nutrientPagePath, rankingAppPath, VIEW_PATH, viewFromLocation } from './routes'
 
 describe('画面の URL', () => {
   it('パスから画面を決める（最後の / はあってもなくてもよい）', () => {
@@ -20,6 +20,15 @@ describe('画面の URL', () => {
     expect(legacyRedirect('/', '#customize')).toBe(VIEW_PATH.customize)
     expect(legacyRedirect('/', '')).toBeNull()
     expect(legacyRedirect('/ranking/', '#about')).toBeNull()
+  })
+
+  it('最初の画面か1日の食事かを、履歴の印から読む（印がなければ null）', () => {
+    expect(menuScreenFromState(menuScreenState('start'))).toBe('start')
+    expect(menuScreenFromState(menuScreenState('day'))).toBe('day')
+    expect(menuScreenFromState(null)).toBeNull()
+    expect(menuScreenFromState(undefined)).toBeNull()
+    expect(menuScreenFromState('day')).toBeNull()
+    expect(menuScreenFromState({ screen: 'ranking' })).toBeNull()
   })
 })
 

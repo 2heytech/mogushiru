@@ -55,6 +55,19 @@ export function legacyRedirect(pathname: string, hash: string): string | null {
   return view && (pathname === '/' || pathname === '') ? VIEW_PATH[view] : null
 }
 
+// 「栄養バランス」の中の2つの画面：最初の画面（start。3つの入口）と、1日の食事（day。朝・昼・晩と結果）。
+// URL はどちらも / のまま、どちらを出しているかをブラウザの履歴の印（history.state）に持たせて、
+// ブラウザの「戻る」でも最初の画面にもどれるようにする
+export type MenuScreen = 'start' | 'day'
+
+export const menuScreenState = (screen: MenuScreen): { screen: MenuScreen } => ({ screen })
+
+// 履歴の印から画面を読む（印がない・読めないときは null）
+export function menuScreenFromState(state: unknown): MenuScreen | null {
+  const screen = typeof state === 'object' && state !== null ? (state as { screen?: unknown }).screen : undefined
+  return screen === 'start' || screen === 'day' ? screen : null
+}
+
 // ---- 成分ごとのランキング（/nutrients/<slug>/） ----
 
 export const NUTRIENTS_INDEX_PATH = '/nutrients/'
