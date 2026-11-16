@@ -13,14 +13,15 @@ import type { Step } from './domain/daySummary'
 import { ProfileDialog, type ProfileFocus } from './components/ProfileDialog'
 import { SlotStrip } from './components/SlotStrip'
 import { DayMenuPanel } from './components/DayMenuPanel'
-import { StartChoice } from './components/StartChoice'
+import { BackToStart, StartChoice } from './components/StartChoice'
 import { RankingView } from './components/RankingView'
 import { AboutView } from './components/AboutView'
 import { confirmDialog } from './components/confirm'
+import { pushHistory } from './components/useDismiss'
 import { SiteFooter } from './components/SiteFooter'
 import { adjustIdealMenu, IDEAL_MENUS, idealMenuAvailable, idealMenuHasProducts } from './domain/idealMenus'
 import { isMealSlot, type MealSlot } from './domain/idealMeals'
-import { legacyRedirect, nutrientFromSlug, VIEW_META, VIEW_PATH, viewFromLocation, type View } from './routes'
+import { legacyRedirect, menuScreenFromState, menuScreenState, nutrientFromSlug, VIEW_META, VIEW_PATH, viewFromLocation, type MenuScreen, type View } from './routes'
 import { ConfirmHost } from './components/ConfirmDialog'
 import { IdealMealDialog, MenuActions, SaveMenuDialog, SavedMenusDialog } from './components/SavedMenus'
 import { MenuBuilderDialog } from './components/MenuBuilder'
@@ -130,18 +131,34 @@ function inAppLink(e: MouseEvent<HTMLAnchorElement>, go: () => void) {
   go()
 }
 
+const menuHasItems = () => SLOTS.some((s) => useAppStore.getState().menu[s].length > 0)
+
+// 履歴に印がないとき（ほかのサイトから来た・# を書きかえた）は、料理が入っていれば1日の食事、空なら最初の画面
+const screenFromHistory = (): MenuScreen => menuScreenFromState(window.history.state) ?? (menuHasItems() ? 'day' : 'start')
+
 // 画面の切り替えは URL のパス（/ranking/ など）で持つ（ブラウザの戻るで献立に戻れるように）。
+// 「栄養バランス」の中の、最初の画面と1日の食事のどちらを出すか（screen）は、履歴の印で持つ（URL は同じ /。routes.ts）。
 // 古い # のリンク（/#ranking）で来たときは、その画面を開いてアドレス欄を新しい URL に直す
-function useView(): [View, (v: View) => void] {
+function useView(): { view: View; screen: MenuScreen; go: (v: View, screen?: MenuScreen, how?: 'push' | 'replace') => void } {
   const [view, setView] = useState<View>(() => viewFromLocation(window.location.pathname, window.location.hash))
+  // ひらいたとき、1日の食事が空なら最初の画面から。料理が入っていれば1日の食事（読みこみ直したときは、その前に見ていたほう）
+  const [screen, setScreen] = useState<MenuScreen>(() => (menuHasItems() ? screenFromHistory() : 'start'))
+  const firstScreen = useRef(screen)
   useEffect(() => {
-    const sync = () => {
+    const fixLegacy = () => {
       const { pathname, hash, search } = window.location
       const legacy = legacyRedirect(pathname, hash)
-      if (legacy) window.history.replaceState(null, '', legacy + search)
-      setView(viewFromLocation(window.location.pathname, window.location.hash))
+      if (legacy) window.history.replaceState(window.history.state, '', legacy + search)
     }
-    sync()
+    const sync = () => {
+      fixLegacy()
+      setView(viewFromLocation(window.location.pathname, window.location.hash))
+      setScreen(screenFromHistory())
+    }
+    // ひらいたときの画面は、上の useState で URL から決めてある（古い # のリンクも）。ここではアドレス欄を直すだけ
+    fixLegacy()
+    // はじめの履歴にも印をつける（先へ進んだあと、ブラウザの「戻る」でここへもどれるように）
+    window.history.replaceState(menuScreenState(firstScreen.current), '')
     window.addEventListener('popstate', sync)
     window.addEventListener('hashchange', sync)
     return () => {
@@ -152,12 +169,23 @@ function useView(): [View, (v: View) => void] {
   useEffect(() => {
     document.title = VIEW_META[view].title
   }, [view])
-  const go = (v: View) => {
-    if (window.location.pathname !== VIEW_PATH[v]) window.history.pushState(null, '', VIEW_PATH[v])
+  // 最初の画面と1日の食事を行き来すると、押したボタン（入口・「最初の画面にもどる」）が消えてフォーカスの場所がなくなるので、本文（main）に移す。
+  // ダイアログの中にフォーカスがあるとき（献立案の窓で1食ずつえらんでいる途中など）は動かさない
+  useEffect(() => {
+    if (document.activeElement === document.body) document.querySelector<HTMLElement>('main')?.focus({ preventScroll: true })
+  }, [screen])
+  // screen をはぶくと、いまのまま。replace は、履歴を足さずにいまの場所を書きかえる（URL で献立を指定して来たとき。ダイアログがひらいていないときに使う）。
+  // 履歴を足すのは pushHistory で（ダイアログをひらいたまま・閉じてすぐの移動でも、履歴がずれないように）
+  const go = (v: View, next: MenuScreen = screen, how: 'push' | 'replace' = 'push') => {
+    const path = VIEW_PATH[v]
+    const samePath = window.location.pathname === path
+    if (how === 'replace') window.history.replaceState(menuScreenState(next), '', samePath ? undefined : path)
+    else if (!samePath || menuScreenFromState(window.history.state) !== next) pushHistory(menuScreenState(next), path)
     setView(v)
+    setScreen(next)
     window.scrollTo({ top: 0 })
   }
-  return [view, go]
+  return { view, screen, go }
 }
 
 // URL のクエリ（?n=iron や ?menu=…）を読んで、読み終えたらアドレス欄から消す
@@ -166,13 +194,17 @@ function dropQueryParam(name: string) {
   const url = new URL(window.location.href)
   if (!url.searchParams.has(name)) return
   url.searchParams.delete(name)
-  window.history.replaceState(null, '', url.pathname + url.search + url.hash)
+  window.history.replaceState(window.history.state, '', url.pathname + url.search + url.hash)
 }
 
 export default function App() {
   const catalogState = useCatalog()
   const prices = usePrices()
-  const [view, setView] = useView()
+  const { view, screen, go } = useView()
+  const setView = (v: View) => go(v)
+  // 1日の食事の画面へ（入口をえらんだ・献立を入れた）と、最初の画面へ（入れた料理はそのまま）
+  const openDay = () => go('menu', 'day')
+  const openStart = () => go('menu', 'start')
   const {
     menu: storedMenu,
     pruneMenu,
@@ -209,8 +241,6 @@ export default function App() {
   const [savedDialog, setSavedDialog] = useState<'save' | 'load' | null>(null)
   // 献立案から選ぶ窓
   const [builderOpen, setBuilderOpen] = useState(false)
-  // 1日の食事が空のときに出す最初の画面（自分の食事で試す／献立案から選ぶ／サンプルで結果を見る）。どれかで料理が入ったら、あとで全部外してもリセットするまで出さない
-  const [startDismissed, setStartDismissed] = useState(() => SLOTS.some((s) => useAppStore.getState().menu[s].length > 0))
   const [profileOpen, setProfileOpen] = useState(false)
   const [profileFocus, setProfileFocus] = useState<ProfileFocus | undefined>()
   // 料理をえらぶ画面。start は、はじめにひらく種類としぼりこみ（まとめの「副菜を1品追加する」から来たときなど）
@@ -245,7 +275,10 @@ export default function App() {
   const foods = useMemo(() => (catalog ? dayFoods(menu, catalog) : null), [catalog, menu])
   // 減塩・全粒穀物への置きかえの案（栄養素のタブに出す）
   const swaps = useMemo(() => (catalog ? swapIdeas(menu, catalog) : []), [catalog, menu])
-  const showStart = SLOTS.every((s) => menu[s].length === 0) && !startDismissed
+  // 最初の画面（献立案から選ぶ／自分の食事で試す／サンプルで結果を見る）。入口をえらんで先へ進んだら、料理を全部外しても出さない。
+  // もどるのは「最初の画面にもどる」・ロゴ・ブラウザの戻る・リセット（料理が入ったままでも出す）
+  const showStart = screen === 'start'
+  const itemCount = SLOTS.reduce((n, s) => n + menu[s].length, 0)
   const sampleMenu = useMemo(() => {
     const ideal = IDEAL_MENUS.find((m) => m.id === SAMPLE_MENU_ID)
     return ideal && catalog && idealMenuAvailable(ideal, catalog) ? ideal : undefined
@@ -261,6 +294,10 @@ export default function App() {
 
   // 献立の例のページから「この献立をアプリで開く」で来たとき（/?menu=<id>）は、その理想の献立をプロフィールに合わせて入れる
   const menuRequest = useRef(queryParam('menu'))
+  const goRef = useRef(go)
+  useEffect(() => {
+    goRef.current = go
+  })
   useEffect(() => {
     const id = menuRequest.current
     if (!id || !catalog) return
@@ -275,7 +312,9 @@ export default function App() {
     void (async () => {
       if (!empty && !(await confirmDialog(`いまの1日の食事を「${ideal.name}」に置き換えますか？`, { okLabel: '置き換える' }))) return
       replaceMenu(planned, ideal.name)
-      setStartDismissed(true)
+      // 献立のページから来たので、最初の画面を出していたとき（空だった）は履歴を足さずに1日の食事へ（「戻る」で、もとのページへ）。
+      // 料理が入っていたときは、もう1日の食事を出している
+      goRef.current('menu', 'day', empty ? 'replace' : 'push')
     })()
   }, [catalog, storesLoaded, targets, replaceMenu])
 
@@ -439,9 +478,17 @@ export default function App() {
     // スマホは1日の食事のボタンを下に固定するので、そのぶん下をあける
     <div className={`mx-auto max-w-6xl px-4 ${view === 'menu' && !showStart ? 'pb-32 md:pb-16' : 'pb-16'}`}>
       <header className="flex items-center justify-between gap-2 py-2.5 sm:gap-4 sm:py-4 lg:gap-3 xl:gap-4">
-        <h1 className="flex shrink-0 items-center gap-1 min-[360px]:gap-1.5">
-          <LogoMogu className="h-10 w-10 sm:h-12 sm:w-12" />
-          <span className="font-logo text-2xl leading-none tracking-wide text-ink sm:text-[28px]">モグシル</span>
+        <h1 className="shrink-0">
+          {/* ロゴを押すと、どの画面からでも最初の画面へ（入れた料理はそのまま） */}
+          <a
+            href={VIEW_PATH.menu}
+            onClick={(e) => inAppLink(e, openStart)}
+            title="最初の画面へ"
+            className="flex items-center gap-1 rounded-2xl focus-visible:ring-4 focus-visible:ring-coral/40 focus-visible:outline-none min-[360px]:gap-1.5"
+          >
+            <LogoMogu className="h-10 w-10 sm:h-12 sm:w-12" />
+            <span className="font-logo text-2xl leading-none tracking-wide text-ink sm:text-[28px]">モグシル</span>
+          </a>
         </h1>
         <div className="hidden lg:block">
           <FeatureTabsCompact view={view} onChange={setView} />
@@ -494,88 +541,99 @@ export default function App() {
       ) : catalog && totals && !waitingForStores ? (
         <main tabIndex={-1} className="space-y-4 outline-none">
           {showStart ? (
-            // 1日の食事が空のうちは、どう入れるかを選ぶまで朝・昼・晩や栄養の表示を出さない
+            // 入口をえらぶまでは、朝・昼・晩や栄養の表示を出さない
             <StartChoice
               savedCount={savedMenus.length}
               sampleName={sampleMenu?.name}
-              onTrySample={() => {
+              current={itemCount > 0 ? { count: itemCount, kcal: totals.day.values.energyKcal } : undefined}
+              onResume={openDay}
+              onTrySample={async () => {
                 if (!sampleMenu) return
+                if (itemCount > 0 && !(await confirmDialog(`いまの1日の食事を「${sampleMenu.name}」に置き換えますか？`, { okLabel: '置き換える' }))) return
                 // いまの目安（プロフィール）に合わせた量で入れる
                 replaceMenu(adjustIdealMenu(sampleMenu, catalog, targets), sampleMenu.name)
-                setStartDismissed(true)
-                window.scrollTo({ top: 0 })
+                openDay()
               }}
               onBuild={() => setBuilderOpen(true)}
               onOpenSaved={() => setSavedDialog('load')}
-              // 朝・昼・晩に料理を入れていく画面へ（どの食事から入れるかは、そこでえらぶ）
-              onPickSelf={() => {
-                setStartDismissed(true)
-                window.scrollTo({ top: 0 })
+              // 朝・昼・晩に料理を入れていく画面へ（どの食事から入れるかは、そこでえらぶ）。
+              // 料理が入っているときは、空から始めるかを確かめる（そのまま続けるなら、上の「いまの1日の食事にもどる」）
+              onPickSelf={async () => {
+                if (itemCount > 0) {
+                  if (!(await confirmDialog(`いま入っている料理（${itemCount}品）をすべて外して、空から始めますか？`, { okLabel: '空から始める', danger: true }))) return
+                  clearMenu()
+                  setOpenSlot(null)
+                }
+                openDay()
               }}
             />
           ) : (
             // スマホ：上に1日の食事（見出し・朝〜その他）、その下に結果。
             // 広い画面（lg 以上）：左に1日の食事、右にまとめを並べて、料理や量を変えた結果をすぐ横で見られるようにする。くわしい内容はその下
-            <div className="space-y-4 lg:grid lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] lg:items-start lg:gap-4 lg:space-y-0">
-              <div className="min-w-0 lg:col-start-1 lg:row-start-1">
-                <DayMenuPanel
-                  source={menuSource}
-                  totals={totals}
-                  targets={targets}
-                  actions={(layout) => (
-                    <MenuActions
-                      menu={menu}
-                      totals={totals}
-                      layout={layout}
-                      savedCount={savedMenus.length}
-                      openSlot={openSlot}
-                      onAdd={setPickerSlot}
-                      onOpenBuild={() => setBuilderOpen(true)}
-                      onOpenSave={() => setSavedDialog('save')}
-                      onOpenSaved={() => setSavedDialog('load')}
-                      onReset={() => {
-                        clearMenu()
-                        setOpenSlot(null)
-                        setStartDismissed(false)
-                      }}
-                    />
-                  )}
-                >
-                  <SlotStrip
-                    menu={menu}
+            <>
+              <BackToStart onClick={openStart} />
+              <div className="space-y-4 lg:grid lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] lg:items-start lg:gap-4 lg:space-y-0">
+                <div className="min-w-0 lg:col-start-1 lg:row-start-1">
+                  <DayMenuPanel
+                    source={menuSource}
                     totals={totals}
                     targets={targets}
-                    catalog={catalog}
-                    open={openSlot}
-                    onOpenChange={setOpenSlot}
-                    onAdd={setPickerSlot}
-                    onRemove={removeItem}
-                    onDrink={(slot, item, amount) => changeDrink(slot, item, amount)}
-                    onEdit={(slot, uid) => setEditing({ slot, uid })}
-                  />
-                </DayMenuPanel>
+                    actions={(layout) => (
+                      <MenuActions
+                        menu={menu}
+                        totals={totals}
+                        layout={layout}
+                        savedCount={savedMenus.length}
+                        openSlot={openSlot}
+                        onAdd={setPickerSlot}
+                        onOpenBuild={() => setBuilderOpen(true)}
+                        onOpenSave={() => setSavedDialog('save')}
+                        onOpenSaved={() => setSavedDialog('load')}
+                        onBackToStart={openStart}
+                        onReset={() => {
+                          clearMenu()
+                          setOpenSlot(null)
+                          openStart()
+                        }}
+                      />
+                    )}
+                  >
+                    <SlotStrip
+                      menu={menu}
+                      totals={totals}
+                      targets={targets}
+                      catalog={catalog}
+                      open={openSlot}
+                      onOpenChange={setOpenSlot}
+                      onAdd={setPickerSlot}
+                      onRemove={removeItem}
+                      onDrink={(slot, item, amount) => changeDrink(slot, item, amount)}
+                      onEdit={(slot, uid) => setEditing({ slot, uid })}
+                    />
+                  </DayMenuPanel>
+                </div>
+                <DayInfo
+                  totals={totals}
+                  foods={foods}
+                  swaps={swaps}
+                  onSwap={(idea) => customizeItem(idea.slot, idea.uid, idea.ingredients)}
+                  targets={targets}
+                  profile={profile}
+                  profileSet={profileSet}
+                  missingSlots={missingMealSlots(menu, targets)}
+                  onEditSlotShare={() => {
+                    setProfileFocus('slotShare')
+                    setProfileOpen(true)
+                  }}
+                  onEditExercise={() => {
+                    setProfileFocus('exercise')
+                    setProfileOpen(true)
+                  }}
+                  onEditProfile={() => setProfileOpen(true)}
+                  onStep={runStep}
+                />
               </div>
-              <DayInfo
-                totals={totals}
-                foods={foods}
-                swaps={swaps}
-                onSwap={(idea) => customizeItem(idea.slot, idea.uid, idea.ingredients)}
-                targets={targets}
-                profile={profile}
-                profileSet={profileSet}
-                missingSlots={missingMealSlots(menu, targets)}
-                onEditSlotShare={() => {
-                  setProfileFocus('slotShare')
-                  setProfileOpen(true)
-                }}
-                onEditExercise={() => {
-                  setProfileFocus('exercise')
-                  setProfileOpen(true)
-                }}
-                onEditProfile={() => setProfileOpen(true)}
-                onStep={runStep}
-              />
-            </div>
+            </>
           )}
         </main>
       ) : (
@@ -651,14 +709,14 @@ export default function App() {
           storesLoaded={storesLoaded}
           onLoadDay={(ideal, m) => {
             replaceMenu(m, ideal.name)
-            setStartDismissed(true)
             setBuilderOpen(false)
-            window.scrollTo({ top: 0 })
+            openDay()
           }}
           // 1食ずつのときは、1食えらぶたびにその区分に入れる（途中で閉じても、えらんだところまでは残る）
           onLoadMeal={(slot, items) => {
             replaceSlot(slot, items)
-            setStartDismissed(true)
+            // 最初の画面からひらいたときは、うしろの画面を1日の食事にしておく
+            if (showStart) openDay()
           }}
           onDone={() => {
             setBuilderOpen(false)
@@ -677,8 +735,8 @@ export default function App() {
             // データの更新でなくなった料理があっても止まらないように外してから入れる
             // コンビニ・メーカーの商品を読み終える前は外さない（読み終えたあとに外す）
             loadMenu(m.id, storesLoaded ? (x) => knownItemsOnly(x, catalog) : undefined)
-            setStartDismissed(true)
             setSavedDialog(null)
+            openDay()
           }}
           onDelete={(m) => deleteMenu(m.id)}
           onClose={() => setSavedDialog(null)}
