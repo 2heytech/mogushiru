@@ -1,6 +1,6 @@
 import type { MouseEvent } from 'react'
 import { DISHES_INDEX_PATH, MENUS_INDEX_PATH, NUTRIENTS_INDEX_PATH, VIEW_PATH } from '../routes'
-import { OPERATOR_NAME } from '../site'
+import { OperatorLink } from './OperatorLink'
 
 const LINK = 'font-bold text-coral-ink underline decoration-coral/60 underline-offset-2'
 
@@ -48,7 +48,10 @@ export function SiteFooter({ onAbout }: { onAbout?: () => void }) {
         <a href={VIEW_PATH.about} onClick={openAbout} className={LINK}>
           このサイトについて（出典・プライバシー・お問い合わせ）
         </a>
-        <span>運営：{OPERATOR_NAME}</span>
+        <span>
+          運営：
+          <OperatorLink className={LINK} />
+        </span>
       </p>
     </footer>
   )
