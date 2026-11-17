@@ -45,7 +45,7 @@ describe('書き出すページ', () => {
   it('アプリの4画面・成分26ページ・献立の例のページがあり、URL は重ならない', () => {
     const paths = pages.map((p) => p.path)
     expect(new Set(paths).size).toBe(paths.length)
-    for (const p of ['/', '/ranking/', '/customize/', '/about/', '/nutrients/', '/menus/']) expect(paths).toContain(p)
+    for (const p of ['/', '/foods/', '/ranking/', '/customize/', '/about/', '/nutrients/', '/menus/']) expect(paths).toContain(p)
     expect(paths.filter((p) => /^\/nutrients\/[a-z0-9-]+\/$/.test(p))).toHaveLength(26)
     expect(paths.filter((p) => /^\/menus\/[a-z-]+\/$/.test(p)).length).toBeGreaterThanOrEqual(6)
   })

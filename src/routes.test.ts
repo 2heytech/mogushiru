@@ -2,12 +2,16 @@ import { describe, expect, it } from 'vitest'
 import { IDEAL_MENUS } from './domain/idealMenus'
 import { RANKING_NUTRIENTS } from './domain/ranking'
 import { menusFor } from './pages/menuPages'
-import { legacyRedirect, MENU_PAGES, menuScreenFromState, menuScreenState, NUTRIENT_SLUG, nutrientFromSlug, nutrientPagePath, rankingAppPath, VIEW_PATH, viewFromLocation } from './routes'
+import { isFoodView, legacyRedirect, MENU_PAGES, menuScreenFromState, menuScreenState, NUTRIENT_SLUG, nutrientFromSlug, nutrientPagePath, rankingAppPath, VIEW_PATH, viewFromLocation } from './routes'
 
 describe('画面の URL', () => {
   it('パスから画面を決める（最後の / はあってもなくてもよい）', () => {
     expect(viewFromLocation('/')).toBe('menu')
     expect(viewFromLocation('/ranking/')).toBe('ranking')
+    // 「食品を調べる」の中の2つの画面
+    expect(viewFromLocation('/foods/')).toBe('foods')
+    expect(viewFromLocation('/foods')).toBe('foods')
+    expect([isFoodView('foods'), isFoodView('ranking'), isFoodView('menu'), isFoodView('customize')]).toEqual([true, true, false, false])
     expect(viewFromLocation('/ranking')).toBe('ranking')
     expect(viewFromLocation('/customize/')).toBe('customize')
     expect(viewFromLocation('/about/')).toBe('about')

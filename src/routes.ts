@@ -10,10 +10,14 @@ export const SITE_NAME = 'モグシル'
 export const SITE_NAME_KANA = 'もぐしる'
 export const SITE_ALT_NAMES = [SITE_NAME_KANA, 'もぐシル', 'mogushiru']
 
+// foods と ranking は、上のタブ「食品を調べる」の中の2つの画面（名前でさがす／成分の多い順のランキング）。
 // about は「このサイトについて」（上のタブには出さず、フッターから入る）
-export type View = 'menu' | 'ranking' | 'customize' | 'about'
+export type View = 'menu' | 'foods' | 'ranking' | 'customize' | 'about'
 
-export const VIEW_PATH: Record<View, string> = { menu: '/', ranking: '/ranking/', customize: '/customize/', about: '/about/' }
+export const VIEW_PATH: Record<View, string> = { menu: '/', foods: '/foods/', ranking: '/ranking/', customize: '/customize/', about: '/about/' }
+
+// 上のタブ「食品を調べる」の中の画面か
+export const isFoodView = (view: View): view is 'foods' | 'ranking' => view === 'foods' || view === 'ranking'
 
 // 画面ごとのタイトルと説明（ブラウザのタブ・検索結果・SNS に貼ったときの表示）
 export const VIEW_META: Record<View, { title: string; description: string; heading: string }> = {
@@ -22,11 +26,16 @@ export const VIEW_META: Record<View, { title: string; description: string; headi
     heading: '料理を選ぶだけで、1日の栄養バランスがわかる',
     description: `${SITE_NAME}（${SITE_NAME_KANA}）は、料理を選んで組み合わせるだけで、1日のカロリーとPFCバランス、栄養素の過不足がすぐ分かる栄養シミュレーターです。登録不要・無料。`,
   },
+  foods: {
+    title: '食品の栄養素を名前で調べる｜食材・料理・市販品のカロリーと栄養｜モグシル',
+    heading: '食品の栄養素を名前で調べる',
+    description:
+      '食品の名前を入れると、食材・料理・コンビニやメーカーの市販品のカロリーと、たんぱく質・脂質・炭水化物、ビタミン・ミネラルなど26の成分がすぐ見られます。1日の目安に対する割合つき。野菜・肉・魚などの種類からもさがせます。登録不要・無料です。',
+  },
   ranking: {
     title: '食品成分ランキング｜たんぱく質・鉄・カルシウムなど26成分｜モグシル',
     heading: '食品成分ランキング',
-    description:
-      'たんぱく質・鉄・カルシウム・ビタミンなど26の成分が多い食品を、1回に食べる量・100gあたり・100kcalあたり・100円あたりでくらべられます。食品名でさがして、カロリーと栄養素をすぐ見ることもできます。登録不要・無料です。',
+    description: 'たんぱく質・鉄・カルシウム・ビタミンなど26の成分が多い食品を、1回に食べる量・100gあたり・100kcalあたり・100円あたりでくらべられます。登録不要・無料です。',
   },
   customize: {
     title: '料理をカスタマイズ｜材料や量を変えて栄養を計算｜モグシル',

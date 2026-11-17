@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { emptyMenu, MY_PRODUCT_PREFIX, recentMyDishes, useAppStore } from './useAppStore'
+import { emptyMenu, MY_PRODUCT_PREFIX, RECENT_LOOKUPS_MAX, recentMyDishes, useAppStore } from './useAppStore'
 import { isSupplement, SUPPLEMENT_CATEGORY, supplementNutrients } from '../domain/supplement'
 
 const custom = [{ foodId: '00001', grams: 80 }]
@@ -283,5 +283,25 @@ describe('飲み物の杯数', () => {
     useAppStore.getState().rememberDrink('dish:beer', long)
     useAppStore.getState().rememberDrink('dish:drink-green-tea')
     expect(useAppStore.getState().recentDrinks).toEqual([{ key: 'dish:drink-green-tea' }, { key: 'dish:beer', cup: long }])
+  })
+})
+
+describe('最近見た食品（食品を調べる）', () => {
+  it('新しい順に覚える。同じものは先頭に出し直し、量は覚えない。8つまで', () => {
+    const { rememberLookup, clearRecentLookups } = useAppStore.getState()
+    clearRecentLookups()
+    rememberLookup({ kind: 'food', refId: '12004' })
+    rememberLookup({ kind: 'dish', refId: 'curry-rice' })
+    // 量つきで渡しても、種類と番号だけを覚える
+    rememberLookup({ kind: 'food', refId: '12004', portion: 100 } as Parameters<typeof rememberLookup>[0])
+    expect(useAppStore.getState().recentLookups).toEqual([
+      { kind: 'food', refId: '12004' },
+      { kind: 'dish', refId: 'curry-rice' },
+    ])
+    for (let i = 0; i < RECENT_LOOKUPS_MAX + 2; i++) rememberLookup({ kind: 'product', refId: `p${i}` })
+    expect(useAppStore.getState().recentLookups).toHaveLength(RECENT_LOOKUPS_MAX)
+    expect(useAppStore.getState().recentLookups[0]).toEqual({ kind: 'product', refId: `p${RECENT_LOOKUPS_MAX + 1}` })
+    clearRecentLookups()
+    expect(useAppStore.getState().recentLookups).toEqual([])
   })
 })
