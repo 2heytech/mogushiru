@@ -81,6 +81,16 @@ describe('書き出すページ', () => {
     expect(page('/ranking/').jsonLd).toBeUndefined()
   })
 
+  it('運営者の名前から、運営者のサイトに行ける（新しいタブでひらく）', () => {
+    // 読みもののページの下の欄
+    for (const path of ['/nutrients/', '/menus/washoku/', '/dishes/nikujaga/']) {
+      expect(page(path).body).toContain('運営：<a href="https://heyteku.com/" target="_blank" rel="noopener"')
+    }
+    // 検索エンジン向けのデータにも、運営者のサイトを入れる
+    expect(page('/').jsonLd?.[0]).toMatchObject({ publisher: { name: 'へいてく', url: 'https://heyteku.com/' } })
+    expect(page('/dishes/nikujaga/').jsonLd?.[0]).toMatchObject({ author: { name: 'へいてく', url: 'https://heyteku.com/' } })
+  })
+
   it('たんぱく質のページは、100円あたりの一覧を先に出し、身近な食品の1回分の値段を書く', () => {
     const protein = page('/nutrients/protein/')
     expect(protein.title).toContain('100円あたり・1回の量')

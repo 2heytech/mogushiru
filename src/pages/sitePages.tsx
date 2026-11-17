@@ -5,7 +5,7 @@ import { NUTRIENT_GROUPS, type PriceTable } from '../domain/ranking'
 import type { NutrientKey } from '../domain/types'
 import { DISHES_INDEX_PATH, MENU_PAGES, MENUS_INDEX_PATH, menuPagePath, NUTRIENT_SLUG, NUTRIENTS_INDEX_PATH, SITE_ALT_NAMES, SITE_NAME, SITE_URL, VIEW_META, VIEW_PATH, type View } from '../routes'
 import { dishesIndexOgCard, DishesIndexPage, dishOgCard, DishPage, dishPageDescription, dishPagesFor, dishPageTitle, dishRecipeJsonLd, relatedDishes } from './dishPages'
-import { OPERATOR_NAME } from '../site'
+import { OPERATOR_NAME, OPERATOR_URL } from '../site'
 import { menuGenreOgCard, MenuGenrePage, MenusIndexPage, menusFor, menusIndexOgCard, planMenus } from './menuPages'
 import { NUTRIENT_COPY } from './nutrientCopy'
 import { nutrientOgCard, NutrientPage, nutrientPageData, nutrientPageDescription, nutrientPageTitle, NutrientsIndexPage, type NutrientPageData } from './nutrientPages'
@@ -40,7 +40,7 @@ const WEBSITE_JSON_LD = {
   url: `${SITE_URL}/`,
   inLanguage: 'ja',
   description: VIEW_META.menu.description,
-  publisher: { '@type': 'Organization', name: OPERATOR_NAME },
+  publisher: { '@type': 'Organization', name: OPERATOR_NAME, url: OPERATOR_URL },
 }
 
 const og = (name: string, made: { card: OgCard; alt: string }): SitePage['og'] => ({ path: `/og/${name}.png`, ...made })

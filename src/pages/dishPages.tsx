@@ -4,7 +4,7 @@ import type { Catalog } from '../domain/nutrition'
 import { DEFAULT_SERVINGS, extraTexts, materialLines, recipeLines, type RecipeLine } from '../domain/recipe'
 import type { Dish, DishCategory, DishRecipe } from '../domain/types'
 import { DISHES_INDEX_PATH, dishAppPath, dishPagePath, SITE_NAME, SITE_URL } from '../routes'
-import { OPERATOR_NAME } from '../site'
+import { OPERATOR_NAME, OPERATOR_URL } from '../site'
 import type { OgCard } from './ogCard'
 import { BUTTON, BUTTON_SUB, CARD, LINK, StaticLayout } from './StaticLayout'
 
@@ -99,7 +99,7 @@ export function dishRecipeJsonLd(d: DishPageData, imagePath: string): Record<str
     name: d.dish.name,
     image: [`${SITE_URL}${imagePath}`],
     description: dishPageDescription(d),
-    author: { '@type': 'Organization', name: OPERATOR_NAME },
+    author: { '@type': 'Organization', name: OPERATOR_NAME, url: OPERATOR_URL },
     recipeCategory: d.category,
     recipeYield: `${SERVINGS}人分`,
     totalTime: `PT${d.recipe.minutes}M`,
