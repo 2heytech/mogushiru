@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useMemo, useRef, useState, type MouseEvent, type ReactNode } from 'react'
+import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Customizer } from './components/Customizer'
 import { prioritySlots, withSlot } from './domain/customize'
 import { CustomizeIcon } from './components/CustomizeIcon'
@@ -15,13 +15,18 @@ import { SlotStrip } from './components/SlotStrip'
 import { DayMenuPanel } from './components/DayMenuPanel'
 import { BackToStart, StartChoice } from './components/StartChoice'
 import { RankingView } from './components/RankingView'
+import { FoodDetailDialog } from './components/FoodDetailDialog'
+import { FoodLookup } from './components/FoodLookup'
+import { FoodSectionTabs } from './components/FoodSectionTabs'
+import { inAppLink } from './components/inAppLink'
+import { INITIAL_LOOKUP, lookupItemExists, type LookupItem, type LookupState } from './components/lookupCards'
 import { AboutView } from './components/AboutView'
 import { confirmDialog } from './components/confirm'
 import { pushHistory } from './components/useDismiss'
 import { SiteFooter } from './components/SiteFooter'
 import { adjustIdealMenu, IDEAL_MENUS, idealMenuAvailable, idealMenuHasProducts } from './domain/idealMenus'
 import { isMealSlot, type MealSlot } from './domain/idealMeals'
-import { legacyRedirect, menuScreenFromState, menuScreenState, nutrientFromSlug, VIEW_META, VIEW_PATH, viewFromLocation, type MenuScreen, type View } from './routes'
+import { isFoodView, legacyRedirect, menuScreenFromState, menuScreenState, nutrientFromSlug, VIEW_META, VIEW_PATH, viewFromLocation, type MenuScreen, type View } from './routes'
 import { ConfirmHost } from './components/ConfirmDialog'
 import { IdealMealDialog, MenuActions, SaveMenuDialog, SavedMenusDialog } from './components/SavedMenus'
 import { MenuBuilderDialog } from './components/MenuBuilder'
@@ -55,9 +60,13 @@ const ICON_CLASS = 'h-6 w-6 shrink-0 sm:h-9 sm:w-9 lg:h-7 lg:w-7 xl:h-9 xl:w-9'
 
 // アプリの機能。title の | は狭い画面で折り返してよい位置。いつも上に並べて、いまどれを見ているかと、ほかに何があるかが分かるようにする。
 // 名前は、幅320pxのスマホでも3つ並んで収まる短さにする（「1日の栄養バランスを確認」→「栄養バランス」など）
+// いま見ている画面が、そのタブの中か（「食品を調べる」は2つの画面をまとめて1つのタブ）
+const inFeature = (feature: View, view: View) => feature === view || (feature === 'foods' && isFoodView(view))
+
 const FEATURES: { view: View; icon: ReactNode; title: string; lead: string }[] = [
   { view: 'menu', icon: <UiIcon name="menu" className={ICON_CLASS} />, title: '栄養|バランス', lead: '朝・昼・晩の料理を選んで確かめる' },
-  { view: 'ranking', icon: <UiIcon name="ranking" className={ICON_CLASS} />, title: '食品を|調べる', lead: '名前でさがす・成分の多い順に見る' },
+  // 「食品を調べる」の中は2つの画面（名前でさがす /foods/ と、成分の多い順のランキング /ranking/）。タブを押すと、名前でさがすほうがひらく
+  { view: 'foods', icon: <UiIcon name="ranking" className={ICON_CLASS} />, title: '食品を|調べる', lead: '名前でさがす・成分の多い順に見る' },
   { view: 'customize', icon: <CustomizeIcon className={ICON_CLASS} />, title: '料理を|アレンジ', lead: '人前や材料の量を変えて保存' },
 ]
 
@@ -66,7 +75,7 @@ function FeatureTabsCompact({ view, onChange }: { view: View; onChange: (v: View
   return (
     <nav aria-label="機能の切り替え" className="flex gap-1.5 xl:gap-2">
       {FEATURES.map((f) => {
-        const active = f.view === view
+        const active = inFeature(f.view, view)
         return (
           <a
             key={f.view}
@@ -91,7 +100,7 @@ function FeatureTabs({ view, onChange }: { view: View; onChange: (v: View) => vo
   return (
     <nav aria-label="機能の切り替え" className="mb-3 grid grid-cols-3 gap-1.5 sm:mb-4 sm:gap-2 lg:hidden">
       {FEATURES.map((f) => {
-        const active = f.view === view
+        const active = inFeature(f.view, view)
         return (
           <a
             key={f.view}
@@ -122,13 +131,6 @@ function FeatureTabs({ view, onChange }: { view: View; onChange: (v: View) => vo
       })}
     </nav>
   )
-}
-
-// 画面へのリンクは <a href> にしておき（検索エンジンがたどれる・新しいタブでも開ける）、ふつうのクリックはページを読み直さずに切り替える
-function inAppLink(e: MouseEvent<HTMLAnchorElement>, go: () => void) {
-  if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
-  e.preventDefault()
-  go()
 }
 
 const menuHasItems = () => SLOTS.some((s) => useAppStore.getState().menu[s].length > 0)
@@ -225,6 +227,9 @@ export default function App() {
     updateDrink,
     recentDrinks,
     rememberDrink,
+    recentLookups,
+    rememberLookup,
+    clearRecentLookups,
     customizeItem,
     replaceWithMyDish,
     saveMyDish,
@@ -246,6 +251,14 @@ export default function App() {
     menuSource,
   } = useAppStore()
   const [savedDialog, setSavedDialog] = useState<'save' | 'load' | null>(null)
+  // 「食品を調べる」の名前でさがす画面の、さがしている言葉としぼりこみ（ランキングやほかのタブへ行ってもどっても、続きから見られるように）
+  const [lookup, setLookup] = useState<LookupState>(INITIAL_LOOKUP)
+  // 栄養素の一覧をひらいている食品（名前でさがした候補か、ランキングの行を押したもの）
+  const [foodDetail, setFoodDetail] = useState<LookupItem | null>(null)
+  const openFood = (item: LookupItem) => {
+    rememberLookup(item)
+    setFoodDetail(item)
+  }
   // 献立案から選ぶ窓
   const [builderOpen, setBuilderOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
@@ -541,22 +554,24 @@ export default function App() {
             onDelete={deleteMyDish}
           />
         </main>
-      ) : catalog && view === 'ranking' ? (
-        <main tabIndex={-1} className="outline-none">
-          <RankingView
-            catalog={catalog}
-            targets={targets}
-            prices={prices}
-            initialNutrient={rankingStart}
-            storesLoaded={storesLoaded}
-            showAlcohol={profile.age >= 20}
-            profileSet={profileSet}
-            // 栄養素を見た食品を、その量のまま1日の食事に足す
-            onAdd={(slot, item) => {
-              addItem(slot, item)
-              addedInLookup.current = true
-            }}
-          />
+      ) : catalog && isFoodView(view) ? (
+        <main tabIndex={-1} className="space-y-4 outline-none">
+          {/* 「食品を調べる」は、名前でさがす画面と、成分の多い順のランキングの2つに分ける（上の切り替えで行き来する） */}
+          <FoodSectionTabs view={view} onChange={setView} />
+          {view === 'foods' ? (
+            <FoodLookup
+              catalog={catalog}
+              storesLoaded={storesLoaded}
+              showAlcohol={profile.age >= 20}
+              state={lookup}
+              onState={setLookup}
+              recent={recentLookups}
+              onClearRecent={clearRecentLookups}
+              onOpen={openFood}
+            />
+          ) : (
+            <RankingView catalog={catalog} targets={targets} prices={prices} initialNutrient={rankingStart} onOpenFood={openFood} />
+          )}
         </main>
       ) : catalog && totals && !waitingForStores ? (
         <main tabIndex={-1} className="space-y-4 outline-none">
@@ -783,6 +798,22 @@ export default function App() {
 
       <ConfirmHost />
 
+      {catalog && foodDetail && lookupItemExists(foodDetail, catalog) && (
+        <FoodDetailDialog
+          // 別の食品をひらいたら、量などを作り直す
+          key={`${foodDetail.kind}:${foodDetail.refId}`}
+          item={foodDetail}
+          catalog={catalog}
+          targets={targets}
+          profileSet={profileSet}
+          // 栄養素を見た食品を、その量のまま1日の食事に足す
+          onAdd={(slot, item) => {
+            addItem(slot, item)
+            addedInLookup.current = true
+          }}
+          onClose={() => setFoodDetail(null)}
+        />
+      )}
       <SiteFooter onAbout={() => setView('about')} />
     </div>
   )

@@ -15,11 +15,9 @@ import {
 import { matches } from '../domain/search'
 import { SERVING_NOTE } from '../domain/serving'
 import type { Targets } from '../domain/targets'
-import type { NutrientKey, Slot } from '../domain/types'
+import type { NutrientKey } from '../domain/types'
 import { nutrientPagePath } from '../routes'
-import { FoodDetailDialog } from './FoodDetailDialog'
-import { FoodLookup } from './FoodLookup'
-import { lookupItemExists, type LookupItem } from './lookupCards'
+import type { LookupItem } from './lookupCards'
 
 const PAGE = 30
 
@@ -47,24 +45,15 @@ export function RankingView({
   targets,
   prices,
   initialNutrient = 'protein',
-  storesLoaded = true,
-  showAlcohol = true,
-  profileSet = true,
-  onAdd,
+  onOpenFood,
 }: {
   catalog: Catalog
   targets: Targets
   prices: PriceTable
   initialNutrient?: NutrientKey
-  // 名前でさがす（FoodLookup）と、栄養素の一覧の窓（FoodDetailDialog）に渡すもの
-  storesLoaded?: boolean
-  showAlcohol?: boolean
-  profileSet?: boolean
-  // 栄養素の一覧の窓から、見ている量のまま1日の食事に足す
-  onAdd: (slot: Slot, item: LookupItem) => void
+  // 行を押したら、その食材の栄養素の一覧（FoodDetailDialog）をひらく
+  onOpenFood: (item: LookupItem) => void
 }) {
-  // 栄養素の一覧をひらいている食品（名前でさがした候補か、ランキングの行を押したもの）
-  const [detail, setDetail] = useState<LookupItem | null>(null)
   const [nutrient, setNutrient] = useState<NutrientKey>(initialNutrient)
   const [metric, setMetric] = useState<RankingMetric>('serving')
   const [group, setGroup] = useState<string | null>(null)
@@ -104,15 +93,11 @@ export function RankingView({
 
   return (
     <section aria-labelledby="ranking-title" className="space-y-4">
-      <h2 id="ranking-title" className="text-xl font-bold">
-        食品を調べる
-      </h2>
-
-      {/* 名前でさがして、その食品の栄養素をすぐ見る */}
-      <FoodLookup catalog={catalog} storesLoaded={storesLoaded} showAlcohol={showAlcohol} onOpen={setDetail} />
-
       <div>
-        <h3 className="text-lg font-bold">成分の多い順のランキング</h3>
+        {/* 見出し「食品を調べる」と、名前でさがす画面との切り替えは、上の FoodSectionTabs に出ている */}
+        <h3 id="ranking-title" className="text-lg font-bold">
+          成分の多い順のランキング
+        </h3>
         <p className="mt-1 text-sm text-ink-soft">
           肉・魚・野菜・調味料などの食品（料理ではなく材料）を、成分の多い順に並べます。
           {info.caution ? `いまは${info.label}が多い食品。とりすぎに気をつけたいときの目安にどうぞ。` : `いまは${info.label}をとりやすい食品の順です。`}
@@ -290,7 +275,7 @@ export function RankingView({
                     <button
                       type="button"
                       aria-haspopup="dialog"
-                      onClick={() => setDetail({ kind: 'food', refId: r.food.id, portion: r.serving.grams })}
+                      onClick={() => onOpenFood({ kind: 'food', refId: r.food.id, portion: r.serving.grams })}
                       className="flex w-full items-center gap-3 rounded-2xl bg-white px-3 py-2.5 text-left shadow-sm transition hover:bg-coral/5"
                     >
                       <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-full text-sm font-bold ${i < 3 ? 'bg-coral text-ink-strong' : 'bg-cream text-ink-soft'}`}>{i + 1}</span>
@@ -340,18 +325,6 @@ export function RankingView({
         </div>
       </div>
 
-      {detail && lookupItemExists(detail, catalog) && (
-        <FoodDetailDialog
-          // 別の食品をひらいたら、量などを作り直す
-          key={`${detail.kind}:${detail.refId}`}
-          item={detail}
-          catalog={catalog}
-          targets={targets}
-          profileSet={profileSet}
-          onAdd={onAdd}
-          onClose={() => setDetail(null)}
-        />
-      )}
     </section>
   )
 }

@@ -38,6 +38,10 @@ type State = {
   // 最近入れた飲み物（「dish:beer」などのキーと、そのときの1杯の量）。料理をえらぶ画面で先に出す
   recentDrinks: RecentDrink[]
   rememberDrink: (key: string, cup?: DrinkSize) => void
+  // 「食品を調べる」で最近栄養素を見た食品（新しい順）。さがす前の画面に出して、もう一度すぐひらけるようにする
+  recentLookups: RecentLookup[]
+  rememberLookup: (item: RecentLookup) => void
+  clearRecentLookups: () => void
   setProfile: (p: Profile) => void
   // 追加した項目の uid を返す（料理を選ぶ画面で、もう一度押したら外すため）
   addItem: (slot: Slot, item: Omit<MenuItem, 'uid'>) => string
@@ -79,6 +83,12 @@ const touched = (s: { menuSource: MenuSource | null }) => (s.menuSource && !s.me
 export const recentMyDishes = (dishes: MyDish[]): MyDish[] =>
   [...dishes].sort((a, b) => (b.updatedAt ?? b.createdAt).localeCompare(a.updatedAt ?? a.createdAt))
 
+// 「食品を調べる」で最近見た食品（種類と番号だけ。量は覚えない）。同じものは先頭に出し直す
+export type RecentLookup = Pick<MenuItem, 'kind' | 'refId'>
+export const RECENT_LOOKUPS_MAX = 8
+export const rememberLookup = (list: RecentLookup[], item: RecentLookup): RecentLookup[] =>
+  [item, ...list.filter((i) => !(i.kind === item.kind && i.refId === item.refId))].slice(0, RECENT_LOOKUPS_MAX)
+
 const uid = () => (globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`)
 
 // 保存形式のバージョン。形が変わったら上げて migrate を書く
@@ -116,6 +126,9 @@ export const useAppStore = create<State>()(
       setRecipeServings: (n) => set({ recipeServings: clampServings(n) }),
       recentDrinks: [],
       rememberDrink: (key, cup) => set((s) => ({ recentDrinks: rememberDrink(s.recentDrinks, key, cup) })),
+      recentLookups: [],
+      rememberLookup: ({ kind, refId }) => set((s) => ({ recentLookups: rememberLookup(s.recentLookups, { kind, refId }) })),
+      clearRecentLookups: () => set({ recentLookups: [] }),
       setProfile: (profile) => set({ profile, profileSet: true }),
       // カスタマイズした料理を別の区分にも入れたら、その区分でも上に出すようにする
       addItem: (slot, item) => {
@@ -238,7 +251,7 @@ export const useAppStore = create<State>()(
       name: 'mogushiru',
       version: SCHEMA_VERSION,
       storage: safeStorage,
-      partialize: ({ profile, profileSet, menu, menuSource, myDishes, myProducts, favoriteProductIds, savedMenus, recipeServings, recentDrinks }) => ({
+      partialize: ({ profile, profileSet, menu, menuSource, myDishes, myProducts, favoriteProductIds, savedMenus, recipeServings, recentDrinks, recentLookups }) => ({
         profile,
         profileSet,
         menu,
@@ -249,6 +262,7 @@ export const useAppStore = create<State>()(
         savedMenus,
         recipeServings,
         recentDrinks,
+        recentLookups,
       }),
     },
   ),

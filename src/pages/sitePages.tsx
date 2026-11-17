@@ -75,6 +75,7 @@ export function buildSitePages({ catalog, prices }: { catalog: Catalog; prices: 
 
   const pages: SitePage[] = [
     { ...appPage('menu'), jsonLd: [WEBSITE_JSON_LD] },
+    appPage('foods'),
     appPage('ranking', [...APP_LINKS, ...nutrientLinks]),
     appPage('customize'),
     appPage('about'),
