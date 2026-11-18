@@ -1,7 +1,6 @@
 import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Customizer } from './components/Customizer'
 import { prioritySlots, withSlot } from './domain/customize'
-import { CustomizeIcon } from './components/CustomizeIcon'
 import { CustomizeView } from './components/CustomizeView'
 import { ItemEditor } from './components/ItemEditor'
 import { ProductForm } from './components/ProductForm'
@@ -13,11 +12,10 @@ import type { Step } from './domain/daySummary'
 import { ProfileDialog, type ProfileFocus } from './components/ProfileDialog'
 import { SlotStrip } from './components/SlotStrip'
 import { DayMenuPanel } from './components/DayMenuPanel'
-import { BackToStart, StartChoice } from './components/StartChoice'
+import { ArrangeLink, BackRow, StartChoice } from './components/StartChoice'
 import { RankingView } from './components/RankingView'
 import { FoodDetailDialog } from './components/FoodDetailDialog'
 import { FoodLookup } from './components/FoodLookup'
-import { FoodSectionTabs } from './components/FoodSectionTabs'
 import { inAppLink } from './components/inAppLink'
 import { INITIAL_LOOKUP, lookupItemExists, type LookupItem, type LookupState } from './components/lookupCards'
 import { AboutView } from './components/AboutView'
@@ -26,7 +24,22 @@ import { pushHistory } from './components/useDismiss'
 import { SiteFooter } from './components/SiteFooter'
 import { adjustIdealMenu, IDEAL_MENUS, idealMenuAvailable, idealMenuHasProducts } from './domain/idealMenus'
 import { isMealSlot, type MealSlot } from './domain/idealMeals'
-import { appLinkParam, hasAppLinkHash, isFoodView, legacyRedirect, menuScreenFromState, menuScreenState, nutrientFromSlug, VIEW_META, VIEW_PATH, viewFromLocation, withoutAppLinkParam, type MenuScreen, type View } from './routes'
+import {
+  appLinkParam,
+  hasAppLinkHash,
+  legacyRedirect,
+  menuScreenFromState,
+  menuScreenState,
+  nutrientFromSlug,
+  VIEW_FEATURE,
+  VIEW_META,
+  VIEW_PATH,
+  viewFromLocation,
+  withoutAppLinkParam,
+  type Feature,
+  type MenuScreen,
+  type View,
+} from './routes'
 import { ConfirmHost } from './components/ConfirmDialog'
 import { IdealMealDialog, MenuActions, SaveMenuDialog, SavedMenusDialog } from './components/SavedMenus'
 import { MenuBuilderDialog } from './components/MenuBuilder'
@@ -58,29 +71,31 @@ const SAMPLE_MENU_ID = 'washoku'
 // lg（ヘッダーに1段で並べる幅）は、「栄養の目安を設定」のボタンと並ぶので少し小さく
 const ICON_CLASS = 'h-6 w-6 shrink-0 sm:h-9 sm:w-9 lg:h-7 lg:w-7 xl:h-9 xl:w-9'
 
-// アプリの機能。title の | は狭い画面で折り返してよい位置。いつも上に並べて、いまどれを見ているかと、ほかに何があるかが分かるようにする。
-// 名前は、幅320pxのスマホでも3つ並んで収まる短さにする（「1日の栄養バランスを確認」→「栄養バランス」など）
-// いま見ている画面が、そのタブの中か（「食品を調べる」は2つの画面をまとめて1つのタブ）
-const inFeature = (feature: View, view: View) => feature === view || (feature === 'foods' && isFoodView(view))
-
-const FEATURES: { view: View; icon: ReactNode; title: string; lead: string }[] = [
+// 上のメニュー（3つ）。title の | は狭い画面で折り返してよい位置。いつも上に並べて、いまどれを見ているかと、ほかに何があるかが分かるようにする。
+// 名前は、幅320pxのスマホでも3つ並んで収まる短さにする（「1日の栄養バランスを確認」→「栄養バランス」など）。
+// 「料理をアレンジ」は、ここには出さない：栄養バランスの中の画面にして、1日の食事・最初の画面から入る（その画面を見ているあいだは、
+// 「栄養バランス」をえらんだ形にする。routes.ts の VIEW_FEATURE）
+const FEATURES: { view: Feature; icon: ReactNode; title: string; lead: string }[] = [
   { view: 'menu', icon: <UiIcon name="menu" className={ICON_CLASS} />, title: '栄養|バランス', lead: '朝・昼・晩の料理を選んで確かめる' },
-  // 「食品を調べる」の中は2つの画面（名前でさがす /foods/ と、成分の多い順のランキング /ranking/）。タブを押すと、名前でさがすほうがひらく
-  { view: 'foods', icon: <UiIcon name="ranking" className={ICON_CLASS} />, title: '食品を|調べる', lead: '名前でさがす・成分の多い順に見る' },
-  { view: 'customize', icon: <CustomizeIcon className={ICON_CLASS} />, title: '料理を|アレンジ', lead: '人前や材料の量を変えて保存' },
+  { view: 'foods', icon: <UiIcon name="search" className={ICON_CLASS} />, title: '食品を|調べる', lead: '名前でさがして栄養素を見る' },
+  { view: 'ranking', icon: <UiIcon name="ranking" className={ICON_CLASS} />, title: '成分|ランキング', lead: '成分の多い食品を順に見る' },
 ]
+
+// いま見ている画面のメニューか。そのメニューの画面そのもの（押しても移らない）なら 'page'、中の別の画面（料理をアレンジ）なら 'true'
+const featureCurrent = (feature: Feature, view: View): 'page' | 'true' | undefined => (VIEW_FEATURE[view] !== feature ? undefined : view === feature ? 'page' : 'true')
 
 // 広い画面（lg）ではロゴと「栄養の目安を設定」の間に1段で並べる小さな形
 function FeatureTabsCompact({ view, onChange }: { view: View; onChange: (v: View) => void }) {
   return (
     <nav aria-label="機能の切り替え" className="flex gap-1.5 xl:gap-2">
       {FEATURES.map((f) => {
-        const active = inFeature(f.view, view)
+        const current = featureCurrent(f.view, view)
+        const active = Boolean(current)
         return (
           <a
             key={f.view}
             href={VIEW_PATH[f.view]}
-            aria-current={active ? 'page' : undefined}
+            aria-current={current}
             onClick={(e) => inAppLink(e, () => onChange(f.view))}
             title={f.lead}
             className={`flex min-h-12 items-center gap-1.5 rounded-full border-2 pr-3 pl-2 text-sm font-bold whitespace-nowrap transition xl:pr-4 ${
@@ -100,12 +115,13 @@ function FeatureTabs({ view, onChange }: { view: View; onChange: (v: View) => vo
   return (
     <nav aria-label="機能の切り替え" className="mb-3 grid grid-cols-3 gap-1.5 sm:mb-4 sm:gap-2 lg:hidden">
       {FEATURES.map((f) => {
-        const active = inFeature(f.view, view)
+        const current = featureCurrent(f.view, view)
+        const active = Boolean(current)
         return (
           <a
             key={f.view}
             href={VIEW_PATH[f.view]}
-            aria-current={active ? 'page' : undefined}
+            aria-current={current}
             onClick={(e) => inAppLink(e, () => onChange(f.view))}
             className={`block min-h-14 rounded-2xl border-2 px-0.5 py-1.5 text-center transition sm:min-h-16 sm:px-4 sm:py-2 sm:text-left ${
               active ? 'border-coral bg-white shadow-sm' : 'border-transparent bg-white/60 text-ink-soft hover:bg-white'
@@ -177,10 +193,11 @@ function useView(): { view: View; screen: MenuScreen; go: (v: View, screen?: Men
     document.title = VIEW_META[view].title
   }, [view])
   // 最初の画面と1日の食事を行き来すると、押したボタン（入口・「最初の画面にもどる」）が消えてフォーカスの場所がなくなるので、本文（main）に移す。
+  // 「料理をアレンジ」の画面との行き来（「料理をアレンジ」「1日の食事にもどる」）も同じ。
   // ダイアログの中にフォーカスがあるとき（献立案の窓で1食ずつえらんでいる途中など）は動かさない
   useEffect(() => {
     if (document.activeElement === document.body) document.querySelector<HTMLElement>('main')?.focus({ preventScroll: true })
-  }, [screen])
+  }, [screen, view])
   // screen をはぶくと、いまのまま。replace は、履歴を足さずにいまの場所を書きかえる（URL で献立を指定して来たとき。ダイアログがひらいていないときに使う）。
   // 履歴を足すのは pushHistory で（ダイアログをひらいたまま・閉じてすぐの移動でも、履歴がずれないように）
   const go = (v: View, next: MenuScreen = screen, how: 'push' | 'replace' = 'push') => {
@@ -206,17 +223,22 @@ export default function App() {
   const catalogState = useCatalog()
   const prices = usePrices()
   const { view, screen, go } = useView()
-  // 「食品を調べる」で食品を1日の食事に足したあとは、「栄養バランス」を1日の食事からひらく（最初の画面のままだと、足したものを見るのにもう1回押すことになる）
-  const addedInLookup = useRef(false)
+  // 「食品を調べる」「料理をアレンジ」で1日の食事に足したあとは、「栄養バランス」を1日の食事からひらく（最初の画面のままだと、足したものを見るのにもう1回押すことになる）
+  const addedOutside = useRef(false)
   const setView = (v: View) => {
-    if (v === 'menu' && addedInLookup.current) {
-      addedInLookup.current = false
+    if (v === 'menu' && addedOutside.current) {
+      addedOutside.current = false
       go('menu', 'day')
     } else go(v)
   }
   // 1日の食事の画面へ（入口をえらんだ・献立を入れた）と、最初の画面へ（入れた料理はそのまま）
-  const openDay = () => go('menu', 'day')
+  const openDay = () => {
+    addedOutside.current = false
+    go('menu', 'day')
+  }
   const openStart = () => go('menu', 'start')
+  // 「料理をアレンジ」の画面へ（栄養バランスの中の画面。そこからのもどり先は、下の arrangeBack）
+  const openArrange = () => go('customize')
   const {
     menu: storedMenu,
     pruneMenu,
@@ -302,6 +324,8 @@ export default function App() {
   // もどるのは「最初の画面にもどる」・ロゴ・ブラウザの戻る・リセット（料理が入ったままでも出す）
   const showStart = screen === 'start'
   const itemCount = SLOTS.reduce((n, s) => n + menu[s].length, 0)
+  // 「料理をアレンジ」の画面からのもどり先：1日の食事を見ていた・料理が入っているなら1日の食事、まだ始めていなければ最初の画面
+  const arrangeBack: MenuScreen = screen === 'day' || itemCount > 0 ? 'day' : 'start'
   const sampleMenu = useMemo(() => {
     const ideal = IDEAL_MENUS.find((m) => m.id === SAMPLE_MENU_ID)
     return ideal && catalog && idealMenuAvailable(ideal, catalog) ? ideal : undefined
@@ -543,11 +567,15 @@ export default function App() {
         <main tabIndex={-1} className="outline-none">
           <AboutView onBack={() => setView('menu')} />
         </main>
-      ) : catalog && view === 'customize' ? (
-        <main tabIndex={-1} className="outline-none">
+      ) : catalog && totals && view === 'customize' ? (
+        <main tabIndex={-1} className="space-y-4 outline-none">
+          {/* 「料理をアレンジ」は、栄養バランスの中の画面。上に、1日の食事（まだ始めていなければ最初の画面）へのもどり口を置く */}
+          <BackRow label={arrangeBack === 'day' ? '1日の食事にもどる' : '最初の画面にもどる'} onClick={() => (arrangeBack === 'day' ? openDay() : openStart())} />
           <CustomizeView
             catalog={catalog}
             myDishes={myDishes}
+            menu={menu}
+            totals={totals}
             showAlcohol={profile.age >= 20}
             initialDishId={dishStart}
             // 一度ひらいたら忘れる（ほかの画面からもどってきたとき、同じ料理をまたひらかない）
@@ -555,26 +583,31 @@ export default function App() {
             onSaveNew={saveMyDish}
             onUpdate={updateMyDish}
             onDelete={deleteMyDish}
+            // お気に入りの料理を、保存したときの量で1日の食事に足す
+            onAddToDay={(slot, my) => {
+              addItem(slot, { kind: 'myDish', refId: my.id, portion: my.portion ?? 1 })
+              setOpenSlot(slot)
+              addedOutside.current = true
+            }}
+            onOpenDay={openDay}
           />
         </main>
-      ) : catalog && isFoodView(view) ? (
+      ) : catalog && view === 'foods' ? (
         <main tabIndex={-1} className="space-y-4 outline-none">
-          {/* 「食品を調べる」は、名前でさがす画面と、成分の多い順のランキングの2つに分ける（上の切り替えで行き来する） */}
-          <FoodSectionTabs view={view} onChange={setView} />
-          {view === 'foods' ? (
-            <FoodLookup
-              catalog={catalog}
-              storesLoaded={storesLoaded}
-              showAlcohol={profile.age >= 20}
-              state={lookup}
-              onState={setLookup}
-              recent={recentLookups}
-              onClearRecent={clearRecentLookups}
-              onOpen={openFood}
-            />
-          ) : (
-            <RankingView catalog={catalog} targets={targets} prices={prices} initialNutrient={rankingStart} onOpenFood={openFood} />
-          )}
+          <FoodLookup
+            catalog={catalog}
+            storesLoaded={storesLoaded}
+            showAlcohol={profile.age >= 20}
+            state={lookup}
+            onState={setLookup}
+            recent={recentLookups}
+            onClearRecent={clearRecentLookups}
+            onOpen={openFood}
+          />
+        </main>
+      ) : catalog && view === 'ranking' ? (
+        <main tabIndex={-1} className="space-y-4 outline-none">
+          <RankingView catalog={catalog} targets={targets} prices={prices} initialNutrient={rankingStart} onOpenFood={openFood} />
         </main>
       ) : catalog && totals && !waitingForStores ? (
         <main tabIndex={-1} className="space-y-4 outline-none">
@@ -594,6 +627,7 @@ export default function App() {
               }}
               onBuild={() => setBuilderOpen(true)}
               onOpenSaved={() => setSavedDialog('load')}
+              onArrange={openArrange}
               // 朝・昼・晩に料理を入れていく画面へ（どの食事から入れるかは、そこでえらぶ）。
               // 料理が入っているときは、空から始めるかを確かめる（そのまま続けるなら、上の「いまの1日の食事にもどる」）
               onPickSelf={async () => {
@@ -609,7 +643,11 @@ export default function App() {
             // スマホ：上に1日の食事（見出し・朝〜その他）、その下に結果。
             // 広い画面（lg 以上）：左に1日の食事、右にまとめを並べて、料理や量を変えた結果をすぐ横で見られるようにする。くわしい内容はその下
             <>
-              <BackToStart onClick={openStart} />
+              {/* いちばん上の行：左に最初の画面へのもどり口、右に「料理をアレンジ」の画面への入口。
+                  広い画面では、下の「1日の食事」の右はしにそろえる（列の幅は、下の grid の 1.4 : 1 と同じ） */}
+              <BackRow label="最初の画面にもどる" shortLabel="最初の画面へ" onClick={openStart} className="lg:w-[calc((100%-1rem)*7/12)]">
+                <ArrangeLink onClick={openArrange} />
+              </BackRow>
               <div className="space-y-4 lg:grid lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] lg:items-start lg:gap-4 lg:space-y-0">
                 <div className="min-w-0 lg:col-start-1 lg:row-start-1">
                   <DayMenuPanel
@@ -627,6 +665,7 @@ export default function App() {
                         onOpenBuild={() => setBuilderOpen(true)}
                         onOpenSave={() => setSavedDialog('save')}
                         onOpenSaved={() => setSavedDialog('load')}
+                        onArrange={openArrange}
                         onBackToStart={openStart}
                         onReset={() => {
                           clearMenu()
@@ -812,7 +851,7 @@ export default function App() {
           // 栄養素を見た食品を、その量のまま1日の食事に足す
           onAdd={(slot, item) => {
             addItem(slot, item)
-            addedInLookup.current = true
+            addedOutside.current = true
           }}
           onClose={() => setFoodDetail(null)}
         />

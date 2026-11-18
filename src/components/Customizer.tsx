@@ -178,7 +178,7 @@ export function Customizer({
   // 名前を自分で直すまでは、人前や変えた材料に合わせて初期値を作り直す
   const [typedName, setTypedName] = useState<string | null>(initialName ?? null)
   // 1日の食事の中の料理は「この食事に反映」が主で、お気に入りに保存するときだけ名前と「上に出す」を出す。
-  // 「料理をアレンジ」からひらいたとき（onApply がない）は、保存するための画面なので、はじめから出す
+  // 「料理をアレンジ」の画面からひらいたとき（onApply がない）は、保存するための画面なので、はじめから出す
   const [saving, setSaving] = useState(!onApply)
 
   const before = useMemo(() => ingredientsTotals(original, foods).values, [original, foods])
@@ -215,12 +215,12 @@ export function Customizer({
         tabIndex={-1}
         role="dialog"
         aria-modal="true"
-        aria-label={`${title}を編集`}
+        aria-label={`${title}をアレンジ`}
         className="outline-none flex max-h-[92vh] w-full flex-col rounded-t-[var(--radius-card)] bg-cream p-4 shadow-xl md:max-w-2xl md:rounded-[var(--radius-card)]"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-3 flex shrink-0 items-center justify-between">
-          <h2 className="text-lg font-bold">{title}を編集</h2>
+          <h2 className="text-lg font-bold">{title}をアレンジ</h2>
           <button type="button" onClick={onClose} className="grid h-11 w-11 place-items-center rounded-full hover:bg-white" aria-label="閉じる">
             ×
           </button>

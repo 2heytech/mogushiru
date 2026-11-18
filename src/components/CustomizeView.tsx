@@ -1,16 +1,19 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { formatPortion, prioritySlots } from '../domain/customize'
-import { ingredientsTotals, type Catalog } from '../domain/nutrition'
+import { ingredientsTotals, type Catalog, type MenuTotals } from '../domain/nutrition'
 import { mealFirstRank } from '../domain/popular'
 import { rankAndFilter } from '../domain/search'
-import { SLOTS, type Dish, type DishCategory, type Ingredient, type MyDish, type Slot } from '../domain/types'
+import { SLOTS, type DayMenu, type Dish, type DishCategory, type Ingredient, type MyDish, type Slot } from '../domain/types'
 import { recentMyDishes } from '../store/useAppStore'
 import { confirmDialog } from './confirm'
 import { Customizer } from './Customizer'
 import { dishImage, menuItemImage } from './illustration'
 import { DISH_CATEGORY_LABEL, SLOT_LABEL } from './labels'
+import { SlotChoiceSheet } from './SavedMenus'
 
 const MAX_CARDS = 60
+
+const NOTICE_BUTTON = 'min-h-11 shrink-0 rounded-full bg-white px-4 text-sm font-bold whitespace-nowrap text-coral-ink shadow-sm transition hover:bg-coral/5'
 
 // 「朝・昼」「すべての食事」
 const slotsText = (slots: Slot[]) => (slots.length === SLOTS.length ? 'すべての食事' : slots.map((s) => SLOT_LABEL[s]).join('・'))
@@ -26,7 +29,12 @@ const kcalOf = (ingredients: Ingredient[], catalog: Catalog, portion = 1) => {
   }
 }
 
+const slotTitle = (slot: Slot) => `${SLOT_LABEL[slot]}${slot === 'other' ? '' : 'ごはん'}`
+
 type Editing = { kind: 'dish'; dish: Dish; tab?: 'edit' | 'recipe' } | { kind: 'myDish'; my: MyDish }
+
+// 保存した・1日の食事に足した、のお知らせ。dishId があれば「1日の食事に追加」を、added なら「1日の食事を見る」を添える
+type Notice = { text: string; dishId?: string; added?: boolean }
 
 // 入口に置く、できることの例。押すと、その料理の編集の窓がひらく
 const EXAMPLES: { dishId: string; title: string; desc: string }[] = [
@@ -38,26 +46,39 @@ const EXAMPLES: { dishId: string; title: string; desc: string }[] = [
 // 料理の種類でしぼるボタンの並び
 const CATEGORIES = Object.keys(DISH_CATEGORY_LABEL) as DishCategory[]
 
-// 1日の食事とは別に、料理を選んで人前や材料を変え、お気に入りに保存する画面
+// 料理を選んで人前や材料を変え、お気に入りに保存する画面（栄養バランスの中の画面。1日の食事・最初の画面の「料理をアレンジ」から入る）。
+// お気に入りの料理は、ここから1日の食事に足せる（朝・昼・晩・その他をえらぶ）。
+// 1日の食事に入れてある料理を変えるのは、その料理の「アレンジ」（App.tsx の renderEditor）
 export function CustomizeView({
   catalog,
   myDishes,
+  menu,
+  totals,
   showAlcohol,
   initialDishId,
   onInitialDishOpened,
   onSaveNew,
   onUpdate,
   onDelete,
+  onAddToDay,
+  onOpenDay,
 }: {
   catalog: Catalog
   myDishes: MyDish[]
+  // いまの1日の食事（どの食事に足すかをえらぶ窓に、品数とカロリーを出す）
+  menu: DayMenu
+  totals: MenuTotals
   showAlcohol: boolean
   // 料理の作り方のページから来たときに、はじめから編集の窓をひらく料理
   initialDishId?: string
   onInitialDishOpened?: () => void
-  onSaveNew: (d: Omit<MyDish, 'id' | 'createdAt' | 'updatedAt'>) => void
+  onSaveNew: (d: Omit<MyDish, 'id' | 'createdAt' | 'updatedAt'>) => MyDish
   onUpdate: (id: string, patch: Pick<MyDish, 'name' | 'ingredients' | 'portion' | 'slots'>) => void
   onDelete: (id: string) => void
+  // お気に入りの料理を1日の食事に足す
+  onAddToDay: (slot: Slot, my: MyDish) => void
+  // 1日の食事の画面へ
+  onOpenDay: () => void
 }) {
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState<DishCategory | null>(null)
@@ -69,7 +90,14 @@ export function CustomizeView({
   useEffect(() => {
     if (initialDishId) onInitialDishOpened?.()
   }, [initialDishId, onInitialDishOpened])
-  const [notice, setNotice] = useState<string | null>(null)
+  const [notice, setNotice] = useState<Notice | null>(null)
+  // お知らせは画面の上に出るので、下のほうの料理を保存したときも見えるところまで動かす
+  const noticeRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (notice) noticeRef.current?.scrollIntoView?.({ block: 'nearest' })
+  }, [notice])
+  // 1日の食事に足そうとしているお気に入りの料理（どの食事に足すかをえらぶ窓を出す）
+  const [adding, setAdding] = useState<MyDish | null>(null)
   const dishes = useMemo(
     () =>
       [...catalog.dishes.values()]
@@ -86,6 +114,8 @@ export function CustomizeView({
   const examples = useMemo(() => EXAMPLES.flatMap((e) => (catalog.dishes.get(e.dishId) ? [{ ...e, dish: catalog.dishes.get(e.dishId)! }] : [])), [catalog])
   const mine = useMemo(() => recentMyDishes(myDishes), [myDishes])
   const close = () => setEditing(null)
+  // お知らせの料理（消したあとは出さない）
+  const noticeDish = notice?.dishId ? myDishes.find((d) => d.id === notice.dishId) : undefined
 
   function renderEditor(e: Editing) {
     if (e.kind === 'dish') {
@@ -102,8 +132,8 @@ export function CustomizeView({
           saveLabel="お気に入りに保存"
           initialSlots={dish.suggestedSlots.length ? dish.suggestedSlots : [...SLOTS]}
           onSave={(name, ingredients, portion, slots) => {
-            onSaveNew({ baseDishId: dish.id, name, ingredients, portion, slots })
-            setNotice(`「${name}」をお気に入りに保存しました。${slotsText(slots)}の料理をえらぶとき、いちばん上に出ます`)
+            const my = onSaveNew({ baseDishId: dish.id, name, ingredients, portion, slots })
+            setNotice({ text: `「${name}」をお気に入りに保存しました。${slotsText(slots)}の料理をえらぶとき、いちばん上に出ます。`, dishId: my.id })
             close()
           }}
           onClose={close}
@@ -127,7 +157,7 @@ export function CustomizeView({
         initialSlots={prioritySlots(my)}
         onSave={(name, ingredients, portion, slots) => {
           onUpdate(my.id, { name, ingredients, portion, slots })
-          setNotice(`「${name}」を保存しました`)
+          setNotice({ text: `「${name}」を保存しました。`, dishId: my.id })
           close()
         }}
         onClose={close}
@@ -142,11 +172,22 @@ export function CustomizeView({
           料理をアレンジ
         </h2>
         <p className="mt-1 text-sm text-ink-soft">料理をえらんで、食べる量や材料を変えられます。保存すると「お気に入り」に入り、1日の食事で料理をえらぶとき上に出ます。</p>
+        <p className="mt-1 text-xs text-ink-soft">1日の食事に入れた料理は、その料理の「アレンジ」からも変えられます。</p>
       </div>
       {notice && (
-        <p role="status" className="rounded-2xl bg-ok/15 px-4 py-2 text-sm">
-          {notice}
-        </p>
+        <div ref={noticeRef} role="status" className="flex scroll-mt-4 flex-wrap items-center gap-x-3 gap-y-1.5 rounded-2xl bg-ok/15 px-4 py-2 text-sm">
+          <p className="min-w-0 flex-1 basis-56">{notice.text}</p>
+          {noticeDish && (
+            <button type="button" onClick={() => setAdding(noticeDish)} aria-haspopup="dialog" className={NOTICE_BUTTON}>
+              ＋ 1日の食事に追加
+            </button>
+          )}
+          {notice.added && (
+            <button type="button" onClick={onOpenDay} className={NOTICE_BUTTON}>
+              1日の食事を見る
+            </button>
+          )}
+        </div>
       )}
 
       {/* できることの例。押すと、その料理の編集の窓がひらく */}
@@ -190,12 +231,8 @@ export function CustomizeView({
               const portion = my.portion ?? 1
               const kcal = kcalOf(my.ingredients, catalog, portion)
               return (
-                <li key={my.id} className="relative">
-                  <button
-                    type="button"
-                    onClick={() => setEditing({ kind: 'myDish', my })}
-                    className="flex h-full w-full flex-col items-center rounded-2xl bg-white p-3 text-center shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
-                  >
+                <li key={my.id} className="relative flex flex-col rounded-2xl bg-white shadow-sm transition hover:shadow-md">
+                  <button type="button" onClick={() => setEditing({ kind: 'myDish', my })} aria-haspopup="dialog" className="flex w-full flex-1 flex-col items-center rounded-2xl px-3 pt-3 pb-2 text-center">
                     <img src={menuItemImage({ uid: '', kind: 'myDish', refId: my.id, portion }, catalog)} alt="" className="mb-2 h-16 w-16 object-contain" loading="lazy" />
                     <span className="line-clamp-2 text-sm font-bold">{my.name}</span>
                     <span className="mt-1 text-xs text-ink-soft">
@@ -203,6 +240,16 @@ export function CustomizeView({
                       {kcal !== null && ` ・ ${kcal}kcal`}
                     </span>
                     <span className="mt-0.5 text-2xs text-coral-ink">{slotsText(prioritySlots(my))}で上に</span>
+                  </button>
+                  {/* 保存したときの量で、1日の食事に足す（どの食事かは、次の窓でえらぶ） */}
+                  <button
+                    type="button"
+                    onClick={() => setAdding(my)}
+                    aria-haspopup="dialog"
+                    aria-label={`${my.name}を1日の食事に追加`}
+                    className="mx-2 mb-2 min-h-11 rounded-full border-2 border-coral/60 px-2 text-sm font-bold whitespace-nowrap text-coral-ink transition hover:bg-coral/10"
+                  >
+                    ＋ 食事に追加
                   </button>
                   <button
                     type="button"
@@ -275,6 +322,20 @@ export function CustomizeView({
       </section>
 
       {editing && renderEditor(editing)}
+
+      {adding && (
+        <SlotChoiceSheet
+          lead={`「${adding.name}」を、保存したときの量（${formatPortion(adding.portion ?? 1)}）で足します。`}
+          menu={menu}
+          totals={totals}
+          onPick={(slot) => {
+            onAddToDay(slot, adding)
+            setNotice({ text: `「${adding.name}」を${slotTitle(slot)}に追加しました。`, added: true })
+            setAdding(null)
+          }}
+          onClose={() => setAdding(null)}
+        />
+      )}
     </section>
   )
 }

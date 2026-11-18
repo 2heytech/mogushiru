@@ -7,7 +7,6 @@ import {
   dishAppPath,
   hasAppLinkHash,
   idealMenuAppPath,
-  isFoodView,
   legacyRedirect,
   MENU_PAGES,
   menuScreenFromState,
@@ -16,6 +15,7 @@ import {
   nutrientFromSlug,
   nutrientPagePath,
   rankingAppPath,
+  VIEW_FEATURE,
   VIEW_PATH,
   viewFromLocation,
   withoutAppLinkParam,
@@ -25,14 +25,23 @@ describe('画面の URL', () => {
   it('パスから画面を決める（最後の / はあってもなくてもよい）', () => {
     expect(viewFromLocation('/')).toBe('menu')
     expect(viewFromLocation('/ranking/')).toBe('ranking')
-    // 「食品を調べる」の中の2つの画面
     expect(viewFromLocation('/foods/')).toBe('foods')
     expect(viewFromLocation('/foods')).toBe('foods')
-    expect([isFoodView('foods'), isFoodView('ranking'), isFoodView('menu'), isFoodView('customize')]).toEqual([true, true, false, false])
     expect(viewFromLocation('/ranking')).toBe('ranking')
     expect(viewFromLocation('/customize/')).toBe('customize')
     expect(viewFromLocation('/about/')).toBe('about')
     expect(viewFromLocation('/nutrients/iron/')).toBe('menu')
+  })
+
+  it('上のメニューは3つ。「料理をアレンジ」は栄養バランスの中の画面で、URL は前のまま', () => {
+    expect([VIEW_FEATURE.menu, VIEW_FEATURE.foods, VIEW_FEATURE.ranking]).toEqual(['menu', 'foods', 'ranking'])
+    // 食品を調べる（名前でさがす）と成分ランキングは、別のメニュー
+    expect(VIEW_FEATURE.ranking).not.toBe(VIEW_FEATURE.foods)
+    expect(VIEW_FEATURE.customize).toBe('menu')
+    expect(VIEW_FEATURE.about).toBeNull()
+    expect(VIEW_PATH.customize).toBe('/customize/')
+    expect(VIEW_PATH.ranking).toBe('/ranking/')
+    expect(VIEW_PATH.foods).toBe('/foods/')
   })
 
   it('古い # のリンク（/#ranking など）も開け、アドレス欄を新しい URL に直す', () => {

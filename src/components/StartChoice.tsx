@@ -1,3 +1,7 @@
+import type { ReactNode } from 'react'
+import { VIEW_PATH } from '../routes'
+import { CustomizeIcon } from './CustomizeIcon'
+import { inAppLink } from './inAppLink'
 import { BowlMogu } from './Mascot'
 import { UiIcon, type UiIconName } from './UiIcon'
 
@@ -29,20 +33,67 @@ const CHEVRON_LEFT = (
   </svg>
 )
 
-// 1日の食事の画面のいちばん上に置く、最初の画面へのもどり口。入口を1つえらんだあとでも、ほかの入口をえらびなおせるように。
-// 入れた料理は外さない（最初の画面の「いまの1日の食事にもどる」で、そのままもどれる）。
-// 文字のまわりを広く押せるようにして（44px）、上のタブ・下の「1日の食事」とのあいだはつめる
-export function BackToStart({ onClick }: { onClick: () => void }) {
+const CHEVRON_RIGHT = (
+  <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M9 5l7 7-7 7" />
+  </svg>
+)
+
+// 「料理をアレンジ」の画面（/customize/）への入口。上のメニューには出さず、栄養バランスの中（1日の食事の上の行・最初の画面）に置く。
+// ほかの画面へのリンクなので <a href> にしておき、ふつうのクリックはページを読み直さずに切り替える
+export function ArrangeLink({ onClick, className = '' }: { onClick: () => void; className?: string }) {
   return (
-    <div className="-mt-3 -mb-1 flex">
+    <a
+      href={VIEW_PATH.customize}
+      onClick={(e) => inAppLink(e, onClick)}
+      className={`group flex min-h-11 shrink-0 items-center rounded-full focus-visible:ring-4 focus-visible:ring-coral/40 focus-visible:outline-none ${className}`}
+    >
+      <span className="flex min-h-9 items-center gap-1 rounded-full bg-white pr-2.5 pl-1.5 text-sm font-bold whitespace-nowrap text-coral-ink shadow-sm transition group-hover:bg-coral/5">
+        {/* 幅のせまいスマホでは、となりのもどり口と1行に並ぶように絵をはぶく */}
+        <CustomizeIcon className="h-6 w-6 shrink-0 max-[359px]:hidden" />
+        <span className="max-[359px]:pl-1">料理をアレンジ</span>
+        {CHEVRON_RIGHT}
+      </span>
+    </a>
+  )
+}
+
+// 画面のいちばん上に置く行。左に、前の画面へのもどり口（「‹ 最初の画面にもどる」「‹ 1日の食事にもどる」）、右に、あれば別の入口（children）。
+// 1日の食事の画面では、入口を1つえらんだあとでも、ほかの入口をえらびなおせるように最初の画面へもどす
+// （入れた料理は外さない。最初の画面の「いまの1日の食事にもどる」で、そのままもどれる）。
+// 文字のまわりを広く押せるようにして（44px）、上のタブ・下の「1日の食事」とのあいだはつめる。
+// shortLabel：幅390px未満のスマホで、右の入口と1行に並ぶように短くした名前（「最初の画面へ」）
+export function BackRow({
+  label,
+  shortLabel,
+  onClick,
+  className = '',
+  children,
+}: {
+  label: string
+  shortLabel?: string
+  onClick: () => void
+  className?: string
+  children?: ReactNode
+}) {
+  return (
+    <div className={`-mt-3 -mb-1 flex items-center justify-between gap-1 ${className}`}>
       <button
         type="button"
         onClick={onClick}
-        className="-ml-1.5 flex min-h-11 items-center gap-0.5 rounded-full pr-3 pl-1.5 text-sm font-bold text-ink-soft transition hover:text-ink focus-visible:ring-4 focus-visible:ring-coral/40 focus-visible:outline-none"
+        className="-ml-1.5 flex min-h-11 min-w-0 items-center gap-0.5 rounded-full pr-2 pl-1.5 text-left text-sm leading-tight font-bold whitespace-nowrap text-ink-soft transition hover:text-ink focus-visible:ring-4 focus-visible:ring-coral/40 focus-visible:outline-none"
       >
         {CHEVRON_LEFT}
-        最初の画面にもどる
+        {shortLabel ? (
+          <>
+            <span className="max-[389px]:hidden">{label}</span>
+            <span className="min-[390px]:hidden">{shortLabel}</span>
+          </>
+        ) : (
+          label
+        )}
       </button>
+      {children}
     </div>
   )
 }
@@ -53,7 +104,7 @@ export function BackToStart({ onClick }: { onClick: () => void }) {
 //   自分の食事で試す … 朝・昼・晩に、食べた料理を入れていく画面へ
 //   サンプルで結果を見る … 献立の例を1つそのまま入れて、結果の画面を先に見る（sampleName があるとき）
 // 「1日でバランス／毎食バランス」のちがいは、献立案から選ぶ窓の中でえらぶ（ここでは聞かない）。
-// 保存した食事を呼び出す（保存したものがあるとき）は、その下に小さく。
+// その下に小さく、ほかの入口：保存した食事を呼び出す（保存したものがあるとき）・料理をアレンジ。
 // 料理が入っているとき（current）は、いちばん上に「いまの1日の食事にもどる」を出す。3つの入口は新しく始める入口なので、
 // いまの料理を置き換える前に確かめるのは、呼ぶ側（App.tsx）とそれぞれの窓の役目
 export function StartChoice({
@@ -64,6 +115,7 @@ export function StartChoice({
   onPickSelf,
   onBuild,
   onOpenSaved,
+  onArrange,
   onTrySample,
 }: {
   savedCount: number
@@ -75,6 +127,8 @@ export function StartChoice({
   onPickSelf: () => void
   onBuild: () => void
   onOpenSaved: () => void
+  // 「料理をアレンジ」の画面へ
+  onArrange: () => void
   onTrySample?: () => void
 }) {
   return (
@@ -129,21 +183,25 @@ export function StartChoice({
           )}
         </ul>
 
-        {savedCount > 0 && (
-          <div className="mt-3 flex justify-center sm:mt-4">
+        {/* ほかの入口。3つの入口より小さく並べる（幅がせまいときは2行に） */}
+        <div className="mt-2 flex flex-wrap items-center justify-center gap-x-2 sm:mt-3">
+          {savedCount > 0 && (
             <button
               type="button"
               onClick={onOpenSaved}
               aria-haspopup="dialog"
-              className="flex min-h-11 items-center gap-1.5 rounded-full bg-white pr-4 pl-2 text-sm shadow-sm transition hover:bg-coral/5 focus-visible:ring-4 focus-visible:ring-coral/40 focus-visible:outline-none"
+              className="group flex min-h-11 items-center rounded-full focus-visible:ring-4 focus-visible:ring-coral/40 focus-visible:outline-none"
             >
-              <UiIcon name="load" className="h-7 w-7 shrink-0" />
-              保存した食事を呼び出す
-              <span className="rounded-full bg-cream px-1.5 text-xs tabular-nums text-ink-soft">{savedCount}</span>
+              <span className="flex min-h-9 items-center gap-1 rounded-full bg-white pr-2.5 pl-1.5 text-sm whitespace-nowrap shadow-sm transition group-hover:bg-coral/5">
+                <UiIcon name="load" className="h-6 w-6 shrink-0" />
+                保存した食事を呼び出す
+                <span className="rounded-full bg-cream px-1.5 text-xs tabular-nums text-ink-soft">{savedCount}</span>
+              </span>
             </button>
-          </div>
-        )}
-        <p className="mt-3 text-center text-xs text-pretty text-ink-soft sm:mt-4">登録はいりません。入れた内容は、このブラウザにのみ保存されます。</p>
+          )}
+          <ArrangeLink onClick={onArrange} />
+        </div>
+        <p className="mt-2 text-center text-xs text-pretty text-ink-soft sm:mt-3">登録はいりません。入れた内容は、このブラウザにのみ保存されます。</p>
       </div>
     </section>
   )

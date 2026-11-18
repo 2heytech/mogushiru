@@ -173,7 +173,10 @@ export function SlotStrip(props: Props) {
 
 const STEP_BUTTON = 'grid h-11 w-11 shrink-0 place-items-center rounded-full text-base leading-none font-bold text-coral-ink hover:bg-white disabled:text-ink-soft/40 disabled:hover:bg-transparent'
 
-// 区分に入っている料理の一覧。名前を押すと編集、×で外す。飲み物は＋−で杯数を変えられる。
+// 区分に入っている料理の一覧。名前を押すと量を変える窓、×で外す。飲み物は＋−で杯数を変えられる。
+// 料理（材料まで変えられるもの）には、量とカロリーの横に「アレンジ」と書いた小さな札を付けて、押すと食べる量や材料を変えられることを見せる
+// （「料理をアレンジ」を上のメニューから外したので、ここが入口になる。3.13）。市販品・食材は量だけなので、えんぴつの印だけ。
+// 札を名前の右に置くと、スマホやPCの2列で名前が7〜8文字で折れるので、名前の下の行に置く。
 // 幅のせまいスマホ（375px未満）では、飲み物の＋−を名前の下の行に下ろす（横に並べると、名前が5〜7文字ごとに折れる）
 function SlotItems({ menu, catalog, onEdit, onRemove, onDrink, slot }: Props & { slot: Slot }) {
   const items = menu[slot]
@@ -186,6 +189,8 @@ function SlotItems({ menu, catalog, onEdit, onRemove, onDrink, slot }: Props & {
         const count = drink ? drinkCount(item, drink) : 0
         const name = drinkItemName(item, catalog, drink?.short)
         const amount = drink && cup ? drinkAmountLabel(cup, count) : portionLabel(item, catalog)
+        // 材料まで変えられる料理か（料理・お気に入りの料理。飲み物は、まず杯数の窓がひらくので入れない）
+        const arrangeable = !drink && (item.kind === 'dish' || item.kind === 'myDish')
         return (
           <li key={item.uid} className="flex items-center rounded-xl bg-cream/70 max-[374px]:flex-wrap">
             <button
@@ -197,12 +202,20 @@ function SlotItems({ menu, catalog, onEdit, onRemove, onDrink, slot }: Props & {
               <ItemThumb item={item} catalog={catalog} className="h-7 w-7 shrink-0" />
               <span className="min-w-0 flex-1 leading-snug">
                 {name}
-                <span className="block text-2xs text-ink-soft tabular-nums">
-                  {amount && <span className="inline-block">{amount}・</span>}
-                  <span className="inline-block">{Math.round(itemTotals(item, catalog).values.energyKcal)} kcal</span>
+                <span className="flex flex-wrap items-center gap-x-2 text-2xs text-ink-soft tabular-nums">
+                  <span>
+                    {amount && <span className="inline-block">{amount}・</span>}
+                    <span className="inline-block">{Math.round(itemTotals(item, catalog).values.energyKcal)} kcal</span>
+                  </span>
+                  {arrangeable && (
+                    <span className="rounded-full border border-coral/50 bg-white px-1.5 py-px leading-tight font-bold whitespace-nowrap text-coral-ink">
+                      <span aria-hidden>✎ </span>
+                      アレンジ
+                    </span>
+                  )}
                 </span>
               </span>
-              {!drink && (
+              {!drink && !arrangeable && (
                 <span aria-hidden className="text-xs text-coral-ink">
                   ✎
                 </span>

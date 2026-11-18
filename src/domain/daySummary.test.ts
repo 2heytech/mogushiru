@@ -189,7 +189,7 @@ describe('まとめの言葉', () => {
     expect(text({ kind: 'addMeal', slot: 'lunch' })).toEqual({ text: '昼ごはんを入れる', button: '昼に追加' })
     expect(text({ kind: 'addFruit' }).button).toBe('果物をえらぶ')
     expect(text({ kind: 'swapSalt' }).button).toBe('置きかえの案')
-    expect(text({ kind: 'ranking', key: 'iron' })).toEqual({ text: '鉄の多い食品を足す', button: '食品を調べる' })
+    expect(text({ kind: 'ranking', key: 'iron' })).toEqual({ text: '鉄の多い食品を足す', button: 'ランキングを見る' })
     // 料理は自分でえらぶものは、ボタンを出さない
     expect(text({ kind: 'reduce', what: 'salt' }).button).toBeUndefined()
     expect(text({ kind: 'reduce', what: 'supplement', nutrient: 'vitaminA' }).text).toBe('ビタミンAのサプリの量を見直す')
