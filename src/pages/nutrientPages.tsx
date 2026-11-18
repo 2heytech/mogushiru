@@ -1,3 +1,4 @@
+import { Fragment, type ReactNode } from 'react'
 import { foodImage } from '../components/illustration'
 import type { Catalog } from '../domain/nutrition'
 import {
@@ -17,6 +18,7 @@ import { SERVING_NOTE } from '../domain/serving'
 import { computeTargets, DEFAULT_PROFILE, type Targets } from '../domain/targets'
 import type { Food, NutrientKey, Sex } from '../domain/types'
 import { nutrientPagePath, NUTRIENTS_INDEX_PATH, rankingAppPath, SITE_NAME } from '../routes'
+import type { DishPageData } from './dishPages'
 import { NUTRIENT_COPY, type NutrientCopy } from './nutrientCopy'
 import type { OgCard } from './ogCard'
 import { BUTTON, BUTTON_SUB, CARD, LINK, StaticLayout } from './StaticLayout'
@@ -26,6 +28,11 @@ import { BUTTON, BUTTON_SUB, CARD, LINK, StaticLayout } from './StaticLayout'
 
 export const LIST_SIZE = 20
 const SUB_LIST_SIZE = 10
+// 食品の種類ごとの一覧：種類は6つまで、それぞれ上位5つ
+const GROUP_MAX = 6
+const GROUP_LIST_SIZE = 5
+// この成分が多い料理の数
+const DISH_LIST_SIZE = 10
 
 // 1日の目安の表に出す年齢。食事摂取基準の区分の中ほどの年齢で計算する
 const AGE_BANDS = [
@@ -51,6 +58,11 @@ export type NutrientPageData = {
   densest?: { food: Food; servingRank: number; servingGrams: number }
   // 身近な食品の「1回分の値段と、そこに入っている量」（100円あたりの一覧を先に出すページだけ）
   priceExamples: RankingRow[]
+  // 食品の種類（野菜・果物・魚介など）ごとの上位。1回の量でくらべる
+  groups: { group: string; rows: RankingRow[] }[]
+  // この成分が多い料理（作り方のページがある料理。量は1人前）
+  dishes: { id: string; name: string; path: string; category: string; amount: number }[]
+  dishTotal: number
 }
 
 // いちばん上に出す一覧。たんぱく質は「安くとれる食品」をさがす人が多いので、100円あたりを先に出す。ほかの成分は1回の量から
@@ -60,8 +72,38 @@ const PRICE_EXAMPLE_FOODS = ['12004', '04046', '04032', '13003']
 
 const DEFAULT_TARGETS = computeTargets(DEFAULT_PROFILE)
 
+// 食品の種類ごとの上位。「野菜で多いのは？」「果物では？」とさがす人のための一覧。
+// その種類で3番めに多い食品の量を「その種類の多さ」として、多い種類から並べる（1品だけ飛びぬけて多い種類が上に来ないように）。
+// いちばん多い種類の2割に届かない種類は出さない。2種類に満たないとき（カフェインは飲み物だけ）は、この一覧を出さない
+function groupLists(serving: RankingRow[]): NutrientPageData['groups'] {
+  const byGroup = new Map<string, RankingRow[]>()
+  for (const r of serving) {
+    const rows = byGroup.get(r.food.group)
+    if (rows) rows.push(r)
+    else byGroup.set(r.food.group, [r])
+  }
+  const scored = [...byGroup]
+    .filter(([, rows]) => rows.length >= 3)
+    .map(([group, rows]) => ({ group, rows: rows.slice(0, GROUP_LIST_SIZE), score: rows[2].value }))
+    .sort((a, b) => b.score - a.score || a.group.localeCompare(b.group))
+  const best = scored[0]?.score ?? 0
+  const out = scored.filter((g) => g.score >= best * 0.2).slice(0, GROUP_MAX)
+  return out.length >= 2 ? out.map(({ group, rows }) => ({ group, rows })) : []
+}
+
+// この成分が多い料理（1人前）。5品に満たないときは出さない
+function dishList(key: NutrientKey, dishPages: DishPageData[]): NutrientPageData['dishes'] {
+  const rows = dishPages
+    .flatMap((d) => {
+      const amount = d.dish.nutrients[key]
+      return amount !== null && amount > 0 ? [{ id: d.dish.id, name: d.dish.name, path: d.path, category: d.category, amount }] : []
+    })
+    .sort((a, b) => b.amount - a.amount || a.id.localeCompare(b.id))
+  return rows.length >= 5 ? rows.slice(0, DISH_LIST_SIZE) : []
+}
+
 // ページに使う計算をまとめてする（ページの文と、ページの説明文の両方で使う）
-export function nutrientPageData(key: NutrientKey, catalog: Pick<Catalog, 'foods' | 'dishes'>, prices: PriceTable): NutrientPageData | null {
+export function nutrientPageData(key: NutrientKey, catalog: Pick<Catalog, 'foods' | 'dishes'>, prices: PriceTable, dishPages: DishPageData[] = []): NutrientPageData | null {
   const info = RANKING_NUTRIENTS.find((n) => n.key === key)
   const copy = NUTRIENT_COPY[key]
   const path = nutrientPagePath(key)
@@ -95,6 +137,9 @@ export function nutrientPageData(key: NutrientKey, catalog: Pick<Catalog, 'foods
     lists: lists.filter((l) => l.rows.length > 0),
     densest: top && servingRank > 1 ? { food: top.food, servingRank, servingGrams: top.serving.grams } : undefined,
     priceExamples: lead === 'per100yen' ? PRICE_EXAMPLE_FOODS.flatMap((id) => perYen.find((r) => r.food.id === id) ?? []) : [],
+    groups: groupLists(serving),
+    dishes: dishList(key, dishPages),
+    dishTotal: dishPages.length,
   }
 }
 
@@ -106,11 +151,12 @@ function priceExampleText(r: RankingRow, unit: string): string {
   return `${r.food.displayName}${r.serving.label}（${r.serving.grams}g）は約${servingYen(r)}円で${fmt(r.servingAmount)}${unit}`
 }
 
-const LIST_TITLE: Record<RankingMetric, (name: string, caution: boolean) => string> = {
-  serving: (n) => `ふだん1回に食べる量で${n}が多い食品`,
-  per100g: (n) => `100gあたりで${n}が多い食品`,
-  per100kcal: (n) => `カロリーのわりに${n}が多い食品（100kcalあたり）`,
-  per100yen: (n) => `値段のわりに${n}が多い食品（100円あたり）`,
+// rich は「ビタミンCが多い」「カロリーが高い」
+const LIST_TITLE: Record<RankingMetric, (rich: string) => string> = {
+  serving: (rich) => `ふだん1回に食べる量で${rich}食品`,
+  per100g: (rich) => `100gあたりで${rich}食品`,
+  per100kcal: (rich) => `カロリーのわりに${rich}食品（100kcalあたり）`,
+  per100yen: (rich) => `値段のわりに${rich}食品（100円あたり）`,
 }
 const LIST_HINT: Record<RankingMetric, string> = {
   serving: `${SERVING_NOTE}乾物や調味料のように一度にたくさん食べないものは下がります。`,
@@ -122,6 +168,29 @@ const LIST_HINT: Record<RankingMetric, string> = {
 const METRIC_SHORT: Record<RankingMetric, string> = { serving: '1回の量', per100g: '100gあたり', per100kcal: '100kcalあたり', per100yen: '100円あたり' }
 const METRIC_LONG: Record<RankingMetric, string> = { serving: 'ふだん1回に食べる量', per100g: '100gあたり', per100kcal: '100kcalあたり', per100yen: '100円あたり' }
 const SUFFIX: Record<RankingMetric, string> = { serving: '/1回', per100g: '/100g', per100kcal: '/100kcal', per100yen: '/100円' }
+
+// 種類ごとの一覧の見出しに使う呼び方（「ビタミンCが多い野菜」「カルシウムが多い牛乳・乳製品」）
+const GROUP_HEADING: Record<string, string> = {
+  '01': '穀類（ごはん・パン・めん）',
+  // 「〜が多いいも」と「い」が続くと読みにくいので、漢字で書く
+  '02': '芋（いも類）',
+  '03': '砂糖・甘味料',
+  '04': '豆・大豆製品',
+  '05': 'ナッツ・種実',
+  '06': '野菜',
+  '07': '果物',
+  '08': 'きのこ',
+  '09': '海藻',
+  '10': '魚介',
+  '11': '肉',
+  '12': '卵',
+  '13': '牛乳・乳製品',
+  '14': '油',
+  '15': 'お菓子・菓子パン',
+  '16': '飲み物',
+  '17': '調味料',
+  '18': 'そうざい・調理済みの食品',
+}
 
 // 目安の値は小数1けたまで（7.00 mg ではなく 7 mg、10.5 mg）
 const fmtRef = (v: number) => (v >= 100 ? Math.round(v).toLocaleString() : String(Math.round(v * 10) / 10))
@@ -176,7 +245,7 @@ function ReferenceTable({ data }: { data: NutrientPageData }) {
     return (
       <section aria-labelledby="reference" className={`${CARD} scroll-mt-4`}>
         <h2 id="reference" className="text-lg font-bold">
-          1日の目安
+          {copy.name}の1日の摂取量の目安
         </h2>
         <p className="mt-1 text-sm leading-relaxed">{copy.name}には、厚生労働省「日本人の食事摂取基準（2025年版）」に1日の目安の量がありません。</p>
       </section>
@@ -190,7 +259,7 @@ function ReferenceTable({ data }: { data: NutrientPageData }) {
   return (
     <section aria-labelledby="reference" className={`${CARD} scroll-mt-4`}>
       <h2 id="reference" className="text-lg font-bold">
-        {key === 'caffeine' ? '1日の上限の目安' : '1日の目安'}
+        {copy.name}の{key === 'caffeine' ? '1日の上限の目安' : '1日の摂取量の目安'}
         <span className="ml-2 text-sm font-normal text-ink-soft">（{basis}）</span>
       </h2>
       <div className="mt-2 overflow-x-auto">
@@ -250,7 +319,7 @@ function RankingList({ data, metric, rows }: { data: NutrientPageData; metric: R
   return (
     <section aria-labelledby={id} className="scroll-mt-4 space-y-2">
       <h2 id={id} className="text-lg font-bold">
-        {LIST_TITLE[metric](copy.name, Boolean(info.caution))}
+        {LIST_TITLE[metric](copy.rich)}
       </h2>
       <p className="text-xs leading-relaxed text-ink-soft">
         {LIST_HINT[metric]}
@@ -331,25 +400,32 @@ const metricsText = (data: NutrientPageData, labels: Record<RankingMetric, strin
     .map((l) => labels[l.metric])
     .join('・')
 
+// 検索結果に出るタイトル。はじめに「〜が多い食べ物・食品ランキング」（さがす人の言葉）、次に、ここならではのくらべ方
 export function nutrientPageTitle(data: NutrientPageData): string {
-  return `${data.copy.heading}｜${metricsText(data, METRIC_SHORT, 2)}・1日の目安｜${SITE_NAME}`
+  return `${data.copy.heading}｜${metricsText(data, METRIC_SHORT, 2)}でくらべる｜${SITE_NAME}`
 }
 
+// 検索結果に出る説明文。はじめの60字ほどしか出ないことも多いので、上位3つの名前と量を先に書く
 export function nutrientPageDescription(data: NutrientPageData): string {
   const { copy, info } = data
+  const what = copy.heading.replace(/ランキング$/, '')
   if (data.priceExamples.length > 0) {
     const examples = data.priceExamples
       .slice(0, 2)
       .map((r) => priceExampleText(r, info.unit))
       .join('、')
-    return `${copy.name}が多い食品を、${metricsText(data, METRIC_LONG)}で並べました。${examples}。価格は小売物価統計調査の2025年平均をもとにした概算です。年齢・性別ごとの1日の目安つき。`
+    return `${what}を、${metricsText(data, METRIC_LONG)}でくらべたランキング。${examples}。価格は小売物価統計調査の2025年平均をもとにした概算です。年齢・性別ごとの1日の摂取量の目安つき。`
   }
   const serving = data.lists.find((l) => l.metric === 'serving')?.rows ?? []
-  const names = serving
+  const top = serving
     .slice(0, 3)
-    .map((r) => r.food.displayName)
+    .map((r, i) => `${i + 1}位 ${r.food.displayName} ${fmt(r.value)}${info.unit}`)
+    .join('、')
+  const groups = data.groups
+    .slice(0, 3)
+    .map((g) => FOOD_GROUP_LABEL[g.group])
     .join('・')
-  return `${copy.name}が多い食品を、ふだん1回に食べる量と100gあたりで並べました。1回の量の上位は${names}。年齢・性別ごとの1日の目安つき。日本食品標準成分表（八訂）増補2023年をもとに計算しています。`
+  return `${copy.heading}。ふだん1回に食べる量では、${top}。100gあたりの順位${groups && `、${groups}など種類べつの上位`}、年齢・性別ごとの1日の摂取量の目安も、日本食品標準成分表の値で見られます。`
 }
 
 // SNS などに貼ったときの画像：最初の一覧の上位3つ
@@ -360,28 +436,125 @@ export function nutrientOgCard(data: NutrientPageData): { card: OgCard; alt: str
   const value = (r: RankingRow) => `${fmt(r.value)} ${data.info.unit}${SUFFIX[lead.metric]}`
   return {
     card: {
-      title: data.copy.heading,
+      title: data.copy.short,
       sub: `${METRIC_LONG[lead.metric]}でくらべる`,
       caution: Boolean(data.info.caution),
       rows: rows.map((r) => ({ name: r.food.displayName, value: value(r), ratio: r.value / top, image: foodImage(r.food) })),
     },
-    alt: `${data.copy.heading}（${METRIC_LONG[lead.metric]}）。${rows.map((r, i) => `${i + 1}位 ${r.food.displayName} ${value(r)}`).join('、')}`,
+    alt: `${data.copy.short}（${METRIC_LONG[lead.metric]}）。${rows.map((r, i) => `${i + 1}位 ${r.food.displayName} ${value(r)}`).join('、')}`,
   }
+}
+
+// 食品の種類（野菜・果物・魚介など）ごとの上位
+function GroupLists({ data }: { data: NutrientPageData }) {
+  const { info, copy } = data
+  return (
+    <section aria-labelledby="by-group" className="scroll-mt-4 space-y-2">
+      <h2 id="by-group" className="text-lg font-bold">
+        食品の種類べつに見る、{copy.rich}食べ物
+      </h2>
+      <p className="text-xs leading-relaxed text-ink-soft">
+        {data.groups.map((g) => FOOD_GROUP_LABEL[g.group]).join('・')}の種類ごとに、ふだん1回に食べる量で多い順の上位{GROUP_LIST_SIZE}品です。
+      </p>
+      <div className="grid gap-2 sm:grid-cols-2">
+        {data.groups.map((g) => (
+          <div key={g.group} className="rounded-2xl bg-white px-4 py-3 shadow-sm">
+            <h3 className="font-bold">
+              {copy.rich}
+              {GROUP_HEADING[g.group] ?? FOOD_GROUP_LABEL[g.group]}
+            </h3>
+            <ol className="mt-1 divide-y divide-ink/5 text-sm">
+              {g.rows.map((r, i) => (
+                <li key={r.food.id} className="flex items-baseline gap-2 py-1.5">
+                  <span className="w-4 shrink-0 text-xs text-ink-soft tabular-nums">{i + 1}</span>
+                  <span className="min-w-0 flex-1 leading-snug" title={r.food.name.replace(/　/g, ' ')}>
+                    {r.food.displayName}
+                    <span className="block text-xs text-ink-soft">
+                      {r.serving.label}（{r.serving.grams}g）
+                    </span>
+                  </span>
+                  <span className="shrink-0 tabular-nums">
+                    <strong>{fmt(r.value)}</strong>
+                    <span className="text-xs text-ink-soft"> {info.unit}</span>
+                  </span>
+                </li>
+              ))}
+            </ol>
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+// この成分が多い料理。名前から、料理の作り方のページへ行ける
+function DishList({ data }: { data: NutrientPageData }) {
+  const { info, copy } = data
+  return (
+    <section aria-labelledby="dishes" className={`${CARD} scroll-mt-4`}>
+      <h2 id="dishes" className="text-lg font-bold">
+        {copy.rich}料理
+      </h2>
+      <p className="mt-1 text-xs leading-relaxed text-ink-soft">
+        作り方のページがある料理 {data.dishTotal} 品を、1人前の量でくらべた上位{data.dishes.length}品です。名前から、材料と作り方を見られます。
+      </p>
+      <ol className="mt-2 text-sm sm:columns-2 sm:gap-x-8">
+        {data.dishes.map((d, i) => (
+          <li key={d.id} className="flex min-h-11 break-inside-avoid items-center gap-2 border-b border-ink/5">
+            <span className="w-5 shrink-0 text-xs text-ink-soft tabular-nums">{i + 1}</span>
+            <span className="min-w-0 flex-1 leading-snug">
+              <a href={d.path} className={LINK}>
+                {d.name}
+              </a>
+              <span className="ml-1.5 text-xs text-ink-soft">{d.category}</span>
+            </span>
+            <span className="shrink-0 tabular-nums">
+              <strong>{fmt(d.amount)}</strong>
+              <span className="text-xs text-ink-soft"> {info.unit}</span>
+            </span>
+          </li>
+        ))}
+      </ol>
+    </section>
+  )
+}
+
+// 見出しを言葉のまとまりに分ける（「ビタミンCが多い」「食べ物・食品」「ランキング」）
+function headingParts(copy: NutrientCopy): string[] {
+  const tail = 'ランキング'
+  if (!copy.heading.startsWith(copy.rich) || !copy.heading.endsWith(tail)) return [copy.heading]
+  return [copy.rich, copy.heading.slice(copy.rich.length, -tail.length), tail].filter(Boolean)
 }
 
 export function NutrientPage({ data }: { data: NutrientPageData }) {
   const { key, info, copy, densest } = data
   const serving = data.lists.find((l) => l.metric === 'serving')?.rows ?? []
-  const leadFirst = data.lists[0]?.metric !== 'serving'
   const others = NUTRIENT_GROUPS.map((g) => ({ ...g, keys: g.keys.filter((k) => k !== key && NUTRIENT_COPY[k]) }))
+  // ページの並び。さがしに来た人がまず見たいのはランキングなので、最初の一覧をいちばん上に置き、1日の目安の表はそのあとにする。
+  // 種類べつの一覧は、同じ「1回の量」でくらべているので、1回の量の一覧のすぐあとに置く
+  const sections: { id: string; label: string; node: ReactNode }[] = []
+  data.lists.forEach((l, i) => {
+    sections.push({ id: `list-${l.metric}`, label: METRIC_SHORT[l.metric], node: <RankingList data={data} metric={l.metric} rows={l.rows} /> })
+    if (l.metric === 'serving' && data.groups.length > 0) sections.push({ id: 'by-group', label: '種類べつ', node: <GroupLists data={data} /> })
+    if (i === 0) sections.push({ id: 'reference', label: key === 'caffeine' ? '1日の上限の目安' : '1日の目安', node: <ReferenceTable data={data} /> })
+  })
+  if (data.dishes.length > 0) sections.push({ id: 'dishes', label: '料理', node: <DishList data={data} /> })
   return (
     <StaticLayout crumbs={[{ name: 'モグシル', path: '/' }, { name: '成分が多い食品ランキング', path: NUTRIENTS_INDEX_PATH }, { name: copy.name }]}>
       <article className="space-y-6">
         <header>
-          <h1 className="text-2xl leading-snug font-bold sm:text-3xl">{copy.heading}</h1>
+          {/* スマホで「ラ／ンキング」のように言葉の途中で折り返さないよう、言葉のまとまりごとに折り返す */}
+          <h1 className="text-2xl leading-snug font-bold sm:text-3xl">
+            {headingParts(copy).map((part) => (
+              <span key={part} className="inline-block max-w-full">
+                {part}
+              </span>
+            ))}
+          </h1>
           <p className="mt-2 text-sm leading-relaxed">
             {copy.about}
-            よく使う食品 {data.familiarCount.toLocaleString()} 品を、{metricsText(data, METRIC_LONG)}で並べました。
+            よく使う食品 {data.familiarCount.toLocaleString()} 品から、{copy.rich}
+            {copy.things}を、{metricsText(data, METRIC_LONG)}でくらべて、多い順に並べました。
           </p>
           {data.priceExamples.length > 0 && (
             <p className="mt-2 text-sm leading-relaxed">
@@ -405,9 +578,9 @@ export function NutrientPage({ data }: { data: NutrientPageData }) {
           )}
           <nav aria-label="このページの内容" className="mt-3">
             <ul className="flex flex-wrap gap-1.5">
-              {[...data.lists.map((l) => ({ href: `#list-${l.metric}`, label: METRIC_SHORT[l.metric] })), { href: '#reference', label: key === 'caffeine' ? '1日の上限の目安' : '1日の目安' }].map((x) => (
-                <li key={x.href}>
-                  <a href={x.href} className="inline-flex min-h-9 items-center rounded-full bg-white px-3 text-sm shadow-sm hover:bg-cream">
+              {sections.map((x) => (
+                <li key={x.id}>
+                  <a href={`#${x.id}`} className="inline-flex min-h-9 items-center rounded-full bg-white px-3 text-sm shadow-sm hover:bg-cream">
                     {x.label}
                   </a>
                 </li>
@@ -416,13 +589,8 @@ export function NutrientPage({ data }: { data: NutrientPageData }) {
           </nav>
         </header>
 
-        {/* 100円あたりを先に出すページは、その一覧を1日の目安の表より上に置く */}
-        {leadFirst && <RankingList data={data} metric={data.lists[0].metric} rows={data.lists[0].rows} />}
-
-        <ReferenceTable data={data} />
-
-        {data.lists.slice(leadFirst ? 1 : 0).map((l) => (
-          <RankingList key={l.metric} data={data} metric={l.metric} rows={l.rows} />
+        {sections.map((x) => (
+          <Fragment key={x.id}>{x.node}</Fragment>
         ))}
 
         <section aria-labelledby="more" className={`${CARD} space-y-3 bg-white/80`}>
@@ -485,9 +653,9 @@ export function NutrientsIndexPage({ pages }: { pages: NutrientPageData[] }) {
     <StaticLayout crumbs={[{ name: 'モグシル', path: '/' }, { name: '成分が多い食品ランキング' }]}>
       <article className="space-y-6">
         <header>
-          <h1 className="text-2xl leading-snug font-bold sm:text-3xl">成分が多い食品ランキング</h1>
+          <h1 className="text-2xl leading-snug font-bold sm:text-3xl">成分が多い食べ物・食品ランキング</h1>
           <p className="mt-2 text-sm leading-relaxed">
-            たんぱく質・食物繊維・鉄分・カルシウム・ビタミンなど{pages.length}の成分について、多く含む食品を、ふだん1回に食べる量と100gあたりで並べました。年齢・性別ごとの1日の目安もあわせて見られます。
+            たんぱく質・食物繊維・鉄分・カルシウム・ビタミンなど{pages.length}の成分について、多く含む食べ物・食材を、ふだん1回に食べる量と100gあたりでくらべて、多い順に並べました。野菜・果物・魚介などの種類べつの上位、その成分が多い料理、年齢・性別ごとの1日の摂取量の目安もあわせて見られます。
           </p>
         </header>
         {NUTRIENT_GROUPS.map((g) => {
