@@ -123,10 +123,40 @@ export const nutrientFromSlug = (slug: string | null | undefined): NutrientKey |
   return hit ? hit[0] : null
 }
 
-// アプリのランキングを、成分をえらんだ状態でひらく URL（/ranking/?n=iron）
+// ---- 読みもののページから、アプリを「この成分・この献立・この料理」で開くリンク ----
+// 指定は # のうしろに書く（/ranking/#n=iron）。? で書くと（/ranking/?n=iron）、検索エンジンが成分・献立・料理の数だけ
+// 別のページとして読みに来て、読んでほしいページ（料理の作り方など）に来る回数がへる。# のうしろは別のページとして数えられない。
+// 以前の ? のリンクも、そのまま開ける（appLinkParam）
+const appLink = (path: string, name: string, value: string): string => `${path}#${name}=${encodeURIComponent(value)}`
+
+// いまの URL から、アプリを開くときの指定を読む（# のうしろが先、なければ ? のうしろ）
+export function appLinkParam(name: string, search: string, hash: string): string | null {
+  return new URLSearchParams(hash.replace(/^#/, '')).get(name) ?? new URLSearchParams(search).get(name)
+}
+
+// # のうしろに、アプリを開くときの指定（成分 n・献立 menu・料理 dish）があるか。
+// アプリを開いたまま、指定つきの URL に移ったとき（アドレス欄に貼ったなど）に、読みこみ直して指定を読むために使う
+const APP_LINK_NAMES = ['n', 'menu', 'dish']
+export const hasAppLinkHash = (hash: string): boolean => APP_LINK_NAMES.some((name) => appLinkParam(name, '', hash) !== null)
+
+// 読み終えた指定を取りのぞいた「? と # の部分」を返す（アドレス欄から消すため）。もともとなければ null
+export function withoutAppLinkParam(name: string, search: string, hash: string): string | null {
+  const query = new URLSearchParams(search)
+  const fragment = new URLSearchParams(hash.replace(/^#/, ''))
+  // # のうしろが「名前=値」の形でないとき（#ranking など）は、# にはさわらない
+  const inHash = fragment.has(name)
+  if (!query.has(name) && !inHash) return null
+  query.delete(name)
+  if (inHash) fragment.delete(name)
+  const q = query.toString()
+  const h = inHash ? fragment.toString() : hash.replace(/^#/, '')
+  return `${q ? `?${q}` : ''}${h ? `#${h}` : ''}`
+}
+
+// アプリのランキングを、成分をえらんだ状態でひらく URL（/ranking/#n=iron）
 export const rankingAppPath = (key: NutrientKey): string => {
   const slug = NUTRIENT_SLUG[key]
-  return slug ? `${VIEW_PATH.ranking}?n=${slug}` : VIEW_PATH.ranking
+  return slug ? appLink(VIEW_PATH.ranking, 'n', slug) : VIEW_PATH.ranking
 }
 
 // ---- 献立の例（/menus/<slug>/） ----
@@ -171,8 +201,8 @@ export const MENU_PAGES: MenuPage[] = [
 
 export const menuPagePath = (page: MenuPage): string => `${MENUS_INDEX_PATH}${page.slug}/`
 
-// アプリで理想の献立を呼び出した状態でひらく URL（/?menu=<献立のid>）
-export const idealMenuAppPath = (id: string): string => `/?menu=${encodeURIComponent(id)}`
+// アプリで理想の献立を呼び出した状態でひらく URL（/#menu=<献立のid>）
+export const idealMenuAppPath = (id: string): string => appLink(VIEW_PATH.menu, 'menu', id)
 
 // ---- 料理の作り方（/dishes/<料理id>/） ----
 
@@ -180,5 +210,5 @@ export const DISHES_INDEX_PATH = '/dishes/'
 
 export const dishPagePath = (id: string): string => `${DISHES_INDEX_PATH}${id}/`
 
-// アプリで、その料理の編集の窓を「つくり方」をひらいた状態で出す URL（/customize/?dish=<料理id>）
-export const dishAppPath = (id: string): string => `${VIEW_PATH.customize}?dish=${encodeURIComponent(id)}`
+// アプリで、その料理の編集の窓を「つくり方」をひらいた状態で出す URL（/customize/#dish=<料理id>）
+export const dishAppPath = (id: string): string => appLink(VIEW_PATH.customize, 'dish', id)

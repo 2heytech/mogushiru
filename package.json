@@ -16,7 +16,8 @@
     "data:prices": "tsx scripts/import-prices.ts",
     "data:stores:fetch": "tsx scripts/fetch-stores.ts",
     "data:stores": "tsx scripts/build-store-products.ts",
-    "data:makers:check": "tsx scripts/check-makers.ts"
+    "data:makers:check": "tsx scripts/check-makers.ts",
+    "sitemap:lastmod": "tsx --tsconfig tsconfig.prerender.json scripts/update-lastmod.ts"
   },
   "dependencies": {
     "react": "^19.2.8",

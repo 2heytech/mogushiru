@@ -2,7 +2,24 @@ import { describe, expect, it } from 'vitest'
 import { IDEAL_MENUS } from './domain/idealMenus'
 import { RANKING_NUTRIENTS } from './domain/ranking'
 import { menusFor } from './pages/menuPages'
-import { isFoodView, legacyRedirect, MENU_PAGES, menuScreenFromState, menuScreenState, NUTRIENT_SLUG, nutrientFromSlug, nutrientPagePath, rankingAppPath, VIEW_PATH, viewFromLocation } from './routes'
+import {
+  appLinkParam,
+  dishAppPath,
+  hasAppLinkHash,
+  idealMenuAppPath,
+  isFoodView,
+  legacyRedirect,
+  MENU_PAGES,
+  menuScreenFromState,
+  menuScreenState,
+  NUTRIENT_SLUG,
+  nutrientFromSlug,
+  nutrientPagePath,
+  rankingAppPath,
+  VIEW_PATH,
+  viewFromLocation,
+  withoutAppLinkParam,
+} from './routes'
 
 describe('画面の URL', () => {
   it('パスから画面を決める（最後の / はあってもなくてもよい）', () => {
@@ -50,7 +67,45 @@ describe('成分ごとのランキングの URL', () => {
     expect(nutrientFromSlug('nope')).toBeNull()
     expect(nutrientFromSlug(null)).toBeNull()
     expect(nutrientPagePath('iron')).toBe('/nutrients/iron/')
-    expect(rankingAppPath('iron')).toBe('/ranking/?n=iron')
+  })
+})
+
+describe('読みもののページから、アプリを指定つきで開くリンク', () => {
+  it('指定は # のうしろに書く（? で書くと、検索エンジンが別のページとして読みに来る）', () => {
+    expect(rankingAppPath('iron')).toBe('/ranking/#n=iron')
+    expect(idealMenuAppPath('washoku-1')).toBe('/#menu=washoku-1')
+    expect(dishAppPath('nikujaga')).toBe('/customize/#dish=nikujaga')
+    for (const path of [rankingAppPath('iron'), idealMenuAppPath('washoku-1'), dishAppPath('nikujaga')]) expect(path).not.toContain('?')
+  })
+
+  it('# のうしろの指定を読む。以前の ? のリンクも読める', () => {
+    expect(appLinkParam('n', '', '#n=iron')).toBe('iron')
+    expect(appLinkParam('n', '?n=iron', '')).toBe('iron')
+    expect(appLinkParam('menu', '', '#menu=kyodo-mie')).toBe('kyodo-mie')
+    expect(appLinkParam('dish', '?dish=nikujaga', '#dish=oden')).toBe('oden')
+    expect(appLinkParam('n', '', '')).toBeNull()
+    expect(appLinkParam('n', '', '#ranking')).toBeNull()
+  })
+
+  it('# のうしろに指定があるかが分かる（古い # のリンクや、ページの中の場所は指定ではない）', () => {
+    expect(hasAppLinkHash('#menu=washoku')).toBe(true)
+    expect(hasAppLinkHash('#n=iron')).toBe(true)
+    expect(hasAppLinkHash('#dish=oden')).toBe(true)
+    expect(hasAppLinkHash('#ranking')).toBe(false)
+    expect(hasAppLinkHash('')).toBe(false)
+  })
+
+  it('読み終えた指定を、アドレス欄から消す', () => {
+    expect(withoutAppLinkParam('n', '', '#n=iron')).toBe('')
+    expect(withoutAppLinkParam('n', '?n=iron', '')).toBe('')
+    expect(withoutAppLinkParam('n', '?n=iron&x=1', '')).toBe('?x=1')
+    expect(withoutAppLinkParam('menu', '?menu=a', '#menu=b')).toBe('')
+    // ほかの指定や、古い # のリンクは残す
+    expect(withoutAppLinkParam('n', '', '#n=iron&dish=oden')).toBe('#dish=oden')
+    expect(withoutAppLinkParam('n', '?n=iron', '#ranking')).toBe('#ranking')
+    // 指定がなければ、何もしない
+    expect(withoutAppLinkParam('n', '', '')).toBeNull()
+    expect(withoutAppLinkParam('n', '?x=1', '#ranking')).toBeNull()
   })
 })
 
