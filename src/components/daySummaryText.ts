@@ -94,7 +94,8 @@ export function stepText(s: Step): { text: string; button?: string } {
     case 'swapSalt':
       return { text: 'しょうゆ・みそを減塩タイプに置きかえる', button: '置きかえの案' }
     case 'ranking':
-      return { text: `${NUTRIENT_INFO[s.key].label}の多い食品を足す`, button: '食品を調べる' }
+      // 押すと、上のメニューの「成分ランキング」を、その成分をえらんだ形でひらく
+      return { text: `${NUTRIENT_INFO[s.key].label}の多い食品を足す`, button: 'ランキングを見る' }
   }
 }
 

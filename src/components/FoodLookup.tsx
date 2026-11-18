@@ -23,7 +23,7 @@ import {
 import type { Card } from './pickerCards'
 import { useMediaQuery } from './useMediaQuery'
 
-// 「食品を調べる」の「名前でさがす」の画面。
+// 「食品を調べる」の画面（名前でさがす）。成分の多い順に見る「成分ランキング」は、上のメニューの別の画面（RankingView.tsx）。
 // さがす前：最近見た食品・定番の食品（押すとすぐ栄養素の一覧）と、種類からさがす入口（食材の野菜・肉、料理の主菜・汁物、市販品の店など）。
 // 名前を入れると、食材・料理・市販品の候補がカロリーとたんぱく質・脂質・炭水化物つきで出る。種類・その中の分け方でしぼり、並べかえられる。
 // 候補を押すと、その食品の栄養素の一覧（FoodDetailDialog）がひらく
@@ -358,7 +358,10 @@ export function FoodLookup({
   )
 
   return (
-    <section aria-label="名前でさがす" className="space-y-3">
+    <section aria-labelledby="lookup-title" className="space-y-3">
+      <h2 id="lookup-title" className="text-xl font-bold">
+        食品を調べる
+      </h2>
       <div ref={boxRef} className="relative w-full scroll-mt-2 lg:max-w-xl">
         <svg viewBox="0 0 24 24" aria-hidden className="pointer-events-none absolute top-1/2 left-3.5 h-5 w-5 -translate-y-1/2 text-ink-soft" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
           <circle cx="11" cy="11" r="6.5" />

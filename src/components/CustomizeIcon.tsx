@@ -1,4 +1,4 @@
-// 「料理をカスタマイズ」のアイコン。UiIcon と同じく、角丸の淡い台に茶色の線で描く（キッチンスケールにトマト）
+// 「料理をアレンジ」のアイコン。UiIcon と同じく、角丸の淡い台に茶色の線で描く（キッチンスケールにトマト）
 const INK = '#5b4636'
 
 export function CustomizeIcon({ className }: { className?: string }) {

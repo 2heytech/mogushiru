@@ -10,14 +10,17 @@ export const SITE_NAME = 'モグシル'
 export const SITE_NAME_KANA = 'もぐしる'
 export const SITE_ALT_NAMES = [SITE_NAME_KANA, 'もぐシル', 'mogushiru']
 
-// foods と ranking は、上のタブ「食品を調べる」の中の2つの画面（名前でさがす／成分の多い順のランキング）。
-// about は「このサイトについて」（上のタブには出さず、フッターから入る）
+// customize は「料理をアレンジ」。about は「このサイトについて」（上のメニューには出さず、フッターから入る）
 export type View = 'menu' | 'foods' | 'ranking' | 'customize' | 'about'
 
 export const VIEW_PATH: Record<View, string> = { menu: '/', foods: '/foods/', ranking: '/ranking/', customize: '/customize/', about: '/about/' }
 
-// 上のタブ「食品を調べる」の中の画面か
-export const isFoodView = (view: View): view is 'foods' | 'ranking' => view === 'foods' || view === 'ranking'
+// 上のメニューは3つ：栄養バランス（menu）・食品を調べる（foods）・成分ランキング（ranking）。
+// 「料理をアレンジ」（customize）は、栄養バランスの中の画面にした（上のメニューには出さず、1日の食事・最初の画面から入る。
+// URL は /customize/ のまま）。その画面を見ているあいだ、上のメニューは「栄養バランス」をえらんだ形にする
+export type Feature = 'menu' | 'foods' | 'ranking'
+
+export const VIEW_FEATURE: Record<View, Feature | null> = { menu: 'menu', customize: 'menu', foods: 'foods', ranking: 'ranking', about: null }
 
 // 画面ごとのタイトルと説明（ブラウザのタブ・検索結果・SNS に貼ったときの表示）
 export const VIEW_META: Record<View, { title: string; description: string; heading: string }> = {

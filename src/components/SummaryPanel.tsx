@@ -134,7 +134,7 @@ export function DayInfo({
   onEditSlotShare?: () => void
   onEditExercise?: () => void
   onEditProfile?: () => void
-  // まとめの「次に試すこと」のボタン（料理を足す・食品を調べる）
+  // まとめの「次に試すこと」のボタン（料理を足す・成分ランキングを見る）
   onStep?: (step: Step) => void
 }) {
   const [tab, setTab] = useState<InfoTab>('summary')
@@ -154,7 +154,7 @@ export function DayInfo({
   const summary = daySummary({ totals, targets, foods, alerts, gaps, checks, missing: asFullDay ? [] : missingSlots, hasSaltSwap: swaps.some((x) => x.kind === 'salt') })
   const bowlMood = summary.mood
   const message = moguMessage(summary)
-  // 「置きかえの案」は栄養素のタブの中にあるので、そこへ移る。ほかは親（料理を足す画面・食品を調べる）へ
+  // 「置きかえの案」は栄養素のタブの中にあるので、そこへ移る。ほかは親（料理を足す画面・成分ランキング）へ
   const swapRef = useRef<HTMLDivElement>(null)
   const step = (s: Step) => {
     if (s.kind !== 'swapSalt') return onStep?.(s)

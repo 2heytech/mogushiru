@@ -2,10 +2,11 @@
 const INK = '#5b4636'
 const CHEEK = '#ffa99a'
 
-export type UiIconName = 'menu' | 'ranking' | 'profile' | 'save' | 'load' | 'reset' | 'limit' | 'want' | 'info' | 'pick' | 'build' | 'sample' | 'start'
+export type UiIconName = 'menu' | 'search' | 'ranking' | 'profile' | 'save' | 'load' | 'reset' | 'limit' | 'want' | 'info' | 'pick' | 'build' | 'sample' | 'start'
 
 const TILE_BG: Record<UiIconName, string> = {
   menu: '#ffe6bf',
+  search: '#dceafb',
   ranking: '#fff1c4',
   profile: '#dcf1e2',
   save: '#dceafb',
@@ -33,6 +34,15 @@ export function UiIcon({ name, className }: { name: UiIconName; className?: stri
           <circle cx="18.5" cy="25" r="2.6" fill="#e85d6a" />
           <rect x="28" y="17" width="9" height="7" rx="2.5" fill="#ffc94d" {...s} strokeWidth={1.8} />
           <rect x="28" y="26" width="9" height="7" rx="2.5" fill="#7cc98a" {...s} strokeWidth={1.8} />
+        </>
+      )}
+      {name === 'search' && (
+        // 食品を調べる：虫めがねで、りんごを見る
+        <>
+          <rect x="-3.4" y="0" width="6.8" height="13" rx="3.4" transform="translate(30.5 30.5) rotate(-45)" fill="#ff8a65" {...s} />
+          <circle cx="21" cy="21" r="12.5" fill="#fff" {...s} />
+          <circle cx="21" cy="22.8" r="6" fill="#f47c7c" {...s} strokeWidth={1.8} />
+          <path d="M21 17 q0.4 -3.2 3.6 -3.8" fill="none" {...s} stroke="#5aa86a" strokeWidth={2} />
         </>
       )}
       {name === 'ranking' && (

@@ -25,7 +25,7 @@ function Group({ tone, mark, title, children }: { tone: keyof typeof TONE; mark:
 }
 
 // まとめの中身。上から「目安の範囲内」「気になる点」「次に試すこと」の順に読めるように分ける。
-// onStep：次に試すことのボタン（料理を足す画面をひらく・食品を調べる など）
+// onStep：次に試すことのボタン（料理を足す画面をひらく・成分ランキングを見る など）
 export function DaySummaryView({ summary, onStep }: { summary: DaySummary; onStep?: (step: Step) => void }) {
   if (summary.state === 'empty') return null
   const { ok, near, concerns, steps } = summary

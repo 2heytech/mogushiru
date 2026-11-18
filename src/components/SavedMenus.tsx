@@ -6,6 +6,7 @@ import type { Targets } from '../domain/targets'
 import { SLOTS, type DayMenu, type MenuItem, type Slot } from '../domain/types'
 import type { SavedMenu } from '../store/useAppStore'
 import { confirmDialog } from './confirm'
+import { CustomizeIcon } from './CustomizeIcon'
 import { IdealMealList } from './IdealMeals'
 import { SLOT_LABEL } from './labels'
 import { SlotIcon } from './Mascot'
@@ -30,7 +31,7 @@ const slotTitle = (slot: Slot) => `${SLOT_LABEL[slot]}${slot === 'other' ? '' : 
 // 1日の食事の操作。
 // row＝見出しやPCの上のバーに横並び：「献立案から選ぶ」「保存」「呼び出す」「リセット」（料理を足すのは、朝・昼・晩それぞれの「＋ 料理をえらぶ」）
 // bar＝スマホの下に固定のバー：料理を足したり直したりしている間は「料理を追加」をいちばん目立たせ、
-//   献立全体の選びなおし・保存した食事の呼び出し・リセット・最初の画面にもどるは「メニュー」の中に置く（3.8）
+//   献立全体の選びなおし・保存した食事の呼び出し・料理をアレンジ・リセット・最初の画面にもどるは「メニュー」の中に置く（3.8・3.14）
 export function MenuActions({
   menu,
   totals,
@@ -41,6 +42,7 @@ export function MenuActions({
   onOpenBuild,
   onOpenSave,
   onOpenSaved,
+  onArrange,
   onBackToStart,
   onReset,
 }: {
@@ -54,6 +56,8 @@ export function MenuActions({
   onOpenBuild: () => void
   onOpenSave: () => void
   onOpenSaved: () => void
+  // 「料理をアレンジ」の画面へ
+  onArrange: () => void
   // 最初の画面（3つの入口）へ。料理は外さない
   onBackToStart: () => void
   onReset: () => void
@@ -91,7 +95,7 @@ export function MenuActions({
             <UiIcon name="save" className="h-6 w-6 shrink-0" />
             保存
           </button>
-          <button type="button" onClick={() => setSheet('more')} aria-haspopup="dialog" aria-label="ほかの操作（献立案から選ぶ・呼び出す・リセット・最初の画面にもどる）" className={BAR_SMALL}>
+          <button type="button" onClick={() => setSheet('more')} aria-haspopup="dialog" aria-label="ほかの操作（献立案から選ぶ・呼び出す・料理をアレンジ・リセット・最初の画面にもどる）" className={BAR_SMALL}>
             <svg viewBox="0 0 24 24" className="h-6 w-6 shrink-0 text-ink-soft" fill="currentColor" aria-hidden>
               <circle cx="5" cy="12" r="2.2" />
               <circle cx="12" cy="12" r="2.2" />
@@ -103,28 +107,15 @@ export function MenuActions({
         {/* 下のバーはぼかし（backdrop-blur）つきで、中に置いた窓はバーの中に閉じこめられるので、body に出す */}
         {sheet === 'slot' &&
           createPortal(
-          <Sheet title="どの食事に追加しますか？" onClose={() => setSheet(null)}>
-            <ul className="mt-1 space-y-2">
-              {SLOTS.map((slot) => (
-                <li key={slot}>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSheet(null)
-                      onAdd(slot)
-                    }}
-                    className={SHEET_ROW}
-                  >
-                    <SlotIcon slot={slot} className="h-9 w-9 shrink-0" />
-                    <span className="min-w-0 flex-1 font-bold">{slotTitle(slot)}</span>
-                    <span className="shrink-0 text-xs text-ink-soft tabular-nums">
-                      {menu[slot].length === 0 ? 'まだありません' : `${menu[slot].length}品・${Math.round(totals.bySlot[slot].values.energyKcal)} kcal`}
-                    </span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </Sheet>,
+            <SlotChoiceSheet
+              menu={menu}
+              totals={totals}
+              onPick={(slot) => {
+                setSheet(null)
+                onAdd(slot)
+              }}
+              onClose={() => setSheet(null)}
+            />,
             document.body,
           )}
         {sheet === 'more' &&
@@ -161,6 +152,22 @@ export function MenuActions({
                   <span className="min-w-0 flex-1">
                     <span className="block font-bold">保存した食事を呼び出す</span>
                     <span className="block text-xs text-ink-soft">{savedCount === 0 ? '保存した食事はまだありません' : `${savedCount}件あります`}</span>
+                  </span>
+                </button>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSheet(null)
+                    onArrange()
+                  }}
+                  className={SHEET_ROW}
+                >
+                  <CustomizeIcon className="h-9 w-9 shrink-0" />
+                  <span className="min-w-0 flex-1">
+                    <span className="block font-bold">料理をアレンジ</span>
+                    <span className="block text-xs text-ink-soft">材料や量を変えて、お気に入りに保存</span>
                   </span>
                 </button>
               </li>
@@ -237,6 +244,44 @@ export function MenuActions({
 const dateLabel = (iso: string) => {
   const d = new Date(iso)
   return `${d.getMonth() + 1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`
+}
+
+// 「どの食事に追加しますか？」と、朝・昼・晩・その他からえらぶ窓（いま入っている品数とカロリーつき）。
+// スマホの下のバーの「料理を追加」と、「料理をアレンジ」の画面でお気に入りの料理を1日の食事に足すときに使う
+export function SlotChoiceSheet({
+  title = 'どの食事に追加しますか？',
+  lead,
+  menu,
+  totals,
+  onPick,
+  onClose,
+}: {
+  title?: string
+  // 何を足すのかのひとこと（足すものが決まっているとき）
+  lead?: string
+  menu: DayMenu
+  totals: MenuTotals
+  onPick: (slot: Slot) => void
+  onClose: () => void
+}) {
+  return (
+    <Sheet title={title} onClose={onClose}>
+      {lead && <p className="mb-2 text-sm text-pretty">{lead}</p>}
+      <ul className="mt-1 space-y-2">
+        {SLOTS.map((slot) => (
+          <li key={slot}>
+            <button type="button" onClick={() => onPick(slot)} className={SHEET_ROW}>
+              <SlotIcon slot={slot} className="h-9 w-9 shrink-0" />
+              <span className="min-w-0 flex-1 font-bold">{slotTitle(slot)}</span>
+              <span className="shrink-0 text-xs text-ink-soft tabular-nums">
+                {menu[slot].length === 0 ? 'まだありません' : `${menu[slot].length}品・${Math.round(totals.bySlot[slot].values.energyKcal)} kcal`}
+              </span>
+            </button>
+          </li>
+        ))}
+      </ul>
+    </Sheet>
+  )
 }
 
 // tall：中身の数によらず、いつも同じ高さにする（しぼりこむたびに窓の大きさが変わらないように。下に重なっている窓もかくれる）
