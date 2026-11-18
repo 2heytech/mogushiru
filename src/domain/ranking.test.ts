@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { dailyReference, metricValue, rankFoods } from './ranking'
+import { dailyReference, familiarFoodIds, metricValue, NAMED_FOOD_IDS, rankFoods } from './ranking'
 import { servingFor } from './serving'
 import { computeTargets, DEFAULT_PROFILE } from './targets'
-import type { Food, Nutrients } from './types'
+import type { Dish, Food, Nutrients } from './types'
 
 const zero: Nutrients = {
   energyKcal: 0, protein: 0, fat: 0, carb: 0, fiber: 0, salt: 0, alcohol: 0, satFat: 0,
@@ -68,6 +68,28 @@ describe('食品成分ランキング', () => {
   })
   it('食品群でしぼれる', () => {
     expect(rankFoods(foods, { nutrient: 'iron', metric: 'per100g', group: '06' }).map((r) => r.food.id)).toEqual(['06086'])
+  })
+})
+
+describe('よく使う食品', () => {
+  // テスト用の架空の料理（材料の食品番号だけを使う）
+  const dish = (id: string, foodIds: string[], source?: Dish['source']): Dish =>
+    ({ id, name: id, ingredients: foodIds.map((foodId) => ({ foodId, grams: 10 })), ...(source ? { source } : {}) }) as Dish
+  const dishes = new Map(
+    [
+      dish('everyday', ['90001', '90002']),
+      dish('regional', ['90002', '90003'], { label: 'テストの郷土料理', url: 'https://example.com/r' }),
+    ].map((d) => [d.id, d]),
+  )
+  const ids = familiarFoodIds({ dishes })
+
+  it('ふだんの呼び名を付けた食品と、ふだんの料理の材料を入れる', () => {
+    expect([...NAMED_FOOD_IDS].every((id) => ids.has(id))).toBe(true)
+    expect(ids.has('90001')).toBe(true)
+    expect(ids.has('90002')).toBe(true)
+  })
+  it('郷土料理にだけ使う食品は入れない（めずらしい食品がランキングの上に並ばないように）', () => {
+    expect(ids.has('90003')).toBe(false)
   })
 })
 

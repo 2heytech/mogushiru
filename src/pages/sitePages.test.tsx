@@ -2,9 +2,10 @@ import { existsSync, readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { mergeProducts, withNullNutrients } from '../data/products'
 import type { Catalog } from '../domain/nutrition'
-import type { PriceTable } from '../domain/ranking'
+import { NUTRIENT_GROUPS, type PriceTable } from '../domain/ranking'
 import type { Dish, Food, Product } from '../domain/types'
 import { CUISINE_DISH_IDS } from './dishCuisine'
+import { nutrientPageData } from './nutrientPages'
 import { buildSitePages, NOT_FOUND_PAGE, renderDocument, sitemapXml, type SitePage } from './sitePages'
 
 // ビルドで書き出すページを、配信用のデータ（public/data）から作ってたしかめる
@@ -92,6 +93,27 @@ describe('書き出すページ', () => {
     const first = /^[^。]+。ふだん1回に食べる量では、1位 (.+?) [\d.,]+mg、/.exec(c.description)?.[1]
     const list = c.body.slice(c.body.indexOf('id="list-serving"'))
     expect(list.slice(0, list.indexOf('</li>'))).toContain(`>${first}</p>`)
+  })
+
+  it('成分のページの一覧には、成分表のままの名前（空白で区切った長い名前）を出さない', () => {
+    // 落ちたときは、data/food-names.json の displayNames にふだんの呼び名を足して、foods.json を作り直す（scripts/import-mext.ts）
+    const raw = new Set<string>()
+    for (const key of NUTRIENT_GROUPS.flatMap((g) => g.keys)) {
+      const data = nutrientPageData(key, catalog, prices)
+      if (!data) continue
+      const rows = [...data.lists.flatMap((l) => l.rows), ...data.groups.flatMap((g) => g.rows)]
+      for (const r of rows) if (/\s/.test(r.food.displayName)) raw.add(`${r.food.id} ${r.food.displayName}`)
+    }
+    expect([...raw]).toEqual([])
+  })
+
+  it('成分のページの上位に、めずらしい食品でなく、身近な食品が並ぶ', () => {
+    const top = (path: string) => /1位 (.+?) [\d.,]+/.exec(page(path).description)?.[1]
+    expect(page('/nutrients/calcium/').description).not.toMatch(/どじょう|ほんもろこ/)
+    expect(page('/nutrients/fat/').description).not.toContain('くじら')
+    expect(top('/nutrients/omega-3/')).toBe('えごま油')
+    expect(page('/nutrients/iron/').description).toContain('豚レバー')
+    expect(page('/nutrients/iron/').description).not.toContain('副生物')
   })
 
   it('成分のページは、ランキングを1日の目安の表より上に出す', () => {
