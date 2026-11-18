@@ -26,7 +26,7 @@ import { pushHistory } from './components/useDismiss'
 import { SiteFooter } from './components/SiteFooter'
 import { adjustIdealMenu, IDEAL_MENUS, idealMenuAvailable, idealMenuHasProducts } from './domain/idealMenus'
 import { isMealSlot, type MealSlot } from './domain/idealMeals'
-import { isFoodView, legacyRedirect, menuScreenFromState, menuScreenState, nutrientFromSlug, VIEW_META, VIEW_PATH, viewFromLocation, type MenuScreen, type View } from './routes'
+import { appLinkParam, hasAppLinkHash, isFoodView, legacyRedirect, menuScreenFromState, menuScreenState, nutrientFromSlug, VIEW_META, VIEW_PATH, viewFromLocation, withoutAppLinkParam, type MenuScreen, type View } from './routes'
 import { ConfirmHost } from './components/ConfirmDialog'
 import { IdealMealDialog, MenuActions, SaveMenuDialog, SavedMenusDialog } from './components/SavedMenus'
 import { MenuBuilderDialog } from './components/MenuBuilder'
@@ -153,6 +153,11 @@ function useView(): { view: View; screen: MenuScreen; go: (v: View, screen?: Men
       if (legacy) window.history.replaceState(window.history.state, '', legacy + search)
     }
     const sync = () => {
+      // アプリを開いたまま、指定つきの URL（/#menu=… など）に移ったときは、読みこみ直して指定を読む（指定は開いたときに1回だけ読むので）
+      if (hasAppLinkHash(window.location.hash)) {
+        window.location.reload()
+        return
+      }
       fixLegacy()
       setView(viewFromLocation(window.location.pathname, window.location.hash))
       setScreen(screenFromHistory())
@@ -190,13 +195,11 @@ function useView(): { view: View; screen: MenuScreen; go: (v: View, screen?: Men
   return { view, screen, go }
 }
 
-// URL のクエリ（?n=iron や ?menu=…）を読んで、読み終えたらアドレス欄から消す
-const queryParam = (name: string) => new URLSearchParams(window.location.search).get(name)
+// 読みもののページからの指定（#n=iron や #menu=…。以前の ?n=iron も）を読んで、読み終えたらアドレス欄から消す
+const queryParam = (name: string) => appLinkParam(name, window.location.search, window.location.hash)
 function dropQueryParam(name: string) {
-  const url = new URL(window.location.href)
-  if (!url.searchParams.has(name)) return
-  url.searchParams.delete(name)
-  window.history.replaceState(window.history.state, '', url.pathname + url.search + url.hash)
+  const rest = withoutAppLinkParam(name, window.location.search, window.location.hash)
+  if (rest !== null) window.history.replaceState(window.history.state, '', window.location.pathname + rest)
 }
 
 export default function App() {
@@ -304,15 +307,15 @@ export default function App() {
     return ideal && catalog && idealMenuAvailable(ideal, catalog) ? ideal : undefined
   }, [catalog])
 
-  // 成分ランキングのページから「くらべ方を変えて見る」で来たとき（/ranking/?n=iron）は、その成分をえらんだ状態で開く
+  // 成分ランキングのページから「くらべ方を変えて見る」で来たとき（/ranking/#n=iron）は、その成分をえらんだ状態で開く
   const [rankingStart, setRankingStart] = useState(() => nutrientFromSlug(queryParam('n')) ?? undefined)
   useEffect(() => dropQueryParam('n'), [])
 
-  // 料理の作り方のページから来たとき（/customize/?dish=<料理id>）は、その料理の編集の窓を「つくり方」でひらく
+  // 料理の作り方のページから来たとき（/customize/#dish=<料理id>）は、その料理の編集の窓を「つくり方」でひらく
   const [dishStart, setDishStart] = useState(() => queryParam('dish') ?? undefined)
   useEffect(() => dropQueryParam('dish'), [])
 
-  // 献立の例のページから「この献立をアプリで開く」で来たとき（/?menu=<id>）は、その理想の献立をプロフィールに合わせて入れる
+  // 献立の例のページから「この献立をアプリで開く」で来たとき（/#menu=<id>）は、その理想の献立をプロフィールに合わせて入れる
   const menuRequest = useRef(queryParam('menu'))
   const goRef = useRef(go)
   useEffect(() => {

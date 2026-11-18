@@ -72,6 +72,8 @@ export function buildSitePages({ catalog, prices }: { catalog: Catalog; prices: 
   const nutrientLinks = nutrients.map((d) => ({ name: d.copy.heading, path: d.path }))
   const menuGroups = MENU_PAGES.map((page) => ({ page, plans: planMenus(menusFor(page), catalog) })).filter((g) => g.plans.length > 0)
   const dishes = dishPagesFor(catalog)
+  // 献立の例のページから、作り方のページがある料理へリンクする（読む人にも検索エンジンにも、料理のページへの道がふえる）
+  const dishPaths = new Map(dishes.map((d) => [d.dish.id, d.path]))
 
   const pages: SitePage[] = [
     { ...appPage('menu'), jsonLd: [WEBSITE_JSON_LD] },
@@ -124,7 +126,7 @@ export function buildSitePages({ catalog, prices }: { catalog: Catalog; prices: 
           .map((p) => p.ideal.name)
           .join('・')}など。`,
       kind: 'static' as const,
-      body: html(<MenuGenrePage page={page} plans={plans} catalog={catalog} />),
+      body: html(<MenuGenrePage page={page} plans={plans} catalog={catalog} dishPaths={dishPaths} />),
       crumbs: [{ name: SITE_NAME, path: '/' }, { name: '献立の例', path: MENUS_INDEX_PATH }, { name: page.title }],
       og: og(`menus-${page.slug}`, menuGenreOgCard(page, plans, catalog)),
     })),
@@ -212,10 +214,12 @@ export function renderDocument(template: string, page: SitePage): string {
   return replaceOnce(out, /<div id="root"><\/div>/, page.body)
 }
 
-export function sitemapXml(pages: SitePage[]): string {
+// lastmod：ページのパス → 中身が最後に変わった日（YYYY-MM-DD）。ビルドした日ではなく、実際に変わった日を入れる
+// （scripts/lib/pageLastmod.ts。日付のないページは、更新日を書かない）
+export function sitemapXml(pages: SitePage[], lastmod: Record<string, string> = {}): string {
   const urls = pages
     .filter((p) => !p.noindex)
-    .map((p) => `  <url>\n    <loc>${SITE_URL}${p.path}</loc>\n  </url>`)
+    .map((p) => `  <url>\n    <loc>${SITE_URL}${p.path}</loc>${lastmod[p.path] ? `\n    <lastmod>${lastmod[p.path]}</lastmod>` : ''}\n  </url>`)
     .join('\n')
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`
 }

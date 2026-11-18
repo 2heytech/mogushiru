@@ -61,14 +61,14 @@ describe('書き出すページ', () => {
     expect(iron.body).toContain('ふだん1回に食べる量で鉄分が多い食品')
     expect(iron.body).toContain('100gあたりで鉄分が多い食品')
     expect(iron.body).toContain('1日の目安')
-    expect(iron.body).toContain('/ranking/?n=iron')
+    expect(iron.body).toContain('/ranking/#n=iron')
     // とりすぎに気をつけたい成分は、カロリーあたり・価格あたりでは並べない
     expect(page('/nutrients/salt/').body).not.toContain('100円あたり）')
   })
 
   it('献立の例のページには、アプリで開くリンクがある', () => {
     const washoku = page('/menus/washoku/')
-    expect(washoku.body).toContain('href="/?menu=')
+    expect(washoku.body).toContain('href="/#menu=')
     expect(washoku.body).toContain('kcal')
   })
 
@@ -117,7 +117,7 @@ describe('書き出すページ', () => {
     expect(store.body).toContain('コンビニの昼ごはんの組み合わせ例')
     for (const name of ['セブン-イレブン', 'ファミリーマート', 'ローソン']) expect(store.body).toContain(`${name}の`)
     for (const id of ['konbini', 'konbini-famima', 'konbini-lawson']) {
-      expect(store.body).toContain(`href="/?menu=${id}"`)
+      expect(store.body).toContain(`href="/#menu=${id}"`)
       expect(store.body).toContain(`href="#${id}"`)
       expect(store.body).toContain(`id="${id}"`)
     }
@@ -196,6 +196,25 @@ describe('HTML のひな形への差しこみ', () => {
     expect(xml).toContain('<loc>https://mogushiru.app/nutrients/iron/</loc>')
     expect(xml).not.toContain('404')
   })
+
+  it('サイトマップの更新日は、渡された日付だけを書く（日付のないページには書かない）', () => {
+    const xml = sitemapXml(pages, { '/nutrients/iron/': '2026-11-13' })
+    expect(xml).toContain('<loc>https://mogushiru.app/nutrients/iron/</loc>\n    <lastmod>2026-11-13</lastmod>')
+    expect(xml.match(/<lastmod>/g)).toHaveLength(1)
+    expect(sitemapXml(pages)).not.toContain('<lastmod>')
+  })
+
+  it('読みもののページからアプリを開くリンクは、? を使わない（検索エンジンが別のページとして読みに来ないように）', () => {
+    for (const p of pages) expect(p.body, p.path).not.toMatch(/href="\/[^"#]*\?/)
+  })
+
+  it('献立の例の料理の名前から、作り方のページへ行ける', () => {
+    const washoku = page('/menus/washoku/')
+    const links = [...washoku.body.matchAll(/href="(\/dishes\/[a-z0-9-]+\/)"/g)].map((m) => m[1])
+    expect(links.length).toBeGreaterThan(10)
+    for (const path of links) expect(pages.some((p) => p.path === path), path).toBe(true)
+    expect(washoku.body).toContain('下線のある料理は、名前から作り方のページを開けます。')
+  })
 })
 
 describe('料理の作り方のページ', () => {
@@ -215,7 +234,7 @@ describe('料理の作り方のページ', () => {
     expect(p.body).toContain('材料（2人分）')
     expect(p.body).toContain('つくり方')
     expect(p.body).toContain('1人前の栄養')
-    expect(p.body).toContain('href="/customize/?dish=nikujaga"')
+    expect(p.body).toContain('href="/customize/#dish=nikujaga"')
     // 同じカテゴリのほかの料理へのリンク
     expect(p.body).toContain('ほかの主菜の作り方')
   })

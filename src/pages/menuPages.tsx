@@ -34,6 +34,9 @@ export function planMenus(menus: IdealMenu[], catalog: Catalog): PlannedMenu[] {
 
 const kcalText = (v: number) => `${Math.round(v).toLocaleString()} kcal`
 
+// 献立の中の料理の名前から作り方のページへ行くリンク（文の中に並ぶので、ボタンのような強い色にしない）
+const DISH_LINK = 'underline decoration-ink-soft/40 underline-offset-2 hover:decoration-coral-ink'
+
 // ---- コンビニの昼ごはんの組み合わせ（市販品のページの上に出す） ----
 
 const CONVENIENCE_STORES = ['セブン-イレブン', 'ファミリーマート', 'ローソン']
@@ -186,8 +189,11 @@ function LunchCombos({ combos }: { combos: LunchCombo[] }) {
   )
 }
 
+// 作り方のページがある料理（料理の id → /dishes/<id>/）。献立の中の料理の名前から、そのページへリンクする
+export type DishPaths = ReadonlyMap<string, string>
+
 // nested：上に「1日の献立の例」の見出し（h2）があるページでは、献立の名前を h3 にする
-function MenuCard({ plan, catalog, nested }: { plan: PlannedMenu; catalog: Catalog; nested: boolean }) {
+function MenuCard({ plan, catalog, nested, dishPaths }: { plan: PlannedMenu; catalog: Catalog; nested: boolean; dishPaths?: DishPaths }) {
   const { ideal, menu, summary } = plan
   const salt = summary.totals.day.values.salt
   const Heading = nested ? 'h3' : 'h2'
@@ -224,11 +230,18 @@ function MenuCard({ plan, catalog, nested }: { plan: PlannedMenu; catalog: Catal
                   {items.map((item, i) => {
                     const portion = portionLabel(item, catalog)
                     const brand = item.kind === 'product' ? catalog.products.get(item.refId)?.brand : undefined
+                    const dishPath = item.kind === 'dish' ? dishPaths?.get(item.refId) : undefined
                     return (
                       <span key={item.uid}>
                         {i > 0 && '・'}
                         {brand && <span className="text-ink-soft">{brand}の</span>}
-                        {itemName(item, catalog)}
+                        {dishPath ? (
+                          <a href={dishPath} className={DISH_LINK}>
+                            {itemName(item, catalog)}
+                          </a>
+                        ) : (
+                          itemName(item, catalog)
+                        )}
                         {portion && <span className="text-ink-soft tabular-nums">{portion}</span>}
                       </span>
                     )
@@ -276,8 +289,9 @@ function PageLinks({ current }: { current?: string }) {
   )
 }
 
-export function MenuGenrePage({ page, plans, catalog }: { page: MenuPage; plans: PlannedMenu[]; catalog: Catalog }) {
+export function MenuGenrePage({ page, plans, catalog, dishPaths }: { page: MenuPage; plans: PlannedMenu[]; catalog: Catalog; dishPaths?: DishPaths }) {
   const combos = lunchCombos(plans, catalog)
+  const hasDishLinks = plans.some((p) => SLOTS.some((slot) => p.menu[slot].some((item) => item.kind === 'dish' && dishPaths?.has(item.refId))))
   return (
     <StaticLayout crumbs={[{ name: 'モグシル', path: '/' }, { name: '献立の例', path: MENUS_INDEX_PATH }, { name: page.title }]}>
       <article className="space-y-5">
@@ -289,14 +303,17 @@ export function MenuGenrePage({ page, plans, catalog }: { page: MenuPage; plans:
             {plans.some((p) => idealMenuHasProducts(p.ideal)) ? '' : '、ビタミンやミネラルもほぼ目安に届く'}
             ように量を決めています（{plans.length}種）。
           </p>
-          <p className="text-xs leading-relaxed text-ink-soft">{sizeNote}</p>
+          <p className="text-xs leading-relaxed text-ink-soft">
+            {sizeNote}
+            {hasDishLinks && '下線のある料理は、名前から作り方のページを開けます。'}
+          </p>
         </header>
         <PageLinks current={page.slug} />
         {combos.length > 0 && <LunchCombos combos={combos} />}
         {combos.length > 0 && <h2 className="text-xl leading-snug font-bold">1日の献立の例（{plans.length}種）</h2>}
         <ol className="space-y-4">
           {plans.map((plan) => (
-            <MenuCard key={plan.ideal.id} plan={plan} catalog={catalog} nested={combos.length > 0} />
+            <MenuCard key={plan.ideal.id} plan={plan} catalog={catalog} nested={combos.length > 0} dishPaths={dishPaths} />
           ))}
         </ol>
         <SourceNote />
