@@ -1,11 +1,14 @@
 import { dishImage } from '../components/illustration'
 import { DISH_CATEGORY_LABEL } from '../components/labels'
 import type { Catalog } from '../domain/nutrition'
+import { dailyReference, formatAmount, RANKING_NUTRIENTS } from '../domain/ranking'
 import { DEFAULT_SERVINGS, extraTexts, materialLines, recipeLines, type RecipeLine } from '../domain/recipe'
-import type { Dish, DishCategory, DishRecipe } from '../domain/types'
-import { DISHES_INDEX_PATH, dishAppPath, dishPagePath, SITE_NAME, SITE_URL } from '../routes'
+import { computeTargets, DEFAULT_PROFILE } from '../domain/targets'
+import type { Dish, DishCategory, DishRecipe, NutrientKey } from '../domain/types'
+import { DISHES_INDEX_PATH, dishAppPath, dishPagePath, nutrientPagePath, SITE_NAME, SITE_URL } from '../routes'
 import { OPERATOR_NAME, OPERATOR_URL } from '../site'
 import { dishCuisine } from './dishCuisine'
+import { NUTRIENT_COPY } from './nutrientCopy'
 import type { OgCard } from './ogCard'
 import { BUTTON, BUTTON_SUB, CARD, LINK, StaticLayout } from './StaticLayout'
 
@@ -42,6 +45,30 @@ export type DishPageData = {
   extras: string[]
   kcal: number
   values: { label: string; value: string }[]
+  // この料理に多い栄養素（1人前で、1日の目安に対する割合の大きい順）。成分ごとのランキングのページへリンクする
+  rich: { key: NutrientKey; name: string; path: string; amount: string; percent: number }[]
+}
+
+// 「この料理に多い栄養素」でくらべる成分：たんぱく質・食物繊維と、ミネラル・ビタミン（とりたい成分で、1日の目安があるもの）
+const RICH_KEYS: NutrientKey[] = ['protein', 'fiber', 'calcium', 'iron', 'potassium', 'magnesium', 'zinc', 'vitaminA', 'vitaminD', 'vitaminE', 'vitaminB1', 'vitaminB2', 'niacin', 'vitaminB6', 'folate', 'vitaminC']
+// 出すのは3つまで。1人前で1日の目安の2割に届かない成分は出さない
+const RICH_MAX = 3
+const RICH_MIN_PERCENT = 20
+const DEFAULT_TARGETS = computeTargets(DEFAULT_PROFILE)
+
+function richNutrients(dish: Dish): DishPageData['rich'] {
+  return RICH_KEYS.flatMap((key) => {
+    const amount = dish.nutrients[key]
+    const ref = dailyReference(key, DEFAULT_TARGETS)
+    const copy = NUTRIENT_COPY[key]
+    const path = nutrientPagePath(key)
+    const unit = RANKING_NUTRIENTS.find((n) => n.key === key)?.unit
+    if (amount === null || !ref || ref.kind !== 'target' || !copy || !path || !unit) return []
+    const percent = Math.round((amount / ref.value) * 100)
+    return percent >= RICH_MIN_PERCENT ? [{ key, name: copy.name, path, amount: `${formatAmount(amount)} ${unit}`, percent }] : []
+  })
+    .sort((a, b) => b.percent - a.percent)
+    .slice(0, RICH_MAX)
 }
 
 // 成分表にない成分（null）は「—」
@@ -91,6 +118,7 @@ export function dishPageData(dish: Dish, catalog: Catalog): DishPageData | null 
       { label: '食物繊維', value: `${g1(n.fiber)} g` },
       { label: '食塩相当量', value: `${g1(n.salt)} g` },
     ],
+    rich: richNutrients(dish),
   }
 }
 
@@ -242,6 +270,25 @@ export function DishPage({ data: d, related }: { data: DishPageData; related: Di
               </div>
             ))}
           </dl>
+          {d.rich.length > 0 && (
+            <div className="mt-4">
+              <h3 className="text-sm font-bold">この料理に多い栄養素</h3>
+              <ul className="mt-1 divide-y divide-ink/5 text-sm">
+                {d.rich.map((r) => (
+                  <li key={r.key} className="flex min-h-11 flex-wrap items-center justify-between gap-x-3">
+                    <a href={r.path} className={`${LINK} shrink-0`}>
+                      {r.name}
+                    </a>
+                    <span className="ml-auto text-right tabular-nums">
+                      {r.amount}
+                      <span className="text-xs text-ink-soft">（目安の{r.percent}%）</span>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-1.5 text-xs leading-relaxed text-ink-soft">％は、30〜49歳女性の1日の目安に対する割合です。名前から、その栄養素が多い食べ物のランキングを見られます。</p>
+            </div>
+          )}
           <p className="mt-3 text-xs leading-relaxed text-ink-soft">日本食品標準成分表（八訂）増補2023年の値から計算した目安です。ビタミン・ミネラルなど26の成分は、モグシルで見られます。</p>
           <p className="mt-3 flex flex-wrap gap-2">
             <a href={dishAppPath(dish.id)} className={BUTTON_SUB}>

@@ -58,13 +58,90 @@ describe('書き出すページ', () => {
 
   it('成分のページには、1回の量と100gあたりのランキングと1日の目安がある', () => {
     const iron = page('/nutrients/iron/')
-    expect(iron.title).toContain('鉄分が多い食品ランキング')
     expect(iron.body).toContain('ふだん1回に食べる量で鉄分が多い食品')
     expect(iron.body).toContain('100gあたりで鉄分が多い食品')
-    expect(iron.body).toContain('1日の目安')
+    expect(iron.body).toContain('鉄分の1日の摂取量の目安')
     expect(iron.body).toContain('/ranking/#n=iron')
     // とりすぎに気をつけたい成分は、カロリーあたり・価格あたりでは並べない
     expect(page('/nutrients/salt/').body).not.toContain('100円あたり）')
+  })
+
+  it('成分のページのタイトルと見出しは「〜が多い食べ物・食品ランキング」ではじまる（「〜の多い食べ物」「〜 食品 ランキング」のどちらでさがした人にも合うように）', () => {
+    const nutrientPages = pages.filter((p) => /^\/nutrients\/[a-z0-9-]+\/$/.test(p.path))
+    for (const p of nutrientPages) {
+      const heading = /<h1[^>]*>(.+?)<\/h1>/.exec(p.body)?.[1].replace(/<[^>]+>/g, '')
+      expect(heading, p.path).toMatch(/(食べ物|飲み物)・食品ランキング$/)
+      expect(p.title.startsWith(`${heading}｜`), p.path).toBe(true)
+      expect(p.title, p.path).toMatch(/でくらべる｜モグシル$/)
+    }
+    expect(page('/nutrients/vitamin-c/').title).toBe('ビタミンCが多い食べ物・食品ランキング｜1回の量・100gあたりでくらべる｜モグシル')
+    expect(page('/nutrients/calories/').title).toContain('カロリーが高い食べ物・食品ランキング')
+    expect(page('/nutrients/salt/').title).toContain('塩分が多い食べ物・食品ランキング')
+    expect(page('/nutrients/caffeine/').title).toContain('カフェインが多い飲み物・食品ランキング')
+    expect(page('/nutrients/omega-6/').title).toContain('オメガ6脂肪酸（n-6系）が多い食べ物・食品ランキング')
+    // 本文には「食材」の言い方も入れる
+    expect(page('/nutrients/vitamin-b6/').body).toContain('ビタミンB6が多い食べ物・食材を')
+  })
+
+  it('成分のページの説明文は、上位3つの名前と量からはじめる（検索結果で、はじめの数十字しか出なくても中身が分かるように）', () => {
+    const c = page('/nutrients/vitamin-c/')
+    expect(c.description).toMatch(/^ビタミンCが多い食べ物・食品ランキング。ふだん1回に食べる量では、1位 .+ [\d.,]+mg、2位 .+ [\d.,]+mg、3位 .+ [\d.,]+mg。/)
+    expect(c.description).toContain('野菜・果物')
+    expect(c.description).toContain('1日の摂取量の目安')
+    // 説明文の1位は、ページの一覧の1位と同じ食品
+    const first = /^[^。]+。ふだん1回に食べる量では、1位 (.+?) [\d.,]+mg、/.exec(c.description)?.[1]
+    const list = c.body.slice(c.body.indexOf('id="list-serving"'))
+    expect(list.slice(0, list.indexOf('</li>'))).toContain(`>${first}</p>`)
+  })
+
+  it('成分のページは、ランキングを1日の目安の表より上に出す', () => {
+    for (const path of ['/nutrients/iron/', '/nutrients/protein/', '/nutrients/caffeine/', '/nutrients/monounsaturated-fat/']) {
+      const body = page(path).body
+      const firstList = body.indexOf('id="list-')
+      expect(firstList, path).toBeGreaterThan(-1)
+      expect(firstList, path).toBeLessThan(body.indexOf('id="reference"'))
+    }
+  })
+
+  it('成分のページには、食品の種類べつの上位がある（1回の量の一覧のすぐあと）', () => {
+    const c = page('/nutrients/vitamin-c/').body
+    expect(c).toContain('食品の種類べつに見る、ビタミンCが多い食べ物')
+    expect(c).toContain('ビタミンCが多い野菜</h3>')
+    expect(c).toContain('ビタミンCが多い果物</h3>')
+    expect(c.indexOf('id="list-serving"')).toBeLessThan(c.indexOf('id="by-group"'))
+    expect(c.indexOf('id="by-group"')).toBeLessThan(c.indexOf('id="list-per100g"'))
+    expect(c).toContain('href="#by-group"')
+    expect(page('/nutrients/calcium/').body).toContain('カルシウムが多い牛乳・乳製品</h3>')
+    expect(page('/nutrients/calories/').body).toContain('カロリーが高い肉</h3>')
+    // 種類は6つまで、それぞれ5品まで
+    for (const p of pages.filter((x) => /^\/nutrients\/[a-z0-9-]+\/$/.test(x.path))) {
+      const start = p.body.indexOf('id="by-group"')
+      if (start < 0) continue
+      const section = p.body.slice(start, p.body.indexOf('</section>', start))
+      const groups = section.split('<h3').slice(1)
+      expect(groups.length, p.path).toBeGreaterThanOrEqual(2)
+      expect(groups.length, p.path).toBeLessThanOrEqual(6)
+      for (const g of groups) expect(g.split('<li').length - 1, p.path).toBeLessThanOrEqual(5)
+    }
+    // 飲み物にしか入っていないカフェインには出さない
+    expect(page('/nutrients/caffeine/').body).not.toContain('id="by-group"')
+  })
+
+  it('成分のページには、その成分が多い料理があり、作り方のページへ行ける', () => {
+    const c = page('/nutrients/vitamin-c/').body
+    const start = c.indexOf('id="dishes"')
+    expect(start).toBeGreaterThan(-1)
+    const section = c.slice(start, c.indexOf('</section>', start))
+    expect(section).toContain('ビタミンCが多い料理')
+    const links = [...section.matchAll(/href="(\/dishes\/[a-z0-9-]+\/)"/g)].map((m) => m[1])
+    expect(links).toHaveLength(10)
+    for (const path of links) expect(pages.some((p) => p.path === path), path).toBe(true)
+    // 量の多い順
+    const amounts = [...section.matchAll(/<strong>([\d.,]+)<\/strong>/g)].map((m) => Number(m[1].replace(/,/g, '')))
+    expect(amounts).toEqual([...amounts].sort((a, b) => b - a))
+    expect(page('/nutrients/salt/').body).toContain('塩分が多い料理')
+    // 料理が5品に満たない成分（カフェイン）には出さない
+    expect(page('/nutrients/caffeine/').body).not.toContain('id="dishes"')
   })
 
   it('献立の例のページには、アプリで開くリンクがある', () => {
@@ -108,7 +185,7 @@ describe('書き出すページ', () => {
     // ほかの成分は、これまでどおり1回の量から
     const iron = page('/nutrients/iron/')
     expect(iron.title).toContain('1回の量・100gあたり')
-    expect(iron.body.indexOf('id="reference"')).toBeLessThan(iron.body.indexOf('ふだん1回に食べる量で鉄分が多い食品'))
+    expect(iron.body.indexOf('ふだん1回に食べる量で鉄分が多い食品')).toBeLessThan(iron.body.indexOf('id="reference"'))
     expect(iron.body.indexOf('ふだん1回に食べる量で鉄分が多い食品')).toBeLessThan(iron.body.indexOf('値段のわりに鉄分が多い食品'))
   })
 
@@ -293,5 +370,21 @@ describe('料理の作り方のページ', () => {
 
   it('style 属性を使わない（CSP で止められるため）', () => {
     for (const p of [...dishPages, page('/dishes/')]) expect(p.body).not.toContain('style=')
+  })
+
+  it('この料理に多い栄養素から、その成分のランキングのページへ行ける（3つまで、1日の目安に対する割合の大きい順）', () => {
+    const p = page('/dishes/goya-champuru/')
+    expect(p.body).toContain('この料理に多い栄養素')
+    const rich = [...p.body.matchAll(/href="(\/nutrients\/[a-z0-9-]+\/)"[^>]*>([^<]+)<\/a><span[^>]*>[^<]*<span[^>]*>（目安の(?:<!-- -->)?(\d+)(?:<!-- -->)?%）/g)].map((m) => ({ path: m[1], name: m[2], percent: Number(m[3]) }))
+    expect(rich.length).toBeGreaterThanOrEqual(1)
+    expect(rich.length).toBeLessThanOrEqual(3)
+    expect(rich.map((r) => r.percent)).toEqual([...rich.map((r) => r.percent)].sort((a, b) => b - a))
+    for (const r of rich) {
+      expect(r.percent).toBeGreaterThanOrEqual(20)
+      expect(pages.some((x) => x.path === r.path), r.path).toBe(true)
+    }
+    // どの成分のページにも、料理のページのどれかからリンクがある…とは限らないが、主な成分には届く
+    const linked = new Set(dishPages.flatMap((d) => [...d.body.matchAll(/href="(\/nutrients\/[a-z0-9-]+\/)"/g)].map((m) => m[1])))
+    for (const path of ['/nutrients/protein/', '/nutrients/vitamin-c/', '/nutrients/iron/', '/nutrients/calcium/']) expect(linked, path).toContain(path)
   })
 })

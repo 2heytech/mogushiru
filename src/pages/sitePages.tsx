@@ -68,10 +68,11 @@ function appPage(view: View, links = APP_LINKS): SitePage {
 }
 
 export function buildSitePages({ catalog, prices }: { catalog: Catalog; prices: PriceTable }): SitePage[] {
-  const nutrients = NUTRIENT_GROUPS.flatMap((g) => g.keys).flatMap((key) => nutrientPageData(key, catalog, prices) ?? [])
+  const dishes = dishPagesFor(catalog)
+  // 成分のページには、その成分が多い料理を、作り方のページへのリンクつきで出す
+  const nutrients = NUTRIENT_GROUPS.flatMap((g) => g.keys).flatMap((key) => nutrientPageData(key, catalog, prices, dishes) ?? [])
   const nutrientLinks = nutrients.map((d) => ({ name: d.copy.heading, path: d.path }))
   const menuGroups = MENU_PAGES.map((page) => ({ page, plans: planMenus(menusFor(page), catalog) })).filter((g) => g.plans.length > 0)
-  const dishes = dishPagesFor(catalog)
   // 献立の例のページから、作り方のページがある料理へリンクする（読む人にも検索エンジンにも、料理のページへの道がふえる）
   const dishPaths = new Map(dishes.map((d) => [d.dish.id, d.path]))
 
@@ -83,8 +84,8 @@ export function buildSitePages({ catalog, prices }: { catalog: Catalog; prices: 
     appPage('about'),
     {
       path: NUTRIENTS_INDEX_PATH,
-      title: `成分が多い食品ランキング｜たんぱく質・鉄分・カルシウムなど${nutrients.length}成分｜${SITE_NAME}`,
-      description: `たんぱく質・食物繊維・鉄分・カルシウム・ビタミンなど${nutrients.length}の成分について、多く含む食品を1回に食べる量と100gあたりで並べました。年齢・性別ごとの1日の目安つき。`,
+      title: `成分が多い食べ物・食品ランキング｜たんぱく質・鉄分・カルシウムなど${nutrients.length}成分｜${SITE_NAME}`,
+      description: `たんぱく質・食物繊維・鉄分・カルシウム・ビタミンなど${nutrients.length}の成分について、多く含む食べ物・食品を、1回に食べる量と100gあたりでくらべたランキング。野菜・果物・魚介など種類べつの上位、成分が多い料理、年齢・性別ごとの1日の摂取量の目安つき。`,
       kind: 'static',
       body: html(<NutrientsIndexPage pages={nutrients} />),
       crumbs: [{ name: SITE_NAME, path: '/' }, { name: '成分が多い食品ランキング' }],
