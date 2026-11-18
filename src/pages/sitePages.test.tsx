@@ -4,6 +4,7 @@ import { mergeProducts, withNullNutrients } from '../data/products'
 import type { Catalog } from '../domain/nutrition'
 import type { PriceTable } from '../domain/ranking'
 import type { Dish, Food, Product } from '../domain/types'
+import { CUISINE_DISH_IDS } from './dishCuisine'
 import { buildSitePages, NOT_FOUND_PAGE, renderDocument, sitemapXml, type SitePage } from './sitePages'
 
 // ビルドで書き出すページを、配信用のデータ（public/data）から作ってたしかめる
@@ -246,6 +247,48 @@ describe('料理の作り方のページ', () => {
     expect((ld.recipeInstructions as { text: string }[])[0].text).toMatch(/。$/)
     expect(ld.totalTime).toMatch(/^PT\d+M$/)
     expect(ld.nutrition).toMatchObject({ servingSize: '1人前', calories: expect.stringMatching(/^\d+ kcal$/) })
+  })
+
+  it('レシピのデータに、料理の種類・キーワード・手順の名前とリンクがある', () => {
+    const p = page('/dishes/nikujaga/')
+    const ld = p.jsonLd?.[0] as Record<string, unknown>
+    expect(ld.recipeCuisine).toBe('和食')
+    // キーワードは、おもな材料（調味料はのぞく）とかかる時間。種類（主菜・和食）とは重ねない
+    expect(ld.keywords).toBe('じゃがいも, たまねぎ, 牛もも肉, 30分以内, 200kcal以下')
+    const steps = ld.recipeInstructions as { name: string; text: string; url: string }[]
+    steps.forEach((step, i) => {
+      // 名前は手順のはじめの1文。リンク先は、ページの中のその手順
+      expect(step.text.startsWith(step.name)).toBe(true)
+      expect(step.name).not.toContain('。')
+      expect(step.url).toBe(`https://mogushiru.app/dishes/nikujaga/#step-${i + 1}`)
+      expect(p.body).toContain(`id="step-${i + 1}"`)
+    })
+    // 画面にも料理の種類を出す（データだけに書かない）
+    expect(p.body).toContain('和食・主菜の作り方')
+    expect(page('/dishes/mapo-tofu/').body).toContain('中華料理・主菜の作り方')
+  })
+
+  it('どの料理にも料理の種類があり、キーワードが2つ以上ある', () => {
+    const ids = dishPages.map((p) => p.path.split('/')[2])
+    // 一覧（dishCuisine.ts）と作り方のページが、ちょうど合っている
+    expect([...CUISINE_DISH_IDS].sort()).toEqual([...ids].sort())
+    for (const p of dishPages) {
+      const ld = p.jsonLd?.[0] as { recipeCuisine?: string; recipeCategory: string; keywords: string }
+      expect(ld.recipeCuisine, p.path).toBeTruthy()
+      const words = ld.keywords.split(', ')
+      expect(words.length, p.path).toBeGreaterThanOrEqual(2)
+      expect(new Set(words).size, p.path).toBe(words.length)
+      expect(words, p.path).not.toContain(ld.recipeCategory)
+      expect(words, p.path).not.toContain(ld.recipeCuisine)
+    }
+  })
+
+  it('動画・評価など、ページにないものはレシピのデータに書かない', () => {
+    for (const p of dishPages) {
+      const ld = p.jsonLd?.[0] as Record<string, unknown>
+      expect(ld).not.toHaveProperty('video')
+      expect(ld).not.toHaveProperty('aggregateRating')
+    }
   })
 
   it('style 属性を使わない（CSP で止められるため）', () => {

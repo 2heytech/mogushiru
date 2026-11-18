@@ -5,6 +5,7 @@ import { DEFAULT_SERVINGS, extraTexts, materialLines, recipeLines, type RecipeLi
 import type { Dish, DishCategory, DishRecipe } from '../domain/types'
 import { DISHES_INDEX_PATH, dishAppPath, dishPagePath, SITE_NAME, SITE_URL } from '../routes'
 import { OPERATOR_NAME, OPERATOR_URL } from '../site'
+import { dishCuisine } from './dishCuisine'
 import type { OgCard } from './ogCard'
 import { BUTTON, BUTTON_SUB, CARD, LINK, StaticLayout } from './StaticLayout'
 
@@ -19,11 +20,24 @@ const SERVINGS = DEFAULT_SERVINGS
 // 同じカテゴリのほかの料理へのリンクの数
 const RELATED_MAX = 12
 
+// キーワードにする「おもな材料」の数
+const KEYWORD_INGREDIENTS = 3
+
+// 成分表の食品群のうち、砂糖・油・酒やみりん・調味料。「おもな材料」には入れない
+const SEASONING_GROUPS = new Set(['03', '14', '16', '17'])
+
+// 「◯分以内」のキーワードにする時間。これより長い料理には付けない
+const TIME_STEPS = [5, 10, 15, 20, 30]
+
 export type DishPageData = {
   dish: Dish
   recipe: DishRecipe
   path: string
   category: string
+  // 和食・中華料理など（dishCuisine.ts）
+  cuisine?: string
+  // おもな材料・かかる時間・栄養の特徴。どれもページに出ている中身から作る
+  keywords: string[]
   lines: RecipeLine[]
   extras: string[]
   kcal: number
@@ -32,6 +46,27 @@ export type DishPageData = {
 
 // 成分表にない成分（null）は「—」
 const g1 = (v: number | null) => (v == null ? '—' : (Math.round(v * 10) / 10).toFixed(1))
+
+// 「えび（ブラックタイガー）」→「えび」
+const plainName = (name: string) => name.replace(/（[^）]*）/g, '')
+
+// 調味料などをのぞいた、はじめのほうの材料。食品番号（先頭2けたが食品群）で見分ける
+function mainIngredients(recipe: DishRecipe, lines: RecipeLine[]): string[] {
+  const foodIds = recipe.materials ? recipe.materials.map((m) => m.foodId ?? '') : lines.map((l) => l.key)
+  const names = lines.filter((_, i) => !SEASONING_GROUPS.has(foodIds[i].slice(0, 2))).map((l) => plainName(l.name))
+  return [...new Set(names)].slice(0, KEYWORD_INGREDIENTS)
+}
+
+function dishKeywords(dish: Dish, recipe: DishRecipe, lines: RecipeLine[]): string[] {
+  const n = dish.nutrients
+  const time = TIME_STEPS.find((m) => recipe.minutes <= m)
+  return [
+    ...mainIngredients(recipe, lines),
+    ...(time ? [`${time}分以内`] : []),
+    ...(n.protein != null && n.protein >= 20 ? ['たんぱく質20g以上'] : []),
+    ...(n.energyKcal != null && Math.round(n.energyKcal) <= 200 ? ['200kcal以下'] : []),
+  ]
+}
 
 export function dishPageData(dish: Dish, catalog: Catalog): DishPageData | null {
   const recipe = dish.recipe
@@ -43,6 +78,8 @@ export function dishPageData(dish: Dish, catalog: Catalog): DishPageData | null 
     recipe,
     path: dishPagePath(dish.id),
     category: DISH_CATEGORY_LABEL[dish.category],
+    cuisine: dishCuisine(dish.id),
+    keywords: dishKeywords(dish, recipe, lines),
     lines,
     extras: recipe.extras ? extraTexts(recipe.extras, SERVINGS) : [],
     kcal: Math.round(n.energyKcal ?? 0),
@@ -90,7 +127,12 @@ export function dishOgCard(d: DishPageData): { card: OgCard; alt: string } {
   }
 }
 
-// 検索エンジン向けのレシピのデータ（schema.org の Recipe）
+// 手順の場所（ページの中のリンク先）と、手順の短い名前（はじめの1文）
+export const stepAnchor = (index: number) => `step-${index + 1}`
+const stepName = (text: string) => text.split('。')[0]
+
+// 検索エンジン向けのレシピのデータ（schema.org の Recipe）。
+// 動画・評価・手順ごとの写真は、ページにないので書かない
 export function dishRecipeJsonLd(d: DishPageData, imagePath: string): Record<string, unknown> {
   const n = d.dish.nutrients
   return {
@@ -101,10 +143,12 @@ export function dishRecipeJsonLd(d: DishPageData, imagePath: string): Record<str
     description: dishPageDescription(d),
     author: { '@type': 'Organization', name: OPERATOR_NAME, url: OPERATOR_URL },
     recipeCategory: d.category,
+    ...(d.cuisine ? { recipeCuisine: d.cuisine } : {}),
+    keywords: d.keywords.join(', '),
     recipeYield: `${SERVINGS}人分`,
     totalTime: `PT${d.recipe.minutes}M`,
     recipeIngredient: [...d.lines.map((l) => `${l.name} ${l.amount}`), ...d.extras],
-    recipeInstructions: d.recipe.steps.map((text) => ({ '@type': 'HowToStep', text })),
+    recipeInstructions: d.recipe.steps.map((text, i) => ({ '@type': 'HowToStep', name: stepName(text), text, url: `${SITE_URL}${d.path}#${stepAnchor(i)}` })),
     nutrition: {
       '@type': 'NutritionInformation',
       servingSize: '1人前',
@@ -145,7 +189,7 @@ export function DishPage({ data: d, related }: { data: DishPageData; related: Di
         <header className={`${CARD} flex flex-col gap-4 sm:flex-row sm:items-center`}>
           <img src={dishImage(dish)} alt="" width={112} height={112} className="h-24 w-24 shrink-0 self-center sm:h-28 sm:w-28" />
           <div className="space-y-2">
-            <p className="text-xs font-bold text-coral-ink">{d.category}の作り方</p>
+            <p className="text-xs font-bold text-coral-ink">{`${d.cuisine ? `${d.cuisine}・` : ''}${d.category}の作り方`}</p>
             <h1 className="text-2xl leading-snug font-bold">{dish.name}の作り方</h1>
             <p className="text-sm leading-relaxed">
               {SERVINGS}人分・調理 約{recipe.minutes}分。1人前 {d.kcal} kcal、たんぱく質 {g1(dish.nutrients.protein)} g、食塩 {g1(dish.nutrients.salt)} g。
@@ -176,7 +220,7 @@ export function DishPage({ data: d, related }: { data: DishPageData; related: Di
           </h2>
           <ol className="space-y-3">
             {recipe.steps.map((s, i) => (
-              <li key={`${i}-${s}`} className="flex gap-3 text-sm leading-relaxed">
+              <li key={`${i}-${s}`} id={stepAnchor(i)} className="flex scroll-mt-4 gap-3 text-sm leading-relaxed">
                 <span aria-hidden className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-coral text-xs font-bold text-ink-strong">
                   {i + 1}
                 </span>
