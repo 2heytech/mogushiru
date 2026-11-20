@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { buildSitePages, sitemapXml } from '../../src/pages/sitePages'
-import { formatLastmodTable, LASTMOD_FILE, lastmodDates, pageFingerprint, staleLastmod, todayInJapan, updateLastmod, type LastmodPage, type LastmodTable } from './pageLastmod'
+import { formatLastmodTable, LASTMOD_FILE, lastmodDates, pageDates, pageFingerprint, staleLastmod, todayInJapan, updateLastmod, type LastmodPage, type LastmodTable } from './pageLastmod'
 import { loadSiteInputs } from './siteInputs'
 
 const page = (path: string, main: string, more: Partial<LastmodPage> = {}): LastmodPage => ({
@@ -34,15 +34,16 @@ describe('ページの中身の指紋', () => {
 describe('サイトマップの更新日の表', () => {
   const a = page('/a/', '<p>a</p>')
   const b = page('/b/', '<p>b</p>')
-  const table: LastmodTable = { '/a/': { hash: pageFingerprint(a), lastmod: '2026-11-12' }, '/b/': { hash: pageFingerprint(b), lastmod: '2026-11-13' } }
+  const table: LastmodTable = { '/a/': { hash: pageFingerprint(a), lastmod: '2026-11-12', published: '2026-11-12' }, '/b/': { hash: pageFingerprint(b), lastmod: '2026-11-13', published: '2026-11-12' } }
 
   it('中身が変わったページと新しいページだけ、日付を今日にする', () => {
     const b2 = page('/b/', '<p>b を直した</p>')
     const c = page('/c/', '<p>c</p>')
     const next = updateLastmod([c, b2, a], table, '2026-11-18')
     expect(next['/a/']).toEqual(table['/a/'])
-    expect(next['/b/']).toEqual({ hash: pageFingerprint(b2), lastmod: '2026-11-18' })
-    expect(next['/c/'].lastmod).toBe('2026-11-18')
+    // 公開した日は、中身を直しても動かさない。新しいページは、表に入った日
+    expect(next['/b/']).toEqual({ hash: pageFingerprint(b2), lastmod: '2026-11-18', published: '2026-11-12' })
+    expect(next['/c/']).toEqual({ hash: pageFingerprint(c), lastmod: '2026-11-18', published: '2026-11-18' })
     // パスの順に並べる（差分を見やすく）
     expect(Object.keys(next)).toEqual(['/a/', '/b/', '/c/'])
   })
@@ -61,6 +62,16 @@ describe('サイトマップの更新日の表', () => {
   it('サイトマップには表の日付を書く。表と合っていないページだけ、ビルドした日にする', () => {
     const b2 = page('/b/', '<p>直した</p>')
     expect(lastmodDates([a, b2], table, '2026-11-20')).toEqual({ '/a/': '2026-11-12', '/b/': '2026-11-20' })
+  })
+
+  it('ページに書く日付は、公開した日と、中身が最後に変わった日。表と合っていないページの変わった日は、ビルドした日', () => {
+    const b2 = page('/b/', '<p>直した</p>')
+    const c = page('/c/', '<p>c</p>')
+    expect(pageDates([a, b2, c], table, '2026-11-20')).toEqual({
+      '/a/': { published: '2026-11-12', modified: '2026-11-12' },
+      '/b/': { published: '2026-11-12', modified: '2026-11-20' },
+      '/c/': { published: '2026-11-20', modified: '2026-11-20' },
+    })
   })
 
   it('1ページ1行で書き出し、読みもどせる', () => {
@@ -92,6 +103,9 @@ describe('data/sitemap-lastmod.json', () => {
     for (const [path, e] of Object.entries(table)) {
       expect(e.lastmod, path).toMatch(/^\d{4}-\d{2}-\d{2}$/)
       expect(e.lastmod <= today, `${path} の日付が先の日になっています`).toBe(true)
+      // 公開した日は、中身が最後に変わった日より後にならない
+      expect(e.published, path).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+      expect(e.published <= e.lastmod, `${path} の公開した日が、更新日より後になっています`).toBe(true)
     }
   })
 

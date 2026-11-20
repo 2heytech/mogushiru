@@ -20,7 +20,23 @@ import {
   VIEW_PATH,
   type View,
 } from '../routes'
-import { dishesIndexOgCard, DishesIndexPage, dishOgCard, DishPage, dishPageDescription, dishPagesFor, dishPageTitle, dishRecipeJsonLd, relatedDishes } from './dishPages'
+import {
+  DISHES_INDEX_NAME,
+  dishesIndexDescription,
+  dishesIndexOgCard,
+  DishesIndexPage,
+  dishesIndexTitle,
+  dishesItemListJsonLd,
+  dishOgCard,
+  DishPage,
+  dishPageDescription,
+  dishPagesFor,
+  dishPageTitle,
+  dishRecipeImages,
+  dishRecipeJsonLd,
+  relatedDishes,
+  type RecipeImage,
+} from './dishPages'
 import { OPERATOR_NAME, OPERATOR_URL } from '../site'
 import { menuGenreDescription, menuGenreOgCard, menuGenreTitle, MenuGenrePage, MenusIndexPage, menusFor, menusIndexOgCard, menusIndexTitle, planMenus } from './menuPages'
 import { NUTRIENT_COPY } from './nutrientCopy'
@@ -56,7 +72,16 @@ export type SitePage = {
   jsonLd?: Record<string, unknown>[]
   // SNS などに貼ったときの画像（ページごと。scripts/prerender.tsx が card から PNG を作って path に置く）。なければサイト共通の og-image.png
   og?: { path: string; alt: string; card: OgCard }
+  // レシピ用の画像（料理のページ。scripts/prerender.tsx が料理の絵から PNG を作って path に置く）
+  images?: RecipeImage[]
+  // 公開した日と、中身が最後に変わった日（data/sitemap-lastmod.json から。scripts/prerender.tsx が入れる）。レシピのデータに書く
+  dates?: PageDates
 }
+
+export type PageDates = { published: string; modified: string }
+
+// 日付を書くデータの種類（schema.org）
+const DATED_TYPES = new Set(['Recipe'])
 
 // はじめのページに入れるサイトの名前。ひらがな・ローマ字の書き方も伝える（Google の「サイト名」のしくみ）
 const WEBSITE_JSON_LD = {
@@ -157,26 +182,25 @@ export function buildSitePages({ catalog, prices }: { catalog: Catalog; prices: 
     })),
     {
       path: DISHES_INDEX_PATH,
-      title: `料理の作り方・レシピとカロリー・栄養（${dishes.length}品）｜${SITE_NAME}`,
-      description: `肉じゃが・唐揚げ・さばの味噌煮・豚汁など、ふだんの料理${dishes.length}品の作り方を、2人分の材料と手順、1人前のカロリー・たんぱく質・食塩つきでまとめました。`,
+      title: dishesIndexTitle(dishes),
+      description: dishesIndexDescription(dishes),
       kind: 'static' as const,
       body: html(<DishesIndexPage pages={dishes} />),
-      crumbs: [{ name: SITE_NAME, path: '/' }, { name: '料理の作り方' }],
+      crumbs: [{ name: SITE_NAME, path: '/' }, { name: DISHES_INDEX_NAME }],
       og: og('dishes', dishesIndexOgCard(dishes)),
+      jsonLd: [dishesItemListJsonLd(dishes)],
     },
-    ...dishes.map((d) => {
-      const image = og(`dishes-${d.dish.id}`, dishOgCard(d))!
-      return {
-        path: d.path,
-        title: dishPageTitle(d),
-        description: dishPageDescription(d),
-        kind: 'static' as const,
-        body: html(<DishPage data={d} related={relatedDishes(d, dishes)} />),
-        crumbs: [{ name: SITE_NAME, path: '/' }, { name: '料理の作り方', path: DISHES_INDEX_PATH }, { name: d.dish.name }],
-        og: image,
-        jsonLd: [dishRecipeJsonLd(d, image.path)],
-      }
-    }),
+    ...dishes.map((d) => ({
+      path: d.path,
+      title: dishPageTitle(d),
+      description: dishPageDescription(d),
+      kind: 'static' as const,
+      body: html(<DishPage data={d} related={relatedDishes(d, dishes)} />),
+      crumbs: [{ name: SITE_NAME, path: '/' }, { name: DISHES_INDEX_NAME, path: DISHES_INDEX_PATH }, { name: d.dish.name }],
+      og: og(`dishes-${d.dish.id}`, dishOgCard(d)),
+      images: dishRecipeImages(d),
+      jsonLd: [dishRecipeJsonLd(d)],
+    })),
   ]
   return pages
 }
@@ -220,7 +244,10 @@ export function renderDocument(template: string, page: SitePage): string {
     out = replaceOnce(out, /<meta property="og:image" content="[^"]*"\s*\/?>/, `<meta property="og:image" content="${SITE_URL}${page.og.path}" />`)
     out = replaceOnce(out, /<meta property="og:image:alt" content="[^"]*"\s*\/?>/, `<meta property="og:image:alt" content="${escapeHtml(page.og.alt)}" />`)
   }
-  const jsonLd: Record<string, unknown>[] = [...(page.jsonLd ?? [])]
+  // レシピのデータには、公開した日と中身が最後に変わった日を足す
+  const jsonLd: Record<string, unknown>[] = (page.jsonLd ?? []).map((d) =>
+    page.dates && DATED_TYPES.has(String(d['@type'])) ? { ...d, datePublished: page.dates.published, dateModified: page.dates.modified } : d,
+  )
   if (page.crumbs && !page.noindex) {
     jsonLd.push({
       '@context': 'https://schema.org',

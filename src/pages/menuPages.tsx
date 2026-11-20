@@ -413,7 +413,7 @@ export function MenuGenrePage({ page, plans, catalog, dishPaths }: { page: MenuP
       </p>
       <p className="text-xs leading-relaxed text-ink-soft">
         {sizeNote}
-        {hasDishLinks && '下線のある料理は、名前から作り方のページを開けます。'}
+        {hasDishLinks && '下線のある料理は、名前からカロリー・栄養と作り方のページを開けます。'}
       </p>
     </>
   )

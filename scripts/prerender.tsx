@@ -2,13 +2,13 @@
 // - アプリの画面（/ /ranking/ /customize/ /about/）：タイトル・説明文と、最初に見える説明の字を入れた index.html
 // - 読みもののページ：成分ごとのランキング（/nutrients/…）と献立の例（/menus/…）
 // - 404.html と sitemap.xml（更新日は、ページの中身が実際に変わった日。scripts/lib/pageLastmod.ts）
-// - SNS などに貼ったときに出る画像（dist/og/…png。読みもののページごと）
+// - SNS などに貼ったときに出る画像（dist/og/…png。読みもののページごと）と、レシピ用の画像（dist/recipe-images/…png。料理ごとに3つの形）
 // 値は public/data の配信用 JSON から計算する（アプリと同じデータ・同じ計算）
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { buildSitePages, NOT_FOUND_PAGE, renderDocument, sitemapXml } from '../src/pages/sitePages'
-import { renderOgPng } from './lib/ogImage'
-import { LASTMOD_FILE, lastmodDates, staleLastmod, todayInJapan, type LastmodTable } from './lib/pageLastmod'
+import { renderOgPng, renderRecipePng } from './lib/ogImage'
+import { LASTMOD_FILE, lastmodDates, pageDates, staleLastmod, todayInJapan, type LastmodTable } from './lib/pageLastmod'
 import { loadSiteInputs } from './lib/siteInputs'
 
 const DIST = 'dist'
@@ -16,7 +16,11 @@ const DIST = 'dist'
 const { catalog, prices } = loadSiteInputs()
 
 const template = readFileSync(join(DIST, 'index.html'), 'utf8')
-const pages = buildSitePages({ catalog, prices })
+// 公開した日・中身が最後に変わった日（data/sitemap-lastmod.json）を、ページに持たせる（レシピのデータに書く）
+const lastmodTable = JSON.parse(readFileSync(LASTMOD_FILE, 'utf8')) as LastmodTable
+const built = buildSitePages({ catalog, prices })
+const dates = pageDates(built, lastmodTable, todayInJapan())
+const pages = built.map((p) => (dates[p.path] ? { ...p, dates: dates[p.path] } : p))
 
 const write = (path: string, content: string | Uint8Array) => {
   mkdirSync(dirname(path), { recursive: true })
@@ -28,7 +32,6 @@ write(join(DIST, '404.html'), renderDocument(template, NOT_FOUND_PAGE()))
 
 // サイトマップの更新日は、ページの中身が実際に変わった日（data/sitemap-lastmod.json）。ビルドした日は使わない。
 // 表が古いページ（テストで止まるので、ふつうは出ない）だけ、今日の日付にする
-const lastmodTable = JSON.parse(readFileSync(LASTMOD_FILE, 'utf8')) as LastmodTable
 const stale = staleLastmod(pages, lastmodTable).changed
 if (stale.length > 0) console.warn(`サイトマップの更新日の表が古いページが ${stale.length} 件あります（今日の日付にします）。npm run sitemap:lastmod で直してください`)
 write(join(DIST, 'sitemap.xml'), sitemapXml(pages, lastmodDates(pages, lastmodTable, todayInJapan())))
@@ -40,4 +43,11 @@ for (const page of pages) {
   images++
 }
 
-console.log(`ページを書き出しました：${pages.length} ページ＋404.html、sitemap.xml に ${pages.filter((p) => !p.noindex).length} 件、共有の画像 ${images} 枚`)
+// レシピ用の画像は数が多いので、いくつかずつ並べて作る
+const recipeImages = pages.flatMap((p) => p.images ?? [])
+const RECIPE_IMAGE_BATCH = 8
+for (let i = 0; i < recipeImages.length; i += RECIPE_IMAGE_BATCH) {
+  await Promise.all(recipeImages.slice(i, i + RECIPE_IMAGE_BATCH).map(async (image) => write(join(DIST, image.path), await renderRecipePng(image.illustration, image.width, image.height))))
+}
+
+console.log(`ページを書き出しました：${pages.length} ページ＋404.html、sitemap.xml に ${pages.filter((p) => !p.noindex).length} 件、共有の画像 ${images} 枚、レシピ用の画像 ${recipeImages.length} 枚`)
