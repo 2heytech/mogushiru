@@ -168,9 +168,9 @@ export function CustomizeView({
   return (
     <section aria-labelledby="customize-title" className="space-y-6">
       <div>
-        <h2 id="customize-title" className="text-xl font-bold">
+        <h1 id="customize-title" className="text-xl font-bold">
           料理をアレンジ
-        </h2>
+        </h1>
         <p className="mt-1 text-sm text-ink-soft">料理をえらんで、食べる量や材料を変えられます。保存すると「お気に入り」に入り、1日の食事で料理をえらぶとき上に出ます。</p>
         <p className="mt-1 text-xs text-ink-soft">1日の食事に入れた料理は、その料理の「アレンジ」からも変えられます。</p>
       </div>
@@ -193,9 +193,9 @@ export function CustomizeView({
       {/* できることの例。押すと、その料理の編集の窓がひらく */}
       {examples.length > 0 && (
         <section aria-labelledby="customize-examples-title">
-          <h3 id="customize-examples-title" className="mb-2 text-base font-bold">
+          <h2 id="customize-examples-title" className="mb-2 text-base font-bold">
             たとえば、こんなことができます
-          </h3>
+          </h2>
           <ul className="grid gap-2 md:grid-cols-3 md:gap-3">
             {examples.map((e) => (
               <li key={e.dishId}>
@@ -222,10 +222,10 @@ export function CustomizeView({
 
       {mine.length > 0 && (
         <section aria-labelledby="my-dishes-title">
-          <h3 id="my-dishes-title" className="mb-2 text-base font-bold">
+          <h2 id="my-dishes-title" className="mb-2 text-base font-bold">
             お気に入り
             <span className="ml-2 text-xs font-normal text-ink-soft">アレンジして保存した料理</span>
-          </h3>
+          </h2>
           <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
             {mine.map((my) => {
               const portion = my.portion ?? 1
@@ -271,9 +271,9 @@ export function CustomizeView({
       )}
 
       <section aria-labelledby="dish-list-title">
-        <h3 id="dish-list-title" className="mb-2 text-base font-bold">
+        <h2 id="dish-list-title" className="mb-2 text-base font-bold">
           料理をえらぶ
-        </h3>
+        </h2>
         <input
           type="search"
           value={query}

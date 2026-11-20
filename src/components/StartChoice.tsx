@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { VIEW_PATH } from '../routes'
+import { POPULAR_LINKS, READING_LINKS, VIEW_META, VIEW_PATH } from '../routes'
 import { CustomizeIcon } from './CustomizeIcon'
 import { inAppLink } from './inAppLink'
 import { BowlMogu } from './Mascot'
@@ -26,6 +26,9 @@ function Entry({ icon, title, desc, onClick, opensDialog = false }: { icon: UiIc
     </button>
   )
 }
+
+// 見出しのキャッチコピー（routes.ts の VIEW_META と同じ文。最初の HTML に入れる見出しとそろえる）。折り返してよい位置（「、」のあと）で分ける
+const START_HEADING = VIEW_META.menu.heading.split(/(?<=、)/)
 
 const CHEVRON_LEFT = (
   <svg viewBox="0 0 24 24" className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -99,12 +102,13 @@ export function BackRow({
 }
 
 // 「栄養バランス」をひらいたとき、ほかの表示の代わりに出す最初の画面（1日の食事が空のとき。料理が入っていても、「最初の画面にもどる」やロゴからもどれる）。
-// まず「何がわかるアプリか」をひとことで伝え、やりたいことから入口をえらんでもらう：
+// まず「何がわかるアプリか」をひとことで伝え（この画面の見出し h1。検索エンジンにも、ページの題として読まれる）、やりたいことから入口をえらんでもらう：
 //   献立案から選ぶ … 栄養バランスの整った献立（1日分まとめて／1食ずつ）からえらぶ窓へ（いちばん上）
 //   自分の食事で試す … 朝・昼・晩に、食べた料理を入れていく画面へ
 //   サンプルで結果を見る … 献立の例を1つそのまま入れて、結果の画面を先に見る（sampleName があるとき）
 // 「1日でバランス／毎食バランス」のちがいは、献立案から選ぶ窓の中でえらぶ（ここでは聞かない）。
 // その下に小さく、ほかの入口：保存した食事を呼び出す（保存したものがあるとき）・料理をアレンジ。
+// いちばん下に、何が計算できるかの説明と、読みもののページ（コンビニ昼ごはん・たんぱく質ランキングなど）への直リンク。
 // 料理が入っているとき（current）は、いちばん上に「いまの1日の食事にもどる」を出す。3つの入口は新しく始める入口なので、
 // いまの料理を置き換える前に確かめるのは、呼ぶ側（App.tsx）とそれぞれの窓の役目
 export function StartChoice({
@@ -155,20 +159,23 @@ export function StartChoice({
       <div className="mb-3 flex items-center justify-center gap-2.5 sm:mb-5 sm:flex-col sm:gap-0 sm:text-center">
         {/* 幅のせまいスマホでは、見出しが2行に収まるようにモグをはぶく（上のロゴにもいる） */}
         <BowlMogu slot="breakfast" mood="happy" className="h-12 w-12 shrink-0 max-[359px]:hidden sm:h-20 sm:w-20" label="モグ" />
-        <h2 id="start-title" className="text-lg leading-snug font-bold sm:mt-2 sm:text-2xl sm:text-balance">
+        <h1 id="start-title" className="text-lg leading-snug font-bold sm:mt-2 sm:text-2xl sm:text-balance">
           {/* 折り返すときは「、」のあとで */}
-          <span className="inline-block">料理を選ぶだけで、</span>
-          <span className="inline-block">1日の栄養バランスがわかる</span>
-        </h2>
+          {START_HEADING.map((part) => (
+            <span key={part} className="inline-block">
+              {part}
+            </span>
+          ))}
+        </h1>
         <p className="mt-1.5 hidden text-sm text-ink-soft sm:block">
           <span className="inline-block">カロリーやPFCバランス、ビタミン・ミネラルが、</span>
           <span className="inline-block">1日の目安に足りているかを見られます。</span>
         </p>
       </div>
       <div className="mx-auto max-w-4xl">
-        <h3 id="start-choice-title" className="mb-2 text-center text-base font-bold text-balance sm:mb-3 sm:text-lg">
+        <h2 id="start-choice-title" className="mb-2 text-center text-base font-bold text-balance sm:mb-3 sm:text-lg">
           {current ? '新しく始めるなら' : 'なにから始める？'}
-        </h3>
+        </h2>
         <ul aria-labelledby="start-choice-title" className="grid gap-2 sm:grid-cols-3 sm:gap-3">
           <li>
             <Entry icon="build" title="献立案から選ぶ" desc="バランスの整った献立を、1日分か1食ずつ選ぶ" onClick={onBuild} opensDialog />
@@ -202,6 +209,30 @@ export function StartChoice({
           <ArrangeLink onClick={onArrange} />
         </div>
         <p className="mt-2 text-center text-xs text-pretty text-ink-soft sm:mt-3">登録はいりません。入れた内容は、このブラウザにのみ保存されます。</p>
+
+        {/* 何が計算できるかの説明と、読みもののページへの直リンク（ふつうのリンク。検索エンジンもここから下のページへたどれる） */}
+        <div className="mt-4 border-t border-coral/25 pt-3 sm:mt-6 sm:pt-4">
+          <p className="text-xs leading-relaxed text-pretty text-ink-soft sm:text-center sm:text-sm">
+            料理・食材・コンビニやメーカーの市販品を選ぶと、カロリー、PFCバランス（たんぱく質・脂質・炭水化物）、食塩、ビタミン・ミネラルなど26の成分を計算して、年齢・性別に合わせた1日の目安とくらべられます。
+          </p>
+          <nav aria-labelledby="start-links-title" className="mt-2 sm:mt-3">
+            <h2 id="start-links-title" className="text-center text-xs font-bold text-ink-soft">
+              計算ずみの例とランキング
+            </h2>
+            <ul className="mt-0.5 flex flex-wrap justify-center gap-x-1.5">
+              {[...POPULAR_LINKS, ...READING_LINKS].map((l) => (
+                <li key={l.path}>
+                  <a href={l.path} className="group flex min-h-11 items-center rounded-full focus-visible:ring-4 focus-visible:ring-coral/40 focus-visible:outline-none">
+                    <span className="flex min-h-9 items-center gap-0.5 rounded-full bg-white pr-2 pl-3 text-sm font-bold text-coral-ink shadow-sm transition group-hover:bg-coral/5">
+                      {l.name}
+                      {CHEVRON_RIGHT}
+                    </span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        </div>
       </div>
     </section>
   )

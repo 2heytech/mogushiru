@@ -16,7 +16,7 @@ import { matches } from '../domain/search'
 import { SERVING_NOTE } from '../domain/serving'
 import type { Targets } from '../domain/targets'
 import type { NutrientKey } from '../domain/types'
-import { nutrientPagePath } from '../routes'
+import { nutrientPagePath, VIEW_META } from '../routes'
 import type { LookupItem } from './lookupCards'
 
 const PAGE = 30
@@ -94,10 +94,12 @@ export function RankingView({
   return (
     <section aria-labelledby="ranking-title" className="space-y-4">
       <div>
-        {/* 上のメニューの「成分ランキング」の画面。名前でさがすのは、となりの「食品を調べる」（FoodLookup.tsx） */}
-        <h2 id="ranking-title" className="text-xl font-bold">
-          成分ランキング
-        </h2>
+        {/* 上のメニューの「成分ランキング」の画面。成分・くらべ方・食品の種類をえらんで並べ替える道具なので、見出しは「ランキングを並べ替え」
+            （成分ごとの読みもののページ /nutrients/… は「〜が多い食べ物ランキング」、その一覧は「食品成分ランキング」）。
+            名前でさがすのは、となりの「食品を調べる」（FoodLookup.tsx） */}
+        <h1 id="ranking-title" className="text-xl font-bold">
+          {VIEW_META.ranking.heading}
+        </h1>
         <p className="mt-1 text-sm text-ink-soft">
           肉・魚・野菜・調味料などの食品（料理ではなく材料）を、成分の多い順に並べます。
           {info.caution ? `いまは${info.label}が多い食品。とりすぎに気をつけたいときの目安にどうぞ。` : `いまは${info.label}をとりやすい食品の順です。`}
@@ -228,12 +230,12 @@ export function RankingView({
           </div>
           {/* 何を・どの単位でくらべているかと、棒の長さの意味を、一覧のすぐ上に書く。％と「1回の量」の説明は「数字の見方」でひらく */}
           <div className="rounded-2xl bg-white/70 px-4 py-2">
-            <h3 className="text-base leading-snug font-bold">
+            <h2 className="text-base leading-snug font-bold">
               <span className="inline-block">{info.label}の多い順</span>
               <span className="inline-block text-sm font-normal text-ink-soft">
                 （{METRIC_BASIS[activeMetric]}・単位 {info.unit}）
               </span>
-            </h3>
+            </h2>
             <div className="flex flex-wrap items-center gap-x-3">
               <p className="flex min-w-0 items-center gap-1.5 text-xs text-ink-soft">
                 <span className={`inline-block h-2 w-6 shrink-0 rounded-full ${info.caution ? 'bg-caution' : 'bg-ok'}`} aria-hidden />

@@ -18,9 +18,9 @@ function Ext({ href, children }: { href: string; children: ReactNode }) {
 function Section({ id, title, children }: { id: string; title: string; children: ReactNode }) {
   return (
     <section aria-labelledby={id} className="rounded-[var(--radius-card)] bg-white p-5 shadow-sm sm:p-6">
-      <h3 id={id} className="text-lg font-bold">
+      <h2 id={id} className="text-lg font-bold">
         {title}
-      </h3>
+      </h2>
       <div className="mt-2 space-y-2 text-sm leading-relaxed">{children}</div>
     </section>
   )
@@ -124,9 +124,9 @@ export function AboutView({ onBack }: { onBack: () => void }) {
   return (
     <div className="mx-auto max-w-3xl space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 id="about-title" className="text-xl font-bold">
+        <h1 id="about-title" className="text-xl font-bold">
           このサイトについて
-        </h2>
+        </h1>
         <button type="button" onClick={onBack} className="rounded-full bg-white px-4 py-2 text-sm font-bold shadow-sm hover:bg-coral/10">
           1日の栄養バランスにもどる
         </button>

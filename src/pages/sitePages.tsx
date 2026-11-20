@@ -3,12 +3,37 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import type { Catalog } from '../domain/nutrition'
 import { NUTRIENT_GROUPS, type PriceTable } from '../domain/ranking'
 import type { NutrientKey } from '../domain/types'
-import { DISHES_INDEX_PATH, MENU_PAGES, MENUS_INDEX_PATH, menuPagePath, NUTRIENT_SLUG, NUTRIENTS_INDEX_PATH, SITE_ALT_NAMES, SITE_NAME, SITE_URL, VIEW_META, VIEW_PATH, type View } from '../routes'
+import {
+  DISHES_INDEX_PATH,
+  MENU_PAGES,
+  MENUS_INDEX_PATH,
+  menuPagePath,
+  NOINDEX_VIEWS,
+  NUTRIENT_SLUG,
+  NUTRIENTS_INDEX_PATH,
+  POPULAR_LINKS,
+  READING_LINKS,
+  SITE_ALT_NAMES,
+  SITE_NAME,
+  SITE_URL,
+  VIEW_META,
+  VIEW_PATH,
+  type View,
+} from '../routes'
 import { dishesIndexOgCard, DishesIndexPage, dishOgCard, DishPage, dishPageDescription, dishPagesFor, dishPageTitle, dishRecipeJsonLd, relatedDishes } from './dishPages'
 import { OPERATOR_NAME, OPERATOR_URL } from '../site'
-import { menuGenreOgCard, MenuGenrePage, MenusIndexPage, menusFor, menusIndexOgCard, planMenus } from './menuPages'
+import { menuGenreDescription, menuGenreOgCard, menuGenreTitle, MenuGenrePage, MenusIndexPage, menusFor, menusIndexOgCard, menusIndexTitle, planMenus } from './menuPages'
 import { NUTRIENT_COPY } from './nutrientCopy'
-import { nutrientOgCard, NutrientPage, nutrientPageData, nutrientPageDescription, nutrientPageTitle, NutrientsIndexPage, type NutrientPageData } from './nutrientPages'
+import {
+  nutrientOgCard,
+  NutrientPage,
+  nutrientPageData,
+  nutrientPageDescription,
+  nutrientPageTitle,
+  NUTRIENTS_INDEX_HEADING,
+  NutrientsIndexPage,
+  type NutrientPageData,
+} from './nutrientPages'
 import type { OgCard } from './ogCard'
 import { AppFallback, NotFoundPage, type Crumb } from './StaticLayout'
 
@@ -23,8 +48,10 @@ export type SitePage = {
   kind: 'app' | 'static'
   body: string
   crumbs?: Crumb[]
-  // サイトマップに入れない（404 など）
+  // 検索に載せない（最初の HTML に noindex を入れ、サイトマップにも入れない）。404 と、ランキングを並べ替える道具の画面（/ranking/）
   noindex?: boolean
+  // このページを指す canonical を書かない（404 だけ。/ranking/ は、検索に載せなくても canonical は自分のまま）
+  noCanonical?: boolean
   // 検索エンジン向けのデータ（JSON-LD）。パンくずのほかに足すもの
   jsonLd?: Record<string, unknown>[]
   // SNS などに貼ったときの画像（ページごと。scripts/prerender.tsx が card から PNG を作って path に置く）。なければサイト共通の og-image.png
@@ -50,11 +77,11 @@ const html = (el: ReactElement) => renderToStaticMarkup(el)
 // 成分の一覧のページの画像に名前を出す成分（よくさがされるものを1〜2行ぶん）
 const OG_NUTRIENTS: NutrientKey[] = ['protein', 'fiber', 'iron', 'calcium', 'vitaminC', 'vitaminD', 'folate', 'zinc', 'salt']
 
-const APP_LINKS = [
-  { name: '成分が多い食品ランキング', path: NUTRIENTS_INDEX_PATH },
-  { name: '栄養バランスの整う献立の例', path: MENUS_INDEX_PATH },
-  { name: '料理の作り方とカロリー・栄養', path: DISHES_INDEX_PATH },
-]
+// アプリの画面の最初の HTML に入れておく、読みもののページへのリンク（呼び名は routes.ts の READING_LINKS で決める）
+const APP_LINKS = READING_LINKS.map(({ name, path }) => ({ name, path }))
+
+// はじめのページには、よくさがされるページへの直リンクも入れる（最初の画面の「人気のページ」と同じ。StartChoice.tsx）
+const TOP_LINKS = [...POPULAR_LINKS.map(({ name, path }) => ({ name, path })), ...APP_LINKS]
 
 function appPage(view: View, links = APP_LINKS): SitePage {
   const meta = VIEW_META[view]
@@ -64,6 +91,7 @@ function appPage(view: View, links = APP_LINKS): SitePage {
     description: meta.description,
     kind: 'app',
     body: html(<AppFallback heading={meta.heading} description={meta.description} links={links} />),
+    ...(NOINDEX_VIEWS.includes(view) ? { noindex: true } : {}),
   }
 }
 
@@ -77,26 +105,27 @@ export function buildSitePages({ catalog, prices }: { catalog: Catalog; prices: 
   const dishPaths = new Map(dishes.map((d) => [d.dish.id, d.path]))
 
   const pages: SitePage[] = [
-    { ...appPage('menu'), jsonLd: [WEBSITE_JSON_LD] },
+    { ...appPage('menu', TOP_LINKS), jsonLd: [WEBSITE_JSON_LD] },
     appPage('foods'),
     appPage('ranking', [...APP_LINKS, ...nutrientLinks]),
     appPage('customize'),
     appPage('about'),
     {
       path: NUTRIENTS_INDEX_PATH,
-      title: `成分が多い食べ物・食品ランキング｜たんぱく質・鉄分・カルシウムなど${nutrients.length}成分｜${SITE_NAME}`,
-      description: `たんぱく質・食物繊維・鉄分・カルシウム・ビタミンなど${nutrients.length}の成分について、多く含む食べ物・食品を、1回に食べる量と100gあたりでくらべたランキング。野菜・果物・魚介など種類べつの上位、成分が多い料理、年齢・性別ごとの1日の摂取量の目安つき。`,
+      // 「食品成分ランキング」でさがす人の受け皿（並べ替える道具の /ranking/ は検索に載せない）。要点は最初の区切りに入れる
+      title: `${NUTRIENTS_INDEX_HEADING}｜成分別に多い食べ物（${nutrients.length}成分）｜${SITE_NAME}`,
+      description: `食品成分ランキング。たんぱく質・食物繊維・鉄分・カルシウム・ビタミンなど${nutrients.length}の成分について、多く含む食べ物・食品を、1食分（ふだん1回に食べる量）と100gあたりで比較できます。野菜・果物・魚介など種類べつの上位、成分が多い料理、年齢・性別ごとの1日の摂取量の目安つき。`,
       kind: 'static',
       body: html(<NutrientsIndexPage pages={nutrients} />),
-      crumbs: [{ name: SITE_NAME, path: '/' }, { name: '成分が多い食品ランキング' }],
+      crumbs: [{ name: SITE_NAME, path: '/' }, { name: NUTRIENTS_INDEX_HEADING }],
       og: og('nutrients', {
         card: {
-          title: '成分が多い食品ランキング',
-          sub: `${nutrients.length}の成分を、1回の量・100gあたりでくらべる`,
+          title: NUTRIENTS_INDEX_HEADING,
+          sub: `${nutrients.length}の成分を、1食分・100gあたりで比較`,
           chips: OG_NUTRIENTS.flatMap((k) => NUTRIENT_COPY[k]?.name ?? []),
           icons: ['10', '11', '04', '06', '13', '07'].map((group) => `/illustrations/food-group/${group}.svg`),
         },
-        alt: `成分が多い食品ランキング。たんぱく質・食物繊維・鉄分・カルシウムなど${nutrients.length}の成分`,
+        alt: `${NUTRIENTS_INDEX_HEADING}。たんぱく質・食物繊維・鉄分・カルシウムなど${nutrients.length}の成分`,
       }),
     },
     ...nutrients.map((d: NutrientPageData) => ({
@@ -105,12 +134,12 @@ export function buildSitePages({ catalog, prices }: { catalog: Catalog; prices: 
       description: nutrientPageDescription(d),
       kind: 'static' as const,
       body: html(<NutrientPage data={d} />),
-      crumbs: [{ name: SITE_NAME, path: '/' }, { name: '成分が多い食品ランキング', path: NUTRIENTS_INDEX_PATH }, { name: NUTRIENT_COPY[d.key]!.name }],
+      crumbs: [{ name: SITE_NAME, path: '/' }, { name: NUTRIENTS_INDEX_HEADING, path: NUTRIENTS_INDEX_PATH }, { name: NUTRIENT_COPY[d.key]!.name }],
       og: og(`nutrients-${NUTRIENT_SLUG[d.key]}`, nutrientOgCard(d)),
     })),
     {
       path: MENUS_INDEX_PATH,
-      title: `栄養バランスの整う1日の献立の例｜和食・中華・洋食など${menuGroups.reduce((n, g) => n + g.plans.length, 0)}種｜${SITE_NAME}`,
+      title: menusIndexTitle(menuGroups),
       description: '1日のカロリー・PFCバランス・食塩が目安に合う献立の例を、和食・中華・洋食・郷土料理などのジャンルごとにまとめました。朝・昼・晩の料理と量、カロリーつき。',
       kind: 'static',
       body: html(<MenusIndexPage groups={menuGroups} />),
@@ -119,13 +148,8 @@ export function buildSitePages({ catalog, prices }: { catalog: Catalog; prices: 
     },
     ...menuGroups.map(({ page, plans }) => ({
       path: menuPagePath(page),
-      title: page.searchTitle ? `${page.searchTitle}｜${SITE_NAME}` : `${page.heading}（${plans.length}種）｜カロリー・PFCバランスつき｜${SITE_NAME}`,
-      description:
-        page.description ??
-        `${page.lead}朝・昼・晩の料理と量、1日のカロリー・PFCバランス・食塩つき。${plans
-          .slice(0, 3)
-          .map((p) => p.ideal.name)
-          .join('・')}など。`,
+      title: menuGenreTitle(page, plans, catalog),
+      description: menuGenreDescription(page, plans, catalog),
       kind: 'static' as const,
       body: html(<MenuGenrePage page={page} plans={plans} catalog={catalog} dishPaths={dishPaths} />),
       crumbs: [{ name: SITE_NAME, path: '/' }, { name: '献立の例', path: MENUS_INDEX_PATH }, { name: page.title }],
@@ -164,6 +188,7 @@ export const NOT_FOUND_PAGE = (): SitePage => ({
   kind: 'static',
   body: html(<NotFoundPage />),
   noindex: true,
+  noCanonical: true,
 })
 
 // ---- HTML（ビルドした index.html をひな形にして、ページごとに中身を差しかえる） ----
@@ -182,11 +207,13 @@ export function renderDocument(template: string, page: SitePage): string {
   out = replaceOnce(out, /<meta name="description" content="[^"]*"\s*\/?>/, `<meta name="description" content="${escapeHtml(page.description)}" />`)
   out = replaceOnce(out, /<meta property="og:title" content="[^"]*"\s*\/?>/, `<meta property="og:title" content="${escapeHtml(page.title)}" />`)
   out = replaceOnce(out, /<meta property="og:description" content="[^"]*"\s*\/?>/, `<meta property="og:description" content="${escapeHtml(page.description)}" />`)
-  if (page.noindex) {
-    out = replaceOnce(out, /\s*<link rel="canonical" href="[^"]*"\s*\/?>/, '\n    <meta name="robots" content="noindex" />')
+  // 検索に載せないページは、最初に返す HTML に noindex を書く（プログラムであとから付けたり外したりしない）
+  const robots = page.noindex ? '<meta name="robots" content="noindex" />' : ''
+  if (page.noCanonical) {
+    out = replaceOnce(out, /\s*<link rel="canonical" href="[^"]*"\s*\/?>/, robots && `\n    ${robots}`)
     out = replaceOnce(out, /\s*<meta property="og:url" content="[^"]*"\s*\/?>/, '')
   } else {
-    out = replaceOnce(out, /<link rel="canonical" href="[^"]*"\s*\/?>/, `<link rel="canonical" href="${url}" />`)
+    out = replaceOnce(out, /<link rel="canonical" href="[^"]*"\s*\/?>/, `${robots && `${robots}\n    `}<link rel="canonical" href="${url}" />`)
     out = replaceOnce(out, /<meta property="og:url" content="[^"]*"\s*\/?>/, `<meta property="og:url" content="${url}" />`)
   }
   if (page.og) {

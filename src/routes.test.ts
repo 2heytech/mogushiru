@@ -7,6 +7,7 @@ import {
   dishAppPath,
   hasAppLinkHash,
   idealMenuAppPath,
+  legacyQueryRedirect,
   legacyRedirect,
   MENU_PAGES,
   menuScreenFromState,
@@ -50,6 +51,21 @@ describe('画面の URL', () => {
     expect(legacyRedirect('/', '#customize')).toBe(VIEW_PATH.customize)
     expect(legacyRedirect('/', '')).toBeNull()
     expect(legacyRedirect('/ranking/', '#about')).toBeNull()
+  })
+
+  it('以前の ? つきの URL は、同じ中身の読みもののページへ送る（/ranking/?n= → /nutrients/…、/customize/?dish= → /dishes/…）', () => {
+    expect(legacyQueryRedirect('/ranking/', '?n=caffeine')).toEqual({ path: '/nutrients/caffeine/', kind: 'nutrient' })
+    expect(legacyQueryRedirect('/ranking', '?n=vitamin-c&x=1')).toEqual({ path: '/nutrients/vitamin-c/', kind: 'nutrient' })
+    // 成分のページの「くらべ方や種類を変えて見る」（/ranking/#n=<名前>）と同じ名前で、26成分すべてが送れる
+    for (const [key, slug] of Object.entries(NUTRIENT_SLUG)) expect(legacyQueryRedirect('/ranking/', `?n=${slug}`)?.path, key).toBe(`/nutrients/${slug}/`)
+    expect(legacyQueryRedirect('/customize/', '?dish=nikujaga')).toEqual({ path: '/dishes/nikujaga/', kind: 'dish' })
+    // 指定がない・知らない成分・おかしな id・ほかの画面は送らない
+    expect(legacyQueryRedirect('/ranking/', '')).toBeNull()
+    expect(legacyQueryRedirect('/ranking/', '?n=unknown')).toBeNull()
+    expect(legacyQueryRedirect('/customize/', '?dish=../about')).toBeNull()
+    expect(legacyQueryRedirect('/customize/', '?dish=')).toBeNull()
+    expect(legacyQueryRedirect('/', '?n=iron')).toBeNull()
+    expect(legacyQueryRedirect('/foods/', '?dish=nikujaga')).toBeNull()
   })
 
   it('最初の画面か1日の食事かを、履歴の印から読む（印がなければ null）', () => {

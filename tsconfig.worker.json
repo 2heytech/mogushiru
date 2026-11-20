@@ -1,0 +1,10 @@
+{
+  // Cloudflare Workers で動かすプログラム（worker/）の型のチェック。ブラウザの画面（DOM）ではなく、Worker の中で使えるものだけで書く
+  "extends": "./tsconfig.app.json",
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.worker.tsbuildinfo",
+    "types": [],
+    "lib": ["ES2023", "WebWorker"]
+  },
+  "include": ["worker", "src/routes.ts"]
+}

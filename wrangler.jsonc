@@ -1,11 +1,17 @@
-// Cloudflare Workers で公開するための設定（静的なファイルだけを配る。Worker のコードはない）
-// ビルド（npm run build）で dist/ にできたファイルを、そのまま配信する
+// Cloudflare Workers で公開するための設定。
+// ビルド（npm run build）で dist/ にできたファイルを、そのまま配信する。
+// プログラム（worker/index.ts）が動くのは /ranking/ と /customize/ だけで、以前の ? つきの URL を読みもののページへ 301 で送る
 {
   // Cloudflare の画面で作ったプロジェクト名と同じにする（違うとビルドが失敗する）
   "name": "mogushiru",
+  "main": "./worker/index.ts",
   "compatibility_date": "2026-11-11",
   "assets": {
     "directory": "./dist",
+    // worker/index.ts から静的なファイルを返すための口
+    "binding": "ASSETS",
+    // ここに書いたパスだけ、静的なファイルより先に worker/index.ts を動かす（最後の / のない形も）。ほかのページは、これまでどおりファイルをそのまま返す
+    "run_worker_first": ["/ranking/", "/ranking", "/customize/", "/customize"],
     // 画面ごとのページ（/ranking/ など）と読みもののページはビルドで HTML を書き出しているので、
     // 知らないパスには 404.html を「見つからない」（404）として返す（アプリの画面を返すと、検索エンジンが中身のないページとして数えてしまう）
     "not_found_handling": "404-page"
