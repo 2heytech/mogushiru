@@ -168,12 +168,12 @@ function FacetChips({ label, chips, active, onPick }: { label: string; chips: { 
 function Categories({ showAlcohol, onPick }: { showAlcohol: boolean; onPick: (kind: LookupKind, facet: LookupFacet) => void }) {
   return (
     <section aria-label="種類からさがす" className="space-y-3 rounded-[var(--radius-card)] bg-white/60 p-3 sm:p-4">
-      <h3 className={SECTION_TITLE}>種類からさがす</h3>
+      <h2 className={SECTION_TITLE}>種類からさがす</h2>
       {LOOKUP_KINDS.map((kind) => {
         const facets = lookupFacets(kind, { showAlcohol, home: true })
         return (
           <div key={kind} className="space-y-1.5">
-            <h4 className="text-xs font-bold text-ink-soft">{LOOKUP_KIND_LABEL[kind]}</h4>
+            <h3 className="text-xs font-bold text-ink-soft">{LOOKUP_KIND_LABEL[kind]}</h3>
             {kind === 'food' ? (
               // 食材は数が多いので、絵つきの小さなタイルをつめて並べる
               <ul className="grid grid-cols-4 gap-1.5 sm:grid-cols-6 lg:grid-cols-9">
@@ -315,11 +315,11 @@ export function FoodLookup({
     <div className="space-y-2">
       {(!searching || facetCounts.size > 1 || facet !== null) && <FacetChips label={`${LOOKUP_KIND_LABEL[active]}の種類でしぼる`} chips={facetChips(active)} active={facet} onPick={(f) => pickFacet(active, f)} />}
       <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
-        <h3 className={SECTION_TITLE}>
+        <h2 className={SECTION_TITLE}>
           {LOOKUP_KIND_LABEL[active]}
           {scopeLabel && `：${scopeLabel}`}
           <span className="ml-1.5 text-xs font-normal text-ink-soft tabular-nums">{list.length.toLocaleString()}件</span>
-        </h3>
+        </h2>
         {list.length > 1 && (
           <label>
             <span className="sr-only">並べかえ</span>
@@ -359,9 +359,9 @@ export function FoodLookup({
 
   return (
     <section aria-labelledby="lookup-title" className="space-y-3">
-      <h2 id="lookup-title" className="text-xl font-bold">
+      <h1 id="lookup-title" className="text-xl font-bold">
         食品を調べる
-      </h2>
+      </h1>
       <div ref={boxRef} className="relative w-full scroll-mt-2 lg:max-w-xl">
         <svg viewBox="0 0 24 24" aria-hidden className="pointer-events-none absolute top-1/2 left-3.5 h-5 w-5 -translate-y-1/2 text-ink-soft" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
           <circle cx="11" cy="11" r="6.5" />
@@ -397,7 +397,7 @@ export function FoodLookup({
           {recentCards.length > 0 && (
             <section aria-label="最近見た食品" className="space-y-1.5">
               <div className="flex items-center justify-between gap-2">
-                <h3 className={SECTION_TITLE}>最近見た食品</h3>
+                <h2 className={SECTION_TITLE}>最近見た食品</h2>
                 <button type="button" onClick={onClearRecent} className="min-h-11 px-2 text-xs text-ink-soft underline underline-offset-2 lg:min-h-8">
                   消す
                 </button>
@@ -407,9 +407,9 @@ export function FoodLookup({
           )}
           {index.staples.length > 0 && (
             <section aria-label="定番の食品" className="space-y-1.5">
-              <h3 className={SECTION_TITLE}>
+              <h2 className={SECTION_TITLE}>
                 定番の食品<span className="ml-1.5 text-xs font-normal text-ink-soft">押すと栄養素が見られます</span>
-              </h3>
+              </h2>
               <QuickChips cards={index.staples} onOpen={onOpen} />
             </section>
           )}
@@ -473,10 +473,10 @@ export function FoodLookup({
                 <div className="space-y-3 lg:grid lg:auto-cols-fr lg:grid-flow-col lg:items-start lg:gap-4 lg:space-y-0">
                   {sections.map((s) => (
                     <div key={s.kind} className="min-w-0 space-y-1.5">
-                      <h3 className={SECTION_TITLE}>
+                      <h2 className={SECTION_TITLE}>
                         {LOOKUP_KIND_LABEL[s.kind]}
                         <span className="ml-1.5 text-xs font-normal text-ink-soft tabular-nums">{s.hits.length.toLocaleString()}件</span>
-                      </h3>
+                      </h2>
                       <ul className="grid grid-cols-1 gap-1.5">{rows(s.hits.slice(0, preview))}</ul>
                       {s.hits.length > preview && (
                         <button type="button" onClick={() => pickKind(s.kind)} className="min-h-11 w-full rounded-full text-sm font-bold text-coral-ink underline decoration-coral/60 underline-offset-2 hover:bg-white lg:min-h-9">

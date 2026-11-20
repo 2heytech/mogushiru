@@ -525,7 +525,9 @@ export default function App() {
     // スマホは1日の食事のボタンを下に固定するので、そのぶん下をあける
     <div className={`mx-auto max-w-6xl px-4 ${view === 'menu' && !showStart ? 'pb-32 md:pb-16' : 'pb-16'}`}>
       <header className="flex items-center justify-between gap-2 py-2.5 sm:gap-4 sm:py-4 lg:gap-3 xl:gap-4">
-        <h1 className="shrink-0">
+        {/* ロゴは見出し（h1）にしない。h1 は、それぞれの画面の見出し（最初の画面のキャッチコピー・「1日の食事」・「食品を調べる」など）。
+            検索エンジンは h1 をページの題として読むので、どの画面も「モグシル」だけにならないようにする */}
+        <div className="shrink-0">
           {/* ロゴを押すと、どの画面からでも最初の画面へ（入れた料理はそのまま） */}
           <a
             href={VIEW_PATH.menu}
@@ -536,7 +538,7 @@ export default function App() {
             <LogoMogu className="h-10 w-10 sm:h-12 sm:w-12" />
             <span className="font-logo text-2xl leading-none tracking-wide text-ink sm:text-[28px]">モグシル</span>
           </a>
-        </h1>
+        </div>
         <div className="hidden lg:block">
           <FeatureTabsCompact view={view} onChange={setView} />
         </div>

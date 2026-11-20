@@ -7,9 +7,10 @@ export type NutrientCopy = {
   name: string
   // 「ビタミンCが多い」「カロリーが高い」。見出しのはじめに使う
   rich: string
-  // ページの見出しとタイトル。「〜の多い食べ物」「〜 食品 ランキング」のどちらでさがした人にも合うよう、食べ物と食品の両方を入れる
+  // ページの見出しと、タイトルの最初の区切り：「〜が多い食べ物ランキング」。検索結果ではタイトルの後ろが落ちやすいので、短く言い切る。
+  // 「食品」「食材」でさがす人のための言葉は、はじめの文と一覧の見出し（「〜が多い食品」）に入れる
   heading: string
-  // 短い見出し（共有の画像。24字まで）
+  // 短い見出し（共有の画像。24字まで）。見出しが長い成分だけ、別に書く
   short: string
   // はじめの文で使う言い方（「食べ物・食材」）。「食材」でさがす人もいるので、見出しとはちがう言葉にする
   things: string
@@ -18,7 +19,8 @@ export type NutrientCopy = {
 
 function copy(name: string, about: string, o: { rich?: string; heading?: string; short?: string; things?: string } = {}): NutrientCopy {
   const rich = o.rich ?? `${name}が多い`
-  return { name, rich, heading: o.heading ?? `${rich}食べ物・食品ランキング`, short: o.short ?? `${rich}食品ランキング`, things: o.things ?? '食べ物・食材', about }
+  const heading = o.heading ?? `${rich}食べ物ランキング`
+  return { name, rich, heading, short: o.short ?? heading, things: o.things ?? '食べ物・食材', about }
 }
 
 export const NUTRIENT_COPY: Partial<Record<NutrientKey, NutrientCopy>> = {
@@ -40,10 +42,10 @@ export const NUTRIENT_COPY: Partial<Record<NutrientKey, NutrientCopy>> = {
   vitaminC: copy('ビタミンC', '皮ふや血管のコラーゲンをつくるときに使われるビタミンです。水に溶けやすく、熱にも弱い性質があります。'),
   // 「オメガ3 食品」「オメガ3脂肪酸」のどちらでもさがされるので、名前は「オメガ3脂肪酸」と続けて書く
   n3Fat: copy('オメガ3脂肪酸（n-3系）', '魚の油に含まれる EPA・DHA や、えごま油・あまに油に含まれる α-リノレン酸のなかまの脂肪酸です。からだの中ではつくれません。', {
-    short: 'オメガ3脂肪酸が多い食品ランキング',
+    short: 'オメガ3脂肪酸が多い食べ物ランキング',
   }),
   n6Fat: copy('オメガ6脂肪酸（n-6系）', '大豆油やコーン油などの植物油に含まれるリノール酸のなかまの脂肪酸です。からだの中ではつくれません。', {
-    short: 'オメガ6脂肪酸が多い食品ランキング',
+    short: 'オメガ6脂肪酸が多い食べ物ランキング',
   }),
   monoUnsatFat: copy('一価不飽和脂肪酸', '不飽和脂肪酸のうち、オリーブ油などに含まれるオレイン酸のなかまの脂肪酸です。'),
   polyUnsatFat: copy('多価不飽和脂肪酸', '不飽和脂肪酸のうち、n-3系（オメガ3）・n-6系（オメガ6）などをまとめた脂肪酸のなかまです。'),
@@ -54,8 +56,7 @@ export const NUTRIENT_COPY: Partial<Record<NutrientKey, NutrientCopy>> = {
   salt: copy('塩分（食塩）', '食塩相当量（ナトリウムの量を食塩の量に直したもの）です。食事摂取基準では、これより少なくしたい量（目標量）が決められています。', { rich: '塩分が多い' }),
   satFat: copy('飽和脂肪酸', '肉の脂身やバター・乳製品などに含まれる脂肪酸です。食事摂取基準では、エネルギーの7%以下が目標量です。'),
   caffeine: copy('カフェイン', 'コーヒー・お茶・エナジードリンクなどに含まれる成分です。日本には1日の上限の基準がないので、海外の目安（健康な大人で1日400mgまで）を使っています。', {
-    heading: 'カフェインが多い飲み物・食品ランキング',
-    short: 'カフェインが多い飲み物・食品ランキング',
+    heading: 'カフェインが多い飲み物ランキング',
     things: '飲み物・食べ物',
   }),
 }

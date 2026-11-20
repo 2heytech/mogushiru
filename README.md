@@ -40,7 +40,7 @@ URL の決まりは `src/routes.ts`、ページの中身は `src/pages/` にあ�
 
 ## 公開（Cloudflare Workers）
 
-Cloudflare Workers の静的ファイル配信（Static Assets）で公開します。設定は `wrangler.jsonc` にあり、Worker のコードはありません。
+Cloudflare Workers の静的ファイル配信（Static Assets）で公開します。設定は `wrangler.jsonc` にあります。プログラム（`worker/index.ts`）が動くのは `/ranking/` と `/customize/` だけで、以前の `?` つきの URL を読みもののページへ 301 で送ります。ほかのページは、ビルドしたファイルをそのまま配ります。
 
 Cloudflare のダッシュボードで「Workers & Pages」→「アプリケーションを作成」から GitHub のこのリポジトリをつなぎ、次の設定にします。
 

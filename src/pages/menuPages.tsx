@@ -7,7 +7,7 @@ import { adjustIdealMenu, IDEAL_MENUS, idealMenuAvailable, idealMenuHasProducts,
 import { itemTotals, type Catalog } from '../domain/nutrition'
 import { computeTargets, DEFAULT_PROFILE } from '../domain/targets'
 import { SLOTS, type DayMenu } from '../domain/types'
-import { idealMenuAppPath, MENU_PAGES, MENUS_INDEX_PATH, menuPagePath, type MenuPage } from '../routes'
+import { idealMenuAppPath, MENU_PAGES, MENUS_INDEX_PATH, menuPagePath, SITE_NAME, type MenuPage } from '../routes'
 import type { OgCard } from './ogCard'
 import { BUTTON, BUTTON_SUB, CARD, LINK, StaticLayout } from './StaticLayout'
 
@@ -34,12 +34,50 @@ export function planMenus(menus: IdealMenu[], catalog: Catalog): PlannedMenu[] {
 
 const kcalText = (v: number) => `${Math.round(v).toLocaleString()} kcal`
 
+// ---- 検索結果に出るタイトル ----
+// Google は最初の「｜」より後ろを落としたり途中で切ったりするので、要点（見出しと献立の数）を最初の区切りに入れ、全体を30字前後に収める。
+// 入りきらないページは、まん中の区切り（カロリー・PFCつき）をはぶく
+const TITLE_MAX = 33
+const MENUS_INDEX_HEADING = '栄養バランスの整う1日の献立の例'
+
+export function menuGenreTitle(page: MenuPage, plans: PlannedMenu[], catalog: Catalog): string {
+  const combos = lunchCombos(plans, catalog)
+  // コンビニの昼ごはんの組み合わせがあるページ（市販品）は、「コンビニ 昼ごはん 組み合わせ」でさがす人の入口にする
+  if (combos.length > 0) return `${comboHeading(combos)}｜${combos.map((c) => STORE_SHORT[c.store] ?? c.store).join('・')}｜${SITE_NAME}`
+  const head = `${page.heading}（${plans.length}種）`
+  const full = `${head}｜カロリー・PFCつき｜${SITE_NAME}`
+  return full.length <= TITLE_MAX ? full : `${head}｜${SITE_NAME}`
+}
+
+export function menuGenreDescription(page: MenuPage, plans: PlannedMenu[], catalog: Catalog): string {
+  const combos = lunchCombos(plans, catalog)
+  if (combos.length > 0) {
+    return `${combos.map((c) => STORE_SHORT[c.store] ?? c.store).join('・')}の昼ごはんをカロリー・たんぱく質・食塩で比較。商品や量を変えて、朝・晩を含む1日の栄養も試せます。グラノーラや冷凍ギョーザなど市販品を取り入れた1日の献立の例も${plans.length}種。`
+  }
+  return `${page.lead}朝・昼・晩の料理と量、1日のカロリー・PFCバランス・食塩つき。${plans
+    .slice(0, 3)
+    .map((p) => p.ideal.name)
+    .join('・')}など。`
+}
+
+export function menusIndexTitle(groups: { plans: PlannedMenu[] }[]): string {
+  return `${MENUS_INDEX_HEADING}（${groups.reduce((n, g) => n + g.plans.length, 0)}種）｜${SITE_NAME}`
+}
+
 // 献立の中の料理の名前から作り方のページへ行くリンク（文の中に並ぶので、ボタンのような強い色にしない）
 const DISH_LINK = 'underline decoration-ink-soft/40 underline-offset-2 hover:decoration-coral-ink'
 
 // ---- コンビニの昼ごはんの組み合わせ（市販品のページの上に出す） ----
 
 const CONVENIENCE_STORES = ['セブン-イレブン', 'ファミリーマート', 'ローソン']
+// タイトルと説明文で使う短い呼び方
+const STORE_SHORT: Record<string, string> = { 'セブン-イレブン': 'セブン', ファミリーマート: 'ファミマ', ローソン: 'ローソン' }
+
+// 「コンビニ昼ごはんの組み合わせ3例」。タイトルの最初の区切りと、ページの見出しのはじめに使う
+const comboHeading = (combos: LunchCombo[]) => `コンビニ昼ごはんの組み合わせ${combos.length}例`
+
+// 比較表の行から、その組み合わせの商品べつの内訳へ飛ぶ先
+const comboAnchor = (combo: LunchCombo) => `lunch-${combo.plan.ideal.id}`
 
 export type LunchCombo = {
   plan: PlannedMenu
@@ -92,7 +130,7 @@ function LunchComboCard({ combo }: { combo: LunchCombo }) {
   const { plan, rows, total } = combo
   const day = plan.summary.totals.day.values
   return (
-    <li className={`${CARD} space-y-3`}>
+    <li id={comboAnchor(combo)} className={`${CARD} scroll-mt-4 space-y-3`}>
       <h3 className="text-base leading-snug font-bold">{combo.title}</h3>
       <div className="overflow-x-auto">
         <table className="w-full min-w-[20rem] text-sm tabular-nums">
@@ -164,12 +202,85 @@ function LunchComboCard({ combo }: { combo: LunchCombo }) {
   )
 }
 
+// 商品の値を各社のサイトから取った日（いちばん古い日）
+const combosFetchedAt = (combos: LunchCombo[]) => combos.map((c) => c.fetchedAt ?? '').sort()[0]
+
+// 見出しのすぐ下に置く比較表。ページを開いてすぐ、組み合わせの合計（カロリー・たんぱく質・食塩）を見くらべられるようにする。
+// スマホ（幅390px）でも横にはみ出さないよう、組み合わせの名前は折り返し、数字の列は折り返さない
+function LunchCompareTable({ combos }: { combos: LunchCombo[] }) {
+  const fetchedAt = combosFetchedAt(combos)
+  return (
+    <section aria-labelledby="konbini-compare" className={`${CARD} scroll-mt-4`}>
+      <h2 id="konbini-compare" className="sr-only">
+        {comboHeading(combos)}の比較
+      </h2>
+      {/* 数字の列の幅を決めておき（table-fixed）、のこりを名前の列にあてる。幅まかせにすると、スマホで名前の列がせまくなって3行に折れる */}
+      <table className="w-full table-fixed text-sm tabular-nums">
+        <thead>
+          <tr className="border-b border-ink/10 align-bottom text-xs text-ink-soft">
+            <th scope="col" className="py-1.5 pr-2 text-left font-normal">
+              昼ごはんの組み合わせ
+            </th>
+            <th scope="col" className="w-[3.75rem] py-1.5 text-right font-normal sm:w-28">
+              カロリー
+            </th>
+            <th scope="col" className="w-[3.75rem] py-1.5 text-right font-normal sm:w-28">
+              <span className="inline-block">たんぱく</span>
+              <span className="inline-block">質</span>
+            </th>
+            <th scope="col" className="w-12 py-1.5 text-right font-normal sm:w-28">
+              <span className="inline-block">食塩</span>
+              <span className="inline-block">相当量</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {combos.map((c) => (
+            <tr key={c.plan.ideal.id} className="border-b border-ink/5 last:border-0">
+              <th scope="row" className="py-2 pr-2 text-left leading-snug font-bold">
+                <a href={`#${comboAnchor(c)}`} className={LINK}>
+                  {/* スマホでは、店の名前のあとで折り返す（「セブン-イレブンの／おにぎりとサラダ」）。2行めは、幅に入るように少し小さく */}
+                  {c.title.startsWith(`${c.store}の`) ? (
+                    <>
+                      <span className="inline-block">{c.store}の</span>
+                      <span className="inline-block max-sm:text-xs">{c.title.slice(c.store.length + 1)}</span>
+                    </>
+                  ) : (
+                    c.title
+                  )}
+                </a>
+              </th>
+              <td className="py-2 text-right font-bold whitespace-nowrap">
+                {Math.round(c.total.kcal)}
+                <span className="text-xs font-normal text-ink-soft"> kcal</span>
+              </td>
+              <td className="py-2 text-right whitespace-nowrap">
+                {g1(c.total.protein)}
+                <span className="text-xs text-ink-soft"> g</span>
+              </td>
+              <td className="py-2 text-right whitespace-nowrap">
+                {g1(c.total.salt)}
+                <span className="text-xs text-ink-soft"> g</span>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <p className="mt-2 text-xs leading-relaxed text-ink-soft">
+        各社の商品で組んだ1例の合計です（各社の平均や優劣ではありません）。名前から、商品べつの内訳を見られます。商品の値は各社公式サイトの栄養成分表示
+        {fetchedAt && `（${fetchedAt} 時点）`}
+        です。
+      </p>
+    </section>
+  )
+}
+
 function LunchCombos({ combos }: { combos: LunchCombo[] }) {
-  const fetchedAt = combos.map((c) => c.fetchedAt ?? '').sort()[0]
+  const fetchedAt = combosFetchedAt(combos)
   return (
     <section aria-labelledby="konbini-lunch" className="scroll-mt-4 space-y-3">
       <h2 id="konbini-lunch" className="text-xl leading-snug font-bold">
-        コンビニの昼ごはんの組み合わせ例
+        組み合わせごとの商品と内訳
       </h2>
       <p className="text-sm leading-relaxed">
         {combos.map((c) => c.store).join('・')}
@@ -181,7 +292,7 @@ function LunchCombos({ combos }: { combos: LunchCombo[] }) {
         ))}
       </ul>
       <p className="text-xs leading-relaxed text-ink-soft">
-        モグシルで開くと、昼の商品をほかの商品に入れかえて、朝・晩を含めた1日の合計をその場でたしかめられます。商品の値は各社の公式サイトの栄養成分表示
+        モグシルで開くと、昼の商品をほかの商品に入れかえて、朝・晩を含めた1日の合計をその場でたしかめられます（1日の食事に料理が入っているときは、置き換える前に確かめます）。商品の値は各社の公式サイトの栄養成分表示
         {fetchedAt && `（${fetchedAt} 時点）`}
         です。商品名から各社の商品ページを開けます。販売が終わったり、地域によって扱いがなかったりすることがあります。果物やヨーグルトなど商品名のない品目は、日本食品標準成分表の値で計算しています。
       </p>
@@ -292,25 +403,50 @@ function PageLinks({ current }: { current?: string }) {
 export function MenuGenrePage({ page, plans, catalog, dishPaths }: { page: MenuPage; plans: PlannedMenu[]; catalog: Catalog; dishPaths?: DishPaths }) {
   const combos = lunchCombos(plans, catalog)
   const hasDishLinks = plans.some((p) => SLOTS.some((slot) => p.menu[slot].some((item) => item.kind === 'dish' && dishPaths?.has(item.refId))))
+  // 「目安に合うように」／「目安に合い、ビタミンやミネラルもほぼ目安に届くように」（市販品は、表示にない成分が計算に入らないので後ろを書かない）
+  const fit = plans.some((p) => idealMenuHasProducts(p.ideal)) ? '目安に合う' : '目安に合い、ビタミンやミネラルもほぼ目安に届く'
+  const lead = (
+    <>
+      <p className="text-sm leading-relaxed">
+        {page.lead}
+        どれも1日のカロリー・PFCバランス・食塩が{fit}ように量を決めています（{plans.length}種）。
+      </p>
+      <p className="text-xs leading-relaxed text-ink-soft">
+        {sizeNote}
+        {hasDishLinks && '下線のある料理は、名前から作り方のページを開けます。'}
+      </p>
+    </>
+  )
   return (
     <StaticLayout crumbs={[{ name: 'モグシル', path: '/' }, { name: '献立の例', path: MENUS_INDEX_PATH }, { name: page.title }]}>
       <article className="space-y-5">
-        <header className="space-y-2">
-          <h1 className="text-2xl leading-snug font-bold sm:text-3xl">{page.heading}</h1>
-          <p className="text-sm leading-relaxed">
-            {page.lead}
-            どれも1日のカロリー・PFCバランス・食塩が目安に合い
-            {plans.some((p) => idealMenuHasProducts(p.ideal)) ? '' : '、ビタミンやミネラルもほぼ目安に届く'}
-            ように量を決めています（{plans.length}種）。
-          </p>
-          <p className="text-xs leading-relaxed text-ink-soft">
-            {sizeNote}
-            {hasDishLinks && '下線のある料理は、名前から作り方のページを開けます。'}
-          </p>
-        </header>
+        {combos.length > 0 ? (
+          // コンビニの昼ごはん：見出しのすぐ下に比較表を置き、くわしい説明はそのあとにする（開いてすぐ、組み合わせを見くらべられるように）
+          <>
+            <header className="space-y-2">
+              {/* スマホで「組み合わせ／3例」のように言葉の途中で折り返さないよう、「コンビニ昼ごはんの」のあとで折り返す */}
+              <h1 className="text-2xl leading-snug font-bold sm:text-3xl">
+                <span className="inline-block">コンビニ昼ごはんの</span>
+                <span className="inline-block">組み合わせ{combos.length}例と1日の献立</span>
+              </h1>
+              <p className="text-sm leading-relaxed">{combos.map((c) => STORE_SHORT[c.store] ?? c.store).join('・')}の昼ごはんを、カロリー・たんぱく質・食塩でくらべます。</p>
+            </header>
+            <LunchCompareTable combos={combos} />
+            <div className="space-y-2">{lead}</div>
+          </>
+        ) : (
+          <header className="space-y-2">
+            <h1 className="text-2xl leading-snug font-bold sm:text-3xl">{page.heading}</h1>
+            {lead}
+          </header>
+        )}
         <PageLinks current={page.slug} />
         {combos.length > 0 && <LunchCombos combos={combos} />}
-        {combos.length > 0 && <h2 className="text-xl leading-snug font-bold">1日の献立の例（{plans.length}種）</h2>}
+        {combos.length > 0 && (
+          <h2 id="day-menus" className="scroll-mt-4 text-xl leading-snug font-bold">
+            1日の献立の例（{plans.length}種）
+          </h2>
+        )}
         <ol className="space-y-4">
           {plans.map((plan) => (
             <MenuCard key={plan.ideal.id} plan={plan} catalog={catalog} nested={combos.length > 0} dishPaths={dishPaths} />
@@ -328,7 +464,7 @@ export function MenusIndexPage({ groups }: { groups: { page: MenuPage; plans: Pl
     <StaticLayout crumbs={[{ name: 'モグシル', path: '/' }, { name: '献立の例' }]}>
       <article className="space-y-5">
         <header className="space-y-2">
-          <h1 className="text-2xl leading-snug font-bold sm:text-3xl">栄養バランスの整う1日の献立の例</h1>
+          <h1 className="text-2xl leading-snug font-bold sm:text-3xl">{MENUS_INDEX_HEADING}</h1>
           <p className="text-sm leading-relaxed">
             モグシルの「理想の献立」{total}種を、ジャンルごとにまとめました。どれも1日のカロリー・PFCバランス（たんぱく質・脂質・炭水化物）・食塩が目安に合うように、料理の組み合わせと量を決めています。市販品を使わない献立は、ビタミンやミネラルもほぼ目安に届きます。
           </p>
@@ -403,7 +539,7 @@ function fitChips(names: string[], maxChars = 26): string[] {
 
 export function menuGenreOgCard(page: MenuPage, plans: PlannedMenu[], catalog: Catalog): { card: OgCard; alt: string } {
   const combos = lunchCombos(plans, catalog)
-  const title = combos.length > 0 ? 'コンビニの昼ごはんの組み合わせ例' : page.heading
+  const title = combos.length > 0 ? comboHeading(combos) : page.heading
   const sub = combos.length > 0 ? `商品名・カロリー・たんぱく質・食塩つき。1日の献立 ${plans.length}種も` : `カロリー・PFCバランス・食塩が目安に合う献立 ${plans.length}種`
   const chips = fitChips(combos.length > 0 ? combos.map((c) => c.store) : plans.map((p) => p.ideal.name))
   return {
@@ -417,7 +553,7 @@ export function menuGenreOgCard(page: MenuPage, plans: PlannedMenu[], catalog: C
 
 export function menusIndexOgCard(groups: { page: MenuPage; plans: PlannedMenu[] }[], catalog: Catalog): { card: OgCard; alt: string } {
   const total = groups.reduce((n, g) => n + g.plans.length, 0)
-  const title = '栄養バランスの整う1日の献立の例'
+  const title = MENUS_INDEX_HEADING
   const sub = `カロリー・PFCバランス・食塩が目安に合う献立 ${total}種`
   return {
     card: {

@@ -54,9 +54,9 @@ export function DayMenuPanel({
     <>
       <section aria-labelledby="day-menu-title" className="rounded-[var(--radius-card)] bg-[#fff1df] p-3 shadow-sm md:p-4">
         <div ref={headerRef} className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-2">
-          <h2 id="day-menu-title" className="text-lg font-bold md:text-xl">
+          <h1 id="day-menu-title" className="text-lg font-bold md:text-xl">
             1日の食事
-          </h2>
+          </h1>
           {source && <SourceChip source={source} />}
           <Kcal kcal={kcal} target={targets.energyKcal} className="ml-auto text-lg md:ml-0 md:text-xl" />
           <div className="hidden md:ml-auto md:block">{actions('row')}</div>

@@ -67,26 +67,45 @@ describe('書き出すページ', () => {
     expect(page('/nutrients/salt/').body).not.toContain('100円あたり）')
   })
 
-  it('成分のページのタイトルと見出しは「〜が多い食べ物・食品ランキング」ではじまる（「〜の多い食べ物」「〜 食品 ランキング」のどちらでさがした人にも合うように）', () => {
+  it('成分のページのタイトルは「〜が多い食べ物ランキング｜1食分・100gあたりで比較」（要点を最初の区切りに入れ、見出しとそろえる）', () => {
     const nutrientPages = pages.filter((p) => /^\/nutrients\/[a-z0-9-]+\/$/.test(p.path))
     for (const p of nutrientPages) {
       const heading = /<h1[^>]*>(.+?)<\/h1>/.exec(p.body)?.[1].replace(/<[^>]+>/g, '')
-      expect(heading, p.path).toMatch(/(食べ物|飲み物)・食品ランキング$/)
+      expect(heading, p.path).toMatch(/(食べ物|飲み物)ランキング$/)
       expect(p.title.startsWith(`${heading}｜`), p.path).toBe(true)
-      expect(p.title, p.path).toMatch(/でくらべる｜モグシル$/)
+      expect(p.title, p.path).toMatch(/｜1食分・100(g|円)あたりで比較$/)
     }
-    expect(page('/nutrients/vitamin-c/').title).toBe('ビタミンCが多い食べ物・食品ランキング｜1回の量・100gあたりでくらべる｜モグシル')
-    expect(page('/nutrients/calories/').title).toContain('カロリーが高い食べ物・食品ランキング')
-    expect(page('/nutrients/salt/').title).toContain('塩分が多い食べ物・食品ランキング')
-    expect(page('/nutrients/caffeine/').title).toContain('カフェインが多い飲み物・食品ランキング')
-    expect(page('/nutrients/omega-6/').title).toContain('オメガ6脂肪酸（n-6系）が多い食べ物・食品ランキング')
-    // 本文には「食材」の言い方も入れる
+    expect(page('/nutrients/vitamin-c/').title).toBe('ビタミンCが多い食べ物ランキング｜1食分・100gあたりで比較')
+    expect(page('/nutrients/calories/').title).toContain('カロリーが高い食べ物ランキング')
+    expect(page('/nutrients/salt/').title).toContain('塩分が多い食べ物ランキング')
+    expect(page('/nutrients/caffeine/').title).toContain('カフェインが多い飲み物ランキング')
+    expect(page('/nutrients/omega-6/').title).toContain('オメガ6脂肪酸（n-6系）が多い食べ物ランキング')
+    // 「食品」「食材」でさがす人のための言葉は、本文に入れる
     expect(page('/nutrients/vitamin-b6/').body).toContain('ビタミンB6が多い食べ物・食材を')
+    expect(page('/nutrients/vitamin-b6/').body).toContain('ビタミンB6が多い食品')
+  })
+
+  it('成分・献立のページのタイトルは短い（検索結果で後ろが落ちても、要点が残るように）', () => {
+    const targets = pages.filter((p) => /^\/(nutrients|menus)\//.test(p.path))
+    expect(targets.length).toBeGreaterThanOrEqual(34)
+    // いちばん長いのは、名前の長い成分（オメガ3脂肪酸（n-3系）など）
+    for (const p of targets) expect(p.title.length, `${p.path} ${p.title}`).toBeLessThanOrEqual(40)
+    const lengths = targets.map((p) => p.title.length).sort((a, b) => a - b)
+    expect(lengths[Math.floor(lengths.length / 2)]).toBeLessThanOrEqual(32)
+    expect(page('/nutrients/').title).toBe('食品成分ランキング｜成分別に多い食べ物（26成分）｜モグシル')
+    expect(page('/menus/washoku/').title).toMatch(/^和食の1日の献立の例（\d+種）｜カロリー・PFCつき｜モグシル$/)
+    expect(page('/menus/').title).toMatch(/^栄養バランスの整う1日の献立の例（\d+種）｜モグシル$/)
+    // 見出し（h1）は、タイトルの最初の区切りと同じ言葉ではじまる
+    for (const path of ['/nutrients/', '/menus/', '/menus/washoku/', '/menus/every-meal/']) {
+      const heading = /<h1[^>]*>(.+?)<\/h1>/.exec(page(path).body)?.[1].replace(/<[^>]+>/g, '') ?? ''
+      const first = page(path).title.split('｜')[0].replace(/（[^）]*）$/, '')
+      expect(heading.startsWith(first), `${path} ${heading}`).toBe(true)
+    }
   })
 
   it('成分のページの説明文は、上位3つの名前と量からはじめる（検索結果で、はじめの数十字しか出なくても中身が分かるように）', () => {
     const c = page('/nutrients/vitamin-c/')
-    expect(c.description).toMatch(/^ビタミンCが多い食べ物・食品ランキング。ふだん1回に食べる量では、1位 .+ [\d.,]+mg、2位 .+ [\d.,]+mg、3位 .+ [\d.,]+mg。/)
+    expect(c.description).toMatch(/^ビタミンCが多い食べ物ランキング。ふだん1回に食べる量では、1位 .+ [\d.,]+mg、2位 .+ [\d.,]+mg、3位 .+ [\d.,]+mg。/)
     expect(c.description).toContain('野菜・果物')
     expect(c.description).toContain('1日の摂取量の目安')
     // 説明文の1位は、ページの一覧の1位と同じ食品
@@ -172,13 +191,13 @@ describe('書き出すページ', () => {
     expect(washoku.body).toContain('kcal')
   })
 
-  it('はじめのページのタイトルと説明文に、名前の読み（もぐしる）がある', () => {
+  it('はじめのページのタイトルは、さがされる言葉（栄養計算・栄養バランス）からはじめる。名前の読み（もぐしる）は説明文とデータで伝える', () => {
     const top = page('/')
-    expect(top.title).toContain('モグシル（もぐしる）')
-    expect(top.description).toContain('もぐしる')
+    expect(top.title).toBe('栄養計算・栄養バランスチェック（無料）｜料理を選ぶだけ｜モグシル')
+    expect(top.description).toContain('モグシル（もぐしる）')
     expect(top.jsonLd?.[0]).toMatchObject({ '@type': 'WebSite', name: 'モグシル', alternateName: expect.arrayContaining(['もぐしる', 'もぐシル', 'mogushiru']) })
     // ほかのページには入れない（サイトの名前は、はじめのページで伝える）
-    expect(page('/ranking/').jsonLd).toBeUndefined()
+    expect(page('/foods/').jsonLd).toBeUndefined()
   })
 
   it('運営者の名前から、運営者のサイトに行ける（新しいタブでひらく）', () => {
@@ -193,7 +212,7 @@ describe('書き出すページ', () => {
 
   it('たんぱく質のページは、100円あたりの一覧を先に出し、身近な食品の1回分の値段を書く', () => {
     const protein = page('/nutrients/protein/')
-    expect(protein.title).toContain('100円あたり・1回の量')
+    expect(protein.title).toBe('たんぱく質が多い食べ物ランキング｜1食分・100円あたりで比較')
     const yen = protein.body.indexOf('値段のわりにたんぱく質が多い食品（100円あたり）')
     expect(yen).toBeGreaterThan(-1)
     expect(yen).toBeLessThan(protein.body.indexOf('id="reference"'))
@@ -206,15 +225,46 @@ describe('書き出すページ', () => {
     expect(protein.body).toMatch(/・約<!-- -->\d+<!-- -->円（100gで約<!-- -->\d+<!-- -->円）|・約\d+円（100gで約\d+円）/)
     // ほかの成分は、これまでどおり1回の量から
     const iron = page('/nutrients/iron/')
-    expect(iron.title).toContain('1回の量・100gあたり')
+    expect(iron.title).toBe('鉄分が多い食べ物ランキング｜1食分・100gあたりで比較')
     expect(iron.body.indexOf('ふだん1回に食べる量で鉄分が多い食品')).toBeLessThan(iron.body.indexOf('id="reference"'))
     expect(iron.body.indexOf('ふだん1回に食べる量で鉄分が多い食品')).toBeLessThan(iron.body.indexOf('値段のわりに鉄分が多い食品'))
   })
 
+  it('市販品のページは、タイトル・見出し・説明文を「コンビニ昼ごはんの組み合わせ3例」でそろえ、見出しのすぐ下に比較表を置く', () => {
+    const store = page('/menus/store-bought/')
+    expect(store.title).toBe('コンビニ昼ごはんの組み合わせ3例｜セブン・ファミマ・ローソン｜モグシル')
+    expect(store.description).toMatch(/^セブン・ファミマ・ローソンの昼ごはんをカロリー・たんぱく質・食塩で比較。商品や量を変えて、朝・晩を含む1日の栄養も試せます。/)
+    const body = store.body
+    expect(/<h1[^>]*>(.+?)<\/h1>/.exec(body)?.[1].replace(/<[^>]+>/g, '')).toBe('コンビニ昼ごはんの組み合わせ3例と1日の献立')
+    // 比較表は、見出しのあと・くわしい説明や内訳より前
+    const table = body.indexOf('id="konbini-compare"')
+    expect(table).toBeGreaterThan(body.indexOf('</h1>'))
+    expect(table).toBeLessThan(body.indexOf('id="konbini-lunch"'))
+    expect(table).toBeLessThan(body.indexOf('買ってきたものを取り入れた'))
+    const compare = body.slice(table, body.indexOf('</section>', table))
+    // 3つの組み合わせの合計（カロリー・たんぱく質・食塩相当量）と、内訳へのリンク
+    const rows = [...compare.matchAll(/<a href="#(lunch-[a-z-]+)"[^>]*>(.+?)<\/a><\/th><td[^>]*>(\d+)<span[^>]*> kcal<\/span><\/td><td[^>]*>([\d.]+)<span[^>]*> g<\/span><\/td><td[^>]*>([\d.]+)<span/g)]
+    expect(rows.map((r) => r[1])).toEqual(['lunch-konbini', 'lunch-konbini-famima', 'lunch-konbini-lawson'])
+    expect(rows.map((r) => r[2].replace(/<[^>]+>/g, ''))).toEqual(['セブン-イレブンのおにぎりとサラダ', 'ファミリーマートのおにぎりとサラダ', 'ローソンのサンドイッチとサラダ'])
+    for (const r of rows) {
+      expect(body).toContain(`id="${r[1]}"`)
+      // 表の合計は、内訳の「昼ごはんの合計」と同じ数字
+      const card = body.slice(body.indexOf(`id="${r[1]}"`))
+      const total = card.slice(card.indexOf('昼ごはんの合計'), card.indexOf('</tfoot>'))
+      expect(total.replace(/<!-- -->/g, '')).toContain(`>${r[3]} kcal<`)
+      expect(total.replace(/<!-- -->/g, '')).toContain(`>${r[4]} g<`)
+    }
+    // 1例の合計であること（平均や優劣ではない）と、値を取った日を、表のそばに書く
+    expect(compare).toContain('各社の商品で組んだ1例の合計です（各社の平均や優劣ではありません）')
+    expect(compare.replace(/<!-- -->/g, '')).toMatch(/各社公式サイトの栄養成分表示（\d{4}-\d{2}-\d{2} 時点）/)
+    expect(body).not.toContain('目安に合いように')
+    expect(body).toContain('食塩が目安に合うように量を決めています')
+    expect(page('/menus/washoku/').body).toContain('食塩が目安に合い、ビタミンやミネラルもほぼ目安に届くように量を決めています')
+  })
+
   it('市販品のページには、コンビニ3社の昼ごはんの組み合わせが、商品名・カロリー・たんぱく質・食塩つきである', () => {
     const store = page('/menus/store-bought/')
-    expect(store.title).toContain('コンビニの昼ごはんの組み合わせ例')
-    expect(store.body).toContain('コンビニの昼ごはんの組み合わせ例')
+    expect(store.body).toContain('組み合わせごとの商品と内訳')
     for (const name of ['セブン-イレブン', 'ファミリーマート', 'ローソン']) expect(store.body).toContain(`${name}の`)
     for (const id of ['konbini', 'konbini-famima', 'konbini-lawson']) {
       expect(store.body).toContain(`href="/#menu=${id}"`)
@@ -225,7 +275,8 @@ describe('書き出すページ', () => {
     // 商品名から各社の商品ページ（出典）に行ける
     expect(store.body).toMatch(/href="https:\/\/www\.sej\.co\.jp\/products\/[^"]+" rel="noopener"/)
     // ほかのジャンルのページには出さない
-    expect(page('/menus/washoku/').body).not.toContain('コンビニの昼ごはんの組み合わせ例')
+    expect(page('/menus/washoku/').body).not.toContain('コンビニ昼ごはん')
+    expect(page('/menus/washoku/').body).not.toContain('id="konbini-compare"')
   })
 
   it('読みもののページには、ページごとの共有の画像がある', () => {
@@ -247,11 +298,50 @@ describe('書き出すページ', () => {
 
 describe('HTML のひな形への差しこみ', () => {
   it('アプリの画面は、プログラムを読んだうえで最初の字を入れる', () => {
-    const out = renderDocument(TEMPLATE, page('/ranking/'))
-    expect(out).toContain('<link rel="canonical" href="https://mogushiru.app/ranking/" />')
-    expect(out).toContain('<meta property="og:url" content="https://mogushiru.app/ranking/" />')
+    const out = renderDocument(TEMPLATE, page('/foods/'))
+    expect(out).toContain('<link rel="canonical" href="https://mogushiru.app/foods/" />')
+    expect(out).toContain('<meta property="og:url" content="https://mogushiru.app/foods/" />')
     expect(out).toContain('src="/assets/index-abc.js"')
     expect(out).toMatch(/<div id="root">.+<\/div>/s)
+  })
+
+  it('アプリの画面の最初の HTML には、その画面の見出し（h1）が1つあり、ロゴは見出しにしない', () => {
+    const headings: Record<string, string> = {
+      '/': '料理を選ぶだけで、1日の栄養バランスがわかる',
+      '/foods/': '食品の栄養素を名前で調べる',
+      '/ranking/': 'ランキングを並べ替え',
+      '/customize/': '料理をアレンジ',
+      '/about/': 'このサイトについて',
+    }
+    for (const [path, heading] of Object.entries(headings)) {
+      const h1 = [...page(path).body.matchAll(/<h1[^>]*>(.*?)<\/h1>/g)].map((m) => m[1])
+      expect(h1, path).toEqual([heading])
+    }
+  })
+
+  it('はじめのページの最初の HTML に、コンビニ昼ごはんと、100円あたりのたんぱく質のページへのリンクがある', () => {
+    const top = page('/').body
+    expect(top).toMatch(/<a href="\/menus\/store-bought\/"[^>]*>コンビニ昼ごはん[^<]*<\/a>/)
+    expect(top).toMatch(/<a href="\/nutrients\/protein\/"[^>]*>100円あたりのたんぱく質[^<]*<\/a>/)
+    for (const path of ['/nutrients/', '/menus/', '/dishes/']) expect(top).toContain(`href="${path}"`)
+  })
+
+  it('ランキングを並べ替える画面（/ranking/）は検索に載せない：最初の HTML に noindex、canonical は自分のまま、サイトマップに入れない', () => {
+    const out = renderDocument(TEMPLATE, page('/ranking/'))
+    expect(out).toContain('<meta name="robots" content="noindex" />')
+    expect(out).toContain('<link rel="canonical" href="https://mogushiru.app/ranking/" />')
+    // head の中に、プログラムより前に書く
+    expect(out.indexOf('name="robots"')).toBeLessThan(out.indexOf('</head>'))
+    const xml = sitemapXml(pages)
+    expect(xml).not.toContain('/ranking/')
+    // ほかの画面・読みもののページには付けない（同じアプリなので、1ページずつ確かめる）
+    const noindex = pages.filter((p) => renderDocument(TEMPLATE, p).includes('noindex')).map((p) => p.path)
+    expect(noindex).toEqual(['/ranking/'])
+    expect(xml.match(/<loc>/g)).toHaveLength(pages.length - 1)
+    for (const path of ['/', '/foods/', '/customize/', '/about/', '/nutrients/']) expect(xml).toContain(`<loc>https://mogushiru.app${path}</loc>`)
+    // サイトの中のリンクは残す：成分のページの「くらべ方や種類を変えて見る」と、一覧の「条件を変えて並べ替える」
+    expect(page('/nutrients/iron/').body).toContain('href="/ranking/#n=iron"')
+    expect(page('/nutrients/').body).toMatch(/<a href="\/ranking\/"[^>]*>条件を変えて並べ替える<\/a>/)
   })
 
   it('読みもののページは、アプリのプログラムを読まず、パンくずを入れる', () => {

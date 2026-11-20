@@ -24,10 +24,12 @@ export const VIEW_FEATURE: Record<View, Feature | null> = { menu: 'menu', custom
 
 // 画面ごとのタイトルと説明（ブラウザのタブ・検索結果・SNS に貼ったときの表示）
 export const VIEW_META: Record<View, { title: string; description: string; heading: string }> = {
+  // はじめのページ：検索でさがされる言葉（栄養計算・栄養バランス）を先に書く。Google は最初の「｜」より後ろを落とすことがあるので、
+  // 要点は最初の区切りに入れる。名前の読み（もぐしる）は、説明文と検索エンジン向けのデータ（alternateName）で伝える
   menu: {
-    title: `${SITE_NAME}（${SITE_NAME_KANA}）｜料理を選ぶだけで栄養バランスがわかる`,
+    title: `栄養計算・栄養バランスチェック（無料）｜料理を選ぶだけ｜${SITE_NAME}`,
     heading: '料理を選ぶだけで、1日の栄養バランスがわかる',
-    description: `${SITE_NAME}（${SITE_NAME_KANA}）は、料理を選んで組み合わせるだけで、1日のカロリーとPFCバランス、栄養素の過不足がすぐ分かる栄養シミュレーターです。登録不要・無料。`,
+    description: `${SITE_NAME}（${SITE_NAME_KANA}）は、料理を選ぶだけで1日のカロリーとPFCバランス、ビタミン・ミネラルの過不足を計算できる、無料の栄養計算・栄養バランスチェックのサイトです。登録不要。コンビニの商品や市販品も選べます。`,
   },
   foods: {
     title: '食品の栄養素を名前で調べる｜食材・料理・市販品のカロリーと栄養｜モグシル',
@@ -35,14 +37,15 @@ export const VIEW_META: Record<View, { title: string; description: string; headi
     description:
       '食品の名前を入れると、食材・料理・コンビニやメーカーの市販品のカロリーと、たんぱく質・脂質・炭水化物、ビタミン・ミネラルなど26の成分がすぐ見られます。1日の目安に対する割合つき。野菜・肉・魚などの種類からもさがせます。登録不要・無料です。',
   },
+  // ランキングを並べ替える道具の画面。検索には載せない（NOINDEX_VIEWS）。検索の受け皿は、読みものの一覧 /nutrients/（食品成分ランキング）
   ranking: {
-    title: '食品成分ランキング｜たんぱく質・鉄・カルシウムなど26成分｜モグシル',
-    heading: '食品成分ランキング',
-    description: 'たんぱく質・鉄・カルシウム・ビタミンなど26の成分が多い食品を、1回に食べる量・100gあたり・100kcalあたり・100円あたりでくらべられます。登録不要・無料です。',
+    title: 'ランキングを並べ替え｜成分・くらべ方・食品の種類をえらぶ｜モグシル',
+    heading: 'ランキングを並べ替え',
+    description: 'たんぱく質・鉄・カルシウム・ビタミンなど26の成分について、くらべ方（1回に食べる量・100gあたり・100kcalあたり・100円あたり）と食品の種類をえらんで、食品を多い順に並べ替えられます。',
   },
   customize: {
-    title: '料理をカスタマイズ｜材料や量を変えて栄養を計算｜モグシル',
-    heading: '料理をカスタマイズ',
+    title: '料理をアレンジ｜材料や量を変えて栄養を計算｜モグシル',
+    heading: '料理をアレンジ',
     description: '肉じゃがの肉を変える、ごはんを減らすなど、料理の材料と量を変えてカロリーと栄養を計算し、お気に入りとして保存できます。登録不要・無料です。',
   },
   about: {
@@ -51,6 +54,10 @@ export const VIEW_META: Record<View, { title: string; description: string; headi
     description: 'モグシルの使い方の注意、プライバシー、データの出典とライセンス、運営者とお問い合わせ先。',
   },
 }
+
+// 検索に載せない画面。ランキングを並べ替える道具（/ranking/）は、成分ごとの読みもののページ（/nutrients/…）と中身が重なるので外す。
+// 最初に返す HTML に noindex を入れ、サイトマップにも入れない（sitePages.tsx）。画面とサイト内のリンクはそのまま使える
+export const NOINDEX_VIEWS: readonly View[] = ['ranking']
 
 const LEGACY_HASH: Record<string, View> = { '#ranking': 'ranking', '#customize': 'customize', '#about': 'about' }
 
@@ -156,6 +163,29 @@ export function withoutAppLinkParam(name: string, search: string, hash: string):
   return `${q ? `?${q}` : ''}${h ? `#${h}` : ''}`
 }
 
+// ---- 以前の ? つきの URL を、読みもののページへ送る（301。worker/index.ts が使う） ----
+// /ranking/?n=iron → /nutrients/iron/、/customize/?dish=nikujaga → /dishes/nikujaga/。
+// アプリを開くリンクを # に変える前（?n=・?dish=）の URL が検索エンジンに登録されて残っているので、同じ中身の読みもののページにまとめる。
+// 送り先のページがあるかどうかは、ここでは見ない（料理は数が多いので、呼ぶ側がたしかめる）。送らないときは null
+export type LegacyQueryRedirect = { path: string; kind: 'nutrient' | 'dish' }
+
+const DISH_ID = /^[a-z0-9][a-z0-9-]*$/
+
+export function legacyQueryRedirect(pathname: string, search: string): LegacyQueryRedirect | null {
+  const path = pathname.endsWith('/') ? pathname : `${pathname}/`
+  const query = new URLSearchParams(search)
+  if (path === VIEW_PATH.ranking) {
+    const key = nutrientFromSlug(query.get('n'))
+    const to = key && nutrientPagePath(key)
+    return to ? { path: to, kind: 'nutrient' } : null
+  }
+  if (path === VIEW_PATH.customize) {
+    const id = query.get('dish')
+    return id && DISH_ID.test(id) ? { path: dishPagePath(id), kind: 'dish' } : null
+  }
+  return null
+}
+
 // アプリのランキングを、成分をえらんだ状態でひらく URL（/ranking/#n=iron）
 export const rankingAppPath = (key: NutrientKey): string => {
   const slug = NUTRIENT_SLUG[key]
@@ -166,9 +196,9 @@ export const rankingAppPath = (key: NutrientKey): string => {
 
 export const MENUS_INDEX_PATH = '/menus/'
 
-// 献立の例のページの分け方。数の少ないジャンル（イタリアン・韓国・エスニック）は1ページにまとめる
-// searchTitle・description は、検索結果に出すタイトルと説明文をページの見出しとは別にしたいときだけ書く
-export type MenuPage = { slug: string; title: string; heading: string; lead: string; searchTitle?: string; description?: string } & ({ genres: IdealGenre[] } | { balance: 'meal' })
+// 献立の例のページの分け方。数の少ないジャンル（イタリアン・韓国・エスニック）は1ページにまとめる。
+// 検索結果に出すタイトルと説明文は、menuPages.tsx の menuGenreTitle・menuGenreDescription で作る
+export type MenuPage = { slug: string; title: string; heading: string; lead: string } & ({ genres: IdealGenre[] } | { balance: 'meal' })
 
 export const MENU_PAGES: MenuPage[] = [
   { slug: 'washoku', genres: ['和食'], title: '和食', heading: '和食の1日の献立の例', lead: '焼き魚や刺身、煮物などを組み合わせた、栄養バランスの整う1日の和食の献立です。' },
@@ -187,11 +217,9 @@ export const MENU_PAGES: MenuPage[] = [
     genres: ['市販品'],
     title: 'コンビニ・市販品',
     heading: 'コンビニ・市販品を取り入れた1日の献立の例',
+    // 「コンビニ 昼ごはん 組み合わせ」でさがす人の入口にする：ページの見出しとタイトルは「コンビニ昼ごはんの組み合わせ3例…」で、
+    // 見出しのすぐ下に、昼の組み合わせの比較表（カロリー・たんぱく質・食塩）を出す（menuPages.tsx）
     lead: 'コンビニのおにぎりやサンドイッチ、グラノーラ、オートミール、冷凍ギョーザなど、買ってきたものを取り入れた栄養バランスの整う1日の献立です。',
-    // 「コンビニ 昼ごはん 組み合わせ」でさがす人の入口にする（ページの上に、昼の組み合わせを商品名・カロリー・たんぱく質・食塩つきで出す）
-    searchTitle: 'コンビニの昼ごはんの組み合わせ例｜セブン・ファミマ・ローソンと市販品の1日の献立',
-    description:
-      'コンビニの昼ごはんの組み合わせ例を、セブン-イレブン・ファミリーマート・ローソンの商品名とカロリー・たんぱく質・食塩つきでまとめました。朝・晩を含めた1日の献立と合計、グラノーラや冷凍ギョーザを取り入れた献立も見られます。',
   },
   {
     slug: 'every-meal',
@@ -212,6 +240,21 @@ export const idealMenuAppPath = (id: string): string => appLink(VIEW_PATH.menu, 
 export const DISHES_INDEX_PATH = '/dishes/'
 
 export const dishPagePath = (id: string): string => `${DISHES_INDEX_PATH}${id}/`
+
+// ---- 読みもののページへの入口（アプリのメニュー・最初の画面・フッター、読みもののページの上のメニューで使う） ----
+// 呼び名はここで決める：一覧は「食品成分ランキング」「献立の例」「料理のカロリー・栄養」。
+// short は、幅のせまいところ（上のメニュー）で使う短い名前
+export const READING_LINKS: readonly { key: 'nutrients' | 'menus' | 'dishes'; name: string; short: string; path: string }[] = [
+  { key: 'nutrients', name: '食品成分ランキング', short: 'ランキング', path: NUTRIENTS_INDEX_PATH },
+  { key: 'menus', name: '献立の例', short: '献立の例', path: MENUS_INDEX_PATH },
+  { key: 'dishes', name: '料理のカロリー・栄養', short: '料理のカロリー・栄養', path: DISHES_INDEX_PATH },
+]
+
+// よくさがされるページへの直リンク（はじめのページの、3つの入口の下に置く）
+export const POPULAR_LINKS: readonly { name: string; path: string }[] = [
+  { name: 'コンビニ昼ごはんの組み合わせ3例', path: `${MENUS_INDEX_PATH}store-bought/` },
+  { name: '100円あたりのたんぱく質が多い食べ物', path: `${NUTRIENTS_INDEX_PATH}protein/` },
+]
 
 // アプリで、その料理の編集の窓を「つくり方」をひらいた状態で出す URL（/customize/#dish=<料理id>）
 export const dishAppPath = (id: string): string => appLink(VIEW_PATH.customize, 'dish', id)

@@ -17,14 +17,17 @@ import {
 import { SERVING_NOTE } from '../domain/serving'
 import { computeTargets, DEFAULT_PROFILE, type Targets } from '../domain/targets'
 import type { Food, NutrientKey, Sex } from '../domain/types'
-import { nutrientPagePath, NUTRIENTS_INDEX_PATH, rankingAppPath, SITE_NAME } from '../routes'
+import { nutrientPagePath, NUTRIENTS_INDEX_PATH, rankingAppPath, SITE_NAME, VIEW_PATH } from '../routes'
 import type { DishPageData } from './dishPages'
 import { NUTRIENT_COPY, type NutrientCopy } from './nutrientCopy'
 import type { OgCard } from './ogCard'
 import { BUTTON, BUTTON_SUB, CARD, LINK, StaticLayout } from './StaticLayout'
 
 // 成分ごとのランキングのページ（/nutrients/<slug>/）と、その一覧（/nutrients/）。
-// アプリの「食品成分ランキング」と同じ計算（よく使う食品だけ・1回の量はアプリの目安）で並べる
+// アプリの「ランキングを並べ替え」と同じ計算（よく使う食品だけ・1回の量はアプリの目安）で並べる
+
+// 一覧のページの見出し。「食品成分ランキング」でさがす人の受け皿にする（パンくず・上のメニュー・フッターも同じ呼び名。routes.ts の READING_LINKS）
+export const NUTRIENTS_INDEX_HEADING = '食品成分ランキング'
 
 export const LIST_SIZE = 20
 const SUB_LIST_SIZE = 10
@@ -167,6 +170,8 @@ const LIST_HINT: Record<RankingMetric, string> = {
 // ページのタイトル・説明文・目次で使う短い呼び方
 const METRIC_SHORT: Record<RankingMetric, string> = { serving: '1回の量', per100g: '100gあたり', per100kcal: '100kcalあたり', per100yen: '100円あたり' }
 const METRIC_LONG: Record<RankingMetric, string> = { serving: 'ふだん1回に食べる量', per100g: '100gあたり', per100kcal: '100kcalあたり', per100yen: '100円あたり' }
+// 検索結果に出るタイトルで使う呼び方。「1回の量」は、さがす人の言葉に近い「1食分」と書く
+const METRIC_TITLE: Record<RankingMetric, string> = { serving: '1食分', per100g: '100gあたり', per100kcal: '100kcalあたり', per100yen: '100円あたり' }
 const SUFFIX: Record<RankingMetric, string> = { serving: '/1回', per100g: '/100g', per100kcal: '/100kcal', per100yen: '/100円' }
 
 // 種類ごとの一覧の見出しに使う呼び方（「ビタミンCが多い野菜」「カルシウムが多い牛乳・乳製品」）
@@ -400,9 +405,12 @@ const metricsText = (data: NutrientPageData, labels: Record<RankingMetric, strin
     .map((l) => labels[l.metric])
     .join('・')
 
-// 検索結果に出るタイトル。はじめに「〜が多い食べ物・食品ランキング」（さがす人の言葉）、次に、ここならではのくらべ方
+// 検索結果に出るタイトル。はじめに「〜が多い食べ物ランキング」（さがす人の言葉。ページの見出しと同じ）、次に、ここならではのくらべ方。
+// Google は最初の「｜」より後ろを落としたり途中で切ったりするので、30字前後に収める（サイトの名前は入れない。検索結果では別の行に出る）。
+// くらべ方は「1食分」と、もう1つ：100円あたりの一覧を先に出すページ（たんぱく質）は「100円あたり」、ほかは「100gあたり」
 export function nutrientPageTitle(data: NutrientPageData): string {
-  return `${data.copy.heading}｜${metricsText(data, METRIC_SHORT, 2)}でくらべる｜${SITE_NAME}`
+  const other = data.lists.find((l) => l.metric !== 'serving')?.metric ?? 'per100g'
+  return `${data.copy.heading}｜${METRIC_TITLE.serving}・${METRIC_TITLE[other]}で比較`
 }
 
 // 検索結果に出る説明文。はじめの60字ほどしか出ないことも多いので、上位3つの名前と量を先に書く
@@ -540,10 +548,10 @@ export function NutrientPage({ data }: { data: NutrientPageData }) {
   })
   if (data.dishes.length > 0) sections.push({ id: 'dishes', label: '料理', node: <DishList data={data} /> })
   return (
-    <StaticLayout crumbs={[{ name: 'モグシル', path: '/' }, { name: '成分が多い食品ランキング', path: NUTRIENTS_INDEX_PATH }, { name: copy.name }]}>
+    <StaticLayout crumbs={[{ name: SITE_NAME, path: '/' }, { name: NUTRIENTS_INDEX_HEADING, path: NUTRIENTS_INDEX_PATH }, { name: copy.name }]}>
       <article className="space-y-6">
         <header>
-          {/* スマホで「ラ／ンキング」のように言葉の途中で折り返さないよう、言葉のまとまりごとに折り返す */}
+          {/* スマホで「ラ／ンキング」のように言葉の途中で折り返さないよう、言葉のまとまり（「ビタミンCが多い」「食べ物」「ランキング」）ごとに折り返す */}
           <h1 className="text-2xl leading-snug font-bold sm:text-3xl">
             {headingParts(copy).map((part) => (
               <span key={part} className="inline-block max-w-full">
@@ -554,7 +562,7 @@ export function NutrientPage({ data }: { data: NutrientPageData }) {
           <p className="mt-2 text-sm leading-relaxed">
             {copy.about}
             よく使う食品 {data.familiarCount.toLocaleString()} 品から、{copy.rich}
-            {copy.things}を、{metricsText(data, METRIC_LONG)}でくらべて、多い順に並べました。
+            {copy.things}を、{metricsText(data, METRIC_LONG)}でくらべて、多い順に並べました。「ふだん1回に食べる量」は、1食分の目安です。
           </p>
           {data.priceExamples.length > 0 && (
             <p className="mt-2 text-sm leading-relaxed">
@@ -650,12 +658,21 @@ export function NutrientPage({ data }: { data: NutrientPageData }) {
 export function NutrientsIndexPage({ pages }: { pages: NutrientPageData[] }) {
   const byKey = new Map(pages.map((p) => [p.key, p]))
   return (
-    <StaticLayout crumbs={[{ name: 'モグシル', path: '/' }, { name: '成分が多い食品ランキング' }]}>
+    <StaticLayout crumbs={[{ name: SITE_NAME, path: '/' }, { name: NUTRIENTS_INDEX_HEADING }]}>
       <article className="space-y-6">
         <header>
-          <h1 className="text-2xl leading-snug font-bold sm:text-3xl">成分が多い食べ物・食品ランキング</h1>
+          <h1 className="text-2xl leading-snug font-bold sm:text-3xl">
+            <span className="inline-block">{NUTRIENTS_INDEX_HEADING}</span>
+            <span className="inline-block text-lg font-bold text-ink-soft sm:text-xl">（成分別に多い食べ物・{pages.length}成分）</span>
+          </h1>
           <p className="mt-2 text-sm leading-relaxed">
-            たんぱく質・食物繊維・鉄分・カルシウム・ビタミンなど{pages.length}の成分について、多く含む食べ物・食材を、ふだん1回に食べる量と100gあたりでくらべて、多い順に並べました。野菜・果物・魚介などの種類べつの上位、その成分が多い料理、年齢・性別ごとの1日の摂取量の目安もあわせて見られます。
+            食品成分ランキングです。たんぱく質・食物繊維・鉄分・カルシウム・ビタミンなど{pages.length}の成分について、多く含む食べ物・食材を、1食分（ふだん1回に食べる量）と100gあたりでくらべて、多い順に並べました。野菜・果物・魚介などの種類べつの上位、その成分が多い料理、年齢・性別ごとの1日の摂取量の目安もあわせて見られます。
+          </p>
+          <p className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-sm">
+            <a href={VIEW_PATH.ranking} className={BUTTON_SUB}>
+              条件を変えて並べ替える
+            </a>
+            <span className="text-xs leading-relaxed text-ink-soft">成分・くらべ方（100kcalあたり・100円あたりなど）・食品の種類をえらんで、成分表のすべての食品を並べ替えられます。</span>
           </p>
         </header>
         {NUTRIENT_GROUPS.map((g) => {
