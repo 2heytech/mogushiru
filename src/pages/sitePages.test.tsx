@@ -288,7 +288,7 @@ describe('書き出すページ', () => {
       expect(p.og!.alt.length).toBeGreaterThan(10)
       expect(p.og!.card.title.length).toBeLessThanOrEqual(24)
       // 絵は public にあるもの
-      for (const src of [...(p.og!.card.icons ?? []), ...(p.og!.card.rows ?? []).map((r) => r.image)]) expect(existsSync(new URL(`../../public${src}`, import.meta.url)), src).toBe(true)
+      for (const src of [...(p.og!.card.icons ?? []), ...(p.og!.card.rows ?? []).map((r) => r.image), ...(p.og!.card.hero ? [p.og!.card.hero] : [])]) expect(existsSync(new URL(`../../public${src}`, import.meta.url)), src).toBe(true)
     }
     const protein = page('/nutrients/protein/').og!.card
     expect(protein.rows).toHaveLength(3)
@@ -403,12 +403,22 @@ describe('HTML のひな形への差しこみ', () => {
     const links = [...washoku.body.matchAll(/href="(\/dishes\/[a-z0-9-]+\/)"/g)].map((m) => m[1])
     expect(links.length).toBeGreaterThan(10)
     for (const path of links) expect(pages.some((p) => p.path === path), path).toBe(true)
-    expect(washoku.body).toContain('下線のある料理は、名前から作り方のページを開けます。')
+    expect(washoku.body).toContain('下線のある料理は、名前からカロリー・栄養と作り方のページを開けます。')
   })
 })
 
-describe('料理の作り方のページ', () => {
+describe('料理のカロリー・栄養と作り方のページ', () => {
   const dishPages = pages.filter((p) => /^\/dishes\/[a-z0-9-]+\/$/.test(p.path))
+  const h1 = (p: SitePage) => /<h1[^>]*>(.+?)<\/h1>/.exec(p.body)?.[1].replace(/<[^>]+>/g, '') ?? ''
+  // 1人前の成分の表の行（成分の名前 → 量と割合の字）
+  const tableRows = (p: SitePage) => {
+    const table = /<table[\s\S]*?<\/table>/.exec(p.body)?.[0] ?? ''
+    return [...table.matchAll(/<tr[^>]*><th scope="row"[^>]*>(.*?)<\/th><td[^>]*>(.*?)<\/td><td[^>]*>(.*?)<\/td><\/tr>/g)].map((m) => ({
+      name: m[1].replace(/<[^>]+>/g, ''),
+      amount: m[2].replace(/<[^>]+>/g, ''),
+      percent: m[3].replace(/<[^>]+>/g, ''),
+    }))
+  }
 
   it('作り方のある料理（郷土料理をのぞく）ごとにページがあり、一覧からすべてにリンクする', () => {
     const withRecipe = [...catalog.dishes.values()].filter((d) => d.recipe && !d.source && !['drink', 'alcohol'].includes(d.category))
@@ -418,20 +428,85 @@ describe('料理の作り方のページ', () => {
     for (const p of dishPages) expect(index.body).toContain(`href="${p.path}"`)
   })
 
-  it('材料（2人分）・手順・1人前の栄養と、アプリで開くリンクがある', () => {
+  it('タイトル・見出し・説明文は、カロリーと栄養からはじめる（どの料理も同じ型）', () => {
+    const saba = page('/dishes/saba-misoni/')
+    expect(saba.title).toMatch(/^さばの味噌煮のカロリー・栄養（1人前\d+kcal）と作り方｜モグシル$/)
+    expect(h1(saba)).toBe('さばの味噌煮のカロリー・栄養と作り方')
+    expect(saba.description).toMatch(/^さばの味噌煮は1人前\d+kcal、たんぱく質[\d.]+g、脂質[\d.]+g、食塩[\d.]+g。ビタミン・ミネラルなど26成分と、2人分の作り方（約\d+分）も載せています。$/)
+    for (const p of dishPages) {
+      const name = catalog.dishes.get(p.path.split('/')[2])!.name
+      expect(p.title, p.path).toMatch(/のカロリー・栄養（1人前\d+kcal）と作り方｜モグシル$/)
+      expect(p.title.startsWith(`${name}のカロリー・栄養（1人前`), p.path).toBe(true)
+      expect(h1(p), p.path).toBe(`${name}のカロリー・栄養と作り方`)
+      expect(p.description.startsWith(`${name}は1人前`), p.path).toBe(true)
+      // 共有の画像の見出しも、カロリー・栄養
+      expect(p.og!.card.title, p.path).toBe(`${name}のカロリー・栄養`)
+      expect(p.og!.card.badge, p.path).toMatch(/^1人前 \d+ kcal$/)
+    }
+    // 一覧・パンくず・フッターでの呼び名は「料理のカロリー・栄養」
+    const index = page('/dishes/')
+    expect(index.title).toBe(`料理のカロリー・栄養と作り方（${dishPages.length}品）｜モグシル`)
+    expect(h1(index)).toBe(`料理のカロリー・栄養と作り方（${dishPages.length}品）`)
+    expect(index.crumbs?.at(-1)?.name).toBe('料理のカロリー・栄養')
+    expect(saba.crumbs?.[1]).toEqual({ name: '料理のカロリー・栄養', path: '/dishes/' })
+    expect(saba.body).toContain('<a href="/dishes/" class="underline decoration-ink-soft/40 underline-offset-2">料理のカロリー・栄養</a>')
+    for (const p of [saba, index]) expect(p.body).not.toContain('料理の作り方')
+  })
+
+  it('1人前の栄養 → 材料（2人分） → つくり方 の順に並び、アプリで開くリンクがある', () => {
     const p = page('/dishes/nikujaga/')
-    expect(p.title).toContain('肉じゃがの作り方')
+    const at = (text: string) => p.body.indexOf(text)
+    expect(at('id="nutrition"')).toBeGreaterThan(0)
+    expect(at('id="nutrition"')).toBeLessThan(at('id="ingredients"'))
+    expect(at('id="ingredients"')).toBeLessThan(at('id="steps"'))
+    expect(p.body).toContain('肉じゃが 1人前の栄養')
     expect(p.body).toContain('材料（2人分）')
     expect(p.body).toContain('つくり方')
-    expect(p.body).toContain('1人前の栄養')
+    // ページの上から、それぞれの場所へとべる
+    for (const id of ['nutrition', 'ingredients', 'steps']) expect(p.body).toContain(`href="#${id}"`)
     expect(p.body).toContain('href="/customize/#dish=nikujaga"')
     // 同じカテゴリのほかの料理へのリンク
-    expect(p.body).toContain('ほかの主菜の作り方')
+    expect(p.body).toContain('ほかの主菜のカロリー・栄養')
+  })
+
+  it('どの料理にも、26成分の量と1日の目安に対する割合の表がある', () => {
+    for (const p of dishPages) {
+      const rows = tableRows(p)
+      expect(rows.length, p.path).toBe(26)
+      expect(new Set(rows.map((r) => r.name.replace('※', ''))).size, p.path).toBe(26)
+      for (const r of rows) {
+        expect(r.amount, `${p.path} ${r.name}`).toMatch(/^[\d,.]+ (kcal|g|mg|µg|mgNE)$/)
+        expect(r.percent, `${p.path} ${r.name}`).toMatch(/^(—|(目安|上限)の[\d,.]+%)$/)
+      }
+      // 目安の条件と出典を添える
+      expect(p.body, p.path).toContain('30〜49歳・女性')
+      expect(p.body, p.path).toContain('日本人の食事摂取基準（2025年版）')
+      expect(p.body, p.path).toContain('日本食品標準成分表（八訂）増補2023年')
+    }
+    const rows = tableRows(page('/dishes/saba-misoni/'))
+    expect(rows.map((r) => r.name.replace('※', ''))).toEqual([
+      ...['エネルギー', 'たんぱく質', '脂質', '炭水化物', '食物繊維'],
+      ...['カルシウム', '鉄', 'カリウム', 'マグネシウム', '亜鉛'],
+      ...['ビタミンA', 'ビタミンD', 'ビタミンE', 'ビタミンB1', 'ビタミンB2', 'ナイアシン', 'ビタミンB6', '葉酸', 'ビタミンC'],
+      ...['n-3系脂肪酸', 'n-6系脂肪酸', '一価不飽和脂肪酸', '多価不飽和脂肪酸'],
+      ...['食塩相当量', '飽和脂肪酸', 'カフェイン'],
+    ])
+    // とりたい成分は目安、とりすぎに気をつけたい成分は上限に対する割合。1日の量の目安がない成分は「—」
+    const by = Object.fromEntries(rows.map((r) => [r.name.replace('※', ''), r]))
+    expect(by['エネルギー'].percent).toMatch(/^目安の/)
+    expect(by['食塩相当量'].percent).toMatch(/^上限の/)
+    expect(by['脂質'].percent).toBe('—')
+    // 表の量は、ページの上の数字・説明文と同じ
+    const saba = page('/dishes/saba-misoni/')
+    const kcal = /1人前(\d+)kcal/.exec(saba.description)![1]
+    expect(by['エネルギー'].amount).toBe(`${kcal} kcal`)
+    expect(saba.description).toContain(`たんぱく質${by['たんぱく質'].amount.replace(' g', '')}g`)
+    expect(saba.description).toContain(`食塩${by['食塩相当量'].amount.replace(' g', '')}g`)
   })
 
   it('レシピのデータ（Recipe）に、材料・手順・時間・1人前の栄養と画像がある', () => {
     const ld = page('/dishes/nikujaga/').jsonLd?.[0] as Record<string, unknown>
-    expect(ld).toMatchObject({ '@type': 'Recipe', name: '肉じゃが', recipeYield: '2人分', image: ['https://mogushiru.app/og/dishes-nikujaga.png'] })
+    expect(ld).toMatchObject({ '@type': 'Recipe', name: '肉じゃが', recipeYield: '2人分', url: 'https://mogushiru.app/dishes/nikujaga/', inLanguage: 'ja' })
     expect((ld.recipeIngredient as string[]).length).toBeGreaterThan(3)
     expect((ld.recipeInstructions as { text: string }[])[0].text).toMatch(/。$/)
     expect(ld.totalTime).toMatch(/^PT\d+M$/)
@@ -453,8 +528,8 @@ describe('料理の作り方のページ', () => {
       expect(p.body).toContain(`id="step-${i + 1}"`)
     })
     // 画面にも料理の種類を出す（データだけに書かない）
-    expect(p.body).toContain('和食・主菜の作り方')
-    expect(page('/dishes/mapo-tofu/').body).toContain('中華料理・主菜の作り方')
+    expect(p.body).toContain('>和食・主菜</p>')
+    expect(page('/dishes/mapo-tofu/').body).toContain('>中華料理・主菜</p>')
   })
 
   it('どの料理にも料理の種類があり、キーワードが2つ以上ある', () => {
@@ -470,6 +545,45 @@ describe('料理の作り方のページ', () => {
       expect(words, p.path).not.toContain(ld.recipeCategory)
       expect(words, p.path).not.toContain(ld.recipeCuisine)
     }
+  })
+
+  it('レシピ用の画像は、料理の絵を大きく置いた3つの形（1:1・4:3・16:9）。写真は使わない', () => {
+    for (const p of dishPages) {
+      const id = p.path.split('/')[2]
+      const ld = p.jsonLd?.[0] as { image: string[] }
+      expect(ld.image, p.path).toEqual(['1x1', '4x3', '16x9'].map((n) => `https://mogushiru.app/recipe-images/${id}-${n}.png`))
+      expect(p.images?.map((i) => `https://mogushiru.app${i.path}`), p.path).toEqual(ld.image)
+      expect(p.images?.map((i) => i.width / i.height), p.path).toEqual([1, 4 / 3, 16 / 9])
+      for (const i of p.images!) {
+        expect(i.width, p.path).toBeGreaterThanOrEqual(1200)
+        expect(existsSync(new URL(`../../public${i.illustration}`, import.meta.url)), i.illustration).toBe(true)
+      }
+      // 共有の画像（og:image）は、字の入った別の画像
+      expect(ld.image).not.toContain(`https://mogushiru.app${p.og!.path}`)
+    }
+    expect(pages.filter((p) => p.images).length).toBe(dishPages.length)
+  })
+
+  it('レシピのデータに、公開した日と中身が最後に変わった日を書く（日付は data/sitemap-lastmod.json から）', () => {
+    const p = { ...page('/dishes/nikujaga/'), dates: { published: '2026-11-14', modified: '2026-11-21' } }
+    const out = renderDocument(TEMPLATE, p)
+    const recipe = [...out.matchAll(/<script type="application\/ld\+json">(.+?)<\/script>/g)].map((m) => JSON.parse(m[1]) as Record<string, unknown>).find((d) => d['@type'] === 'Recipe')!
+    expect(recipe).toMatchObject({ datePublished: '2026-11-14', dateModified: '2026-11-21' })
+    // パンくずなど、ほかのデータには書かない。日付のないとき（テストなど）は、レシピにも書かない
+    expect(out.match(/datePublished/g)).toHaveLength(1)
+    expect(renderDocument(TEMPLATE, page('/dishes/nikujaga/'))).not.toContain('datePublished')
+  })
+
+  it('一覧のページに、料理のページの並び（ItemList）がある', () => {
+    const ld = page('/dishes/').jsonLd?.[0] as { '@type': string; numberOfItems: number; itemListElement: { position: number; url: string; name: string }[] }
+    expect(ld['@type']).toBe('ItemList')
+    expect(ld.numberOfItems).toBe(dishPages.length)
+    expect(ld.itemListElement.map((i) => i.url).sort()).toEqual(dishPages.map((p) => `https://mogushiru.app${p.path}`).sort())
+    expect(ld.itemListElement.map((i) => i.position)).toEqual(dishPages.map((_, i) => i + 1))
+    // 並びは、ページに出ている順
+    const index = page('/dishes/').body
+    const shown = [...index.matchAll(/href="(\/dishes\/[a-z0-9-]+\/)"/g)].map((m) => `https://mogushiru.app${m[1]}`)
+    expect(ld.itemListElement.map((i) => i.url)).toEqual(shown)
   })
 
   it('動画・評価など、ページにないものはレシピのデータに書かない', () => {

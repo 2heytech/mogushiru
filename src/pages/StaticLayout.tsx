@@ -12,6 +12,11 @@ export const BUTTON_SUB = 'inline-flex min-h-11 items-center justify-center roun
 export const LINK = 'font-bold text-coral-ink underline decoration-coral/60 underline-offset-2 hover:decoration-coral-ink'
 export const CARD = 'rounded-[var(--radius-card)] bg-white p-4 shadow-sm sm:p-5'
 
+// 棒の長さ。サイトの設定（_headers の Content-Security-Policy）で HTML の style 属性は使えないので、5%きざみのクラスにする
+// （Tailwind がクラスを作れるよう、名前はここにそのまま書いておく）
+const BAR_WIDTHS = ['w-[5%]', 'w-[10%]', 'w-[15%]', 'w-[20%]', 'w-[25%]', 'w-[30%]', 'w-[35%]', 'w-[40%]', 'w-[45%]', 'w-[50%]', 'w-[55%]', 'w-[60%]', 'w-[65%]', 'w-[70%]', 'w-[75%]', 'w-[80%]', 'w-[85%]', 'w-[90%]', 'w-[95%]', 'w-[100%]']
+export const barWidth = (ratio: number) => BAR_WIDTHS[Math.min(Math.max(Math.round(ratio * 20), 1), 20) - 1]
+
 export function StaticLayout({ crumbs, children }: { crumbs: Crumb[]; children: ReactNode }) {
   return (
     <div className="mx-auto max-w-4xl px-4 pb-16">

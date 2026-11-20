@@ -21,7 +21,7 @@ import { nutrientPagePath, NUTRIENTS_INDEX_PATH, rankingAppPath, SITE_NAME, VIEW
 import type { DishPageData } from './dishPages'
 import { NUTRIENT_COPY, type NutrientCopy } from './nutrientCopy'
 import type { OgCard } from './ogCard'
-import { BUTTON, BUTTON_SUB, CARD, LINK, StaticLayout } from './StaticLayout'
+import { barWidth, BUTTON, BUTTON_SUB, CARD, LINK, StaticLayout } from './StaticLayout'
 
 // 成分ごとのランキングのページ（/nutrients/<slug>/）と、その一覧（/nutrients/）。
 // アプリの「ランキングを並べ替え」と同じ計算（よく使う食品だけ・1回の量はアプリの目安）で並べる
@@ -382,11 +382,6 @@ function RankingList({ data, metric, rows }: { data: NutrientPageData; metric: R
   )
 }
 
-// 棒の長さ。サイトの設定（_headers の Content-Security-Policy）で HTML の style 属性は使えないので、5%きざみのクラスにする
-// （Tailwind がクラスを作れるよう、名前はここにそのまま書いておく）
-const BAR_WIDTHS = ['w-[5%]', 'w-[10%]', 'w-[15%]', 'w-[20%]', 'w-[25%]', 'w-[30%]', 'w-[35%]', 'w-[40%]', 'w-[45%]', 'w-[50%]', 'w-[55%]', 'w-[60%]', 'w-[65%]', 'w-[70%]', 'w-[75%]', 'w-[80%]', 'w-[85%]', 'w-[90%]', 'w-[95%]', 'w-[100%]']
-const barWidth = (ratio: number) => BAR_WIDTHS[Math.min(Math.max(Math.round(ratio * 20), 1), 20) - 1]
-
 // 上位の食品の種類（食品群）を多い順に3つ
 function topGroups(rows: RankingRow[]): string {
   const count = new Map<string, number>()
@@ -504,7 +499,7 @@ function DishList({ data }: { data: NutrientPageData }) {
         {copy.rich}料理
       </h2>
       <p className="mt-1 text-xs leading-relaxed text-ink-soft">
-        作り方のページがある料理 {data.dishTotal} 品を、1人前の量でくらべた上位{data.dishes.length}品です。名前から、材料と作り方を見られます。
+        ふだんの料理 {data.dishTotal} 品を、1人前の量でくらべた上位{data.dishes.length}品です。名前から、その料理のカロリー・栄養と作り方を見られます。
       </p>
       <ol className="mt-2 text-sm sm:columns-2 sm:gap-x-8">
         {data.dishes.map((d, i) => (

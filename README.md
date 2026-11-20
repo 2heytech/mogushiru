@@ -14,19 +14,20 @@ npm run build    # 本番ビルド（dist/）
 
 ### ページの URL
 
-画面はふつうのパスで切り替えます（以前の `#ranking` などのリンクも開けます）。`npm run build` の最後に `scripts/prerender.tsx` が、ページごとの HTML と `sitemap.xml`・`404.html`、SNS などに貼ったときに出るページごとの画像（`dist/og/*.png`）を `dist/` に書き出します。
+画面はふつうのパスで切り替えます（以前の `#ranking` などのリンクも開けます）。`npm run build` の最後に `scripts/prerender.tsx` が、ページごとの HTML と `sitemap.xml`・`404.html`、SNS などに貼ったときに出るページごとの画像（`dist/og/*.png`）、料理ごとのレシピ用の画像（`dist/recipe-images/*.png`）を `dist/` に書き出します。
 
 | URL | 中身 |
 |---|---|
 | `/` `/ranking/` `/customize/` `/about/` | アプリの画面。HTML にはタイトル・説明文と、アプリが動きだすまでの説明の字を入れておく |
 | `/nutrients/` `/nutrients/<成分>/` | 成分が多い食品ランキング（26成分）。アプリのプログラムを読まない軽いページ。`/ranking/#n=<成分>` でアプリのランキングをその成分で開く。たんぱく質は「100円あたり」の一覧を先に出す |
-| `/menus/` `/menus/<ジャンル>/` | 理想の献立をジャンルごとに並べたページ。`/#menu=<献立のid>` でアプリにその献立を呼び出す。料理の名前から、作り方のページ（`/dishes/<料理>/`）へ行ける。`/menus/store-bought/` の上には、コンビニの昼ごはんの組み合わせ（商品名・カロリー・たんぱく質・食塩）を出す |
+| `/menus/` `/menus/<ジャンル>/` | 理想の献立をジャンルごとに並べたページ。`/#menu=<献立のid>` でアプリにその献立を呼び出す。料理の名前から、料理のページ（`/dishes/<料理>/`）へ行ける。`/menus/store-bought/` の上には、コンビニの昼ごはんの組み合わせ（商品名・カロリー・たんぱく質・食塩）を出す |
+| `/dishes/` `/dishes/<料理>/` | 料理のカロリー・栄養と作り方（作り方のある264品）。1人前の栄養（26成分と、1日の目安に対する割合）が主役で、その下に2人分の材料と作り方。`/customize/#dish=<料理>` でアプリにその料理を開く。検索エンジン向けにレシピのデータ（Recipe）を入れ、画像は料理の絵から3つの形（1:1・4:3・16:9）で作る（写真は使わない） |
 
 読みもののページからアプリを「この成分・この献立・この料理」で開くリンクは、指定を `#` のうしろに書きます（`/customize/#dish=<料理>` など）。`?` で書くと、検索エンジンが成分・献立・料理の数だけ別のページとして読みに来て、読んでほしいページに来る回数がへるためです（以前の `?` のリンクも開けます）。
 
 `sitemap.xml` の更新日（`lastmod`）は、ビルドした日ではなく、ページの中身（タイトル・説明文・本文）が実際に変わった日です。ページごとの日付は `data/sitemap-lastmod.json` に持っています。**ページの中身を変えたら `npm run sitemap:lastmod` を動かし、変わった `data/sitemap-lastmod.json` もコミットします**（忘れるとテストが落ちます）。アプリの画面（`/` など）は最初の HTML の字しか見ていないので、画面の中身を大きく変えたときは `npm run sitemap:lastmod -- --touch /customize/` のようにパスを書きます。しくみは `scripts/lib/pageLastmod.ts`。
 
-URL の決まりは `src/routes.ts`、ページの中身は `src/pages/` にあります。ページごとの画像は `src/pages/` が決めた中身（`OgCard`）を、`scripts/lib/ogImage.tsx` が satori と resvg で PNG にします（書体はアプリと同じ `@fontsource` のもの）。
+URL の決まりは `src/routes.ts`、ページの中身は `src/pages/` にあります。ページごとの画像は `src/pages/` が決めた中身（`OgCard`）を、`scripts/lib/ogImage.tsx` が satori と resvg で PNG にします（書体はアプリと同じ `@fontsource` のもの）。レシピ用の画像も同じファイルで、料理の絵（SVG）から作ります。`data/sitemap-lastmod.json` には、ページをはじめて公開した日（`published`）も持ち、レシピのデータの `datePublished` に使います（`npm run sitemap:lastmod` が、新しいページに入れます）。
 
 ## データの生成
 

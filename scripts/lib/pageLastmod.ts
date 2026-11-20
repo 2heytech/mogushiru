@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto'
 
 // サイトマップの「更新日」（lastmod）を、ページの中身が実際に変わった日にするためのしくみ。
-// - ページごとに、中身の指紋（hash）と、その中身になった日（lastmod）を data/sitemap-lastmod.json に持つ
+// - ページごとに、中身の指紋（hash）と、その中身になった日（lastmod）、はじめて公開した日（published）を data/sitemap-lastmod.json に持つ
 // - 中身を変えたら npm run sitemap:lastmod で、変わったページだけ日付を今日にする（指紋が同じページの日付は動かさない）
 // - ビルド（scripts/prerender.tsx）はこの表の日付を sitemap.xml に書く。ビルドした日は使わない
 //   （毎回ぜんぶのページが「今日更新」になると、検索エンジンが日付をあてにしなくなる）
@@ -10,7 +10,7 @@ import { createHash } from 'node:crypto'
 // 表のファイル（リポジトリの上からのパス）
 export const LASTMOD_FILE = 'data/sitemap-lastmod.json'
 
-export type LastmodEntry = { hash: string; lastmod: string }
+export type LastmodEntry = { hash: string; lastmod: string; published: string }
 export type LastmodTable = Record<string, LastmodEntry>
 
 // sitePages.tsx の SitePage のうち、ここで使うところ
@@ -33,7 +33,8 @@ export function updateLastmod(pages: LastmodPage[], table: LastmodTable, today: 
   for (const page of [...listed(pages)].sort((a, b) => (a.path < b.path ? -1 : a.path > b.path ? 1 : 0))) {
     const hash = pageFingerprint(page)
     const old = table[page.path]
-    out[page.path] = old?.hash === hash ? old : { hash, lastmod: today }
+    // 公開した日は、はじめて表に入った日のまま動かさない
+    out[page.path] = old?.hash === hash ? old : { hash, lastmod: today, published: old?.published ?? today }
   }
   return out
 }
@@ -53,9 +54,16 @@ export function lastmodDates(pages: LastmodPage[], table: LastmodTable, fallback
   return Object.fromEntries(listed(pages).map((p) => [p.path, table[p.path]?.hash === pageFingerprint(p) ? table[p.path].lastmod : fallback]))
 }
 
+// ページに書く日付（ページのパス → 公開した日・中身が最後に変わった日）。レシピのデータ（datePublished・dateModified）に使う。
+// 表にないページ（新しいページ。テストで止まるので、ふつうは出ない）は、どちらも fallback の日にする
+export function pageDates(pages: LastmodPage[], table: LastmodTable, fallback: string): Record<string, { published: string; modified: string }> {
+  const modified = lastmodDates(pages, table, fallback)
+  return Object.fromEntries(listed(pages).map((p) => [p.path, { published: table[p.path]?.published ?? fallback, modified: modified[p.path] }]))
+}
+
 // 1ページ1行で書き出す（どのページの日付が変わったかを、差分で見やすくする）
 export function formatLastmodTable(table: LastmodTable): string {
-  const lines = Object.entries(table).map(([path, e]) => `  ${JSON.stringify(path)}: { "hash": ${JSON.stringify(e.hash)}, "lastmod": ${JSON.stringify(e.lastmod)} }`)
+  const lines = Object.entries(table).map(([path, e]) => `  ${JSON.stringify(path)}: { "hash": ${JSON.stringify(e.hash)}, "lastmod": ${JSON.stringify(e.lastmod)}, "published": ${JSON.stringify(e.published)} }`)
   return `{\n${lines.join(',\n')}\n}\n`
 }
 
