@@ -1,5 +1,5 @@
-// サイトの URL の決まり。アプリの画面（1日の食事・ランキング・アレンジ・このサイトについて）と、
-// ビルドのときに書き出す読みもののページ（成分ごとのランキング・献立の例）の両方で使う。
+// サイトの URL の決まり。アプリの画面（1日の食事・食品を調べる・ランキング・アレンジ）と、
+// ビルドのときに書き出す読みもののページ（成分ごとのランキング・献立の例・料理・食品・このサイトについて）の両方で使う。
 // 画面の切り替えは以前は #ranking のように # で持っていた。検索エンジンは # の違いを別のページとして読まないので、ふつうのパスにした
 import type { IdealGenre } from './domain/idealMenus'
 import type { NutrientKey } from './domain/types'
@@ -10,17 +10,21 @@ export const SITE_NAME = 'モグシル'
 export const SITE_NAME_KANA = 'もぐしる'
 export const SITE_ALT_NAMES = [SITE_NAME_KANA, 'もぐシル', 'mogushiru']
 
-// customize は「料理をアレンジ」。about は「このサイトについて」（上のメニューには出さず、フッターから入る）
-export type View = 'menu' | 'foods' | 'ranking' | 'customize' | 'about'
+// customize は「料理をアレンジ」
+export type View = 'menu' | 'foods' | 'ranking' | 'customize'
 
-export const VIEW_PATH: Record<View, string> = { menu: '/', foods: '/foods/', ranking: '/ranking/', customize: '/customize/', about: '/about/' }
+export const VIEW_PATH: Record<View, string> = { menu: '/', foods: '/foods/', ranking: '/ranking/', customize: '/customize/' }
+
+// 「このサイトについて」（運営者・数値の確かめ方・注意・プライバシー・出典・お問い合わせ）。フッターから入る。
+// プログラムを動かさなくても本文が読めるよう、アプリの画面ではなく読みもののページにしてある（src/pages/aboutPage.tsx）
+export const ABOUT_PATH = '/about/'
 
 // 上のメニューは3つ：栄養バランス（menu）・食品を調べる（foods）・成分ランキング（ranking）。
 // 「料理をアレンジ」（customize）は、栄養バランスの中の画面にした（上のメニューには出さず、1日の食事・最初の画面から入る。
 // URL は /customize/ のまま）。その画面を見ているあいだ、上のメニューは「栄養バランス」を選んだ形にする
 export type Feature = 'menu' | 'foods' | 'ranking'
 
-export const VIEW_FEATURE: Record<View, Feature | null> = { menu: 'menu', customize: 'menu', foods: 'foods', ranking: 'ranking', about: null }
+export const VIEW_FEATURE: Record<View, Feature> = { menu: 'menu', customize: 'menu', foods: 'foods', ranking: 'ranking' }
 
 // 画面ごとのタイトルと説明（ブラウザのタブ・検索結果・SNS に貼ったときの表示）
 export const VIEW_META: Record<View, { title: string; description: string; heading: string }> = {
@@ -48,18 +52,15 @@ export const VIEW_META: Record<View, { title: string; description: string; headi
     heading: '料理をアレンジ',
     description: '肉じゃがの肉を変える、ごはんを減らすなど、料理の材料と量を変えてカロリーと栄養を計算し、お気に入りとして保存できます。登録不要・無料です。',
   },
-  about: {
-    title: 'このサイトについて｜モグシル',
-    heading: 'このサイトについて',
-    description: 'モグシルの使い方の注意、プライバシー、データの出典とライセンス、運営者とお問い合わせ先。',
-  },
 }
 
 // 検索に載せない画面。ランキングを並べ替える道具（/ranking/）は、成分ごとの読みもののページ（/nutrients/…）と中身が重なるので外す。
 // 最初に返す HTML に noindex を入れ、サイトマップにも入れない（sitePages.tsx）。画面とサイト内のリンクはそのまま使える
 export const NOINDEX_VIEWS: readonly View[] = ['ranking']
 
-const LEGACY_HASH: Record<string, View> = { '#ranking': 'ranking', '#customize': 'customize', '#about': 'about' }
+const LEGACY_HASH: Record<string, View> = { '#ranking': 'ranking', '#customize': 'customize' }
+// 古い /#about は、読みもののページ（/about/）へ送る（アプリの画面ではないので、ページごと移る）
+const LEGACY_ABOUT_HASH = '#about'
 
 // いまの URL から画面を決める。古い # のリンク（/#ranking など）も開けるようにする
 export function viewFromLocation(pathname: string, hash = ''): View {
@@ -75,6 +76,11 @@ export function viewFromLocation(pathname: string, hash = ''): View {
 export function legacyRedirect(pathname: string, hash: string): string | null {
   const view = LEGACY_HASH[hash]
   return view && (pathname === '/' || pathname === '') ? VIEW_PATH[view] : null
+}
+
+// 古い # のリンクのうち、ページごと移るもの（/#about → /about/）。移る先のパスを返す（なければ null）
+export function legacyPageRedirect(pathname: string, hash: string): string | null {
+  return hash === LEGACY_ABOUT_HASH && (pathname === '/' || pathname === '') ? ABOUT_PATH : null
 }
 
 // 「栄養バランス」の中の2つの画面：最初の画面（start。3つの入口）と、1日の食事（day。朝・昼・晩と結果）。

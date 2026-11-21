@@ -20,7 +20,6 @@ import { FoodDetailDialog } from './components/FoodDetailDialog'
 import { FoodLookup } from './components/FoodLookup'
 import { inAppLink } from './components/inAppLink'
 import { INITIAL_LOOKUP, lookupItemExists, type LookupItem, type LookupState } from './components/lookupCards'
-import { AboutView } from './components/AboutView'
 import { confirmDialog } from './components/confirm'
 import { pushHistory } from './components/useDismiss'
 import { SiteFooter } from './components/SiteFooter'
@@ -32,6 +31,7 @@ import {
   dishTabFromParam,
   foodIdFromPath,
   hasAppLinkHash,
+  legacyPageRedirect,
   legacyRedirect,
   menuScreenFromState,
   menuScreenState,
@@ -194,6 +194,12 @@ function useView(): { view: View; screen: MenuScreen; go: (v: View, screen?: Men
   useEffect(() => {
     const fixLegacy = () => {
       const { pathname, hash, search } = window.location
+      // 古い /#about は、読みもののページ（/about/）へページごと移る
+      const page = legacyPageRedirect(pathname, hash)
+      if (page) {
+        window.location.replace(page)
+        return
+      }
       const legacy = legacyRedirect(pathname, hash)
       if (legacy) window.history.replaceState(window.history.state, '', legacy + search)
     }
@@ -602,7 +608,7 @@ export default function App() {
 
   // 画面の中身を出せるか（最初の画面と「このサイトについて」は、データを待たない）。フッターは中身と一緒に出す
   // （読み込み中に先に出すと、中身が出たときに押し下げられて画面が動く）
-  const contentReady = view === 'about' || (view === 'menu' && showStart) || Boolean(catalog && totals && (view !== 'menu' || !waitingForStores))
+  const contentReady = (view === 'menu' && showStart) || Boolean(catalog && totals && (view !== 'menu' || !waitingForStores))
 
   return (
     <LoadProblemContext.Provider value={loadProblem}>
@@ -649,11 +655,7 @@ export default function App() {
       {/* データを読み込めなかったとき（通信の失敗など）：もう一度読み込む案内 */}
       <LoadProblemNote className="mb-4" />
 
-      {view === 'about' ? (
-        <main tabIndex={-1} className="outline-none">
-          <AboutView onBack={() => setView('menu')} />
-        </main>
-      ) : catalog && totals && view === 'customize' ? (
+      {catalog && totals && view === 'customize' ? (
         <main tabIndex={-1} className="space-y-4 outline-none">
           {/* 「料理をアレンジ」は、栄養バランスの中の画面。上に、1日の食事（まだ始めていなければ最初の画面）へのもどり口を置く */}
           <BackRow label={arrangeBack === 'day' ? '1日の食事にもどる' : '最初の画面にもどる'} onClick={() => (arrangeBack === 'day' ? openDay() : openStart())} />
@@ -976,7 +978,7 @@ export default function App() {
           }}
         />
       )}
-      {contentReady && <SiteFooter onAbout={() => setView('about')} />}
+      {contentReady && <SiteFooter />}
     </div>
     </LoadProblemContext.Provider>
   )

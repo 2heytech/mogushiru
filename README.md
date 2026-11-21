@@ -18,7 +18,8 @@ npm run build    # 本番ビルド（dist/）
 
 | URL | 中身 |
 |---|---|
-| `/` `/foods/` `/ranking/` `/customize/` `/about/` | アプリの画面。HTML にはタイトル・説明文と、アプリが動きだすまでの説明の字を入れておく |
+| `/` `/foods/` `/ranking/` `/customize/` | アプリの画面。HTML にはタイトル・説明文と、アプリが動きだすまでの説明の字を入れておく |
+| `/about/` | このサイトについて（運営者・数値の確かめ方・使うときの注意・プライバシー・出典とライセンス・お問い合わせ）。アプリのプログラムを読まないページ |
 | `/foods/<食品>/` | 定番の食品12品（納豆・卵・鶏むね肉など）のカロリー・栄養。その食品だけの値を、1食分と100gの26成分と、1日の目安に対する割合で出す。`/foods/#food=<食品番号>` でアプリの栄養素の窓を開き（量を変えて計算できる）、`/#add=food.<食品番号>` で1日の食事に入れる。アプリでその食品の栄養素の窓をひらいているあいだも、アドレスはこの URL になる |
 | `/nutrients/` `/nutrients/<成分>/` | 成分が多い食品ランキング（26成分）。アプリのプログラムを読まない軽いページ。`/ranking/#n=<成分>` でアプリのランキングをその成分で開く。たんぱく質は「100円あたり」の一覧を先に出す |
 | `/menus/` `/menus/<ジャンル>/` | 献立の例をジャンルごとに並べたページ。`/#menu=<献立のid>` でアプリにその献立を呼び出す。料理の名前から、料理のページ（`/dishes/<料理>/`）へ行ける。`/menus/store-bought/` の上には、コンビニの昼ごはんの組み合わせ（商品名・カロリー・たんぱく質・食塩）を出す |
@@ -26,7 +27,7 @@ npm run build    # 本番ビルド（dist/）
 
 読みもののページからアプリを「この成分・この献立・この料理」で開くリンクは、指定を `#` のうしろに書きます（`/customize/#dish=<料理>` など）。`?` で書くと、検索エンジンが成分・献立・料理の数だけ別のページとして読みに来て、読んでほしいページに来る回数がへるためです（以前の `?` のリンクも開けます）。
 
-`sitemap.xml` の更新日（`lastmod`）は、ビルドした日ではなく、ページの中身（タイトル・説明文・本文）が実際に変わった日です。ページごとの日付は `data/sitemap-lastmod.json` に持っています。**ページの中身を変えたら `npm run sitemap:lastmod` を動かし、変わった `data/sitemap-lastmod.json` もコミットします**（忘れるとテストが落ちます）。アプリの画面（`/` など）は最初の HTML の字しか見ていないので、画面の中身を大きく変えたときは `npm run sitemap:lastmod -- --touch /customize/` のようにパスを書きます。しくみは `scripts/lib/pageLastmod.ts`。
+`sitemap.xml` の更新日（`lastmod`）と、読みもののページに出す「最終更新」は、ビルドした日ではなく、ページの中身（タイトル・説明文・本文）が実際に変わった日です。ページごとの日付は `data/sitemap-lastmod.json` に持っています。**ページの中身を変えたら `npm run sitemap:lastmod` を動かし、変わった `data/sitemap-lastmod.json` もコミットします**（忘れるとテストが落ちます）。アプリの画面（`/` など）は最初の HTML の字しか見ていないので、画面の中身を大きく変えたときは `npm run sitemap:lastmod -- --touch /customize/` のようにパスを書きます。しくみは `scripts/lib/pageLastmod.ts`。
 
 URL の決まりは `src/routes.ts`、ページの中身は `src/pages/` にあります。ページごとの画像は `src/pages/` が決めた中身（`OgCard`）を、`scripts/lib/ogImage.tsx` が satori と resvg で PNG にします（書体はアプリと同じ `@fontsource` のもの）。レシピ用の画像も同じファイルで、料理の絵（SVG）から作ります。`data/sitemap-lastmod.json` には、ページをはじめて公開した日（`published`）も持ち、レシピのデータの `datePublished` に使います（`npm run sitemap:lastmod` が、新しいページに入れます）。
 
@@ -62,7 +63,7 @@ main にマージすると自動で公開に反映されます。正式な URL �
 - 目標値：厚生労働省「日本人の食事摂取基準（2025年版）」、「健康に配慮した飲酒に関するガイドライン」、「健康づくりのための身体活動・運動ガイド2023」、農林水産省「カフェインの過剰摂取について」
 - 価格：総務省統計局「小売物価統計調査（動向編）」2025年平均
 - 郷土料理：農林水産省「うちの郷土料理」
-- アプリ内の出典一覧は「このサイトについて」（`#about`、`src/components/AboutView.tsx`）
+- 出典の一覧は「このサイトについて」（`/about/`、`src/pages/aboutPage.tsx`）
 - SNS 用の画像（`public/og-image.png`）とアイコンは、ロゴのちゃわんモグと料理の絵から作成
 - 書体：Zen Maru Gothic・Mochiy Pop One（SIL Open Font License 1.1、`@fontsource` で同梱して配信）
 - ソースコード：MIT License

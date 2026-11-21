@@ -78,22 +78,27 @@ export function StaticLayout({ crumbs, section, cta = DEFAULT_CTA, children }: {
             栄養<span className="max-[374px]:hidden">バランス</span>を計算<span className="max-[359px]:hidden min-[375px]:max-[419px]:hidden">する</span>
           </a>
         </header>
-        <nav aria-label="現在地" className="mb-3 text-xs text-ink-soft">
-          <ol className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
-            {crumbs.map((c, i) => (
-              <li key={c.name} className="flex items-center gap-1.5">
-                {i > 0 && <span aria-hidden>›</span>}
-                {c.path ? (
-                  <a href={c.path} className="underline decoration-ink-soft/40 underline-offset-2">
-                    {c.name}
-                  </a>
-                ) : (
-                  <span aria-current="page">{c.name}</span>
-                )}
-              </li>
-            ))}
-          </ol>
-        </nav>
+        <div className="mb-3 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-0.5 text-xs text-ink-soft">
+          <nav aria-label="現在地">
+            <ol className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
+              {crumbs.map((c, i) => (
+                <li key={c.name} className="flex items-center gap-1.5">
+                  {i > 0 && <span aria-hidden>›</span>}
+                  {c.path ? (
+                    <a href={c.path} className="underline decoration-ink-soft/40 underline-offset-2">
+                      {c.name}
+                    </a>
+                  ) : (
+                    <span aria-current="page">{c.name}</span>
+                  )}
+                </li>
+              ))}
+            </ol>
+          </nav>
+          {/* ページの中身が最後に変わった日。日付は、書き出すとき（sitePages.tsx の renderDocument）にここへ入れる。
+              本文（main）の外に置くので、日付を入れても「中身が変わった」ことにはならない（scripts/lib/pageLastmod.ts） */}
+          <p data-page-updated="" className="ml-auto whitespace-nowrap" />
+        </div>
         <main>{children}</main>
         {/* 追従するボタン。プログラムは使わず、CSS だけで動かす：動く範囲（下の div）を、開いてすぐの画面の下から始めるので、
             開いたときには出ず（上のメニューのボタンと重ならない）、少し読み進めると画面の下に出て、本文の終わりまでついてくる */}
