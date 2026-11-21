@@ -5,7 +5,7 @@ import { representativeProducts } from '../domain/productGroups'
 import { familiarFoodIds, FOOD_GROUP_LABEL, NAMED_FOOD_IDS } from '../domain/ranking'
 import { servingFor } from '../domain/serving'
 import { isSupplement } from '../domain/supplement'
-import type { DishCategory, Food, MenuItem, Product } from '../domain/types'
+import type { Dish, DishCategory, Food, MenuItem, Product } from '../domain/types'
 import { MY_PRODUCT_PREFIX, recentMyDishes } from '../store/useAppStore'
 import { categoryImage, foodImage } from './illustration'
 import { DISH_CATEGORY_LABEL, PRODUCT_STORES } from './labels'
@@ -121,18 +121,39 @@ function group<T>(
   }
 }
 
-// 食材は、ランキングと同じ「1回に食べる量」で出す
+// 食材は、ランキングと同じ「1回に食べる量」で出す。
+// 同じ名前の料理（「納豆（1パック）」＝納豆45g＋しょうゆ3g）と見分けられるように、その食材だけの値であることを書く
 export function foodCard(f: Food): Card {
   const serving = servingFor(f)
   return {
     key: `food:${f.id}`,
     kind: 'food',
     name: f.displayName,
-    sub: `${serving.label}（${serving.grams}g）`,
+    sub: `食材のみ・${serving.label}（${serving.grams}g）`,
     kcal: f.per100g.energyKcal === null ? null : (f.per100g.energyKcal * serving.grams) / 100,
     image: foodImage(f),
     item: { kind: 'food', refId: f.id, portion: serving.grams },
   }
+}
+
+// 材料が少ない料理（3つまで）は、何がどれだけ入っているかを書く（「納豆45g＋しょうゆ（濃口）3g」）。
+// 食材そのものと名前が同じでも、調味料などが足してある分だけ値がちがうことが分かるように。材料の多い料理は、料理の種類のまま
+const FEW_INGREDIENTS = 3
+const gramsText = (g: number) => `${Number.isInteger(g) ? g : g.toFixed(1)}g`
+
+export function dishIngredientsText(d: Dish, catalog: Pick<Catalog, 'foods'>): string | null {
+  if (d.ingredients.length === 0 || d.ingredients.length > FEW_INGREDIENTS) return null
+  const parts = d.ingredients.map((i) => {
+    const food = catalog.foods.get(i.foodId)
+    return food ? `${food.displayName}${gramsText(i.grams)}` : null
+  })
+  return parts.every((p): p is string => p !== null) ? parts.join('＋') : null
+}
+
+export function lookupDishCard(d: Dish, catalog: Pick<Catalog, 'foods'>): Card {
+  const card = dishCard(d)
+  const ingredients = dishIngredientsText(d, catalog)
+  return ingredients ? { ...card, sub: [ingredients, card.sub].filter(Boolean).join('・') } : card
 }
 
 // さがす前に出す「定番の食品」（成分表の食品番号）：ごはん・食パン・卵・納豆・牛乳・ヨーグルト・バナナ・鶏むね肉・鮭・木綿豆腐・ブロッコリー・さつまいも
@@ -146,7 +167,7 @@ export function lookupCard(item: Pick<LookupItem, 'kind' | 'refId'>, catalog: Ca
   }
   if (item.kind === 'dish') {
     const d = catalog.dishes.get(item.refId)
-    return d ? dishCard(d) : null
+    return d ? lookupDishCard(d, catalog) : null
   }
   if (item.kind === 'myDish') {
     const d = catalog.myDishes.get(item.refId)
@@ -204,7 +225,7 @@ export function lookupIndex({ catalog, showAlcohol }: { catalog: Catalog; showAl
           dishes,
           (d) => ({ visible: [d.name], readings: [d.kana] }),
           (d) => d.category,
-          dishCard,
+          (d) => lookupDishCard(d, catalog),
         ),
       ],
       product: [productGroup(products.filter(mine)), productGroup(products.filter((p) => !mine(p)))],

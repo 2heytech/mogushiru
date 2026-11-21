@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { matcher, matchRank, matches, normalizeForSearch, rankAcross, rankAndFilter, ranker } from './search'
+import { matcher, matchRank, matches, normalizeForSearch, normalizeReading, rankAcross, rankAndFilter, ranker } from './search'
 
 describe('検索の正規化', () => {
   it('カタカナ・半角・空白の揺れを吸収する', () => {
@@ -96,3 +96,41 @@ describe('横断検索', () => {
     expect(rankAcross(groups, '').length).toBe(5)
   })
 })
+
+describe('漢字とかなで書き方がゆれる言葉', () => {
+  it('ひらがなにそろえて読む（さがす言葉も、名前も）', () => {
+    expect(normalizeReading('鶏胸肉')).toBe('とりむねにく')
+    expect(normalizeReading('とりむね肉')).toBe('とりむねにく')
+    expect(normalizeReading('鶏むね肉')).toBe('とりむねにく')
+    // 長い言葉を先に当てる
+    expect(normalizeReading('木綿豆腐')).toBe('木綿とうふ')
+    expect(normalizeReading('枝豆')).toBe('えだまめ')
+    expect(normalizeReading('煮豆')).toBe('煮まめ')
+    // ふつうの正規化は、漢字を変えない
+    expect(normalizeForSearch('鶏胸肉')).toBe('鶏胸肉')
+  })
+
+  it('書いたままの字で一致しなければ、そろえてくらべる（料理を選ぶ画面などの検索）', () => {
+    expect(matchRank('鶏胸肉', '鶏むね肉のソテー')).toBe(1)
+    expect(matchRank('とりむね肉', '鶏むね肉のソテー')).toBe(1)
+    expect(matchRank('とうふ', '木綿豆腐')).toBe(2)
+    expect(matchRank('玉ねぎ', 'たまねぎ（生）')).toBe(1)
+    expect(matches('ご飯', 'ごはん（白米）')).toBe(true)
+    // 書いたままの字で一致するときは、その度合いのまま
+    expect(matchRank('肉', '鶏むね肉')).toBe(2)
+    expect(matchRank('鶏むね肉', '鶏むね肉')).toBe(0)
+    // かんけいのない言葉は一致しない
+    expect(matchRank('鶏胸肉', '豚ロース肉')).toBeNull()
+    expect(matchRank('酒', '鮭', 'さけ')).toBeNull()
+  })
+
+  it('同じ検索語で何度調べても変わらない（覚えておいた結果を使っても同じ）', () => {
+    const rank = ranker('鶏胸肉')
+    for (let i = 0; i < 3; i++) {
+      expect(rank('鶏むね肉（皮なし）')).toBe(1)
+      expect(rank('とりむねにく')).toBe(0)
+      expect(rank('チキンカレー')).toBeNull()
+    }
+  })
+})
+

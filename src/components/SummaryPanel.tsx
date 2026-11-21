@@ -247,9 +247,14 @@ export function DayInfo({
           <div role="tablist" aria-label="見る情報" className="flex gap-1 rounded-full bg-white/70 p-1 shadow-sm lg:hidden">
             {tabs.map((t) => tabButton(t, tab === t.key))}
           </div>
-          <div className={`${CARD} space-y-4 ${tab === 'summary' ? '' : 'max-lg:hidden'}`}>
+          {/* スマホ：気になる点と次に試すことを先頭に出す（結果を見てすぐ、何を直せばよいかと、そのボタンが読めるように）。その下に
+              モグのひとこと・カロリー・目安の範囲内。広い画面：これまでどおり 全体の状態 → 目安の範囲内 → 気になる点 → 次に試すこと（order で並べ替える） */}
+          <div className={`${CARD} flex flex-col gap-4 ${tab === 'summary' ? '' : 'max-lg:hidden'}`}>
             <h2 className="hidden font-bold lg:block">まとめ</h2>
-            <div className="flex items-center gap-3">
+            <div className="empty:hidden lg:order-3">
+              <DaySummaryView summary={summary} onStep={step} part="attention" />
+            </div>
+            <div className="flex items-center gap-3 lg:order-1">
               <BowlMogu slot="dinner" mood={bowlMood} className="h-16 w-16 shrink-0" label={`モグは${MOOD_LABEL[bowlMood]}`} />
               <p className="rounded-2xl bg-white px-4 py-2 text-sm shadow-sm">
                 {/* 「！」「、」「。」のあとで折り返す（「このままいこ／う」のように1文字だけ次の行に残らないように） */}
@@ -260,11 +265,17 @@ export function DayInfo({
                 ))}
               </p>
             </div>
-            <EnergyGauge value={v.energyKcal} target={targets.energyKcal} partial={partial} />
+            <div className="lg:order-1">
+              <EnergyGauge value={v.energyKcal} target={targets.energyKcal} partial={partial} />
+            </div>
             {/* 広い画面：料理や量を変えたあと、カロリーと一緒にPFCもすぐ見られるように（くわしい図は「栄養の詳細」。スマホはタブですぐ見られるので出さない） */}
             {gaps && <PfcLine gaps={gaps} />}
-            <DaySummaryView summary={summary} onStep={step} />
-            <SlotShare totals={totals} targets={targets} onEdit={onEditSlotShare} />
+            <div className="empty:hidden lg:order-2">
+              <DaySummaryView summary={summary} onStep={step} part="ok" />
+            </div>
+            <div className="lg:order-4">
+              <SlotShare totals={totals} targets={targets} onEdit={onEditSlotShare} />
+            </div>
           </div>
         </div>
       </div>
@@ -360,7 +371,7 @@ export function DayInfo({
 // まとめに出す、PFCバランスのひとこと版：割合と、目標の範囲から外れているかどうかだけ
 function PfcLine({ gaps }: { gaps: PfcGap[] }) {
   return (
-    <div className="hidden lg:block">
+    <div className="hidden lg:order-1 lg:block">
       <p className="mb-1 text-sm text-ink-soft">PFCバランス</p>
       <ul className="grid grid-cols-3 gap-1.5">
         {gaps.map((g) => (

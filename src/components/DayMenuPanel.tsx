@@ -52,7 +52,8 @@ export function DayMenuPanel({
   const ratio = pfcRatio(totals.day.values)
   return (
     <>
-      <section aria-labelledby="day-menu-title" className="rounded-[var(--radius-card)] bg-[#fff1df] p-3 shadow-sm md:p-4">
+      {/* id と scroll-mt：結果の例から来たとき、このかたまりを画面の上に合わせる（App.tsx の showResultFirst）。上に少しすきまを残す */}
+      <section id="day-menu" aria-labelledby="day-menu-title" className="scroll-mt-2 rounded-[var(--radius-card)] bg-[#fff1df] p-3 shadow-sm md:p-4">
         <div ref={headerRef} className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-2">
           <h1 id="day-menu-title" className="text-lg font-bold md:text-xl">
             1日の食事

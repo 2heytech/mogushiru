@@ -10,6 +10,8 @@ import { confirmDialog } from './confirm'
 import { Customizer } from './Customizer'
 import { dishImage, menuItemImage } from './illustration'
 import { DISH_CATEGORY_LABEL, SLOT_LABEL } from './labels'
+import { useLoadFailed } from './loadProblemContext'
+import { LoadProblemNote } from './LoadProblemNote'
 import { SlotChoiceSheet } from './SavedMenus'
 
 const MAX_CARDS = 60
@@ -85,6 +87,7 @@ export function CustomizeView({
   onOpenDay: () => void
 }) {
   const [query, setQuery] = useState('')
+  const loadFailed = useLoadFailed()
   const [category, setCategory] = useState<DishCategory | null>(null)
   const [editing, setEditing] = useState<Editing | null>(() => {
     const dish = initialDishId ? catalog.dishes.get(initialDishId) : undefined
@@ -301,7 +304,11 @@ export function CustomizeView({
           ))}
         </div>
         {found.length === 0 ? (
-          <p className="py-10 text-center text-sm text-ink-soft">見つかりませんでした{category && '。種類を「すべて」にすると見つかるかもしれません'}</p>
+          loadFailed ? (
+            <LoadProblemNote className="my-6" />
+          ) : (
+            <p className="py-10 text-center text-sm text-ink-soft">見つかりませんでした{category && '。種類を「すべて」にすると見つかるかもしれません'}</p>
+          )
         ) : (
           <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
             {found.slice(0, MAX_CARDS).map((d) => (
