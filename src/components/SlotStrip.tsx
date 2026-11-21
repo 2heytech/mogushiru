@@ -171,7 +171,9 @@ export function SlotStrip(props: Props) {
   )
 }
 
-const STEP_BUTTON = 'grid h-11 w-11 shrink-0 place-items-center rounded-full text-base leading-none font-bold text-coral-ink hover:bg-white disabled:text-ink-soft/40 disabled:hover:bg-transparent'
+// lg〜xl（幅 1024〜1279px）は1日の食事の列がせまいので、ボタンの幅を少しつめる（「コップ1杯・」が1行に入るように）
+const STEP_BUTTON =
+  'grid h-11 w-11 shrink-0 place-items-center rounded-full text-base leading-none font-bold text-coral-ink hover:bg-white disabled:text-ink-soft/40 disabled:hover:bg-transparent lg:max-xl:w-9'
 
 // 区分に入っている料理の一覧。名前を押すと量を変える窓、×で外す。飲み物は＋−で杯数を変えられる。
 // 料理（材料まで変えられるもの）には、量とカロリーの横に「アレンジ」と書いた小さな札を付けて、押すと食べる量や材料を変えられることを見せる
@@ -204,7 +206,7 @@ function SlotItems({ menu, catalog, onEdit, onRemove, onDrink, slot }: Props & {
                 {name}
                 <span className="flex flex-wrap items-center gap-x-2 text-2xs text-ink-soft tabular-nums">
                   <span>
-                    {amount && <span className="inline-block">{amount}・</span>}
+                    {amount && <span className="inline-block whitespace-nowrap">{amount}・</span>}
                     <span className="inline-block">{Math.round(itemTotals(item, catalog).values.energyKcal)} kcal</span>
                   </span>
                   {arrangeable && (
@@ -240,7 +242,7 @@ function SlotItems({ menu, catalog, onEdit, onRemove, onDrink, slot }: Props & {
             <button
               type="button"
               onClick={() => onRemove(slot, item.uid)}
-              className="grid h-11 w-11 shrink-0 place-items-center rounded-full text-ink-soft hover:bg-white"
+              className="grid h-11 w-11 shrink-0 place-items-center rounded-full text-ink-soft hover:bg-white lg:max-xl:w-9"
               aria-label={`${name}を外す`}
             >
               ×

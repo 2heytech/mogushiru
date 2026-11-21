@@ -35,6 +35,9 @@ type State = {
   // 作り方を何人分で見るか。栄養の計算の人前とは別（自分の分だけ数えて、家族の分まで作ることがあるため）。料理をまたいで覚えておく
   recipeServings: number
   setRecipeServings: (n: number) => void
+  // 料理を選ぶ窓の並べ方：絵のカード（false）か、名前を1行ずつ並べるリスト（true。1画面にたくさん出る）。次にひらいたときも同じ並べ方にする
+  pickerList: boolean
+  setPickerList: (on: boolean) => void
   // 最近入れた飲み物（「dish:beer」などのキーと、そのときの1杯の量）。料理を選ぶ画面で先に出す
   recentDrinks: RecentDrink[]
   rememberDrink: (key: string, cup?: DrinkSize) => void
@@ -124,6 +127,8 @@ export const useAppStore = create<State>()(
       menuSource: null,
       recipeServings: DEFAULT_SERVINGS,
       setRecipeServings: (n) => set({ recipeServings: clampServings(n) }),
+      pickerList: false,
+      setPickerList: (on) => set({ pickerList: on }),
       recentDrinks: [],
       rememberDrink: (key, cup) => set((s) => ({ recentDrinks: rememberDrink(s.recentDrinks, key, cup) })),
       recentLookups: [],
@@ -251,7 +256,7 @@ export const useAppStore = create<State>()(
       name: 'mogushiru',
       version: SCHEMA_VERSION,
       storage: safeStorage,
-      partialize: ({ profile, profileSet, menu, menuSource, myDishes, myProducts, favoriteProductIds, savedMenus, recipeServings, recentDrinks, recentLookups }) => ({
+      partialize: ({ profile, profileSet, menu, menuSource, myDishes, myProducts, favoriteProductIds, savedMenus, recipeServings, pickerList, recentDrinks, recentLookups }) => ({
         profile,
         profileSet,
         menu,
@@ -261,6 +266,7 @@ export const useAppStore = create<State>()(
         favoriteProductIds,
         savedMenus,
         recipeServings,
+        pickerList,
         recentDrinks,
         recentLookups,
       }),

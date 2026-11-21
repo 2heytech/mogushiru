@@ -106,8 +106,9 @@ function FeatureTabsCompact({ view, onChange }: { view: View; onChange: (v: View
             aria-current={current}
             onClick={(e) => inAppLink(e, () => onChange(f.view))}
             title={f.lead}
+            // いまいるメニューは、サンゴ色でぬる（ほかのタブと同じ見せ方。白いままだと、となりと見分けにくい）
             className={`flex min-h-12 items-center gap-1.5 rounded-full border-2 pr-3 pl-2 text-sm font-bold whitespace-nowrap transition xl:pr-4 ${
-              active ? 'border-coral bg-white text-coral-ink shadow-sm' : 'border-transparent bg-white/60 text-ink hover:bg-white'
+              active ? 'border-coral bg-coral text-ink-strong shadow-sm' : 'border-transparent bg-white/60 text-ink hover:bg-white'
             }`}
           >
             {f.icon}
@@ -153,12 +154,12 @@ function FeatureTabs({ view, onChange }: { view: View; onChange: (v: View) => vo
             aria-current={current}
             onClick={(e) => inAppLink(e, () => onChange(f.view))}
             className={`block min-h-14 rounded-2xl border-2 px-0.5 py-1.5 text-center transition sm:min-h-16 sm:px-4 sm:py-2 sm:text-left ${
-              active ? 'border-coral bg-white shadow-sm' : 'border-transparent bg-white/60 text-ink-soft hover:bg-white'
+              active ? 'border-coral bg-coral text-ink-strong shadow-sm' : 'border-transparent bg-white/60 text-ink-soft hover:bg-white'
             }`}
           >
             {/* スマホは3つ並ぶので、アイコンの下に名前だけ。広い画面では横並びに説明も添える */}
             <span
-              className={`flex flex-col items-center gap-0.5 text-2xs leading-[1.3] font-bold tracking-tight sm:flex-row sm:gap-1.5 sm:text-sm sm:tracking-normal lg:text-base lg:whitespace-nowrap ${active ? 'text-coral-ink' : 'text-ink'}`}
+              className={`flex flex-col items-center gap-0.5 text-2xs leading-[1.3] font-bold tracking-tight sm:flex-row sm:gap-1.5 sm:text-sm sm:tracking-normal lg:text-base lg:whitespace-nowrap ${active ? 'text-ink-strong' : 'text-ink'}`}
             >
               {f.icon}
               <span className="[word-break:keep-all]">
@@ -297,6 +298,8 @@ export default function App() {
     updateDrink,
     recentDrinks,
     rememberDrink,
+    pickerList,
+    setPickerList,
     recentLookups,
     rememberLookup,
     clearRecentLookups,
@@ -842,6 +845,8 @@ export default function App() {
           onUnpick={(uid) => removeItem(pickerSlot, uid)}
           onDrink={(uid, amount) => updateDrink(pickerSlot, uid, amount)}
           onRememberDrink={rememberDrink}
+          list={pickerList}
+          onList={setPickerList}
           onClose={() => {
             // スマホでは、足した料理がすぐ見えるように、その食事をひらいておく
             if (menu[pickerSlot].length > 0) setOpenSlot(pickerSlot)
