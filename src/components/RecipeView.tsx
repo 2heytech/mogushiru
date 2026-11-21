@@ -65,7 +65,8 @@ export function RecipeView({
 
       <section className={CARD} aria-label="材料">
         <h3 className="mb-1 text-sm font-bold">材料（{servings}人分）</h3>
-        <ul className="text-sm">
+        {/* 広い画面では、幅をつめる（名前と量がはなれると追いにくい） */}
+        <ul className="text-sm sm:max-w-md">
           {lines.map((l) => (
             <li key={l.key} className="flex justify-between gap-3 border-b border-dashed border-ink/10 py-1.5 last:border-b-0">
               <span>{l.name}</span>

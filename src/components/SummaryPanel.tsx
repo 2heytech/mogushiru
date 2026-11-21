@@ -197,12 +197,12 @@ export function DayInfo({
       aria-selected={selected}
       onClick={() => setTab(t.key)}
       className={`flex min-h-11 flex-1 items-center justify-center gap-1 rounded-full px-1 text-sm whitespace-nowrap transition lg:flex-none lg:px-6 ${
-        selected ? 'bg-white font-bold text-ink shadow-sm' : 'text-ink-soft hover:bg-white/60'
+        selected ? 'bg-coral font-bold text-ink-strong shadow-sm' : 'text-ink-soft hover:bg-cream'
       }`}
     >
       {t.label}
       {t.badge && (
-        <span className="grid h-[18px] min-w-[18px] place-items-center rounded-full bg-alert px-1 text-2xs leading-none font-bold text-ink-strong" aria-label={`とりすぎ ${t.badge}件`}>
+        <span className="grid h-[18px] min-w-[18px] place-items-center rounded-full bg-alert px-1 text-2xs leading-none font-bold text-ink-strong ring-2 ring-white" aria-label={`とりすぎ ${t.badge}件`}>
           {t.badge}
         </span>
       )}
@@ -244,7 +244,7 @@ export function DayInfo({
               )}
             </div>
           )}
-          <div role="tablist" aria-label="見る情報" className="flex gap-1 rounded-full bg-white/70 p-1 shadow-sm lg:hidden">
+          <div role="tablist" aria-label="見る情報" className="flex gap-1 rounded-full bg-white p-1 shadow-sm lg:hidden">
             {tabs.map((t) => tabButton(t, tab === t.key))}
           </div>
           {/* スマホ：気になる点と次に試すことを先頭に出す（結果を見てすぐ、何を直せばよいかと、そのボタンが読めるように）。その下に
@@ -284,7 +284,7 @@ export function DayInfo({
       <div className="min-w-0 space-y-3 lg:col-span-2 lg:mt-2">
         <div className="hidden items-center gap-3 lg:flex">
           <h2 className="text-lg font-bold">くわしく見る</h2>
-          <div role="tablist" aria-label="くわしく見る情報" className="flex gap-1 rounded-full bg-white/70 p-1 shadow-sm">
+          <div role="tablist" aria-label="くわしく見る情報" className="flex gap-1 rounded-full bg-white p-1 shadow-sm">
             {tabs.filter((t) => t.key !== 'summary').map((t) => tabButton(t, wideTab === t.key))}
           </div>
         </div>

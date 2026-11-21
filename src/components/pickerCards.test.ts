@@ -77,6 +77,10 @@ describe('カードと行の分け方', () => {
     expect(shape(cards, 'all', true)).toEqual(['行:f1', 'カード:d1'])
     expect(shape([card('food', 'f1')], 'food', false)).toEqual(['行:f1'])
   })
+  it('「リスト」の並べ方では、料理・お気に入りも行にする（並び順は変えない）', () => {
+    const cards = [card('dish', 'd1'), card('product', 'p1'), card('myDish', 'm1'), card('food', 'f1')]
+    expect(cardSegments(cards, 'all', false, true).map((s) => `${s.row ? '行' : 'カード'}:${s.cards.map((c) => c.key).join(',')}`)).toEqual(['行:d1,p1,m1,f1'])
+  })
   it('空のときは何も返さない', () => {
     expect(cardSegments([], 'all', false)).toEqual([])
   })

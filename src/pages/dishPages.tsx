@@ -242,7 +242,8 @@ export function dishesItemListJsonLd(pages: DishPageData[]): Record<string, unkn
 
 function Lines({ d }: { d: DishPageData }) {
   return (
-    <ul className="divide-y divide-ink/5 text-sm">
+    // 広い画面では、幅をつめる（名前と量がはなれると、どの量がどの材料か追いにくい）
+    <ul className="divide-y divide-ink/5 text-sm sm:max-w-md">
       {d.lines.map((l) => (
         <li key={l.key} className="flex items-baseline justify-between gap-3 py-1.5">
           <span>{l.name}</span>

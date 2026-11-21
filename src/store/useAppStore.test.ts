@@ -263,6 +263,17 @@ describe('作り方の人数', () => {
   })
 })
 
+describe('料理を選ぶ窓の並べ方', () => {
+  it('はじめは絵のカード。リストを選ぶと覚えて、保存するデータにも入れる（次にひらいたときも同じ並べ方）', () => {
+    expect(useAppStore.getInitialState().pickerList).toBe(false)
+    useAppStore.getState().setPickerList(true)
+    expect(useAppStore.getState().pickerList).toBe(true)
+    expect(useAppStore.persist.getOptions().partialize?.(useAppStore.getState())).toMatchObject({ pickerList: true })
+    useAppStore.getState().setPickerList(false)
+    expect(useAppStore.getState().pickerList).toBe(false)
+  })
+})
+
 describe('飲み物の杯数', () => {
   const long = { label: 'ロング缶', ml: 500, unit: '本' }
   beforeEach(() => {

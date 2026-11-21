@@ -98,6 +98,8 @@ export function Picker({
   onUnpick,
   onDrink,
   onRememberDrink,
+  list,
+  onList,
   onClose,
 }: {
   slot: Slot
@@ -127,6 +129,9 @@ export function Picker({
   onDrink: (uid: string, amount: Pick<MenuItem, 'portion' | 'cup'>) => void
   // 入れた飲み物を「最近の飲み物」として覚える
   onRememberDrink: (key: string, cup?: DrinkSize) => void
+  // 並べ方：絵のカード（false）か、名前を1行ずつ並べるリスト（true）
+  list: boolean
+  onList: (on: boolean) => void
   onClose: () => void
 }) {
   const dialogRef = useDialog(onClose)
@@ -241,7 +246,9 @@ export function Picker({
       setLastAction(`「${c.name}」を追加`)
     }
   }
-  const segments = useMemo(() => cardSegments(cards.slice(0, MAX_CARDS), tab, Boolean(query)), [cards, tab, query])
+  const segments = useMemo(() => cardSegments(cards.slice(0, MAX_CARDS), tab, Boolean(query), list), [cards, tab, query, list])
+  // カードで出すものがあるときだけ、並べ方（カード・リスト）を選べるようにする（市販品・食材は、もともと行で出す）
+  const canList = useMemo(() => cardSegments(cards.slice(0, MAX_CARDS), tab, Boolean(query)).some((seg) => !seg.row), [cards, tab, query])
   // 「すべて」の上に出す飲み物の列（最近入れたもの → この区分の定番）。押すたびに並びが変わらないよう、ひらいたときの順で
   const [stripRecent] = useState(recentDrinks)
   const drinkStrip = useMemo(() => drinkStripCards({ catalog, slot, showAlcohol }, stripRecent), [catalog, slot, showAlcohol, stripRecent])
@@ -283,19 +290,56 @@ export function Picker({
           </button>
         </div>
         {/* さがす欄をいちばん上に。種類（料理・市販品…）は、その下でしぼる */}
-        <div className="relative mb-2 shrink-0">
-          <svg viewBox="0 0 24 24" aria-hidden className="pointer-events-none absolute top-1/2 left-3.5 h-5 w-5 -translate-y-1/2 text-ink-soft" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
-            <circle cx="11" cy="11" r="6.5" />
-            <path d="M16 16l4.5 4.5" />
-          </svg>
-          <input
-            type="search"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder={PLACEHOLDER[tab]}
-            aria-label={PLACEHOLDER[tab]}
-            className="min-h-12 w-full rounded-full border-2 border-white bg-white pr-4 pl-11 text-base shadow-sm outline-none focus:border-coral"
-          />
+        <div className="mb-2 flex shrink-0 items-center gap-2">
+          <div className="relative min-w-0 flex-1">
+            <svg viewBox="0 0 24 24" aria-hidden className="pointer-events-none absolute top-1/2 left-3.5 h-5 w-5 -translate-y-1/2 text-ink-soft" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
+              <circle cx="11" cy="11" r="6.5" />
+              <path d="M16 16l4.5 4.5" />
+            </svg>
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              // 「すべて」は、となりに並べ方のボタンがあるので、スマホの幅でも切れない短い言葉にする
+              placeholder={tab === 'all' ? '料理や食材をさがす' : PLACEHOLDER[tab]}
+              aria-label={PLACEHOLDER[tab]}
+              className="min-h-12 w-full rounded-full border-2 border-white bg-white pr-4 pl-11 text-base shadow-sm outline-none focus:border-coral"
+            />
+          </div>
+          {/* 並べ方：絵のカードか、1画面にたくさん出るリストか。選んだ並べ方は、次にひらいたときも同じ */}
+          {canList && (
+            <div role="group" aria-label="並べ方" className="flex shrink-0 rounded-full bg-white p-0.5 shadow-sm">
+              {(
+                [
+                  [false, 'カードで並べる'],
+                  [true, 'リストで並べる（1画面にたくさん）'],
+                ] as const
+              ).map(([on, label]) => (
+                <button
+                  key={label}
+                  type="button"
+                  aria-pressed={list === on}
+                  aria-label={label}
+                  title={label}
+                  onClick={() => onList(on)}
+                  className={`grid h-11 w-11 place-items-center rounded-full ${list === on ? 'bg-coral text-ink-strong' : 'text-ink-soft hover:bg-cream'}`}
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                    {on ? (
+                      <path d="M4 6h16M4 12h16M4 18h16" />
+                    ) : (
+                      <>
+                        <rect x="4" y="4" width="6.5" height="6.5" rx="1.5" />
+                        <rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5" />
+                        <rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5" />
+                        <rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5" />
+                      </>
+                    )}
+                  </svg>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
         <div className="mb-2 flex shrink-0 gap-0.5 rounded-full bg-white p-1 sm:gap-1" role="tablist" aria-label="さがす種類">
           {TABS.map((t) => (
