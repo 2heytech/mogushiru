@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import type { Catalog } from '../domain/nutrition'
 import { NAMED_FOOD_IDS } from '../domain/ranking'
 import { NUTRIENT_KEYS, type Dish, type Food, type MyDish, type Nutrients, type Product } from '../domain/types'
-import { browseLookup, foodCard, lookupCard, lookupFacets, lookupIndex, searchLookup, sortHits, STAPLE_FOOD_IDS } from './lookupCards'
+import { browseLookup, dishIngredientsText, foodCard, lookupCard, lookupDishCard, lookupFacets, lookupIndex, searchLookup, sortHits, STAPLE_FOOD_IDS } from './lookupCards'
 
 // テスト用の架空の食材・料理・商品（値は実データではない）
 const n = (over: Partial<Nutrients> = {}): Nutrients => ({ ...(Object.fromEntries(NUTRIENT_KEYS.map((k) => [k, 0])) as Nutrients), ...over })
@@ -209,12 +209,72 @@ describe('食材のカード', () => {
     // 肉（食品群11）は1回 80g
     const card = foodCard(food('90010', 'ぶた　ロース　脂身つき　生', '豚ロース', 'ぶた/ろーす'))
     expect(card.item).toEqual({ kind: 'food', refId: '90010', portion: 80 })
-    expect(card.sub).toBe('1食分（80g）')
+    // 同じ名前の料理と見分けられるように、食材だけの値であることを書く
+    expect(card.sub).toBe('食材のみ・1食分（80g）')
     expect(card.kcal).toBe(160)
   })
   it('カロリーが未測定の食材は、カロリーを出さない（0 にしない）', () => {
     const f = food('90011', 'なにか', 'なにか', 'なにか')
     f.per100g.energyKcal = null
     expect(foodCard(f).kcal).toBeNull()
+  })
+})
+
+describe('食材と料理の見分け', () => {
+  // 架空の「納豆」（食材）と「納豆（1パック）」（料理：納豆としょうゆ）
+  const c = () => {
+    const base = catalog()
+    base.foods.set('90030', food('90030', 'だいず　糸引き納豆', '納豆', 'なっとう', '04'))
+    base.foods.set('90031', food('90031', 'こいくちしょうゆ', 'しょうゆ（濃口）', 'しょうゆ', '17'))
+    base.dishes.set(
+      'd-natto',
+      dish('d-natto', '納豆（1パック）', 'なっとう', {
+        ingredients: [
+          { foodId: '90030', grams: 45 },
+          { foodId: '90031', grams: 3 },
+        ],
+      }),
+    )
+    return base
+  }
+
+  it('材料が3つまでの料理は、何がどれだけ入っているかを書く', () => {
+    const cat = c()
+    const natto = cat.dishes.get('d-natto')!
+    expect(dishIngredientsText(natto, cat)).toBe('納豆45g＋しょうゆ（濃口）3g')
+    expect(lookupDishCard(natto, cat).sub).toBe('納豆45g＋しょうゆ（濃口）3g・主菜')
+  })
+
+  it('さがした結果で、食材は「食材のみ」、料理は材料が分かる', () => {
+    const sections = search('納豆', c())
+    const sub = (kind: string) => sections.find((s) => s.kind === kind)?.hits.map((x) => x.card.sub)
+    expect(sub('food')).toEqual(['食材のみ・1パック（45g）'])
+    expect(sub('dish')).toEqual(['納豆45g＋しょうゆ（濃口）3g・主菜'])
+  })
+
+  it('半端なグラム数は、小数1けたで書く', () => {
+    const cat = c()
+    const d = dish('d-half', 'しょうゆ少し', 'しょうゆすこし', { ingredients: [{ foodId: '90031', grams: 2.5 }] })
+    expect(dishIngredientsText(d, cat)).toBe('しょうゆ（濃口）2.5g')
+  })
+
+  it('材料が4つ以上の料理・材料が分からない料理は、料理の種類だけ', () => {
+    const cat = c()
+    const many = dish('d-many', '具だくさん', 'ぐだくさん', {
+      ingredients: ['90001', '90002', '90003', '90030'].map((foodId) => ({ foodId, grams: 10 })),
+    })
+    expect(dishIngredientsText(many, cat)).toBeNull()
+    expect(lookupDishCard(many, cat).sub).toBe('主菜')
+    // 材料のない料理（既製品の値をそのまま持つもの）
+    expect(dishIngredientsText(cat.dishes.get('d-curry')!, cat)).toBeNull()
+    // カタログにない食材を含む
+    const unknown = dish('d-unknown', 'なぞの小鉢', 'なぞのこばち', { ingredients: [{ foodId: 'none', grams: 10 }] })
+    expect(dishIngredientsText(unknown, cat)).toBeNull()
+  })
+})
+
+describe('書き方のゆれ', () => {
+  it('「鶏胸肉」「とりむね肉」「鳥むね肉」で、鶏むね肉が出る', () => {
+    for (const q of ['鶏胸肉', 'とりむね肉', '鳥むね肉', 'とりむねにく', '鶏むね']) expect(names(q, 'food'), q).toContain('鶏むね肉')
   })
 })

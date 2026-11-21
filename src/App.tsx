@@ -12,6 +12,8 @@ import type { Step } from './domain/daySummary'
 import { ProfileDialog, type ProfileFocus } from './components/ProfileDialog'
 import { SlotStrip } from './components/SlotStrip'
 import { DayMenuPanel } from './components/DayMenuPanel'
+import { LoadProblemContext } from './components/loadProblemContext'
+import { LoadProblemNote } from './components/LoadProblemNote'
 import { ArrangeLink, BackRow, StartChoice } from './components/StartChoice'
 import { RankingView } from './components/RankingView'
 import { FoodDetailDialog } from './components/FoodDetailDialog'
@@ -46,9 +48,10 @@ import { ConfirmHost } from './components/ConfirmDialog'
 import { IdealMealDialog, MenuActions, SaveMenuDialog, SavedMenusDialog, SlotChoiceSheet } from './components/SavedMenus'
 import { MenuBuilderDialog } from './components/MenuBuilder'
 import { DayInfo } from './components/SummaryPanel'
-import { useCatalog, withMyData } from './data/catalog'
+import { STORES_DATA_NAME, useCatalog, withMyData } from './data/catalog'
 import { usePrices } from './data/prices'
 import { knownItemsOnly, menuTotals, type Catalog } from './domain/nutrition'
+import { resultPreview, SAMPLE_MENU_ID } from './domain/resultPreview'
 import { dayFoods } from './domain/foodBalance'
 import { swapIdeas } from './domain/swaps'
 import { computeTargets } from './domain/targets'
@@ -67,8 +70,8 @@ const sameIngredients = (a: Ingredient[], b: Ingredient[]) =>
 const NAV_BUTTON =
   'flex min-h-11 items-center justify-center gap-1 whitespace-nowrap rounded-full bg-white pr-3 pl-2 text-xs leading-tight font-bold shadow-sm sm:pr-4 sm:pl-3 sm:text-sm sm:font-normal'
 
-// 最初の画面の「サンプルで結果を見る」で入れる献立の例（市販品を使わないので、すぐ入れられる）
-const SAMPLE_MENU_ID = 'washoku'
+// 最初の画面の「結果の例」に使う献立の名前（データを読み終える前から、枠の高さをそろえるのに使う）
+const SAMPLE_MENU_NAME = IDEAL_MENUS.find((m) => m.id === SAMPLE_MENU_ID)?.name
 
 // lg（ヘッダーに1段で並べる幅）は、「栄養の目安を設定」のボタンと並ぶので少し小さく
 const ICON_CLASS = 'h-6 w-6 shrink-0 sm:h-9 sm:w-9 lg:h-7 lg:w-7 xl:h-9 xl:w-9'
@@ -243,7 +246,7 @@ function dropQueryParam(name: string) {
 }
 
 export default function App() {
-  const catalogState = useCatalog()
+  const { state: catalogState, loadStores, retry: retryLoad, retrying } = useCatalog()
   const prices = usePrices()
   const { view, screen, go } = useView()
   // 「食品を調べる」「料理をアレンジ」で1日の食事に足したあとは、「栄養バランス」を1日の食事からひらく（最初の画面のままだと、足したものを見るのにもう1回押すことになる）
@@ -260,6 +263,15 @@ export default function App() {
     go('menu', 'day')
   }
   const openStart = () => go('menu', 'start')
+  // 最初の画面の「結果の例」から1日の食事をひらいたとき：スマホ（幅768px未満）では、まとめの「気になる点」「次に試すこと」まで
+  // 開いてすぐ読めるように、1日の食事のかたまりを画面の上に合わせる（上のメニューともどり口の分だけ送る。上へスクロールすればもどれる）
+  const showResultFirst = useRef(false)
+  useEffect(() => {
+    if (screen !== 'day' || !showResultFirst.current) return
+    showResultFirst.current = false
+    if (!window.matchMedia('(max-width: 767px)').matches) return
+    document.getElementById('day-menu')?.scrollIntoView({ block: 'start' })
+  }, [screen])
   // 「料理をアレンジ」の画面へ（栄養バランスの中の画面。そこからのもどり先は、下の arrangeBack）
   const openArrange = () => go('customize')
   const {
@@ -331,11 +343,18 @@ export default function App() {
   )
   // コンビニ・メーカーの商品はあとから読むので、読み終えるまでは「ない商品」と決めつけない
   const storesLoaded = catalogState.status === 'ready' && catalogState.storesLoaded
+  // 読み込めなかったデータ（通信の失敗など）。あるあいだは、もう一度読み込む案内を出す
+  const loadProblem = useMemo(
+    () => ({ failed: catalogState.status === 'ready' ? catalogState.failed : [], retry: retryLoad, retrying }),
+    [catalogState, retryLoad, retrying],
+  )
+  // コンビニ・メーカーの商品を読み終えて、中身がそろっている（読み込めなかったときは、ない商品と決めつけない）
+  const storesReady = storesLoaded && !loadProblem.failed.includes(STORES_DATA_NAME)
   // データの更新でなくなった市販品などが1日の食事に残っていても、画面が止まらないように外して計算する
   const menu = useMemo(() => (catalog ? knownItemsOnly(storedMenu, catalog) : storedMenu), [catalog, storedMenu])
   useEffect(() => {
-    if (catalog && storesLoaded && menu !== storedMenu) pruneMenu((m) => knownItemsOnly(m, catalog))
-  }, [catalog, storesLoaded, menu, storedMenu, pruneMenu])
+    if (catalog && storesReady && menu !== storedMenu) pruneMenu((m) => knownItemsOnly(m, catalog))
+  }, [catalog, storesReady, menu, storedMenu, pruneMenu])
   // 1日の食事にコンビニ・メーカーの商品が入っていれば、読み終えるまで待ってから出す（入っていなければすぐ出す）
   const waitingForStores = Boolean(catalog) && !storesLoaded && menu !== storedMenu
   const totals = useMemo(() => (catalog ? menuTotals(menu, catalog) : null), [catalog, menu])
@@ -343,7 +362,7 @@ export default function App() {
   const foods = useMemo(() => (catalog ? dayFoods(menu, catalog) : null), [catalog, menu])
   // 減塩・全粒穀物への置きかえの案（栄養素のタブに出す）
   const swaps = useMemo(() => (catalog ? swapIdeas(menu, catalog) : []), [catalog, menu])
-  // 最初の画面（献立の例から選ぶ／自分の食事で試す／サンプルで結果を見る）。入口を選んで先へ進んだら、料理を全部外しても出さない。
+  // 最初の画面（結果の例／献立の例から選ぶ／自分の食事で試す）。入口を選んで先へ進んだら、料理を全部外しても出さない。
   // もどるのは「最初の画面にもどる」・ロゴ・ブラウザの戻る・リセット（料理が入ったままでも出す）
   const showStart = screen === 'start'
   const itemCount = SLOTS.reduce((n, s) => n + menu[s].length, 0)
@@ -353,6 +372,20 @@ export default function App() {
     const ideal = IDEAL_MENUS.find((m) => m.id === SAMPLE_MENU_ID)
     return ideal && catalog && idealMenuAvailable(ideal, catalog) ? ideal : undefined
   }, [catalog])
+  // 最初の画面の「結果の例」：その献立を、いまの目安（プロフィール）に合わせた量で入れたときの結果。最初の画面を出しているときだけ計算する
+  const samplePreview = useMemo(
+    () => (showStart && sampleMenu && catalog ? resultPreview(sampleMenu.name, adjustIdealMenu(sampleMenu, catalog, targets), catalog, targets) : undefined),
+    [showStart, sampleMenu, catalog, targets],
+  )
+
+  // コンビニ・メーカーの商品（圧縮後でも約0.8MB）は、使う画面をひらいたときに読みはじめる：1日の食事（料理を選ぶ・保存した食事）、食品を調べる、
+  // 献立の例から選ぶ窓、保存した食事の窓。1日の食事に、まだ読んでいない商品が入っているときも読む。
+  // 最初の画面を見ているだけのとき・成分ランキング・料理をアレンジ・このサイトについて では読まない
+  const needsStores =
+    view === 'foods' || (view === 'menu' && !showStart) || builderOpen || savedDialog !== null || pickerSlot !== null || idealMealSlot !== null || (catalog !== null && menu !== storedMenu)
+  useEffect(() => {
+    if (needsStores) loadStores()
+  }, [needsStores, loadStores])
 
   // 成分ランキングのページから「くらべ方を変えて見る」で来たとき（/ranking/#n=iron）は、その成分を選んだ状態で開く
   const [rankingStart, setRankingStart] = useState(() => nutrientFromSlug(queryParam('n')) ?? undefined)
@@ -384,8 +417,8 @@ export default function App() {
     const id = menuRequest.current
     if (!id || !catalog) return
     const ideal = IDEAL_MENUS.find((m) => m.id === id)
-    // 市販品を使う献立は、コンビニ・メーカーの商品を読み終えるまで待つ
-    if (ideal && !idealMenuAvailable(ideal, catalog) && idealMenuHasProducts(ideal) && !storesLoaded) return
+    // 市販品を使う献立は、コンビニ・メーカーの商品を読みはじめて、読み終えるまで待つ
+    if (ideal && !idealMenuAvailable(ideal, catalog) && idealMenuHasProducts(ideal) && !storesLoaded) return loadStores()
     menuRequest.current = null
     dropQueryParam('menu')
     if (!ideal || !idealMenuAvailable(ideal, catalog)) return
@@ -398,7 +431,7 @@ export default function App() {
       // 料理が入っていたときは、もう1日の食事を出している
       goRef.current('menu', 'day', empty ? 'replace' : 'push')
     })()
-  }, [catalog, storesLoaded, targets, replaceMenu])
+  }, [catalog, storesLoaded, loadStores, targets, replaceMenu])
 
   // 飲み物の杯数・1杯の量を変えて、最近の飲み物として覚える
   const changeDrink = (slot: Slot, item: MenuItem, amount: Pick<MenuItem, 'portion' | 'cup'>) => {
@@ -556,8 +589,13 @@ export default function App() {
     )
   }
 
+  // 画面の中身を出せるか（最初の画面と「このサイトについて」は、データを待たない）。フッターは中身と一緒に出す
+  // （読み込み中に先に出すと、中身が出たときに押し下げられて画面が動く）
+  const contentReady = view === 'about' || (view === 'menu' && showStart) || Boolean(catalog && totals && (view !== 'menu' || !waitingForStores))
+
   return (
-    // スマホは1日の食事のボタンを下に固定するので、そのぶん下をあける
+    <LoadProblemContext.Provider value={loadProblem}>
+    {/* スマホは1日の食事のボタンを下に固定するので、そのぶん下をあける */}
     <div className={`mx-auto max-w-6xl px-4 ${view === 'menu' && !showStart ? 'pb-32 md:pb-16' : 'pb-16'}`}>
       <header className="flex items-center justify-between gap-2 py-2.5 sm:gap-4 sm:py-4 lg:gap-3 xl:gap-4">
         {/* ロゴは見出し（h1）にしない。h1 は、それぞれの画面の見出し（最初の画面のキャッチコピー・「1日の食事」・「食品を調べる」など）。
@@ -597,9 +635,8 @@ export default function App() {
 
       <FeatureTabs view={view} onChange={setView} />
 
-      {catalogState.status === 'ready' && catalogState.missing.length > 0 && (
-        <p className="mb-4 rounded-xl bg-caution/20 px-4 py-2 text-sm">データ準備中：{catalogState.missing.join('・')}のデータはまだ読み込めません</p>
-      )}
+      {/* データを読み込めなかったとき（通信の失敗など）：もう一度読み込む案内 */}
+      <LoadProblemNote className="mb-4" />
 
       {view === 'about' ? (
         <main tabIndex={-1} className="outline-none">
@@ -648,112 +685,125 @@ export default function App() {
         <main tabIndex={-1} className="space-y-4 outline-none">
           <RankingView catalog={catalog} targets={targets} prices={prices} initialNutrient={rankingStart} onOpenFood={openFood} />
         </main>
+      ) : view === 'menu' && showStart ? (
+        <main tabIndex={-1} className="space-y-4 outline-none">
+          {/* 入口を選ぶまでは、朝・昼・晩や栄養の表示を出さない。料理・食材のデータを読み終える前から出す
+              （データを待つのは「結果の例」だけ。読み込み中に、画面の下のほうが動かないように） */}
+          <StartChoice
+            savedCount={savedMenus.length}
+            preview={samplePreview}
+            previewLoading={!catalog}
+            previewName={SAMPLE_MENU_NAME}
+            // データを読み終える前（と、入っている商品を読み終える前）は、カロリーを出さない
+            current={itemCount > 0 ? { count: itemCount, kcal: totals && !waitingForStores ? totals.day.values.energyKcal : undefined } : undefined}
+            onResume={openDay}
+            onTrySample={async () => {
+              if (!sampleMenu || !catalog) return
+              if (itemCount > 0 && !(await confirmDialog(`いまの1日の食事を「${sampleMenu.name}」に置き換えますか？`, { okLabel: '置き換える' }))) return
+              // いまの目安（プロフィール）に合わせた量で入れる
+              replaceMenu(adjustIdealMenu(sampleMenu, catalog, targets), sampleMenu.name)
+              showResultFirst.current = true
+              openDay()
+            }}
+            onBuild={() => setBuilderOpen(true)}
+            onOpenSaved={() => setSavedDialog('load')}
+            onArrange={openArrange}
+            // 朝・昼・晩に料理を入れていく画面へ（どの食事から入れるかは、そこで選ぶ）。
+            // 料理が入っているときは、空から始めるかを確かめる（そのまま続けるなら、上の「いまの1日の食事にもどる」）
+            onPickSelf={async () => {
+              if (itemCount > 0) {
+                if (!(await confirmDialog(`いま入っている料理（${itemCount}品）をすべて外して、空から始めますか？`, { okLabel: '空から始める', danger: true }))) return
+                clearMenu()
+                setOpenSlot(null)
+              }
+              openDay()
+            }}
+          />
+        </main>
       ) : catalog && totals && !waitingForStores ? (
         <main tabIndex={-1} className="space-y-4 outline-none">
-          {showStart ? (
-            // 入口を選ぶまでは、朝・昼・晩や栄養の表示を出さない
-            <StartChoice
-              savedCount={savedMenus.length}
-              sampleName={sampleMenu?.name}
-              current={itemCount > 0 ? { count: itemCount, kcal: totals.day.values.energyKcal } : undefined}
-              onResume={openDay}
-              onTrySample={async () => {
-                if (!sampleMenu) return
-                if (itemCount > 0 && !(await confirmDialog(`いまの1日の食事を「${sampleMenu.name}」に置き換えますか？`, { okLabel: '置き換える' }))) return
-                // いまの目安（プロフィール）に合わせた量で入れる
-                replaceMenu(adjustIdealMenu(sampleMenu, catalog, targets), sampleMenu.name)
-                openDay()
-              }}
-              onBuild={() => setBuilderOpen(true)}
-              onOpenSaved={() => setSavedDialog('load')}
-              onArrange={openArrange}
-              // 朝・昼・晩に料理を入れていく画面へ（どの食事から入れるかは、そこで選ぶ）。
-              // 料理が入っているときは、空から始めるかを確かめる（そのまま続けるなら、上の「いまの1日の食事にもどる」）
-              onPickSelf={async () => {
-                if (itemCount > 0) {
-                  if (!(await confirmDialog(`いま入っている料理（${itemCount}品）をすべて外して、空から始めますか？`, { okLabel: '空から始める', danger: true }))) return
-                  clearMenu()
-                  setOpenSlot(null)
-                }
-                openDay()
-              }}
-            />
-          ) : (
-            // スマホ：上に1日の食事（見出し・朝〜その他）、その下に結果。
-            // 広い画面（lg 以上）：左に1日の食事、右にまとめを並べて、料理や量を変えた結果をすぐ横で見られるようにする。くわしい内容はその下
-            <>
-              {/* いちばん上の行：左に最初の画面へのもどり口、右に「料理をアレンジ」の画面への入口。
-                  広い画面では、下の「1日の食事」の右はしにそろえる（列の幅は、下の grid の 1.4 : 1 と同じ） */}
-              <BackRow label="最初の画面にもどる" shortLabel="最初の画面へ" onClick={openStart} className="lg:w-[calc((100%-1rem)*7/12)]">
-                <ArrangeLink onClick={openArrange} />
-              </BackRow>
-              <div className="space-y-4 lg:grid lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] lg:items-start lg:gap-4 lg:space-y-0">
-                <div className="min-w-0 lg:col-start-1 lg:row-start-1">
-                  <DayMenuPanel
-                    source={menuSource}
+          {/* スマホ：上に1日の食事（見出し・朝〜その他）、その下に結果。
+              広い画面（lg 以上）：左に1日の食事、右にまとめを並べて、料理や量を変えた結果をすぐ横で見られるようにする。くわしい内容はその下 */}
+          {/* いちばん上の行：左に最初の画面へのもどり口、右に「料理をアレンジ」の画面への入口。
+              広い画面では、下の「1日の食事」の右はしにそろえる（列の幅は、下の grid の 1.4 : 1 と同じ） */}
+          <BackRow label="最初の画面にもどる" shortLabel="最初の画面へ" onClick={openStart} className="lg:w-[calc((100%-1rem)*7/12)]">
+            <ArrangeLink onClick={openArrange} />
+          </BackRow>
+          <div className="space-y-4 lg:grid lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] lg:items-start lg:gap-4 lg:space-y-0">
+            <div className="min-w-0 lg:col-start-1 lg:row-start-1">
+              <DayMenuPanel
+                source={menuSource}
+                totals={totals}
+                targets={targets}
+                actions={(layout) => (
+                  <MenuActions
+                    menu={menu}
                     totals={totals}
-                    targets={targets}
-                    actions={(layout) => (
-                      <MenuActions
-                        menu={menu}
-                        totals={totals}
-                        layout={layout}
-                        savedCount={savedMenus.length}
-                        openSlot={openSlot}
-                        onAdd={setPickerSlot}
-                        onOpenBuild={() => setBuilderOpen(true)}
-                        onOpenSave={() => setSavedDialog('save')}
-                        onOpenSaved={() => setSavedDialog('load')}
-                        onArrange={openArrange}
-                        onBackToStart={openStart}
-                        onReset={() => {
-                          clearMenu()
-                          setOpenSlot(null)
-                          openStart()
-                        }}
-                      />
-                    )}
-                  >
-                    <SlotStrip
-                      menu={menu}
-                      totals={totals}
-                      targets={targets}
-                      catalog={catalog}
-                      open={openSlot}
-                      onOpenChange={setOpenSlot}
-                      onAdd={setPickerSlot}
-                      onRemove={removeItem}
-                      onDrink={(slot, item, amount) => changeDrink(slot, item, amount)}
-                      onEdit={(slot, uid) => setEditing({ slot, uid })}
-                    />
-                  </DayMenuPanel>
-                </div>
-                <DayInfo
+                    layout={layout}
+                    savedCount={savedMenus.length}
+                    openSlot={openSlot}
+                    onAdd={setPickerSlot}
+                    onOpenBuild={() => setBuilderOpen(true)}
+                    onOpenSave={() => setSavedDialog('save')}
+                    onOpenSaved={() => setSavedDialog('load')}
+                    onArrange={openArrange}
+                    onBackToStart={openStart}
+                    onReset={() => {
+                      clearMenu()
+                      setOpenSlot(null)
+                      openStart()
+                    }}
+                  />
+                )}
+              >
+                <SlotStrip
+                  menu={menu}
                   totals={totals}
-                  foods={foods}
-                  swaps={swaps}
-                  onSwap={(idea) => customizeItem(idea.slot, idea.uid, idea.ingredients)}
                   targets={targets}
-                  profile={profile}
-                  profileSet={profileSet}
-                  missingSlots={missingMealSlots(menu, targets)}
-                  onEditSlotShare={() => {
-                    setProfileFocus('slotShare')
-                    setProfileOpen(true)
-                  }}
-                  onEditExercise={() => {
-                    setProfileFocus('exercise')
-                    setProfileOpen(true)
-                  }}
-                  onEditProfile={() => setProfileOpen(true)}
-                  onStep={runStep}
+                  catalog={catalog}
+                  open={openSlot}
+                  onOpenChange={setOpenSlot}
+                  onAdd={setPickerSlot}
+                  onRemove={removeItem}
+                  onDrink={(slot, item, amount) => changeDrink(slot, item, amount)}
+                  onEdit={(slot, uid) => setEditing({ slot, uid })}
                 />
-              </div>
-            </>
-          )}
+              </DayMenuPanel>
+            </div>
+            <DayInfo
+              totals={totals}
+              foods={foods}
+              swaps={swaps}
+              onSwap={(idea) => customizeItem(idea.slot, idea.uid, idea.ingredients)}
+              targets={targets}
+              profile={profile}
+              profileSet={profileSet}
+              missingSlots={missingMealSlots(menu, targets)}
+              onEditSlotShare={() => {
+                setProfileFocus('slotShare')
+                setProfileOpen(true)
+              }}
+              onEditExercise={() => {
+                setProfileFocus('exercise')
+                setProfileOpen(true)
+              }}
+              onEditProfile={() => setProfileOpen(true)}
+              onStep={runStep}
+            />
+          </div>
         </main>
       ) : (
-        <p className="py-20 text-center text-ink-soft">読み込み中…</p>
+        // 読み込み中は、画面の高さいっぱいをとっておく（中身が出たときに、下のものが押し下げられて動かないように。フッターも、中身と一緒に出す）
+        <p role="status" className="grid min-h-[70vh] place-items-center text-ink-soft">
+          読み込み中…
+        </p>
+      )}
+
+      {/* データを読み終える前に「献立の例から選ぶ」「保存した食事を呼び出す」を押したとき：窓がひらくまでのあいだ */}
+      {!catalog && (builderOpen || savedDialog === 'load') && (
+        <p role="status" className="fixed inset-x-4 bottom-6 z-50 mx-auto w-fit rounded-full bg-ink-strong px-5 py-3 text-sm font-bold text-white shadow-lg">
+          データを読み込んでいます…
+        </p>
       )}
 
       {catalog && pickerSlot && (
@@ -867,7 +917,7 @@ export default function App() {
           onLoad={(m) => {
             // データの更新でなくなった料理があっても止まらないように外してから入れる
             // コンビニ・メーカーの商品を読み終える前は外さない（読み終えたあとに外す）
-            loadMenu(m.id, storesLoaded ? (x) => knownItemsOnly(x, catalog) : undefined)
+            loadMenu(m.id, storesReady ? (x) => knownItemsOnly(x, catalog) : undefined)
             setSavedDialog(null)
             openDay()
           }}
@@ -912,7 +962,8 @@ export default function App() {
           onClose={() => setFoodDetail(null)}
         />
       )}
-      <SiteFooter onAbout={() => setView('about')} />
+      {contentReady && <SiteFooter onAbout={() => setView('about')} />}
     </div>
+    </LoadProblemContext.Provider>
   )
 }

@@ -17,15 +17,16 @@ describe('「料理をアレンジ」の入口（栄養バランスの中）', (
     expect(html).toContain('料理をアレンジ')
   })
 
-  it('最初の画面：保存した食事がなくても、3つの入口の下に出す', () => {
+  it('最初の画面：保存した食事がなくても、入口の下に出す', () => {
     const start = (savedCount: number) =>
-      renderToStaticMarkup(<StartChoice savedCount={savedCount} sampleName="和食の定番" onResume={noop} onPickSelf={noop} onBuild={noop} onOpenSaved={noop} onArrange={noop} onTrySample={noop} />)
+      renderToStaticMarkup(<StartChoice savedCount={savedCount} previewLoading onResume={noop} onPickSelf={noop} onBuild={noop} onOpenSaved={noop} onArrange={noop} onTrySample={noop} />)
     expect(start(0)).toContain('href="/customize/"')
     expect(start(0)).not.toContain('保存した食事を呼び出す')
     expect(start(2)).toContain('href="/customize/"')
     expect(start(2)).toContain('保存した食事を呼び出す')
-    // 3つの入口のあとに置く
-    expect(start(0).indexOf('サンプルで結果を見る')).toBeLessThan(start(0).indexOf('href="/customize/"'))
+    // 入口（献立の例から選ぶ・自分の食事で試す）のあとに置く
+    expect(start(0).indexOf('自分の食事で試す')).toBeGreaterThan(0)
+    expect(start(0).indexOf('自分の食事で試す')).toBeLessThan(start(0).indexOf('href="/customize/"'))
   })
 
   it('1日の食事の上の行：左にもどり口、右に入口。せまい幅用の短い名前も持つ', () => {

@@ -18,6 +18,8 @@ import type { DishCategory, DrinkSize, MenuItem, Slot } from '../domain/types'
 import { MY_PRODUCT_PREFIX } from '../store/useAppStore'
 import { DISH_CATEGORY_LABEL, PRODUCT_CATEGORY_LAST, PRODUCT_STORES, SLOT_LABEL, STORE_FILTER_PREFIX } from './labels'
 import { buildCards, cardSegments, drinkStripCards, FRUIT, KYODO, productStore, type Card, type Kind, type Tab } from './pickerCards'
+import { useLoadFailed } from './loadProblemContext'
+import { LoadProblemNote } from './LoadProblemNote'
 import { UiIcon } from './UiIcon'
 import { useDialog } from './useDialog'
 
@@ -128,6 +130,7 @@ export function Picker({
   onClose: () => void
 }) {
   const dialogRef = useDialog(onClose)
+  const loadFailed = useLoadFailed()
   const [tab, setTab] = useState<Tab>(start?.tab ?? 'all')
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState(start?.category ?? 'all')
@@ -344,6 +347,8 @@ export function Picker({
             コンビニ・メーカーの商品を読み込み中…
           </p>
         )}
+        {/* 読み込めなかったデータがあるとき：ないのではなく、読み込めていないことを伝える */}
+        <LoadProblemNote className="mb-2 shrink-0" />
         <div ref={listRef} className="-mx-1 min-h-0 flex-1 overflow-y-auto px-1">
           {cards.length === 0 ? (
             <p className="py-10 text-center text-sm text-ink-soft">
@@ -353,7 +358,9 @@ export function Picker({
                   ? 'まだお気に入りはありません。1日の食事に入れた料理を「アレンジ」して保存するか、市販品に☆を付けると、ここに並びます'
                   : tab === 'supplement' && !query
                     ? 'まだサプリはありません。ふだん飲んでいるサプリを、ラベルの成分表示を見て登録すると、ここに並びます'
-                    : '見つかりませんでした'}
+                    : loadFailed
+                      ? '読み込めなかったデータがあるため、見つからないのかもしれません'
+                      : '見つかりませんでした'}
             </p>
           ) : (
             <>

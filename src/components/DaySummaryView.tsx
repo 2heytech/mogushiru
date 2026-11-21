@@ -26,9 +26,20 @@ function Group({ tone, mark, title, children }: { tone: keyof typeof TONE; mark:
 
 // まとめの中身。上から「目安の範囲内」「気になる点」「次に試すこと」の順に読めるように分ける。
 // onStep：次に試すことのボタン（料理を足す画面をひらく・成分ランキングを見る など）
-export function DaySummaryView({ summary, onStep }: { summary: DaySummary; onStep?: (step: Step) => void }) {
+// part：一部だけを出す（スマホのまとめは、気になる点と次に試すことを先頭に、目安の範囲内をカロリーのあとに置くので、2つに分けて出す）。
+//   attention … 入力の途中・気になる点・次に試すこと ／ ok … 目安の範囲内。出すものがなければ何も出さない
+export function DaySummaryView({ summary, onStep, part }: { summary: DaySummary; onStep?: (step: Step) => void; part?: 'attention' | 'ok' }) {
   if (summary.state === 'empty') return null
   const { ok, near, concerns, steps } = summary
+  const partial = summary.state === 'partial'
+  const showOk = ok.length > 0 || (summary.state === 'full' && near.length > 0)
+  const show = {
+    partial: partial && part !== 'ok',
+    ok: showOk && part !== 'attention',
+    concerns: concerns.length > 0 && part !== 'ok',
+    steps: steps.length > 0 && part !== 'ok',
+  }
+  if (!show.partial && !show.ok && !show.concerns && !show.steps) return null
   const nearList = near.length > 0 && (
     <p className="mt-1 text-xs leading-relaxed text-ink-soft">
       <span className="font-bold text-ink">範囲内ですが、上限に近いもの：</span>
@@ -38,7 +49,7 @@ export function DaySummaryView({ summary, onStep }: { summary: DaySummary; onSte
   return (
     // 文節の切れ目で折り返す（対応しているブラウザだけ。「0／回」のような折り返しを避ける）
     <div className="space-y-2 [word-break:auto-phrase]">
-      {summary.state === 'partial' && (
+      {show.partial && (
         <Group tone="concern" mark="…" title="入力の途中">
           <p className="text-sm leading-relaxed">
             {summary.missing.map((s) => SLOT_LABEL[s]).join('・')}がまだ入っていません。入れると、1日のバランスがわかります。
@@ -46,13 +57,13 @@ export function DaySummaryView({ summary, onStep }: { summary: DaySummary; onSte
           {nearList}
         </Group>
       )}
-      {(ok.length > 0 || (summary.state === 'full' && near.length > 0)) && (
+      {show.ok && (
         <Group tone="ok" mark="✓" title="目安の範囲内">
           {ok.length > 0 && <p className="text-sm leading-relaxed">{ok.map((k) => OK_LABEL[k]).join('、')}</p>}
           {nearList}
         </Group>
       )}
-      {concerns.length > 0 && (
+      {show.concerns && (
         <Group tone="concern" mark="!" title="気になる点">
           <ul className="space-y-1 text-sm leading-relaxed">
             {concerns.map((c, i) => (
@@ -66,7 +77,7 @@ export function DaySummaryView({ summary, onStep }: { summary: DaySummary; onSte
           </ul>
         </Group>
       )}
-      {steps.length > 0 && (
+      {show.steps && (
         <Group tone="next" mark="→" title="次に試すこと">
           <ul className="space-y-1.5 text-sm leading-snug">
             {steps.map((s, i) => {

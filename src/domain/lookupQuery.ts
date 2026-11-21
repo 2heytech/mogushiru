@@ -1,4 +1,4 @@
-import { normalizeForSearch, ranker } from './search'
+import { normalizeForSearch, normalizeReading, normalizeWithMap, splitRanker } from './search'
 
 // 「食品を調べる」の名前でさがすときの、言葉の読み方と一致の度合い。
 // 料理を選ぶ画面の検索（search.ts の rankAcross）より広くさがす：
@@ -46,7 +46,8 @@ const SYNONYM_MAP = new Map(Object.entries(SYNONYMS).map(([word, others]) => [no
 // 別の呼び名（入れた言葉は入れない）
 export const synonymsOf = (word: string): string[] => SYNONYM_MAP.get(normalizeForSearch(word)) ?? []
 
-type Rank = (...fields: (string | undefined)[]) => number | null
+// plain：書いたままの字でくらべる。reading：漢字の言葉をひらがなにそろえてくらべる（「鶏胸肉」「とりむね肉」で「鶏むね肉」）
+type Rank = ReturnType<typeof splitRanker>
 
 export type LookupQuery = {
   // 空白で区切った言葉ごとの、入れた言葉と別の呼び名（どれかに一致すればよい）。言葉はすべてに一致するものをさがす
@@ -74,7 +75,7 @@ const STRICT_LENGTH = 2
 const sameScript = (s: string) => s.normalize('NFKC').toLowerCase().replace(/\s+/g, '')
 
 function tokenRankers(word: string): Rank[] {
-  return [word, ...synonymsOf(word)].map((w) => ranker(w))
+  return [word, ...synonymsOf(word)].map((w) => splitRanker(w))
 }
 
 // 何も入っていなければ null
@@ -94,12 +95,14 @@ export function andQuery(a: string, b: string): LookupQuery {
 }
 
 function rankOne(rank: Rank, visible: string[], readings: string[]): number | null {
-  const v = rank(...visible)
-  const r = rank(...readings)
-  const strong = Math.min(v ?? RANK_READING_ONLY, r ?? RANK_READING_ONLY)
+  const v = rank.plain(...visible)
+  // 読みがな・別名と、ひらがなにそろえた名前。語と同じ・語の先頭からなら、名前の一致と同じに扱う（「鶏胸肉」で「鶏むね肉」）。
+  // 途中に入っているだけなら「読みがなの途中だけ」（「うどん」で牛丼＝ぎゅうどん を、名前の一致にしない）
+  const r = Math.min(rank.plain(...readings) ?? RANK_READING_ONLY, rank.reading(...visible, ...readings) ?? RANK_READING_ONLY)
+  const strong = Math.min(v ?? RANK_READING_ONLY, r)
   if (strong <= RANK_PREFIX) return strong
   if (v !== null) return 2
-  return r !== null ? RANK_READING_ONLY : null
+  return r < RANK_READING_ONLY ? RANK_READING_ONLY : null
 }
 
 // visible：画面に出る名前。readings：読みがな・別名・成分表の名前（画面には出ない）
@@ -140,25 +143,17 @@ export function splitCandidates(query: string): [string, string][] {
 
 // さがしている言葉（区切って正規化したもの）
 export function lookupWords(query: string): string[] {
-  return query.split(SEPARATOR).map(normalizeForSearch).filter(Boolean)
+  return query.split(SEPARATOR).map(normalizeReading).filter(Boolean)
 }
 
 // name の中で words のどれかと同じところを [はじめ, おわり) の並びで返す（ひらがな・カタカナ、全角・半角、大文字・小文字のちがいは同じとみなす）。
 // 読みがなや別の呼び名で一致したところは、名前の中にないので返さない
 export function highlightRanges(name: string, words: string[]): [number, number][] {
-  // 1文字ずつ正規化して、正規化したあとの位置から元の位置をたどれるようにする
-  let folded = ''
-  const at: number[] = []
-  for (let i = 0; i < name.length; i++) {
-    for (const c of normalizeForSearch(name[i])) {
-      folded += c
-      at.push(i)
-    }
-  }
+  const { text, start, end } = normalizeWithMap(name)
   const ranges: [number, number][] = []
   for (const w of words) {
     if (!w) continue
-    for (let from = folded.indexOf(w); from !== -1; from = folded.indexOf(w, from + w.length)) ranges.push([at[from], at[from + w.length - 1] + 1])
+    for (let from = text.indexOf(w); from !== -1; from = text.indexOf(w, from + w.length)) ranges.push([start[from], end[from + w.length - 1]])
   }
   // 重なり・となり合わせをまとめる
   ranges.sort((a, b) => a[0] - b[0])

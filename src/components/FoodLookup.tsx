@@ -20,6 +20,7 @@ import {
   type LookupSort,
   type LookupState,
 } from './lookupCards'
+import { useLoadFailed } from './loadProblemContext'
 import type { Card } from './pickerCards'
 import { useMediaQuery } from './useMediaQuery'
 
@@ -232,6 +233,7 @@ export function FoodLookup({
   onOpen: (item: LookupItem) => void
 }) {
   const { query, kind, facet, sort } = state
+  const loadFailed = useLoadFailed()
   const [limit, setLimit] = useState(PAGE)
   const set = (patch: Partial<LookupState>) => {
     onState({ ...state, ...patch })
@@ -431,12 +433,16 @@ export function FoodLookup({
         <div className="space-y-2.5">
           {/* 読み上げには、候補の数だけを伝える */}
           <p className="sr-only" role="status">
-            {total === 0 ? '見つかりませんでした' : sections.map((s) => `${LOOKUP_KIND_LABEL[s.kind]}${s.hits.length}件`).join('、')}
+            {total === 0 ? (loadFailed ? '読み込めなかったデータがあります' : '見つかりませんでした') : sections.map((s) => `${LOOKUP_KIND_LABEL[s.kind]}${s.hits.length}件`).join('、')}
           </p>
           {total === 0 ? (
             <>
               <div className="rounded-2xl bg-white/70 px-4 py-5 text-center text-sm text-ink-soft">
-                <p>「{deferred.trim()}」は見つかりませんでした。ひらがなや別の呼び名、短い言葉でもためしてみてください。</p>
+                {loadFailed ? (
+                  <p>「{deferred.trim()}」は、読み込めたデータの中にはありませんでした。</p>
+                ) : (
+                  <p>「{deferred.trim()}」は見つかりませんでした。ひらがなや別の呼び名、短い言葉でもためしてみてください。</p>
+                )}
                 {loadingNote && <div className="mt-1">{loadingNote}</div>}
               </div>
               <Categories
