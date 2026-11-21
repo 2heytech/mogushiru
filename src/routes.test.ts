@@ -3,6 +3,7 @@ import { IDEAL_MENUS } from './domain/idealMenus'
 import { RANKING_NUTRIENTS } from './domain/ranking'
 import { menusFor } from './pages/menuPages'
 import {
+  ABOUT_PATH,
   addTargetFromParam,
   appLinkParam,
   dishAddPath,
@@ -16,6 +17,7 @@ import {
   foodPagePath,
   hasAppLinkHash,
   idealMenuAppPath,
+  legacyPageRedirect,
   legacyQueryRedirect,
   legacyRedirect,
   MENU_PAGES,
@@ -39,7 +41,9 @@ describe('画面の URL', () => {
     expect(viewFromLocation('/foods')).toBe('foods')
     expect(viewFromLocation('/ranking')).toBe('ranking')
     expect(viewFromLocation('/customize/')).toBe('customize')
-    expect(viewFromLocation('/about/')).toBe('about')
+    // 「このサイトについて」は読みもののページ（アプリの画面ではない）
+    expect(ABOUT_PATH).toBe('/about/')
+    expect(Object.values(VIEW_PATH)).not.toContain(ABOUT_PATH)
     expect(viewFromLocation('/nutrients/iron/')).toBe('menu')
   })
 
@@ -48,7 +52,6 @@ describe('画面の URL', () => {
     // 食品を調べる（名前でさがす）と成分ランキングは、別のメニュー
     expect(VIEW_FEATURE.ranking).not.toBe(VIEW_FEATURE.foods)
     expect(VIEW_FEATURE.customize).toBe('menu')
-    expect(VIEW_FEATURE.about).toBeNull()
     expect(VIEW_PATH.customize).toBe('/customize/')
     expect(VIEW_PATH.ranking).toBe('/ranking/')
     expect(VIEW_PATH.foods).toBe('/foods/')
@@ -56,10 +59,14 @@ describe('画面の URL', () => {
 
   it('古い # のリンク（/#ranking など）も開け、アドレス欄を新しい URL に直す', () => {
     expect(viewFromLocation('/', '#ranking')).toBe('ranking')
-    expect(viewFromLocation('/', '#about')).toBe('about')
     expect(legacyRedirect('/', '#customize')).toBe(VIEW_PATH.customize)
     expect(legacyRedirect('/', '')).toBeNull()
-    expect(legacyRedirect('/ranking/', '#about')).toBeNull()
+    expect(legacyRedirect('/ranking/', '#customize')).toBeNull()
+    // 古い /#about は、読みもののページ（/about/）へページごと移る
+    expect(legacyPageRedirect('/', '#about')).toBe('/about/')
+    expect(legacyPageRedirect('/', '#ranking')).toBeNull()
+    expect(legacyPageRedirect('/ranking/', '#about')).toBeNull()
+    expect(legacyRedirect('/', '#about')).toBeNull()
   })
 
   it('以前の ? つきの URL は、同じ中身の読みもののページへ送る（/ranking/?n= → /nutrients/…、/customize/?dish= → /dishes/…）', () => {

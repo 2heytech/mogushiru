@@ -4,6 +4,7 @@ import type { Catalog } from '../domain/nutrition'
 import { NUTRIENT_GROUPS, type PriceTable } from '../domain/ranking'
 import type { NutrientKey } from '../domain/types'
 import {
+  ABOUT_PATH,
   DISHES_INDEX_PATH,
   FOOD_SLUG,
   MENU_PAGES,
@@ -39,6 +40,7 @@ import {
   type RecipeImage,
 } from './dishPages'
 import { OPERATOR_NAME, OPERATOR_URL } from '../site'
+import { ABOUT_DESCRIPTION, ABOUT_HEADING, ABOUT_OG, AboutPage, ABOUT_TITLE } from './aboutPage'
 import { foodOgCard, FoodPage, foodPageDescription, foodPagesFor, foodPageTitle, FOODS_CRUMB } from './foodPages'
 import { menuGenreDescription, menuGenreOgCard, menuGenreTitle, MenuGenrePage, MenusIndexPage, menusFor, menusIndexOgCard, menusIndexTitle, planMenus } from './menuPages'
 import { NUTRIENT_COPY } from './nutrientCopy'
@@ -78,7 +80,8 @@ export type SitePage = {
   images?: RecipeImage[]
   // このページだけが読む小さなプログラム（public に置いたファイルのパス）。読みもののページはふつう何も読まない
   script?: string
-  // 公開した日と、中身が最後に変わった日（data/sitemap-lastmod.json から。scripts/prerender.tsx が入れる）。レシピのデータに書く
+  // 公開した日と、中身が最後に変わった日（data/sitemap-lastmod.json から。scripts/prerender.tsx が入れる）。
+  // 読みもののページの「最終更新」と、レシピのデータに書く
   dates?: PageDates
 }
 
@@ -154,7 +157,15 @@ export function buildSitePages({ catalog, prices }: { catalog: Catalog; prices: 
     })),
     appPage('ranking', [...APP_LINKS, ...nutrientLinks]),
     appPage('customize'),
-    appPage('about'),
+    {
+      path: ABOUT_PATH,
+      title: ABOUT_TITLE,
+      description: ABOUT_DESCRIPTION,
+      kind: 'static',
+      body: html(<AboutPage />),
+      crumbs: [{ name: SITE_NAME, path: '/' }, { name: ABOUT_HEADING }],
+      og: og('about', ABOUT_OG),
+    },
     {
       path: NUTRIENTS_INDEX_PATH,
       // 「食品成分ランキング」でさがす人の受け皿（並べ替える道具の /ranking/ は検索に載せない）。要点は最初の区切りに入れる
@@ -284,10 +295,20 @@ export function renderDocument(template: string, page: SitePage): string {
     out = replaceOnce(out, /<\/head>/, `  <script type="application/ld+json">${JSON.stringify(data).replace(/</g, '\\u003c')}</script>\n  </head>`)
   }
   if (page.kind === 'app') return replaceOnce(out, /<div id="root"><\/div>/, `<div id="root">${page.body}</div>`)
+  const body = withUpdatedDate(page.body, page.dates?.modified)
   // 読みもののページはアプリのプログラムを読まない（見た目の CSS と書体だけ使う）
   out = out.replace(/\s*<script type="module"[^>]*><\/script>/g, '').replace(/\s*<link rel="modulepreload"[^>]*>/g, '')
   if (page.script) out = replaceOnce(out, /<\/head>/, `  <script src="${page.script}" defer></script>\n  </head>`)
-  return replaceOnce(out, /<div id="root"><\/div>/, page.body)
+  return replaceOnce(out, /<div id="root"><\/div>/, body)
+}
+
+// 読みもののページの「最終更新」（StaticLayout.tsx が置いた場所に入れる）。日付のないページ（404）では、場所ごと消す。
+// 日付は、ページの中身が最後に変わった日（data/sitemap-lastmod.json。サイトマップの更新日と同じ）
+const UPDATED_SLOT = /<p data-page-updated=""([^>]*)><\/p>/
+export function withUpdatedDate(body: string, modified: string | undefined): string {
+  const [y, m, d] = (modified ?? '').split('-').map(Number)
+  if (!y || !m || !d) return body.replace(UPDATED_SLOT, '')
+  return body.replace(UPDATED_SLOT, (_, attrs: string) => `<p${attrs}>最終更新：<time datetime="${modified}">${y}年${m}月${d}日</time></p>`)
 }
 
 // lastmod：ページのパス → 中身が最後に変わった日（YYYY-MM-DD）。ビルドした日ではなく、実際に変わった日を入れる

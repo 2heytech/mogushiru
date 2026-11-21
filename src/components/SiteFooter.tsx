@@ -1,18 +1,11 @@
-import type { MouseEvent } from 'react'
-import { READING_LINKS, VIEW_PATH } from '../routes'
+import { ABOUT_PATH, READING_LINKS } from '../routes'
 import { OperatorLink } from './OperatorLink'
 
 const LINK = 'font-bold text-coral-ink underline decoration-coral/60 underline-offset-2'
 
-// サイトの下の欄。アプリの画面と、ビルドで書き出す読みもののページ（成分ランキング・献立の例）の両方で使う。
-// onAbout があれば「このサイトについて」はページを読み直さずに開く（アプリの中）
-export function SiteFooter({ onAbout }: { onAbout?: () => void }) {
-  const openAbout = (e: MouseEvent<HTMLAnchorElement>) => {
-    if (!onAbout || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
-    // 下のフッターから開くので、ページの上から見せる
-    e.preventDefault()
-    onAbout()
-  }
+// サイトの下の欄。アプリの画面と、ビルドで書き出す読みもののページ（成分ランキング・献立の例など）の両方で使う。
+// 「このサイトについて」は読みもののページ（/about/）なので、アプリからも、ふつうのリンクで移る
+export function SiteFooter() {
   return (
     <footer className="mt-12 space-y-1 text-xs leading-relaxed text-ink-soft">
       {/* 値が目安であることは、いつも見せる。計算のしかたと出典は、読みたい人がひらく */}
@@ -41,8 +34,8 @@ export function SiteFooter({ onAbout }: { onAbout?: () => void }) {
         ))}
       </p>
       <p className="flex flex-wrap items-center gap-x-3 gap-y-1">
-        <a href={VIEW_PATH.about} onClick={openAbout} className={LINK}>
-          このサイトについて（出典・プライバシー・お問い合わせ）
+        <a href={ABOUT_PATH} className={LINK}>
+          このサイトについて（運営者・数値の確かめ方・出典・プライバシー・お問い合わせ）
         </a>
         <span>
           運営：

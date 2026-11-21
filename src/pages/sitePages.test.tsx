@@ -8,7 +8,7 @@ import type { Dish, Food, Product } from '../domain/types'
 import { FOOD_PAGE_IDS, foodIdFromPath, foodPagePath } from '../routes'
 import { CUISINE_DISH_IDS } from './dishCuisine'
 import { nutrientPageData } from './nutrientPages'
-import { buildSitePages, NOT_FOUND_PAGE, renderDocument, sitemapXml, type SitePage } from './sitePages'
+import { buildSitePages, NOT_FOUND_PAGE, renderDocument, sitemapXml, withUpdatedDate, type SitePage } from './sitePages'
 
 // ビルドで書き出すページを、配信用のデータ（public/data）から作ってたしかめる
 const readData = <T,>(file: string) => JSON.parse(readFileSync(new URL(`../../public/data/${file}`, import.meta.url), 'utf8')) as T
@@ -46,7 +46,7 @@ const TEMPLATE = `<!doctype html>
 </html>`
 
 describe('書き出すページ', () => {
-  it('アプリの4画面・成分26ページ・献立の例のページがあり、URL は重ならない', () => {
+  it('アプリの4画面・このサイトについて・成分26ページ・献立の例のページがあり、URL は重ならない', () => {
     const paths = pages.map((p) => p.path)
     expect(new Set(paths).size).toBe(paths.length)
     for (const p of ['/', '/foods/', '/ranking/', '/customize/', '/about/', '/nutrients/', '/menus/']) expect(paths).toContain(p)
@@ -313,7 +313,6 @@ describe('HTML のひな形への差しこみ', () => {
       '/foods/': '食品の栄養素を名前で調べる',
       '/ranking/': 'ランキングを並べ替え',
       '/customize/': '料理をアレンジ',
-      '/about/': 'このサイトについて',
     }
     for (const [path, heading] of Object.entries(headings)) {
       const h1 = [...page(path).body.matchAll(/<h1[^>]*>(.*?)<\/h1>/g)].map((m) => m[1])
@@ -614,6 +613,85 @@ describe('料理のカロリー・栄養と作り方のページ', () => {
     // どの成分のページにも、料理のページのどれかからリンクがある…とは限らないが、主な成分には届く
     const linked = new Set(dishPages.flatMap((d) => [...d.body.matchAll(/href="(\/nutrients\/[a-z0-9-]+\/)"/g)].map((m) => m[1])))
     for (const path of ['/nutrients/protein/', '/nutrients/vitamin-c/', '/nutrients/iron/', '/nutrients/calcium/']) expect(linked, path).toContain(path)
+  })
+})
+
+describe('このサイトについて（/about/）', () => {
+  const about = page('/about/')
+  const text = (html: string) => html.replace(/<!-- -->/g, '').replace(/<[^>]+>/g, '')
+  const main = /<main>[\s\S]*<\/main>/.exec(about.body)![0]
+
+  it('読みもののページ：プログラムを動かさなくても、本文が最初の HTML で読める', () => {
+    expect(about.kind).toBe('static')
+    expect(about.title).toBe('このサイトについて｜モグシル')
+    const out = renderDocument(TEMPLATE, about)
+    expect(out).not.toContain('type="module"')
+    expect(out).not.toContain('読み込み中')
+    expect([...about.body.matchAll(/<h1[^>]*>(.*?)<\/h1>/g)].map((m) => m[1])).toEqual(['このサイトについて'])
+    expect([...main.matchAll(/<h2[^>]*>(.*?)<\/h2>/g)].map((m) => m[1])).toEqual(['モグシルとは', '運営者', '数値の確かめ方', '使うときの注意', 'プライバシー', '出典とライセンス', 'お問い合わせ'])
+    expect(sitemapXml(pages)).toContain('<loc>https://mogushiru.app/about/</loc>')
+  })
+
+  it('運営者がだれかを書き、運営者のサイトとお問い合わせへ行ける', () => {
+    const body = text(main)
+    expect(body).toContain('モグシルは、へいてくが運営しています。へいてくは、スマートフォンアプリとWebサイトをつくる個人の開発スタジオです。')
+    expect(main).toMatch(/<a href="https:\/\/heyteku\.com\/" target="_blank" rel="noopener"[^>]*>へいてく<\/a>/)
+    expect(main).toMatch(/<a href="https:\/\/docs\.google\.com\/forms\/[^"]+" target="_blank" rel="noopener noreferrer"[^>]*>お問い合わせフォーム<\/a>/)
+  })
+
+  it('数値をどう作り、どう確かめているかと、読む人が自分で確かめる方法を書く', () => {
+    const body = text(main)
+    for (const word of ['食材', '料理', '市販品', '1日の目安', '自動のテスト', '自分で確かめるには']) expect(body, word).toContain(word)
+    expect(body).toContain('成分表で測られていない成分は、0 にせず「値なし」として扱います。')
+    expect(body).toContain('エネルギー・たんぱく質・脂質・炭水化物・食塩相当量の5つがそろわない商品は入れていません。')
+    expect(main).toMatch(/<a href="https:\/\/fooddb\.mext\.go\.jp\/"[^>]*>食品成分データベース<\/a>/)
+    expect(main).toMatch(/<a href="https:\/\/github\.com\/2heytech\/mogushiru"[^>]*>GitHub<\/a>/)
+  })
+
+  it('上の目次から、ページの中の見出しへ行ける', () => {
+    const ids = [...main.matchAll(/<h2 id="([^"]+)"/g)].map((m) => m[1])
+    const jumps = [...main.matchAll(/<a href="#([^"]+)"/g)].map((m) => m[1])
+    expect(ids).toHaveLength(7)
+    for (const id of ids) expect(jumps, id).toContain(id)
+    for (const id of jumps) expect(ids, id).toContain(id)
+  })
+
+  it('どのページのフッターからも、ふつうのリンクで行ける（アプリの画面からも）', () => {
+    for (const p of pages.filter((x) => x.kind === 'static')) expect(p.body, p.path).toMatch(/<footer[\s\S]*<a href="\/about\/"[^>]*>このサイトについて/)
+  })
+})
+
+describe('読みもののページの「最終更新」', () => {
+  const dates = { published: '2026-11-11', modified: '2026-11-18' }
+
+  it('どの読みもののページにも、中身が最後に変わった日を出す（パンくずの横。本文の外）', () => {
+    for (const p of pages.filter((x) => x.kind === 'static')) {
+      const out = renderDocument(TEMPLATE, { ...p, dates })
+      expect(out, p.path).toContain('最終更新：<time datetime="2026-11-18">2026年11月18日</time>')
+      expect(out.indexOf('最終更新：'), p.path).toBeLessThan(out.indexOf('<main>'))
+      expect(out, p.path).not.toContain('data-page-updated')
+    }
+  })
+
+  it('日付のないページ（404）には出さない。アプリの画面にも出さない', () => {
+    const notFound = renderDocument(TEMPLATE, NOT_FOUND_PAGE())
+    expect(notFound).not.toContain('最終更新')
+    expect(notFound).not.toContain('data-page-updated')
+    expect(renderDocument(TEMPLATE, { ...page('/foods/'), dates })).not.toContain('最終更新')
+  })
+
+  it('日付は「2026年11月5日」の形（0 でうめない）。おかしな日付なら出さない', () => {
+    const slot = '<p data-page-updated="" class="x"></p>'
+    expect(withUpdatedDate(slot, '2026-11-05')).toBe('<p class="x">最終更新：<time datetime="2026-11-05">2026年11月5日</time></p>')
+    expect(withUpdatedDate(slot, undefined)).toBe('')
+    expect(withUpdatedDate(slot, 'きのう')).toBe('')
+  })
+
+  it('日付を入れる場所は本文（main）の外なので、日付が変わっても「中身が変わった」ことにならない', () => {
+    for (const p of pages.filter((x) => x.kind === 'static')) {
+      expect(p.body.match(/data-page-updated/g), p.path).toHaveLength(1)
+      expect(/<main>[\s\S]*<\/main>/.exec(p.body)![0], p.path).not.toContain('data-page-updated')
+    }
   })
 })
 
