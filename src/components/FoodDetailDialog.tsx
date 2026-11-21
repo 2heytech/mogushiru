@@ -14,7 +14,7 @@ import { StackedBar } from './PfcCompare'
 import { PortionEditor } from './PortionEditor'
 import { useDialog } from './useDialog'
 
-// 「食品を調べる」でえらんだ食品（食材・料理・市販品）の栄養素の一覧。
+// 「食品を調べる」で選んだ食品（食材・料理・市販品）の栄養素の一覧。
 // 量を変えると、その量での値にすぐ変わる。見ている量のまま、1日の食事に足せる
 
 type Preset = { label: string; portion: number }

@@ -26,11 +26,13 @@ import { adjustIdealMenu, IDEAL_MENUS, idealMenuAvailable, idealMenuHasProducts 
 import { isMealSlot, type MealSlot } from './domain/idealMeals'
 import {
   appLinkParam,
+  dishTabFromParam,
   hasAppLinkHash,
   legacyRedirect,
   menuScreenFromState,
   menuScreenState,
   nutrientFromSlug,
+  READING_LINKS,
   VIEW_FEATURE,
   VIEW_META,
   VIEW_PATH,
@@ -41,7 +43,7 @@ import {
   type View,
 } from './routes'
 import { ConfirmHost } from './components/ConfirmDialog'
-import { IdealMealDialog, MenuActions, SaveMenuDialog, SavedMenusDialog } from './components/SavedMenus'
+import { IdealMealDialog, MenuActions, SaveMenuDialog, SavedMenusDialog, SlotChoiceSheet } from './components/SavedMenus'
 import { MenuBuilderDialog } from './components/MenuBuilder'
 import { DayInfo } from './components/SummaryPanel'
 import { useCatalog, withMyData } from './data/catalog'
@@ -65,7 +67,7 @@ const sameIngredients = (a: Ingredient[], b: Ingredient[]) =>
 const NAV_BUTTON =
   'flex min-h-11 items-center justify-center gap-1 whitespace-nowrap rounded-full bg-white pr-3 pl-2 text-xs leading-tight font-bold shadow-sm sm:pr-4 sm:pl-3 sm:text-sm sm:font-normal'
 
-// 最初の画面の「サンプルで結果を見る」で入れる理想の献立（市販品を使わないので、すぐ入れられる）
+// 最初の画面の「サンプルで結果を見る」で入れる献立の例（市販品を使わないので、すぐ入れられる）
 const SAMPLE_MENU_ID = 'washoku'
 
 // lg（ヘッダーに1段で並べる幅）は、「栄養の目安を設定」のボタンと並ぶので少し小さく
@@ -74,7 +76,7 @@ const ICON_CLASS = 'h-6 w-6 shrink-0 sm:h-9 sm:w-9 lg:h-7 lg:w-7 xl:h-9 xl:w-9'
 // 上のメニュー（3つ）。title の | は狭い画面で折り返してよい位置。いつも上に並べて、いまどれを見ているかと、ほかに何があるかが分かるようにする。
 // 名前は、幅320pxのスマホでも3つ並んで収まる短さにする（「1日の栄養バランスを確認」→「栄養バランス」など）。
 // 「料理をアレンジ」は、ここには出さない：栄養バランスの中の画面にして、1日の食事・最初の画面から入る（その画面を見ているあいだは、
-// 「栄養バランス」をえらんだ形にする。routes.ts の VIEW_FEATURE）
+// 「栄養バランス」を選んだ形にする。routes.ts の VIEW_FEATURE）
 const FEATURES: { view: Feature; icon: ReactNode; title: string; lead: string }[] = [
   { view: 'menu', icon: <UiIcon name="menu" className={ICON_CLASS} />, title: '栄養|バランス', lead: '朝・昼・晩の料理を選んで確かめる' },
   { view: 'foods', icon: <UiIcon name="search" className={ICON_CLASS} />, title: '食品を|調べる', lead: '名前でさがして栄養素を見る' },
@@ -107,6 +109,27 @@ function FeatureTabsCompact({ view, onChange }: { view: View; onChange: (v: View
           </a>
         )
       })}
+    </nav>
+  )
+}
+
+// 読みもののページ（献立の例・料理のカロリー・栄養）への入口。広い画面では、上のメニューのとなりに小さく並べる。
+// 食品成分ランキングへは「成分ランキング」の画面の中から。スマホでは、1日の食事の「メニュー」・最初の画面・フッターから入る
+function ReadingNav() {
+  return (
+    <nav aria-label="読みもの" className="hidden items-center gap-3 text-xs font-bold whitespace-nowrap lg:flex xl:gap-4 xl:text-sm">
+      {READING_LINKS.filter((l) => l.key !== 'nutrients').map((l) => (
+        <a key={l.key} href={l.path} className="flex min-h-11 items-center rounded-lg text-ink underline-offset-4 hover:underline focus-visible:ring-4 focus-visible:ring-coral/40 focus-visible:outline-none">
+          {/* 幅が 1280px より せまいあいだは、となりの「栄養の目安を設定」に寄りすぎないように「料理の栄養」まで縮める */}
+          {l.key === 'dishes' ? (
+            <>
+              料理の<span className="max-xl:hidden">カロリー・</span>栄養
+            </>
+          ) : (
+            l.short
+          )}
+        </a>
+      ))}
     </nav>
   )
 }
@@ -194,7 +217,7 @@ function useView(): { view: View; screen: MenuScreen; go: (v: View, screen?: Men
   }, [view])
   // 最初の画面と1日の食事を行き来すると、押したボタン（入口・「最初の画面にもどる」）が消えてフォーカスの場所がなくなるので、本文（main）に移す。
   // 「料理をアレンジ」の画面との行き来（「料理をアレンジ」「1日の食事にもどる」）も同じ。
-  // ダイアログの中にフォーカスがあるとき（献立案の窓で1食ずつえらんでいる途中など）は動かさない
+  // ダイアログの中にフォーカスがあるとき（献立の例の窓で1食ずつ選んでいる途中など）は動かさない
   useEffect(() => {
     if (document.activeElement === document.body) document.querySelector<HTMLElement>('main')?.focus({ preventScroll: true })
   }, [screen, view])
@@ -231,7 +254,7 @@ export default function App() {
       go('menu', 'day')
     } else go(v)
   }
-  // 1日の食事の画面へ（入口をえらんだ・献立を入れた）と、最初の画面へ（入れた料理はそのまま）
+  // 1日の食事の画面へ（入口を選んだ・献立を入れた）と、最初の画面へ（入れた料理はそのまま）
   const openDay = () => {
     addedOutside.current = false
     go('menu', 'day')
@@ -284,24 +307,24 @@ export default function App() {
     rememberLookup(item)
     setFoodDetail(item)
   }
-  // 献立案から選ぶ窓
+  // 献立の例から選ぶ窓
   const [builderOpen, setBuilderOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
   const [profileFocus, setProfileFocus] = useState<ProfileFocus | undefined>()
-  // 料理をえらぶ画面。start は、はじめにひらく種類としぼりこみ（まとめの「副菜を1品追加する」から来たときなど）
+  // 料理を選ぶ画面。start は、はじめにひらく種類としぼりこみ（まとめの「副菜を1品追加する」から来たときなど）
   const [picker, setPicker] = useState<{ slot: Slot; start?: PickerStart } | null>(null)
   const pickerSlot = picker?.slot ?? null
   const setPickerSlot = (slot: Slot | null) => setPicker(slot ? { slot } : null)
   // スマホで、料理の一覧をひらいている食事（下のバーの「料理を追加」は、この食事に足す）
   const [openSlot, setOpenSlot] = useState<Slot | null>(null)
-  // 料理をえらぶ画面（朝・昼・晩）から、理想の献立のその1食だけをえらぶ画面
+  // 料理を選ぶ画面（朝・昼・晩）から、献立の例のその1食だけを選ぶ画面
   const [idealMealSlot, setIdealMealSlot] = useState<MealSlot | null>(null)
   // full: 飲み物の料理でも、材料まで変えられる画面（Customizer）でひらく
   const [editing, setEditing] = useState<{ slot: Slot; uid: string; full?: boolean } | null>(null)
   // 市販品の登録（slot があれば登録後その区分に追加）・編集
   const [productForm, setProductForm] = useState<{ jan?: string; slot?: Slot; supplement?: boolean } | null>(null)
   const targets = useMemo(() => computeTargets(profile), [profile])
-  // 毎回作り直すと、料理をえらぶ画面で1品押すたびに市販品の一覧を全部作り直すことになるので、中身が変わったときだけ作る
+  // 毎回作り直すと、料理を選ぶ画面で1品押すたびに市販品の一覧を全部作り直すことになるので、中身が変わったときだけ作る
   const catalog = useMemo(
     () => (catalogState.status === 'ready' ? withMyData(catalogState.catalog, myDishes, myProducts) : null),
     [catalogState, myDishes, myProducts],
@@ -320,7 +343,7 @@ export default function App() {
   const foods = useMemo(() => (catalog ? dayFoods(menu, catalog) : null), [catalog, menu])
   // 減塩・全粒穀物への置きかえの案（栄養素のタブに出す）
   const swaps = useMemo(() => (catalog ? swapIdeas(menu, catalog) : []), [catalog, menu])
-  // 最初の画面（献立案から選ぶ／自分の食事で試す／サンプルで結果を見る）。入口をえらんで先へ進んだら、料理を全部外しても出さない。
+  // 最初の画面（献立の例から選ぶ／自分の食事で試す／サンプルで結果を見る）。入口を選んで先へ進んだら、料理を全部外しても出さない。
   // もどるのは「最初の画面にもどる」・ロゴ・ブラウザの戻る・リセット（料理が入ったままでも出す）
   const showStart = screen === 'start'
   const itemCount = SLOTS.reduce((n, s) => n + menu[s].length, 0)
@@ -331,15 +354,27 @@ export default function App() {
     return ideal && catalog && idealMenuAvailable(ideal, catalog) ? ideal : undefined
   }, [catalog])
 
-  // 成分ランキングのページから「くらべ方を変えて見る」で来たとき（/ranking/#n=iron）は、その成分をえらんだ状態で開く
+  // 成分ランキングのページから「くらべ方を変えて見る」で来たとき（/ranking/#n=iron）は、その成分を選んだ状態で開く
   const [rankingStart, setRankingStart] = useState(() => nutrientFromSlug(queryParam('n')) ?? undefined)
   useEffect(() => dropQueryParam('n'), [])
 
-  // 料理の作り方のページから来たとき（/customize/#dish=<料理id>）は、その料理の編集の窓を「つくり方」でひらく
-  const [dishStart, setDishStart] = useState(() => queryParam('dish') ?? undefined)
-  useEffect(() => dropQueryParam('dish'), [])
+  // 料理のページから来たとき（/customize/#dish=<料理id>）は、その料理の編集の窓をひらく。
+  // ふつうは「材料と量」（材料と量を変えて栄養を計算する）、&tab=recipe がついていれば「つくり方」（作る人数を変えて見る）
+  const [dishStart, setDishStart] = useState(() => {
+    const id = queryParam('dish')
+    return id ? { id, tab: dishTabFromParam(queryParam('tab')) } : undefined
+  })
+  useEffect(() => {
+    dropQueryParam('dish')
+    dropQueryParam('tab')
+  }, [])
 
-  // 献立の例のページから「この献立をアプリで開く」で来たとき（/#menu=<id>）は、その理想の献立をプロフィールに合わせて入れる
+  // 料理のページの「この料理を1日の食事に入れる」から来たとき（/#add=<料理id>）は、どの食事に入れるかを選ぶ窓を出す
+  const [addStart, setAddStart] = useState(() => queryParam('add') ?? undefined)
+  useEffect(() => dropQueryParam('add'), [])
+  const addDish = addStart && catalog ? catalog.dishes.get(addStart) : undefined
+
+  // 献立の例のページから「この献立をアプリで開く」で来たとき（/#menu=<id>）は、その献立の例をプロフィールに合わせて入れる
   const menuRequest = useRef(queryParam('menu'))
   const goRef = useRef(go)
   useEffect(() => {
@@ -542,6 +577,7 @@ export default function App() {
         <div className="hidden lg:block">
           <FeatureTabsCompact view={view} onChange={setView} />
         </div>
+        <ReadingNav />
         {/* 栄養の目安（プロフィール）の入口はここ1つ。まだ入れていないあいだは、枠と字の色で目立たせる。
             幅320pxでもロゴと並んで収まるように、1行で。いちばん狭い幅では「目安を設定」まで縮める */}
         <button
@@ -579,7 +615,8 @@ export default function App() {
             menu={menu}
             totals={totals}
             showAlcohol={profile.age >= 20}
-            initialDishId={dishStart}
+            initialDishId={dishStart?.id}
+            initialDishTab={dishStart?.tab}
             // 一度ひらいたら忘れる（ほかの画面からもどってきたとき、同じ料理をまたひらかない）
             onInitialDishOpened={() => setDishStart(undefined)}
             onSaveNew={saveMyDish}
@@ -614,7 +651,7 @@ export default function App() {
       ) : catalog && totals && !waitingForStores ? (
         <main tabIndex={-1} className="space-y-4 outline-none">
           {showStart ? (
-            // 入口をえらぶまでは、朝・昼・晩や栄養の表示を出さない
+            // 入口を選ぶまでは、朝・昼・晩や栄養の表示を出さない
             <StartChoice
               savedCount={savedMenus.length}
               sampleName={sampleMenu?.name}
@@ -630,7 +667,7 @@ export default function App() {
               onBuild={() => setBuilderOpen(true)}
               onOpenSaved={() => setSavedDialog('load')}
               onArrange={openArrange}
-              // 朝・昼・晩に料理を入れていく画面へ（どの食事から入れるかは、そこでえらぶ）。
+              // 朝・昼・晩に料理を入れていく画面へ（どの食事から入れるかは、そこで選ぶ）。
               // 料理が入っているときは、空から始めるかを確かめる（そのまま続けるなら、上の「いまの1日の食事にもどる」）
               onPickSelf={async () => {
                 if (itemCount > 0) {
@@ -735,7 +772,7 @@ export default function App() {
           onToggleFavorite={toggleFavoriteProduct}
           onRegisterProduct={() => setProductForm({ slot: pickerSlot })}
           onRegisterSupplement={() => setProductForm({ slot: pickerSlot, supplement: true })}
-          // 配分が0%の区分（朝食をとらない設定など）は、理想の献立にもその1食がないので出さない
+          // 配分が0%の区分（朝食をとらない設定など）は、献立の例にもその1食がないので出さない
           onOpenIdeal={isMealSlot(pickerSlot) && targets.slotShare[pickerSlot] > 0 ? () => setIdealMealSlot(pickerSlot) : undefined}
           // 選んでも閉じずに続けて選べるようにする（閉じるのは「できた」か×）
           onPick={(item) => addItem(pickerSlot, item)}
@@ -750,7 +787,7 @@ export default function App() {
         />
       )}
 
-      {/* 料理をえらぶ画面の上に重ねる。×で料理をえらぶ画面に戻り、呼び出したら両方を閉じる */}
+      {/* 料理を選ぶ画面の上に重ねる。×で料理を選ぶ画面に戻り、呼び出したら両方を閉じる */}
       {catalog && idealMealSlot && (
         <IdealMealDialog
           slot={idealMealSlot}
@@ -768,6 +805,23 @@ export default function App() {
       )}
 
       {catalog && editing && renderEditor(catalog, editing)}
+
+      {/* 料理のページの「この料理を1日の食事に入れる」から来たとき。選んだ食事に1人前を入れて、1日の食事の画面へ */}
+      {catalog && totals && addDish && (
+        <SlotChoiceSheet
+          title="どの食事に入れますか？"
+          lead={`「${addDish.name}」（1人前 ${Math.round(addDish.nutrients.energyKcal ?? 0)} kcal）を、1日の食事に入れます。量や材料は、入れたあとで変えられます。`}
+          menu={menu}
+          totals={totals}
+          onPick={(slot) => {
+            addItem(slot, { kind: 'dish', refId: addDish.id, portion: 1 })
+            setAddStart(undefined)
+            setOpenSlot(slot)
+            openDay()
+          }}
+          onClose={() => setAddStart(undefined)}
+        />
+      )}
 
       {savedDialog === 'save' && (
         <SaveMenuDialog
@@ -791,7 +845,7 @@ export default function App() {
             setBuilderOpen(false)
             openDay()
           }}
-          // 1食ずつのときは、1食えらぶたびにその区分に入れる（途中で閉じても、えらんだところまでは残る）
+          // 1食ずつのときは、1食選ぶたびにその区分に入れる（途中で閉じても、選んだところまでは残る）
           onLoadMeal={(slot, items) => {
             replaceSlot(slot, items)
             // 最初の画面からひらいたときは、うしろの画面を1日の食事にしておく

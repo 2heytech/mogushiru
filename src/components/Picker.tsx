@@ -115,7 +115,7 @@ export function Picker({
   onRegisterProduct: () => void
   // サプリをラベルの値から登録する
   onRegisterSupplement: () => void
-  // 理想の献立から、この区分の1食だけを呼び出す画面をひらく（朝・昼・晩だけ。その他にはない）
+  // 献立の例から、この区分の1食だけを呼び出す画面をひらく（朝・昼・晩だけ。その他にはない）
   onOpenIdeal?: () => void
   // 追加して、献立に入った項目の uid を返す
   onPick: (item: Omit<MenuItem, 'uid'>) => string
@@ -169,7 +169,7 @@ export function Picker({
   const chipsRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
     listRef.current?.scrollTo({ top: 0 })
-    // 「ほかの飲み物」から来たときなど、えらんだ絞り込みが見えるように
+    // 「ほかの飲み物」から来たときなど、選んだ絞り込みが見えるように
     chipsRef.current?.querySelector('[aria-pressed="true"]')?.scrollIntoView?.({ block: 'nearest', inline: 'nearest' })
   }, [tab, category])
   // 選んでも画面は閉じず、続けて選べる。もう一度押すと選択を外す。
@@ -254,13 +254,13 @@ export function Picker({
         tabIndex={-1}
         role="dialog"
         aria-modal="true"
-        aria-label={`${SLOT_LABEL[slot]}に追加する料理をえらぶ`}
+        aria-label={`${SLOT_LABEL[slot]}に追加する料理を選ぶ`}
         className="outline-none flex h-[85dvh] w-full flex-col rounded-t-[var(--radius-card)] bg-cream p-4 shadow-xl md:h-[min(85dvh,760px)] md:max-w-3xl md:rounded-[var(--radius-card)]"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-3 flex shrink-0 items-center gap-2">
           <h2 className="mr-auto text-lg font-bold whitespace-nowrap">{SLOT_LABEL[slot]}に追加</h2>
-          {/* 1品ずつえらぶかわりに、理想の献立のこの1食をまとめて入れる */}
+          {/* 1品ずつ選ぶかわりに、献立の例のこの1食をまとめて入れる */}
           {onOpenIdeal && (
             <button
               type="button"
@@ -269,9 +269,9 @@ export function Picker({
               className="flex min-h-10 min-w-0 items-center gap-1 rounded-full border border-coral bg-white pr-3 pl-3 text-xs font-bold whitespace-nowrap text-coral-ink shadow-sm transition hover:bg-coral/10 min-[360px]:pl-2"
             >
               <UiIcon name="load" className="hidden h-6 w-6 shrink-0 min-[360px]:block" />
-              {/* 幅のせまいスマホでは、枠に入るよう「理想の献立から」まで */}
+              {/* 幅のせまいスマホでは、枠に入るよう「献立の例から」まで */}
               <span>
-                理想の献立から<span className="max-[359px]:hidden">えらぶ</span>
+                献立の例から<span className="max-[359px]:hidden">選ぶ</span>
               </span>
             </button>
           )}

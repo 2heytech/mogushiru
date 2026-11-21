@@ -1,7 +1,7 @@
 import type { Catalog } from './nutrition'
 import type { Dish, DrinkSize, MenuItem, Product, Slot } from './types'
 
-// 飲み物は「何杯（何本）」で数える。1杯の量（缶・コップ・中ジョッキなど）もえらべる。
+// 飲み物は「何杯（何本）」で数える。1杯の量（缶・コップ・中ジョッキなど）も選べる。
 // 量は MenuItem.portion（料理は人前、市販品は mL）のままにして、杯数と1杯の量（MenuItem.cup）はそこから出す
 
 // 1杯の量。表示は「label＋杯数＋unit」（「ロング缶2本」「中ジョッキ2杯」「2合」）
@@ -20,7 +20,7 @@ const SINGLE: DrinkSize = { label: 'シングル', ml: 30, unit: '杯' }
 const DOUBLE: DrinkSize = { label: 'ダブル', ml: 60, unit: '杯' }
 const YUNOMI: DrinkSize = { label: '湯のみ', ml: 150, unit: '杯' }
 
-// 1杯の量のえらびかた
+// 1杯の量の選びかた
 const SOFT = [CUP, GLASS, MUG, CAN, PET]
 const BEER = [CAN, LONG_CAN, JUG, MEDIUM_BOTTLE]
 const CHUHAI = [CAN, LONG_CAN]
@@ -64,7 +64,7 @@ const DISH_DRINKS: Record<string, DishDrink> = {
 export type DrinkSpec = {
   // 1人前（料理）・1食分（市販品）の量。cup がない項目はこの量で1杯
   base: DrinkSize
-  // えらべる1杯の量（1つ以下なら、えらばせない）
+  // 選べる1杯の量（1つ以下なら、選ばせない）
   sizes: DrinkSize[]
   // portion の数え方：'serving' は人前・1食分の倍率（料理・1食基準の市販品）、'ml' は mL（100mL基準の市販品）
   per: 'serving' | 'ml'
@@ -143,7 +143,7 @@ export function drinkSpec(item: Pick<MenuItem, 'kind' | 'refId'>, catalog: Catal
 
 const sameSize = (a: DrinkSize, b: DrinkSize) => a.ml === b.ml && a.label === b.label && a.unit === b.unit
 
-// 前に飲んだときの1杯の量が、えらべる量のどれかならそれを、ちがえば1人前・1本の量を使う
+// 前に飲んだときの1杯の量が、選べる量のどれかならそれを、ちがえば1人前・1本の量を使う
 export function pickCup(spec: DrinkSpec, cup?: DrinkSize): DrinkSize {
   return (cup && spec.sizes.find((s) => sameSize(s, cup))) || spec.base
 }
@@ -189,7 +189,7 @@ export function drinkSizeLabel(cup: DrinkSize): string {
   return `${cup.label || `1${cup.unit}`} ${cup.approx ? '約' : ''}${cup.ml}mL`
 }
 
-// 区分ごとの定番の飲み物（料理をえらぶ画面の「飲み物」の列に、最近飲んだものの後に並べる）
+// 区分ごとの定番の飲み物（料理を選ぶ画面の「飲み物」の列に、最近飲んだものの後に並べる）
 export const STANDARD_DRINKS: Record<Slot, string[]> = {
   breakfast: ['dish:drink-coffee', 'dish:milk', 'dish:drink-green-tea', 'dish:drink-black-tea', 'dish:orange-juice', 'dish:drink-vegetable-juice', 'dish:drink-soy-milk'],
   lunch: ['dish:drink-green-tea', 'dish:drink-barley-tea', 'dish:drink-oolong', 'dish:drink-coffee', 'dish:drink-black-tea', 'dish:drink-cafe-au-lait'],
@@ -197,7 +197,7 @@ export const STANDARD_DRINKS: Record<Slot, string[]> = {
   other: ['dish:drink-coffee', 'dish:drink-black-tea', 'dish:drink-green-tea', 'dish:drink-cafe-au-lait', 'dish:drink-sports-drink', 'dish:cola', 'dish:beer'],
 }
 
-// 最近飲んだもの（料理をえらぶ画面で先に出し、前と同じ1杯の量で入れる）
+// 最近飲んだもの（料理を選ぶ画面で先に出し、前と同じ1杯の量で入れる）
 export type RecentDrink = { key: string; cup?: DrinkSize }
 export const RECENT_DRINKS_MAX = 12
 

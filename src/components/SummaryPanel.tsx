@@ -138,7 +138,7 @@ export function DayInfo({
   onStep?: (step: Step) => void
 }) {
   const [tab, setTab] = useState<InfoTab>('summary')
-  // 「この内容を1日ぶんとして計算する」をえらんだときの、空の区分の組み合わせ。料理を足したり外したりして組み合わせが変わると、もう一度たしかめる
+  // 「この内容を1日ぶんとして計算する」を選んだときの、空の区分の組み合わせ。料理を足したり外したりして組み合わせが変わると、もう一度たしかめる
   const [fullDayFor, setFullDayFor] = useState<string | null>(null)
   const missingKey = missingSlots.join(',')
   const asFullDay = missingSlots.length > 0 && fullDayFor === missingKey
@@ -379,5 +379,5 @@ function PfcLine({ gaps }: { gaps: PfcGap[] }) {
 }
 
 function Empty() {
-  return <p className="py-6 text-center text-sm text-ink-soft">料理をえらぶと、ここに出ます</p>
+  return <p className="py-6 text-center text-sm text-ink-soft">料理を選ぶと、ここに出ます</p>
 }

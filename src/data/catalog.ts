@@ -31,7 +31,7 @@ function afterPaint(f: () => void) {
   else setTimeout(f, 0)
 }
 
-// 料理をえらぶ画面の検索で使う名前・よみ（pickerCards.ts の fields と同じもの）
+// 料理を選ぶ画面の検索で使う名前・よみ（pickerCards.ts の fields と同じもの）
 const productFields = (products: Iterable<Product>) => [...products].flatMap((x) => [x.name, x.brand])
 
 // 生成済みの配信用JSON（public/data）を読む。まだ生成されていないファイルは空として扱う。

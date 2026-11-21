@@ -1,4 +1,4 @@
-// 理想の献立の1食ずつの一覧（IdealMeals.tsx・MenuBuilder.tsx）で使う決まりごと
+// 献立の例の1食ずつの一覧（IdealMeals.tsx・MenuBuilder.tsx）で使う決まりごと
 import type { IdealMeal, MealSlot } from '../domain/idealMeals'
 import { BREAKFAST_STYLES, DINNER_MAINS, LUNCH_STYLES, idealMealLeads } from '../domain/idealMenuFacets'
 import { BREAKFAST_LABEL, DINNER_LABEL, LUNCH_LABEL } from './labels'
@@ -6,7 +6,7 @@ import { BREAKFAST_LABEL, DINNER_LABEL, LUNCH_LABEL } from './labels'
 // 一度に出す数。1食ごとに献立の量の調整を計算するので、見える分だけ計算する
 export const PAGE = 12
 
-// その区分の好みでしぼる言葉（理想の献立の一覧の朝・昼・晩と同じ分け方）
+// その区分の好みでしぼる言葉（献立の例の一覧の朝・昼・晩と同じ分け方）
 export const STYLES: Record<MealSlot, { label: string; options: { key: string; label: string }[] }> = {
   breakfast: { label: '主食', options: BREAKFAST_STYLES.map((key) => ({ key, label: BREAKFAST_LABEL[key] })) },
   lunch: { label: '種類', options: LUNCH_STYLES.map((key) => ({ key, label: LUNCH_LABEL[key] })) },

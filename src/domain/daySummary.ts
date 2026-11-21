@@ -44,7 +44,7 @@ export type Step =
   // 主食・主菜・副菜を1品足す
   | { kind: 'addDish'; slot: Slot; part: FoodPart; why: 'energy' | 'protein' | 'carb' | 'vegetable' | 'mealBalance' }
   | { kind: 'addFruit' }
-  // へらす・入れかえる（料理は自分でえらぶ）
+  // へらす・入れかえる（料理は自分で選ぶ）
   | { kind: 'reduce'; what: ReduceWhat; nutrient?: CheckedNutrient }
   // 減塩の調味料への置きかえの案を見る
   | { kind: 'swapSalt' }
@@ -70,7 +70,7 @@ export type DaySummaryInput = {
   alerts: Alert[]
   gaps: PfcGap[] | null
   checks: NutrientCheck[]
-  // 朝・昼・晩のうち、まだ料理が入っていない区分（「1日ぶんとして計算する」をえらんだら空にして渡す）
+  // 朝・昼・晩のうち、まだ料理が入っていない区分（「1日ぶんとして計算する」を選んだら空にして渡す）
   missing: Slot[]
   // 減塩の置きかえの案があるか
   hasSaltSwap?: boolean

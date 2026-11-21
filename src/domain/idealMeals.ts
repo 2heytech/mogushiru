@@ -1,4 +1,4 @@
-// 理想の献立を、朝・昼・晩の1食ずつに分けて出す（「朝に追加」などの画面から、その1食だけ呼び出すため）。
+// 献立の例を、朝・昼・晩の1食ずつに分けて出す（「朝に追加」などの画面から、その1食だけ呼び出すため）。
 // 同じ料理の組み合わせの1食は、いくつの献立に入っていても1つにまとめる
 import { idealMenuHasProducts, type IdealMenu, type IdealMenuItem } from './idealMenus'
 import { menuTotals, type Catalog } from './nutrition'
@@ -56,7 +56,7 @@ export function fitsMealAlone(totals: NutrientTotals, slot: MealSlot, targets: T
 const slotTotals = (slot: Slot, items: MenuItem[], catalog: Catalog) =>
   menuTotals({ breakfast: [], lunch: [], dinner: [], other: [], [slot]: items }, catalog).bySlot[slot]
 
-// 毎食バランスで1食ずつえらぶときの、その区分の候補。理想の献立の1食のうち、プロフィールの目安に合わせた量（plan）で、
+// 毎食バランスで1食ずつ選ぶときの、その区分の候補。献立の例の1食のうち、プロフィールの目安に合わせた量（plan）で、
 // その1食だけでも区分の目安に収まるもの。毎食バランスの献立の1食はいつも入れる（どの目安でも収まるように組んでいる）。
 // 同じ組み合わせの1食は1つにまとめ、代表は idealMeals と同じ順（収まらないときは次の献立）。毎食バランスの献立の1食を先に、あとは献立の並び順
 export function soloMeals(slot: MealSlot, menus: readonly IdealMenu[], catalog: Catalog, targets: Targets, plan: (menu: IdealMenu) => DayMenu): IdealMeal[] {

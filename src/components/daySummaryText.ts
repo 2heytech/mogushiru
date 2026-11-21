@@ -88,13 +88,13 @@ export function stepText(s: Step): { text: string; button?: string } {
       return { text: `${SLOT_LABEL[s.slot]}に${PART_LABEL[s.part]}を1品足す`, button }
     }
     case 'addFruit':
-      return { text: '果物を1つ足す（みかん1個で約100g）', button: '果物をえらぶ' }
+      return { text: '果物を1つ足す（みかん1個で約100g）', button: '果物を選ぶ' }
     case 'reduce':
       return { text: s.what === 'supplement' ? `${s.nutrient ? NUTRIENT_INFO[s.nutrient].label : ''}のサプリの量を見直す` : REDUCE_TEXT[s.what] }
     case 'swapSalt':
       return { text: 'しょうゆ・みそを減塩タイプに置きかえる', button: '置きかえの案' }
     case 'ranking':
-      // 押すと、上のメニューの「成分ランキング」を、その成分をえらんだ形でひらく
+      // 押すと、上のメニューの「成分ランキング」を、その成分を選んだ形でひらく
       return { text: `${NUTRIENT_INFO[s.key].label}の多い食品を足す`, button: 'ランキングを見る' }
   }
 }
@@ -103,7 +103,7 @@ const joinAnd = (xs: string[]) => (xs.length <= 1 ? xs.join('') : `${xs.slice(0,
 
 // マスコットのひとこと。下に並べる「範囲内」「気になる点」と食いちがわないように、同じ結果から作る
 export function moguMessage(s: DaySummary): string {
-  if (s.state === 'empty') return '料理をえらんで、1日の食事をつくってみよう！'
+  if (s.state === 'empty') return '料理を選んで、1日の食事をつくってみよう！'
   const over = s.concerns.find((c) => c.kind === 'over')
   if (over?.kind === 'over') return `${alertLabel(over.alert)}が${over.alert.limitKind === 'upper' ? '上限' : '目安'}をこえてるよ！`
   if (s.state === 'partial') return `${s.missing.map((x) => SLOT_LABEL[x]).join('・')}も入れると、1日のバランスがわかるよ`

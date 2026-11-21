@@ -66,7 +66,7 @@ export function customDishName(title: string, portion: number, original: Ingredi
   return parts.length ? `${title}（${parts.join('・')}）` : title
 }
 
-// カスタマイズした料理を、その区分（朝・昼・晩・その他）で上に出すか。区分を持たない古い保存はどの区分でも上に
+// アレンジした料理を、その区分（朝・昼・晩・その他）で上に出すか。区分を持たない古い保存はどの区分でも上に
 export const prioritizedIn = (d: Pick<MyDish, 'slots'>, slot: Slot) => !d.slots || d.slots.includes(slot)
 
 // 保存した区分の一覧（なければすべて）

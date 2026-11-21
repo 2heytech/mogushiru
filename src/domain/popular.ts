@@ -211,7 +211,7 @@ export function popularRank(slot: Slot, key: string): number {
   return ranks.get(key) ?? NOT_POPULAR
 }
 
-// 区分を決めずに料理を並べるときの順位（「料理をカスタマイズ」）。
+// 区分を決めずに料理を並べるときの順位（「料理をアレンジ」）。
 // 朝・昼・晩の定番を上に、その他（おやつ・飲み物）だけの定番はそのあとに並べる
 const MEAL_SLOTS: Slot[] = ['breakfast', 'lunch', 'dinner']
 const OTHER_AFTER = 1000

@@ -37,7 +37,7 @@ type Filters = { style: string | null; balance: IdealBalance | null }
 const NO_FILTERS: Filters = { style: null, balance: null }
 const valueOf = (e: Entry, key: keyof Filters) => (key === 'style' ? e.style : e.meal.menu.balance)
 
-// 理想の献立の、朝・昼・晩のどれか1食だけの一覧（「朝に追加」などの料理をえらぶ画面の「理想の献立からえらぶ」）。
+// 献立の例の、朝・昼・晩のどれか1食だけの一覧（「朝に追加」などの料理を選ぶ画面の「献立の例から選ぶ」）。
 // 同じ組み合わせの1食は1つにまとめ、量はプロフィールの目安に合わせた献立のその1食ぶんをそのまま使う。
 // 毎食バランスの献立の1食は、その1食だけで区分の目安に収まるので先に並べて印をつける
 export function IdealMealList({ slot, catalog, targets, storesLoaded, onLoad }: Props) {
@@ -78,7 +78,7 @@ export function IdealMealList({ slot, catalog, targets, storesLoaded, onLoad }: 
     <>
       <div className="mb-2 flex items-start gap-2">
         <p className="min-w-0 flex-1 pt-1 text-xs text-ink-soft">
-          理想の献立から、{label}ごはんだけを入れます。量は、あなたの栄養の目安に合わせます。
+          献立の例から、{label}ごはんだけを入れます。量は、あなたの栄養の目安に合わせます。
         </p>
         <button type="button" aria-expanded={help} onClick={() => setHelp((v) => !v)} className="min-h-11 shrink-0 rounded-full px-2 text-xs font-bold whitespace-nowrap text-coral-ink">
           {help ? 'とじる' : 'くわしく'}
@@ -87,7 +87,7 @@ export function IdealMealList({ slot, catalog, targets, storesLoaded, onLoad }: 
       {help && (
         <p className="mb-2 rounded-2xl bg-white/60 px-3 py-2 text-xs leading-relaxed text-ink-soft">
           「毎食バランス」は、この1食だけでカロリー・PFC・食塩などが{label}の目安に収まります。「1日でバランス」は、1日の合計で目安がそろう献立の{label}ごはんです。ごはん・パン・麺を中心に量を変え、足りない分は
-          <span className="font-bold text-coral-ink">＋</span>の一品を足します。えらぶと、いまの{label}の食事と置き換わります（ほかの区分はそのまま）。
+          <span className="font-bold text-coral-ink">＋</span>の一品を足します。選ぶと、いまの{label}の食事と置き換わります（ほかの区分はそのまま）。
         </p>
       )}
       <div className="mb-2 space-y-2">
@@ -137,7 +137,7 @@ export function IdealMealList({ slot, catalog, targets, storesLoaded, onLoad }: 
 
 // 1食ぶんのカード。その食事の顔になる料理の絵、名前、もとの献立、入っている料理、カロリー（区分の目安）・PFC・食塩。
 // 名前が長くても折り返しにくいよう、「これにする」は下の行の右に置く。
-// 毎食バランスで1食ずつえらぶ流れ（MenuBuilder.tsx）では、どれも1食で収まるので「毎食バランス」の印は出さない。chosen はいまえらんでいる1食
+// 毎食バランスで1食ずつ選ぶ流れ（MenuBuilder.tsx）では、どれも1食で収まるので「毎食バランス」の印は出さない。chosen はいま選んでいる1食
 export function IdealMealCard({
   meal,
   catalog,
@@ -174,7 +174,7 @@ export function IdealMealCard({
           <p className="font-bold leading-snug">{name}</p>
           <p className="mt-0.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs text-ink-soft">
             <span>「{ideal.name}」より</span>
-            {chosen && <span className="rounded-full bg-coral/20 px-2 py-0.5 text-2xs font-bold whitespace-nowrap text-coral-ink">いまえらんでいる</span>}
+            {chosen && <span className="rounded-full bg-coral/20 px-2 py-0.5 text-2xs font-bold whitespace-nowrap text-coral-ink">いま選んでいる</span>}
             {showBalanced && meal.balanced && <span className="rounded-full bg-ok/25 px-2 py-0.5 text-2xs font-bold whitespace-nowrap text-ok-ink">毎食バランス</span>}
           </p>
         </div>

@@ -52,7 +52,7 @@ describe('1日の結果のまとめ', () => {
   it('何も入っていないときは、何も言わない', () => {
     const s = summaryOf(totalsOf(0))
     expect(s).toMatchObject({ state: 'empty', ok: [], concerns: [], steps: [], mood: 'okay' })
-    expect(moguMessage(s)).toBe('料理をえらんで、1日の食事をつくってみよう！')
+    expect(moguMessage(s)).toBe('料理を選んで、1日の食事をつくってみよう！')
   })
 
   it('カロリーもPFCも範囲内なら、範囲内に入れて、気になる点は出さない', () => {
@@ -187,10 +187,10 @@ describe('まとめの言葉', () => {
   it('次に試すことの言葉と、押すところの名前', () => {
     const text = (s: Step) => stepText(s)
     expect(text({ kind: 'addMeal', slot: 'lunch' })).toEqual({ text: '昼ごはんを入れる', button: '昼に追加' })
-    expect(text({ kind: 'addFruit' }).button).toBe('果物をえらぶ')
+    expect(text({ kind: 'addFruit' }).button).toBe('果物を選ぶ')
     expect(text({ kind: 'swapSalt' }).button).toBe('置きかえの案')
     expect(text({ kind: 'ranking', key: 'iron' })).toEqual({ text: '鉄の多い食品を足す', button: 'ランキングを見る' })
-    // 料理は自分でえらぶものは、ボタンを出さない
+    // 料理は自分で選ぶものは、ボタンを出さない
     expect(text({ kind: 'reduce', what: 'salt' }).button).toBeUndefined()
     expect(text({ kind: 'reduce', what: 'supplement', nutrient: 'vitaminA' }).text).toBe('ビタミンAのサプリの量を見直す')
   })

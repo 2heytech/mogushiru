@@ -41,7 +41,7 @@ export function mergeTotals(into: NutrientTotals, from: NutrientTotals): Nutrien
   return into
 }
 
-// 材料（食品番号＋グラム）から栄養を計算する。料理のビルド時計算とカスタマイズで共通
+// 材料（食品番号＋グラム）から栄養を計算する。料理のビルド時計算とアレンジで共通
 export function ingredientsTotals(ingredients: Ingredient[], foods: Map<string, Food>): NutrientTotals {
   const totals = emptyTotals()
   for (const ing of ingredients) {

@@ -27,7 +27,7 @@ const search = (query: string) => {
   return IDEAL_MENUS.filter((m) => matchesIdealSearch(idealSearchIndex(m, catalog), tokens)).map((m) => m.name)
 }
 
-describe('理想の献立を好みでしぼる', { timeout: 30_000 }, () => {
+describe('献立の例を好みでしぼる', { timeout: 30_000 }, () => {
   it('朝はごはん・パン・シリアル、昼は丼・定食・そのほか、晩は主菜の材料で分ける', () => {
     expect(facets('和食の定番')).toEqual({ breakfast: 'rice', lunch: 'bowl', dinner: 'fish' })
     expect(facets('パンの朝ごはん').breakfast).toBe('bread')
@@ -47,7 +47,7 @@ describe('理想の献立を好みでしぼる', { timeout: 30_000 }, () => {
     expect(facets('酢豚定食とエビマヨ').dinner).toBe('fish')
   })
 
-  it('どの分け方にも、えらべる献立がある', () => {
+  it('どの分け方にも、選べる献立がある', () => {
     const all = IDEAL_MENUS.map((m) => idealMenuFacets(m, catalog))
     for (const k of BREAKFAST_STYLES) expect(all.filter((f) => f.breakfast === k).length, k).toBeGreaterThanOrEqual(3)
     for (const k of LUNCH_STYLES) expect(all.filter((f) => f.lunch === k).length, k).toBeGreaterThanOrEqual(3)

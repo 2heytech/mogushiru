@@ -32,10 +32,10 @@ const BALANCED = 50
 const TOO_LOW_RATIO = 0.5
 
 // 朝・昼・晩のうちまだ入っていない区分（missing）があるあいだは、合計を1日ぶんとして扱わない。
-// asFullDay は、ユーザーが「この内容を1日ぶんとして計算する」をえらんだとき
+// asFullDay は、ユーザーが「この内容を1日ぶんとして計算する」を選んだとき
 type DayProgress = { missing: Slot[]; asFullDay: boolean }
 
-// 食べるカロリー（えらんだ1日の食事）と使うカロリー（基礎代謝＋ふだんの生活＋運動）をくらべる
+// 食べるカロリー（選んだ1日の食事）と使うカロリー（基礎代謝＋ふだんの生活＋運動）をくらべる
 export function EnergyBalanceView({
   totals,
   energy,
@@ -71,7 +71,7 @@ export function EnergyBalanceView({
       </div>
 
       <div className="space-y-2 rounded-2xl bg-white/70 p-3">
-        <BarRow label="食べる" value={intake} sub={partial ? '入力済みの合計' : 'えらんだ1日の食事'}>
+        <BarRow label="食べる" value={intake} sub={partial ? '入力済みの合計' : '選んだ1日の食事'}>
           <div className="h-full rounded-r-md bg-coral transition-all duration-500" style={{ width: w(intake) }} />
         </BarRow>
         <BarRow label="使う" value={energy.total} sub="1日の目安">
@@ -99,7 +99,7 @@ export function EnergyBalanceView({
       </div>
 
       {intake === 0 ? (
-        <p className="text-sm text-ink-soft">料理をえらぶと、食べるカロリーとくらべます</p>
+        <p className="text-sm text-ink-soft">料理を選ぶと、食べるカロリーとくらべます</p>
       ) : partial ? (
         <p role="note" className="rounded-2xl bg-white px-4 py-2 text-sm shadow-sm">
           <strong>{slotNames(missing)}がまだ入っていません</strong>
@@ -179,7 +179,7 @@ function BarRow({ label, value, sub, children }: { label: string; value: number;
 const fmtKg = (v: number) => v.toFixed(1)
 const signedKg = (v: number) => (Math.abs(v) < 0.05 ? '±0.0' : `${v > 0 ? '+' : '−'}${Math.abs(v).toFixed(1)}`)
 
-// えらんだ1日の食事と運動を毎日続けたときの体重（1・3・6か月後と1年後）。
+// 選んだ1日の食事と運動を毎日続けたときの体重（1・3・6か月後と1年後）。
 // 入力の途中（朝だけ入れた、など）や体重が未入力のうちは、数字を出さずに何がそろえば計算するかを見せる
 export function WeightSimView({
   totals,
@@ -269,7 +269,7 @@ export function WeightSimView({
     <div className="space-y-3">
       <div>
         <h2 className="font-bold">このまま続けたときの体重</h2>
-        <p className="text-xs text-ink-soft">えらんだ1日の食事と運動を、毎日続けた場合の目安です</p>
+        <p className="text-xs text-ink-soft">選んだ1日の食事と運動を、毎日続けた場合の目安です</p>
       </div>
       {missing.length > 0 && (
         <p role="note" className="rounded-2xl bg-caution/20 px-3 py-2 text-sm">
