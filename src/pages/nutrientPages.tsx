@@ -17,7 +17,7 @@ import {
 import { SERVING_NOTE } from '../domain/serving'
 import { computeTargets, DEFAULT_PROFILE, type Targets } from '../domain/targets'
 import type { Food, NutrientKey, Sex } from '../domain/types'
-import { nutrientPagePath, NUTRIENTS_INDEX_PATH, rankingAppPath, SITE_NAME, VIEW_PATH } from '../routes'
+import { foodPagePath, nutrientPagePath, NUTRIENTS_INDEX_PATH, rankingAppPath, SITE_NAME, VIEW_PATH } from '../routes'
 import type { DishPageData } from './dishPages'
 import { NUTRIENT_COPY, type NutrientCopy } from './nutrientCopy'
 import type { OgCard } from './ogCard'
@@ -321,6 +321,17 @@ function ReferenceTable({ data }: { data: NutrientPageData }) {
   )
 }
 
+// ランキングに出す食品の名前。食品のページ（/foods/natto/ など。定番の食品だけ）があるものは、そこへのふつうのリンクにする
+function FoodName({ food }: { food: Food }) {
+  const to = foodPagePath(food.id)
+  if (!to) return <>{food.displayName}</>
+  return (
+    <a href={to} className="underline decoration-coral/60 underline-offset-2 hover:decoration-coral-ink">
+      {food.displayName}
+    </a>
+  )
+}
+
 function RankingList({ data, metric, rows }: { data: NutrientPageData; metric: RankingMetric; rows: RankingRow[] }) {
   const { info, copy } = data
   const ref = dailyReference(data.key, DEFAULT_TARGETS)
@@ -345,7 +356,7 @@ function RankingList({ data, metric, rows }: { data: NutrientPageData; metric: R
               <div className="min-w-0 flex-1">
                 <div className="flex items-baseline justify-between gap-2">
                   <p className="min-w-0 font-bold leading-snug" title={r.food.name.replace(/　/g, ' ')}>
-                    {r.food.displayName}
+                    <FoodName food={r.food} />
                   </p>
                   <p className="shrink-0 text-sm tabular-nums">
                     <strong>{fmt(r.value)}</strong>
@@ -476,7 +487,7 @@ function GroupLists({ data }: { data: NutrientPageData }) {
                 <li key={r.food.id} className="flex items-baseline gap-2 py-1.5">
                   <span className="w-4 shrink-0 text-xs text-ink-soft tabular-nums">{i + 1}</span>
                   <span className="min-w-0 flex-1 leading-snug" title={r.food.name.replace(/　/g, ' ')}>
-                    {r.food.displayName}
+                    <FoodName food={r.food} />
                     <span className="block text-xs text-ink-soft">
                       {r.serving.label}（{r.serving.grams}g）
                     </span>

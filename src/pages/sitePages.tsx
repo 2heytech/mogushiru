@@ -5,6 +5,7 @@ import { NUTRIENT_GROUPS, type PriceTable } from '../domain/ranking'
 import type { NutrientKey } from '../domain/types'
 import {
   DISHES_INDEX_PATH,
+  FOOD_SLUG,
   MENU_PAGES,
   MENUS_INDEX_PATH,
   menuPagePath,
@@ -38,6 +39,7 @@ import {
   type RecipeImage,
 } from './dishPages'
 import { OPERATOR_NAME, OPERATOR_URL } from '../site'
+import { foodOgCard, FoodPage, foodPageDescription, foodPagesFor, foodPageTitle, FOODS_CRUMB } from './foodPages'
 import { menuGenreDescription, menuGenreOgCard, menuGenreTitle, MenuGenrePage, MenusIndexPage, menusFor, menusIndexOgCard, menusIndexTitle, planMenus } from './menuPages'
 import { NUTRIENT_COPY } from './nutrientCopy'
 import {
@@ -74,6 +76,8 @@ export type SitePage = {
   og?: { path: string; alt: string; card: OgCard }
   // レシピ用の画像（料理のページ。scripts/prerender.tsx が料理の絵から PNG を作って path に置く）
   images?: RecipeImage[]
+  // このページだけが読む小さなプログラム（public に置いたファイルのパス）。読みもののページはふつう何も読まない
+  script?: string
   // 公開した日と、中身が最後に変わった日（data/sitemap-lastmod.json から。scripts/prerender.tsx が入れる）。レシピのデータに書く
   dates?: PageDates
 }
@@ -94,6 +98,9 @@ const WEBSITE_JSON_LD = {
   description: VIEW_META.menu.description,
   publisher: { '@type': 'Organization', name: OPERATOR_NAME, url: OPERATOR_URL },
 }
+
+// 食品のページが読むプログラム（public/back-reload.js）。アプリで食品の窓をひらいたまま読みこみ直したあとの「戻る」で、アプリの画面にもどれるようにする
+const BACK_RELOAD_SCRIPT = '/back-reload.js'
 
 const og = (name: string, made: { card: OgCard; alt: string }): SitePage['og'] => ({ path: `/og/${name}.png`, ...made })
 
@@ -128,10 +135,23 @@ export function buildSitePages({ catalog, prices }: { catalog: Catalog; prices: 
   const menuGroups = MENU_PAGES.map((page) => ({ page, plans: planMenus(menusFor(page), catalog) })).filter((g) => g.plans.length > 0)
   // 献立の例のページから、作り方のページがある料理へリンクする（読む人にも検索エンジンにも、料理のページへの道がふえる）
   const dishPaths = new Map(dishes.map((d) => [d.dish.id, d.path]))
+  // 定番の食品のページ。「食品を調べる」の最初の HTML からも、ふつうのリンクでつなぐ
+  const foods = foodPagesFor(catalog, dishes)
+  const foodLinks = foods.map((d) => ({ name: `${d.food.displayName}のカロリー・栄養`, path: d.path }))
 
   const pages: SitePage[] = [
     { ...appPage('menu', TOP_LINKS), jsonLd: [WEBSITE_JSON_LD] },
-    appPage('foods'),
+    appPage('foods', [...foodLinks, ...APP_LINKS]),
+    ...foods.map((d) => ({
+      path: d.path,
+      title: foodPageTitle(d),
+      description: foodPageDescription(d),
+      kind: 'static' as const,
+      body: html(<FoodPage data={d} others={foods.filter((o) => o !== d)} />),
+      crumbs: [{ name: SITE_NAME, path: '/' }, { name: FOODS_CRUMB, path: VIEW_PATH.foods }, { name: d.food.displayName }],
+      og: og(`foods-${FOOD_SLUG[d.food.id]}`, foodOgCard(d)),
+      script: BACK_RELOAD_SCRIPT,
+    })),
     appPage('ranking', [...APP_LINKS, ...nutrientLinks]),
     appPage('customize'),
     appPage('about'),
@@ -266,6 +286,7 @@ export function renderDocument(template: string, page: SitePage): string {
   if (page.kind === 'app') return replaceOnce(out, /<div id="root"><\/div>/, `<div id="root">${page.body}</div>`)
   // 読みもののページはアプリのプログラムを読まない（見た目の CSS と書体だけ使う）
   out = out.replace(/\s*<script type="module"[^>]*><\/script>/g, '').replace(/\s*<link rel="modulepreload"[^>]*>/g, '')
+  if (page.script) out = replaceOnce(out, /<\/head>/, `  <script src="${page.script}" defer></script>\n  </head>`)
   return replaceOnce(out, /<div id="root"><\/div>/, page.body)
 }
 

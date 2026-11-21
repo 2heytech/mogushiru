@@ -6,6 +6,7 @@ import { familiarFoodIds, FOOD_GROUP_LABEL, NAMED_FOOD_IDS } from '../domain/ran
 import { servingFor } from '../domain/serving'
 import { isSupplement } from '../domain/supplement'
 import type { Dish, DishCategory, Food, MenuItem, Product } from '../domain/types'
+import { FOOD_PAGE_IDS } from '../routes'
 import { MY_PRODUCT_PREFIX, recentMyDishes } from '../store/useAppStore'
 import { categoryImage, foodImage } from './illustration'
 import { DISH_CATEGORY_LABEL, PRODUCT_STORES } from './labels'
@@ -156,8 +157,9 @@ export function lookupDishCard(d: Dish, catalog: Pick<Catalog, 'foods'>): Card {
   return ingredients ? { ...card, sub: [ingredients, card.sub].filter(Boolean).join('・') } : card
 }
 
-// さがす前に出す「定番の食品」（成分表の食品番号）：ごはん・食パン・卵・納豆・牛乳・ヨーグルト・バナナ・鶏むね肉・鮭・木綿豆腐・ブロッコリー・さつまいも
-export const STAPLE_FOOD_IDS = ['01088', '01026', '12004', '04046', '13003', '13025', '07107', '11220', '10134', '04032', '06263', '02006']
+// さがす前に出す「定番の食品」（成分表の食品番号）：ごはん・食パン・卵・納豆・牛乳・ヨーグルト・バナナ・鶏むね肉・鮭・木綿豆腐・ブロッコリー・さつまいも。
+// どれも食品のページ（/foods/natto/ など）があるので、番号と並びは routes.ts で決める
+export const STAPLE_FOOD_IDS = FOOD_PAGE_IDS
 
 // 最近見た食品などの「種類と番号」から、カードを作る（なくなったもの・サプリは null）
 export function lookupCard(item: Pick<LookupItem, 'kind' | 'refId'>, catalog: Catalog): Card | null {

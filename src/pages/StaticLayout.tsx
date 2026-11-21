@@ -18,8 +18,8 @@ export const CARD = 'rounded-[var(--radius-card)] bg-white p-4 shadow-sm sm:p-5'
 const BAR_WIDTHS = ['w-[5%]', 'w-[10%]', 'w-[15%]', 'w-[20%]', 'w-[25%]', 'w-[30%]', 'w-[35%]', 'w-[40%]', 'w-[45%]', 'w-[50%]', 'w-[55%]', 'w-[60%]', 'w-[65%]', 'w-[70%]', 'w-[75%]', 'w-[80%]', 'w-[85%]', 'w-[90%]', 'w-[95%]', 'w-[100%]']
 export const barWidth = (ratio: number) => BAR_WIDTHS[Math.min(Math.max(Math.round(ratio * 20), 1), 20) - 1]
 
-// 読みもののページがどの一覧の中にあるか（上のメニューで、いまの場所を示す）
-export type Section = (typeof READING_LINKS)[number]['key']
+// 読みもののページがどの一覧の中にあるか（上のメニューで、いまの場所を示す）。foods は、食品のページ（/foods/natto/ など）
+export type Section = (typeof READING_LINKS)[number]['key'] | 'foods'
 
 // 追従するボタン（ページを読み進めても、下に出たままの小さなボタン）。行き先は、ページの中身に合わせる
 // （料理のページなら「この料理を1日の食事に入れる」）。指定がなければ「栄養バランスを計算する」
@@ -28,6 +28,7 @@ export const CALC_LABEL = '栄養バランスを計算する'
 const DEFAULT_CTA: Cta = { href: VIEW_PATH.menu, label: CALC_LABEL }
 
 const NAV_LINK = 'inline-flex min-h-11 items-center font-bold whitespace-nowrap underline-offset-4 hover:underline'
+const NAV_HERE = 'text-coral-ink underline decoration-coral decoration-2'
 
 // 上のメニュー：栄養バランスを計算（ボタン）・食品を調べる・ランキング・献立の例・料理のカロリー・栄養。
 // どの読みもののページからも、アプリの画面とほかの読みものへ1回で行ける。「ランキング」は読みものの一覧（/nutrients/）へ
@@ -37,13 +38,13 @@ function SiteNav({ section }: { section?: Section }) {
     <nav aria-label="サイトのメニュー" className="order-3 w-full lg:order-2 lg:ml-auto lg:w-auto">
       <ul className="flex flex-wrap items-center gap-x-2 text-xs min-[380px]:gap-x-3 min-[400px]:gap-x-4 sm:gap-x-5 sm:text-sm">
         <li>
-          <a href={VIEW_PATH.foods} className={`${NAV_LINK} text-ink`}>
+          <a href={VIEW_PATH.foods} aria-current={section === 'foods' ? 'true' : undefined} className={`${NAV_LINK} ${section === 'foods' ? NAV_HERE : 'text-ink'}`}>
             食品を調べる
           </a>
         </li>
         {READING_LINKS.map((l) => (
           <li key={l.key}>
-            <a href={l.path} aria-current={l.key === section ? 'true' : undefined} className={`${NAV_LINK} ${l.key === section ? 'text-coral-ink underline decoration-coral decoration-2' : 'text-ink'}`}>
+            <a href={l.path} aria-current={l.key === section ? 'true' : undefined} className={`${NAV_LINK} ${l.key === section ? NAV_HERE : 'text-ink'}`}>
               {/* 幅のせまいスマホでは、4つが1行に並ぶように「料理の栄養」まで縮める */}
               {l.key === 'dishes' ? (
                 <>

@@ -1,7 +1,9 @@
 import { Fragment, useDeferredValue, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { highlightRanges, lookupWords } from '../domain/lookupQuery'
 import { itemTotals, type Catalog } from '../domain/nutrition'
+import { foodPagePath } from '../routes'
 import type { RecentLookup } from '../store/useAppStore'
+import { inAppLink } from './inAppLink'
 import {
   browseLookup,
   LOOKUP_KIND_LABEL,
@@ -122,17 +124,33 @@ function LookupRow({ card, catalog, words, onOpen }: { card: Card; catalog: Cata
 }
 
 // 押すとすぐ栄養素の一覧がひらく、絵と名前だけの小さなボタン（最近見た食品・定番の食品）
+// 食品のページ（/foods/natto/ など）のある食品は、そのページへのふつうのリンクにする（検索エンジンがたどれる・新しいタブでも開ける）。
+// ふつうに押したときは、ページを読み直さずに栄養素の一覧をひらく（アドレスは、その食品のページのものになる）
 function QuickChips({ cards, onOpen }: { cards: Card[]; onOpen: (item: LookupItem) => void }) {
   return (
     <ul className="flex flex-wrap gap-1.5">
-      {cards.map((c) => (
-        <li key={c.key} className="max-w-full">
-          <button type="button" aria-haspopup="dialog" onClick={() => onOpen(c.item)} className={`${CHIP} max-w-full`}>
+      {cards.map((c) => {
+        const page = c.item.kind === 'food' ? foodPagePath(c.item.refId) : null
+        const inner = (
+          <>
             {c.image && <img src={c.image} alt="" className="h-7 w-7 shrink-0 object-contain" loading="lazy" />}
             <span className="truncate">{c.name}</span>
-          </button>
-        </li>
-      ))}
+          </>
+        )
+        return (
+          <li key={c.key} className="max-w-full">
+            {page ? (
+              <a href={page} aria-haspopup="dialog" onClick={(e) => inAppLink(e, () => onOpen(c.item))} className={`${CHIP} max-w-full`}>
+                {inner}
+              </a>
+            ) : (
+              <button type="button" aria-haspopup="dialog" onClick={() => onOpen(c.item)} className={`${CHIP} max-w-full`}>
+                {inner}
+              </button>
+            )}
+          </li>
+        )
+      })}
     </ul>
   )
 }
