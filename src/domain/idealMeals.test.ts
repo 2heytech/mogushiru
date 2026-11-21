@@ -19,7 +19,7 @@ const search = (slot: (typeof MEAL_SLOTS)[number], query: string) => {
   return idealMeals(slot, IDEAL_MENUS).filter((m) => matchesIdealSearch(idealSearchIndex(m.menu, catalog, slot), tokens))
 }
 
-describe('理想の献立を1食ずつ呼び出す', { timeout: 30_000 }, () => {
+describe('献立の例を1食ずつ呼び出す', { timeout: 30_000 }, () => {
   it('朝・昼・晩が1食ずつ呼び出せる（その他は対象にしない）', () => {
     expect(MEAL_SLOTS).toEqual(['breakfast', 'lunch', 'dinner'])
     expect(isMealSlot('dinner')).toBe(true)
@@ -29,7 +29,7 @@ describe('理想の献立を1食ずつ呼び出す', { timeout: 30_000 }, () => 
   it('同じ組み合わせの1食は1つにまとめ、どの献立の1食も一覧のどれかに入っている', () => {
     for (const slot of MEAL_SLOTS) {
       const meals = idealMeals(slot, IDEAL_MENUS)
-      // えらべるくらいの数がある
+      // 選べるくらいの数がある
       expect(meals.length, slot).toBeGreaterThanOrEqual(20)
       expect(meals.length, slot).toBeLessThan(IDEAL_MENUS.length)
       const keys = meals.map((m) => m.key)
@@ -77,7 +77,7 @@ describe('理想の献立を1食ずつ呼び出す', { timeout: 30_000 }, () => 
     expect(idealMeals('lunch', [withProduct, plain, perMeal]).map((m) => m.menu.id)).toEqual(['c', 'a', 'b'])
   })
 
-  it('どの1食にも名前にするひとことがあり、どの分け方にもえらべる1食がある', () => {
+  it('どの1食にも名前にするひとことがあり、どの分け方にも選べる1食がある', () => {
     const styles = { breakfast: BREAKFAST_STYLES, lunch: LUNCH_STYLES, dinner: DINNER_MAINS }
     for (const slot of MEAL_SLOTS) {
       const meals = idealMeals(slot, IDEAL_MENUS)
@@ -107,8 +107,8 @@ describe('理想の献立を1食ずつ呼び出す', { timeout: 30_000 }, () => 
   })
 })
 
-// 毎食バランスで、朝・昼・晩を1食ずつえらぶときの候補
-describe('毎食バランスで1食ずつえらぶ', { timeout: 120_000 }, () => {
+// 毎食バランスで、朝・昼・晩を1食ずつ選ぶときの候補
+describe('毎食バランスで1食ずつ選ぶ', { timeout: 120_000 }, () => {
   const solo = (slot: (typeof MEAL_SLOTS)[number], profile: Profile) => {
     const t = computeTargets(profile)
     return { t, meals: soloMeals(slot, IDEAL_MENUS, catalog, t, (m) => planned(m, profile).menu) }
@@ -133,7 +133,7 @@ describe('毎食バランスで1食ずつえらぶ', { timeout: 120_000 }, () =>
       }
   })
 
-  it('毎食バランスの献立の1食だけより多くからえらべる（プロフィール未入力の目安では、朝・昼・晩とも8種以上）', () => {
+  it('毎食バランスの献立の1食だけより多くから選べる（プロフィール未入力の目安では、朝・昼・晩とも8種以上）', () => {
     for (const slot of MEAL_SLOTS) {
       const n = solo(slot, F35).meals.length
       expect(n, slot).toBeGreaterThanOrEqual(8)

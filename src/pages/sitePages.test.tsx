@@ -614,3 +614,69 @@ describe('料理のカロリー・栄養と作り方のページ', () => {
     for (const path of ['/nutrients/protein/', '/nutrients/vitamin-c/', '/nutrients/iron/', '/nutrients/calcium/']) expect(linked, path).toContain(path)
   })
 })
+
+describe('読みもののページの上のメニューと、アプリへの入口', () => {
+  const reading = pages.filter((p) => p.kind === 'static')
+  const header = (p: SitePage) => /<header[\s\S]*?<\/header>/.exec(p.body)?.[0] ?? ''
+  // 追従するボタン（本文のあと、フッターの前。main の外）
+  const sticky = (p: SitePage) => /<a href="([^"]+)"[^>]*>(.*?)<\/a>/.exec(/<\/main>([\s\S]*?)<footer/.exec(p.body)?.[1] ?? '')
+  const text = (html: string) => html.replace(/<!-- -->/g, '').replace(/<[^>]+>/g, '')
+
+  it('どのページの上にも、同じメニューがある：栄養バランスを計算する（ボタン）・食品を調べる・ランキング・献立の例・料理のカロリー・栄養', () => {
+    expect(reading.length).toBeGreaterThan(290)
+    for (const p of [...reading, NOT_FOUND_PAGE()]) {
+      const head = header(p)
+      expect(head, p.path).toContain('aria-label="サイトのメニュー"')
+      expect(head, p.path).toMatch(/<a href="\/" aria-label="栄養バランスを計算する"/)
+      const links = [...head.matchAll(/<li><a href="([^"]+)"[^>]*>(.*?)<\/a><\/li>/g)].map((m) => [m[1], text(m[2])])
+      expect(links, p.path).toEqual([
+        ['/foods/', '食品を調べる'],
+        ['/nutrients/', 'ランキング'],
+        ['/menus/', '献立の例'],
+        ['/dishes/', '料理のカロリー・栄養'],
+      ])
+    }
+  })
+
+  it('いまいる場所（ランキング・献立の例・料理のカロリー・栄養）に印がつく', () => {
+    const current = (p: SitePage) => /<a href="([^"]+)" aria-current="true"/.exec(header(p))?.[1]
+    for (const p of reading) {
+      const section = /^\/(nutrients|menus|dishes)\//.exec(p.path)?.[1]
+      expect(current(p), p.path).toBe(section ? `/${section}/` : undefined)
+    }
+    expect(current(NOT_FOUND_PAGE())).toBeUndefined()
+  })
+
+  it('長いページには、画面の下に追従するボタンがある。料理のページは「この料理を1日の食事に入れる」、ほかは「栄養バランスを計算する」', () => {
+    for (const p of reading) {
+      const found = sticky(p)
+      expect(found, p.path).not.toBeNull()
+      const id = /^\/dishes\/([a-z0-9-]+)\/$/.exec(p.path)?.[1]
+      if (id) expect([found![1], text(found![2])], p.path).toEqual([`/#add=${id}`, 'この料理を1日の食事に入れる'])
+      else expect([found![1], text(found![2])], p.path).toEqual(['/', '栄養バランスを計算する'])
+    }
+    // 404 は短いので出さない
+    expect(sticky(NOT_FOUND_PAGE())).toBeNull()
+  })
+
+  it('料理のページのボタンは、押すと何が起きるかを書く：1日の食事に入れる・材料と量を変える・作る人数を変える', () => {
+    const p = page('/dishes/saba-misoni/')
+    const main = /<main>[\s\S]*<\/main>/.exec(p.body)![0]
+    const buttons = new Map([...main.matchAll(/<a href="(\/(?:customize\/)?#[^"]+)"[^>]*>(.*?)<\/a>/g)].map((m) => [text(m[2]), m[1]]))
+    expect(buttons.get('この料理を1日の食事に入れる')).toBe('/#add=saba-misoni')
+    expect(buttons.get('材料と量を変えて栄養を計算する')).toBe('/customize/#dish=saba-misoni')
+    expect(buttons.get('作る人数を変えて見る')).toBe('/customize/#dish=saba-misoni&amp;tab=recipe')
+  })
+
+  it('アプリへのボタンに「アプリをひらく」「モグシルで開く」と書かない（何ができるかを書く）', () => {
+    for (const p of [...pages, NOT_FOUND_PAGE()]) {
+      for (const [, label] of p.body.matchAll(/<a [^>]*>(.*?)<\/a>/g)) expect(text(label), p.path).not.toMatch(/アプリを(ひら|開)く|モグシルで(ひら|開)く|アプリで(ひら|開)く/)
+    }
+  })
+
+  it('呼び名をそろえる：「選ぶ」「献立の例」「アレンジ」と書き、「えらぶ」「献立案」「理想の献立」「カスタマイズ」は使わない', () => {
+    for (const p of [...pages, NOT_FOUND_PAGE()]) {
+      for (const s of [p.title, p.description, text(p.body)]) expect(s, p.path).not.toMatch(/えら[ばびぶべぼん]|献立案|理想の献立|カスタマイズ/)
+    }
+  })
+})

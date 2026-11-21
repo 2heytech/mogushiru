@@ -154,7 +154,7 @@ export function Customizer({
   saveLabel: string
   // 1日の食事の中の料理をひらいたとき（onApply があるとき）の、いちばん目立つボタンの名前
   applyLabel?: string
-  // 保存したとき、料理をえらぶ画面で上に出す区分の初期値
+  // 保存したとき、料理を選ぶ画面で上に出す区分の初期値
   initialSlots: Slot[]
   // 材料は1人前あたり。portion は何人前か
   onApply?: (ingredients: Ingredient[], portion: number) => void
@@ -378,7 +378,7 @@ export function Customizer({
                     名前
                     <input value={name} onChange={(e) => setTypedName(e.target.value)} className="min-h-11 min-w-0 flex-1 rounded-full bg-white px-4 text-base" />
                   </label>
-                  <div className="flex flex-wrap items-center gap-1.5 text-sm" role="group" aria-label="料理をえらぶとき上に出す食事">
+                  <div className="flex flex-wrap items-center gap-1.5 text-sm" role="group" aria-label="料理を選ぶとき上に出す食事">
                     <span className="mr-1">上に出す</span>
                     {SLOTS.map((slot) => (
                       <button

@@ -70,7 +70,7 @@ describe('飲み物の見分け方', () => {
 })
 
 describe('杯数と1杯の量', () => {
-  it('ビールは缶1本が1人前。ロング缶・中ジョッキ・中瓶もえらべる', () => {
+  it('ビールは缶1本が1人前。ロング缶・中ジョッキ・中瓶も選べる', () => {
     const s = spec('dish', 'beer')
     expect(s.short).toBe('ビール')
     expect(s.sizes.map(drinkSizeLabel)).toEqual(['缶 350mL', '中ジョッキ 約400mL', 'ロング缶 500mL', '中瓶 500mL'])
@@ -92,7 +92,7 @@ describe('杯数と1杯の量', () => {
     const s = spec('dish', 'drink-green-tea')
     expect(s.sizes.map((x) => x.label)).toEqual(['湯のみ', 'コップ', 'マグカップ', '缶', 'ペットボトル'])
   })
-  it('日本酒は合で数え、量はえらばない', () => {
+  it('日本酒は合で数え、量は選ばない', () => {
     const s = spec('dish', 'sake')
     expect(s.sizes).toEqual([])
     expect(drinkAmountLabel(s.base, 2)).toBe('2合')
@@ -128,7 +128,7 @@ describe('杯数と1杯の量', () => {
     expect(drinkCount({ portion: 2 }, s)).toBe(2)
     expect(drinkAmount(s, 3)).toEqual({ portion: 3, cup: undefined })
   })
-  it('前と同じ1杯の量を使う（いまはえらべない量なら1人前の量）', () => {
+  it('前と同じ1杯の量を使う（いまは選べない量なら1人前の量）', () => {
     const s = spec('dish', 'beer')
     const long = s.sizes.find((x) => x.label === 'ロング缶')!
     expect(pickCup(s, long)).toEqual(long)

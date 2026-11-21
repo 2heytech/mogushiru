@@ -30,7 +30,7 @@ const catalog: Catalog = {
 const keys = (tab: 'all' | 'dish' | 'myDish', slot: Slot) =>
   buildCards(tab, { catalog, slot, query: '', category: 'all', showAlcohol: true, favorites: new Set() }).map((c) => c.key)
 
-describe('カスタマイズした料理の並び', () => {
+describe('アレンジした料理の並び', () => {
   it('その区分で保存した料理だけを上に出し、ほかの区分のものは後ろに回す', () => {
     expect(keys('dish', 'breakfast')).toEqual(['myDish:m-old', 'myDish:m-breakfast', 'dish:d1', 'myDish:m-dinner'])
     expect(keys('dish', 'dinner')).toEqual(['myDish:m-old', 'myDish:m-dinner', 'dish:d1', 'myDish:m-breakfast'])
@@ -82,7 +82,7 @@ describe('カードと行の分け方', () => {
   })
 })
 
-describe('料理をえらぶ画面の「飲み物」の列', () => {
+describe('料理を選ぶ画面の「飲み物」の列', () => {
   // テスト用の架空の飲み物
   const drink = (id: string, category: 'drink' | 'alcohol'): Dish => ({ ...dish(id, id), category, ingredients: [{ foodId: '00001', grams: 200 }] })
   const c: Catalog = {

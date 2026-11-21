@@ -16,7 +16,7 @@ import { matches } from '../domain/search'
 import { SERVING_NOTE } from '../domain/serving'
 import type { Targets } from '../domain/targets'
 import type { NutrientKey } from '../domain/types'
-import { nutrientPagePath, VIEW_META } from '../routes'
+import { nutrientPagePath, NUTRIENTS_INDEX_PATH, VIEW_META } from '../routes'
 import type { LookupItem } from './lookupCards'
 
 const PAGE = 30
@@ -60,7 +60,7 @@ export function RankingView({
   const [familiarOnly, setFamiliarOnly] = useState(true)
   const [query, setQuery] = useState('')
   const [limit, setLimit] = useState(PAGE)
-  // スマホ・タブレットでは「くらべ方・種類・検索」を畳み、成分をえらんだらすぐ結果が見えるようにする（PCは常にひらく）
+  // スマホ・タブレットでは「くらべ方・種類・検索」を畳み、成分を選んだらすぐ結果が見えるようにする（PCは常にひらく）
   const [filtersOpen, setFiltersOpen] = useState(false)
   const [nutrientOpen, setNutrientOpen] = useState(false)
 
@@ -94,7 +94,7 @@ export function RankingView({
   return (
     <section aria-labelledby="ranking-title" className="space-y-4">
       <div>
-        {/* 上のメニューの「成分ランキング」の画面。成分・くらべ方・食品の種類をえらんで並べ替える道具なので、見出しは「ランキングを並べ替え」
+        {/* 上のメニューの「成分ランキング」の画面。成分・くらべ方・食品の種類を選んで並べ替える道具なので、見出しは「ランキングを並べ替え」
             （成分ごとの読みもののページ /nutrients/… は「〜が多い食べ物ランキング」、その一覧は「食品成分ランキング」）。
             名前でさがすのは、となりの「食品を調べる」（FoodLookup.tsx） */}
         <h1 id="ranking-title" className="text-xl font-bold">
@@ -110,7 +110,10 @@ export function RankingView({
                 {info.label}の1日の目安（年齢・性別ごと）
               </a>
             </>
-          )}
+          )}{' '}
+          <a href={NUTRIENTS_INDEX_PATH} className="font-bold text-coral-ink underline decoration-coral/60 underline-offset-2">
+            成分ごとのまとめ（食品成分ランキング）
+          </a>
         </p>
       </div>
 
@@ -128,8 +131,8 @@ export function RankingView({
               <span className="shrink-0 font-bold">成分</span>
               <span className="min-w-0 flex-1 truncate font-bold text-coral-ink">{info.label}</span>
               <span className="shrink-0 text-xs text-ink-soft">
-                {/* スマホは成分の名前が切れないよう「えらぶ」だけ */}
-                {nutrientOpen ? 'とじる' : <><span className="max-sm:hidden">ほかの成分を</span>えらぶ</>}
+                {/* スマホは成分の名前が切れないよう「選ぶ」だけ */}
+                {nutrientOpen ? 'とじる' : <><span className="max-sm:hidden">ほかの成分を</span>選ぶ</>}
               </span>
               <span aria-hidden className={`shrink-0 text-xs transition ${nutrientOpen ? 'rotate-180' : ''}`}>
                 ▼

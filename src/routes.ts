@@ -1,4 +1,4 @@
-// サイトの URL の決まり。アプリの画面（1日の食事・ランキング・カスタマイズ・このサイトについて）と、
+// サイトの URL の決まり。アプリの画面（1日の食事・ランキング・アレンジ・このサイトについて）と、
 // ビルドのときに書き出す読みもののページ（成分ごとのランキング・献立の例）の両方で使う。
 // 画面の切り替えは以前は #ranking のように # で持っていた。検索エンジンは # の違いを別のページとして読まないので、ふつうのパスにした
 import type { IdealGenre } from './domain/idealMenus'
@@ -17,7 +17,7 @@ export const VIEW_PATH: Record<View, string> = { menu: '/', foods: '/foods/', ra
 
 // 上のメニューは3つ：栄養バランス（menu）・食品を調べる（foods）・成分ランキング（ranking）。
 // 「料理をアレンジ」（customize）は、栄養バランスの中の画面にした（上のメニューには出さず、1日の食事・最初の画面から入る。
-// URL は /customize/ のまま）。その画面を見ているあいだ、上のメニューは「栄養バランス」をえらんだ形にする
+// URL は /customize/ のまま）。その画面を見ているあいだ、上のメニューは「栄養バランス」を選んだ形にする
 export type Feature = 'menu' | 'foods' | 'ranking'
 
 export const VIEW_FEATURE: Record<View, Feature | null> = { menu: 'menu', customize: 'menu', foods: 'foods', ranking: 'ranking', about: null }
@@ -39,9 +39,9 @@ export const VIEW_META: Record<View, { title: string; description: string; headi
   },
   // ランキングを並べ替える道具の画面。検索には載せない（NOINDEX_VIEWS）。検索の受け皿は、読みものの一覧 /nutrients/（食品成分ランキング）
   ranking: {
-    title: 'ランキングを並べ替え｜成分・くらべ方・食品の種類をえらぶ｜モグシル',
+    title: 'ランキングを並べ替え｜成分・くらべ方・食品の種類を選ぶ｜モグシル',
     heading: 'ランキングを並べ替え',
-    description: 'たんぱく質・鉄・カルシウム・ビタミンなど26の成分について、くらべ方（1回に食べる量・100gあたり・100kcalあたり・100円あたり）と食品の種類をえらんで、食品を多い順に並べ替えられます。',
+    description: 'たんぱく質・鉄・カルシウム・ビタミンなど26の成分について、くらべ方（1回に食べる量・100gあたり・100kcalあたり・100円あたり）と食品の種類を選んで、食品を多い順に並べ替えられます。',
   },
   customize: {
     title: '料理をアレンジ｜材料や量を変えて栄養を計算｜モグシル',
@@ -144,9 +144,9 @@ export function appLinkParam(name: string, search: string, hash: string): string
   return new URLSearchParams(hash.replace(/^#/, '')).get(name) ?? new URLSearchParams(search).get(name)
 }
 
-// # のうしろに、アプリを開くときの指定（成分 n・献立 menu・料理 dish）があるか。
+// # のうしろに、アプリを開くときの指定（成分 n・献立 menu・料理 dish・1日の食事に入れる料理 add）があるか。
 // アプリを開いたまま、指定つきの URL に移ったとき（アドレス欄に貼ったなど）に、読みこみ直して指定を読むために使う
-const APP_LINK_NAMES = ['n', 'menu', 'dish']
+const APP_LINK_NAMES = ['n', 'menu', 'dish', 'add']
 export const hasAppLinkHash = (hash: string): boolean => APP_LINK_NAMES.some((name) => appLinkParam(name, '', hash) !== null)
 
 // 読み終えた指定を取りのぞいた「? と # の部分」を返す（アドレス欄から消すため）。もともとなければ null
@@ -186,7 +186,7 @@ export function legacyQueryRedirect(pathname: string, search: string): LegacyQue
   return null
 }
 
-// アプリのランキングを、成分をえらんだ状態でひらく URL（/ranking/#n=iron）
+// アプリのランキングを、成分を選んだ状態でひらく URL（/ranking/#n=iron）
 export const rankingAppPath = (key: NutrientKey): string => {
   const slug = NUTRIENT_SLUG[key]
   return slug ? appLink(VIEW_PATH.ranking, 'n', slug) : VIEW_PATH.ranking
@@ -232,7 +232,7 @@ export const MENU_PAGES: MenuPage[] = [
 
 export const menuPagePath = (page: MenuPage): string => `${MENUS_INDEX_PATH}${page.slug}/`
 
-// アプリで理想の献立を呼び出した状態でひらく URL（/#menu=<献立のid>）
+// アプリで献立の例を呼び出した状態でひらく URL（/#menu=<献立のid>）
 export const idealMenuAppPath = (id: string): string => appLink(VIEW_PATH.menu, 'menu', id)
 
 // ---- 料理の作り方（/dishes/<料理id>/） ----
@@ -256,5 +256,11 @@ export const POPULAR_LINKS: readonly { name: string; path: string }[] = [
   { name: '100円あたりのたんぱく質が多い食べ物', path: `${NUTRIENTS_INDEX_PATH}protein/` },
 ]
 
-// アプリで、その料理の編集の窓を「つくり方」をひらいた状態で出す URL（/customize/#dish=<料理id>）
-export const dishAppPath = (id: string): string => appLink(VIEW_PATH.customize, 'dish', id)
+// アプリで、その料理の編集の窓を出す URL（/customize/#dish=<料理id>）。ふつうは「材料と量」をひらく（材料と量を変えて栄養を計算する）。
+// tab が 'recipe' なら「つくり方」をひらく（/customize/#dish=<料理id>&tab=recipe。作る人数を変えて見る）
+export type DishTab = 'edit' | 'recipe'
+export const dishAppPath = (id: string, tab?: 'recipe'): string => `${appLink(VIEW_PATH.customize, 'dish', id)}${tab ? `&tab=${tab}` : ''}`
+export const dishTabFromParam = (value: string | null | undefined): DishTab => (value === 'recipe' ? 'recipe' : 'edit')
+
+// アプリで、その料理を1日の食事に入れる URL（/#add=<料理id>）。どの食事に入れるかは、開いてから選ぶ
+export const dishAddPath = (id: string): string => appLink(VIEW_PATH.menu, 'add', id)

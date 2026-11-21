@@ -168,7 +168,7 @@ describe('サプリ', () => {
   })
 })
 
-describe('カスタマイズした料理', () => {
+describe('アレンジした料理', () => {
   beforeEach(() => useAppStore.setState({ menu: emptyMenu(), myDishes: [] }))
 
   it('人前を一緒に保存し、置き換えた献立の項目も同じ人前になる', () => {
@@ -190,7 +190,7 @@ describe('カスタマイズした料理', () => {
   })
 })
 
-describe('カスタマイズした料理の区分', () => {
+describe('アレンジした料理の区分', () => {
   beforeEach(() => useAppStore.setState({ menu: emptyMenu(), myDishes: [] }))
 
   it('別の区分に入れたら、その区分でも上に出す', () => {
@@ -225,7 +225,7 @@ const dish = { kind: 'dish' as const, refId: 'test-dish', portion: 1 }
 describe('呼び出した献立の名前（menuSource）', () => {
   beforeEach(() => useAppStore.setState({ menu: emptyMenu(), menuSource: null, savedMenus: [] }))
 
-  it('理想の献立を呼び出すと名前を覚え、料理を足したり外したりすると「変更あり」になる', () => {
+  it('献立の例を呼び出すと名前を覚え、料理を足したり外したりすると「変更あり」になる', () => {
     const s = useAppStore.getState()
     s.replaceMenu({ ...emptyMenu(), breakfast: [{ ...dish, uid: 'x' }] }, 'テストの献立')
     expect(useAppStore.getState().menuSource).toEqual({ name: 'テストの献立', edited: false })

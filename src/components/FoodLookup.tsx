@@ -138,7 +138,7 @@ function QuickChips({ cards, onOpen }: { cards: Card[]; onOpen: (item: LookupIte
 
 // 種類の中の分け方（食材の野菜・肉、料理の主菜・汁物、市販品の店）を横に並べる。スマホは横に送る
 function FacetChips({ label, chips, active, onPick }: { label: string; chips: { id: string | null; label: string; count?: number }[]; active: string | null; onPick: (id: string | null) => void }) {
-  // えらんでいるものが横にかくれていたら、見えるところへ送る（ページのたての位置は動かさない）
+  // 選んでいるものが横にかくれていたら、見えるところへ送る（ページのたての位置は動かさない）
   const rowRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
     const row = rowRef.current
@@ -250,7 +250,7 @@ export function FoodLookup({
   const scoped = kind !== 'all' && facet !== null
   // さがす言葉を入れずに、種類の一覧を見ている
   const browsing = !searching && scoped
-  // 1つの種類にしか見つからなければ、はじめからその種類を広く出す。えらんでいた種類に候補がなくなったら「すべて」に戻す（しぼっているあいだは、その種類のまま）
+  // 1つの種類にしか見つからなければ、はじめからその種類を広く出す。選んでいた種類に候補がなくなったら「すべて」に戻す（しぼっているあいだは、その種類のまま）
   const active: LookupKind | 'all' = scoped ? kind : sections.length === 1 ? sections[0].kind : sections.some((s) => s.kind === kind) ? kind : 'all'
 
   // いま見ている種類の候補（「すべて」のときは null）と、その中の分け方ごとの数
@@ -285,10 +285,10 @@ export function FoodLookup({
     const behavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'
     requestAnimationFrame(() => boxRef.current?.scrollIntoView?.({ block: 'start', behavior }))
   }
-  // 種類のしぼりこみを外すのは、「すべて」をえらんだときと、さがす前の画面にもどるとき（言葉を消しただけでは外さない）
+  // 種類のしぼりこみを外すのは、「すべて」を選んだときと、さがす前の画面にもどるとき（言葉を消しただけでは外さない）
   const pickKind = (k: LookupKind | 'all') => set({ kind: k, facet: null })
   const pickFacet = (k: LookupKind, f: string | null) => set({ kind: k, facet: f })
-  // 「種類からさがす」は画面の下のほうにあるので、えらんだら一覧のはじめ（さがす欄）が見えるところへ動かす
+  // 「種類からさがす」は画面の下のほうにあるので、選んだら一覧のはじめ（さがす欄）が見えるところへ動かす
   const browse = (k: LookupKind, f: string, q = query) => {
     set({ query: q, kind: k, facet: f })
     requestAnimationFrame(() => boxRef.current?.scrollIntoView?.({ block: 'start' }))
@@ -452,7 +452,7 @@ export function FoodLookup({
                 </p>
               )}
               {sections.length > 1 && (
-                // 料理をえらぶ画面の種類の切り替えと同じ形（スマホは1行に収める）
+                // 料理を選ぶ画面の種類の切り替えと同じ形（スマホは1行に収める）
                 <div className="flex gap-0.5 rounded-full bg-white p-1 shadow-sm lg:w-fit" role="group" aria-label="種類でしぼる">
                   {[{ kind: 'all' as const, label: 'すべて', count: total }, ...sections.map((s) => ({ kind: s.kind, label: LOOKUP_KIND_LABEL[s.kind], count: s.hits.length }))].map((c) => (
                     <button

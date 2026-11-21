@@ -4,7 +4,9 @@ import { RANKING_NUTRIENTS } from './domain/ranking'
 import { menusFor } from './pages/menuPages'
 import {
   appLinkParam,
+  dishAddPath,
   dishAppPath,
+  dishTabFromParam,
   hasAppLinkHash,
   idealMenuAppPath,
   legacyQueryRedirect,
@@ -100,7 +102,17 @@ describe('読みもののページから、アプリを指定つきで開くリ�
     expect(rankingAppPath('iron')).toBe('/ranking/#n=iron')
     expect(idealMenuAppPath('washoku-1')).toBe('/#menu=washoku-1')
     expect(dishAppPath('nikujaga')).toBe('/customize/#dish=nikujaga')
-    for (const path of [rankingAppPath('iron'), idealMenuAppPath('washoku-1'), dishAppPath('nikujaga')]) expect(path).not.toContain('?')
+    expect(dishAppPath('nikujaga', 'recipe')).toBe('/customize/#dish=nikujaga&tab=recipe')
+    expect(dishAddPath('nikujaga')).toBe('/#add=nikujaga')
+    for (const path of [rankingAppPath('iron'), idealMenuAppPath('washoku-1'), dishAppPath('nikujaga'), dishAppPath('nikujaga', 'recipe'), dishAddPath('nikujaga')]) expect(path).not.toContain('?')
+  })
+
+  it('料理をアレンジの画面は、指定がなければ「材料と量」をひらく（「つくり方」は tab=recipe のときだけ）', () => {
+    expect(dishTabFromParam(appLinkParam('tab', '', '#dish=nikujaga'))).toBe('edit')
+    expect(dishTabFromParam(appLinkParam('tab', '', '#dish=nikujaga&tab=recipe'))).toBe('recipe')
+    expect(dishTabFromParam('edit')).toBe('edit')
+    expect(dishTabFromParam('どれでもない')).toBe('edit')
+    expect(dishTabFromParam(undefined)).toBe('edit')
   })
 
   it('# のうしろの指定を読む。以前の ? のリンクも読める', () => {
@@ -116,6 +128,8 @@ describe('読みもののページから、アプリを指定つきで開くリ�
     expect(hasAppLinkHash('#menu=washoku')).toBe(true)
     expect(hasAppLinkHash('#n=iron')).toBe(true)
     expect(hasAppLinkHash('#dish=oden')).toBe(true)
+    expect(hasAppLinkHash('#dish=oden&tab=recipe')).toBe(true)
+    expect(hasAppLinkHash('#add=oden')).toBe(true)
     expect(hasAppLinkHash('#ranking')).toBe(false)
     expect(hasAppLinkHash('')).toBe(false)
   })
@@ -135,7 +149,7 @@ describe('読みもののページから、アプリを指定つきで開くリ�
 })
 
 describe('献立の例のページ', () => {
-  it('理想の献立はどれも、ちょうど1つのページに入る', () => {
+  it('献立の例はどれも、ちょうど1つのページに入る', () => {
     for (const m of IDEAL_MENUS) {
       const pages = MENU_PAGES.filter((p) => menusFor(p).includes(m))
       expect(pages.map((p) => p.slug), m.name).toHaveLength(1)

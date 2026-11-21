@@ -1,4 +1,4 @@
-// 理想の献立のテストで共通に使うもの（テストの実行時間を短くするため、献立 × プロフィールの量の調整は1回だけ計算する）
+// 献立の例のテストで共通に使うもの（テストの実行時間を短くするため、献立 × プロフィールの量の調整は1回だけ計算する）
 import { readFileSync } from 'node:fs'
 import { adjustIdealMenu, summarizeIdealMenu, type IdealMenu } from './idealMenus'
 import type { Catalog } from './nutrition'

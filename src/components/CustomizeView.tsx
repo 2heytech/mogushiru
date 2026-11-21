@@ -4,6 +4,7 @@ import { ingredientsTotals, type Catalog, type MenuTotals } from '../domain/nutr
 import { mealFirstRank } from '../domain/popular'
 import { rankAndFilter } from '../domain/search'
 import { SLOTS, type DayMenu, type Dish, type DishCategory, type Ingredient, type MyDish, type Slot } from '../domain/types'
+import type { DishTab } from '../routes'
 import { recentMyDishes } from '../store/useAppStore'
 import { confirmDialog } from './confirm'
 import { Customizer } from './Customizer'
@@ -47,7 +48,7 @@ const EXAMPLES: { dishId: string; title: string; desc: string }[] = [
 const CATEGORIES = Object.keys(DISH_CATEGORY_LABEL) as DishCategory[]
 
 // 料理を選んで人前や材料を変え、お気に入りに保存する画面（栄養バランスの中の画面。1日の食事・最初の画面の「料理をアレンジ」から入る）。
-// お気に入りの料理は、ここから1日の食事に足せる（朝・昼・晩・その他をえらぶ）。
+// お気に入りの料理は、ここから1日の食事に足せる（朝・昼・晩・その他を選ぶ）。
 // 1日の食事に入れてある料理を変えるのは、その料理の「アレンジ」（App.tsx の renderEditor）
 export function CustomizeView({
   catalog,
@@ -56,6 +57,7 @@ export function CustomizeView({
   totals,
   showAlcohol,
   initialDishId,
+  initialDishTab = 'edit',
   onInitialDishOpened,
   onSaveNew,
   onUpdate,
@@ -65,12 +67,14 @@ export function CustomizeView({
 }: {
   catalog: Catalog
   myDishes: MyDish[]
-  // いまの1日の食事（どの食事に足すかをえらぶ窓に、品数とカロリーを出す）
+  // いまの1日の食事（どの食事に足すかを選ぶ窓に、品数とカロリーを出す）
   menu: DayMenu
   totals: MenuTotals
   showAlcohol: boolean
-  // 料理の作り方のページから来たときに、はじめから編集の窓をひらく料理
+  // 料理のページから来たときに、はじめから編集の窓をひらく料理と、そのときに出すタブ
+  // （ふつうは「材料と量」。「作る人数を変えて見る」から来たときは「つくり方」）
   initialDishId?: string
+  initialDishTab?: DishTab
   onInitialDishOpened?: () => void
   onSaveNew: (d: Omit<MyDish, 'id' | 'createdAt' | 'updatedAt'>) => MyDish
   onUpdate: (id: string, patch: Pick<MyDish, 'name' | 'ingredients' | 'portion' | 'slots'>) => void
@@ -84,7 +88,7 @@ export function CustomizeView({
   const [category, setCategory] = useState<DishCategory | null>(null)
   const [editing, setEditing] = useState<Editing | null>(() => {
     const dish = initialDishId ? catalog.dishes.get(initialDishId) : undefined
-    return dish ? { kind: 'dish', dish, tab: dish.recipe || dish.source ? 'recipe' : 'edit' } : null
+    return dish ? { kind: 'dish', dish, tab: initialDishTab === 'recipe' && (dish.recipe || dish.source) ? 'recipe' : 'edit' } : null
   })
   // ひらいたことを伝える（親が initialDishId を消すので、呼ぶのは1回だけ）
   useEffect(() => {
@@ -96,7 +100,7 @@ export function CustomizeView({
   useEffect(() => {
     if (notice) noticeRef.current?.scrollIntoView?.({ block: 'nearest' })
   }, [notice])
-  // 1日の食事に足そうとしているお気に入りの料理（どの食事に足すかをえらぶ窓を出す）
+  // 1日の食事に足そうとしているお気に入りの料理（どの食事に足すかを選ぶ窓を出す）
   const [adding, setAdding] = useState<MyDish | null>(null)
   const dishes = useMemo(
     () =>
@@ -133,7 +137,7 @@ export function CustomizeView({
           initialSlots={dish.suggestedSlots.length ? dish.suggestedSlots : [...SLOTS]}
           onSave={(name, ingredients, portion, slots) => {
             const my = onSaveNew({ baseDishId: dish.id, name, ingredients, portion, slots })
-            setNotice({ text: `「${name}」をお気に入りに保存しました。${slotsText(slots)}の料理をえらぶとき、いちばん上に出ます。`, dishId: my.id })
+            setNotice({ text: `「${name}」をお気に入りに保存しました。${slotsText(slots)}の料理を選ぶとき、いちばん上に出ます。`, dishId: my.id })
             close()
           }}
           onClose={close}
@@ -171,7 +175,7 @@ export function CustomizeView({
         <h1 id="customize-title" className="text-xl font-bold">
           料理をアレンジ
         </h1>
-        <p className="mt-1 text-sm text-ink-soft">料理をえらんで、食べる量や材料を変えられます。保存すると「お気に入り」に入り、1日の食事で料理をえらぶとき上に出ます。</p>
+        <p className="mt-1 text-sm text-ink-soft">料理を選んで、食べる量や材料を変えられます。保存すると「お気に入り」に入り、1日の食事で料理を選ぶとき上に出ます。</p>
         <p className="mt-1 text-xs text-ink-soft">1日の食事に入れた料理は、その料理の「アレンジ」からも変えられます。</p>
       </div>
       {notice && (
@@ -241,7 +245,7 @@ export function CustomizeView({
                     </span>
                     <span className="mt-0.5 text-2xs text-coral-ink">{slotsText(prioritySlots(my))}で上に</span>
                   </button>
-                  {/* 保存したときの量で、1日の食事に足す（どの食事かは、次の窓でえらぶ） */}
+                  {/* 保存したときの量で、1日の食事に足す（どの食事かは、次の窓で選ぶ） */}
                   <button
                     type="button"
                     onClick={() => setAdding(my)}
@@ -272,7 +276,7 @@ export function CustomizeView({
 
       <section aria-labelledby="dish-list-title">
         <h2 id="dish-list-title" className="mb-2 text-base font-bold">
-          料理をえらぶ
+          料理を選ぶ
         </h2>
         <input
           type="search"

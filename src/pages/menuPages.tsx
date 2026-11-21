@@ -11,8 +11,12 @@ import { idealMenuAppPath, MENU_PAGES, MENUS_INDEX_PATH, menuPagePath, SITE_NAME
 import type { OgCard } from './ogCard'
 import { BUTTON, BUTTON_SUB, CARD, LINK, StaticLayout } from './StaticLayout'
 
-// 献立の例のページ（/menus/ と /menus/<slug>/）。アプリの「理想の献立」を、30〜49歳女性・身体活動ふつうの量で並べる。
-// 「この献立をモグシルで開く」で、アプリがその人のプロフィールに合わせて量を変えて呼び出す
+// 献立の例のページ（/menus/ と /menus/<slug>/）。アプリの献立の例（IDEAL_MENUS）を、30〜49歳女性・身体活動ふつうの量で並べる。
+// 「この献立で栄養バランスを見る」で、アプリがその人のプロフィールに合わせて量を変えて呼び出す
+
+// 献立をアプリに入れるボタンの名前（することを書く。「モグシルで開く」とは書かない）
+const OPEN_MENU_LABEL = 'この献立で栄養バランスを見る'
+const OPEN_COMBO_LABEL = 'この組み合わせで1日の栄養を見る'
 
 const TARGETS = computeTargets(DEFAULT_PROFILE)
 
@@ -192,7 +196,7 @@ function LunchComboCard({ combo }: { combo: LunchCombo }) {
       </p>
       <div className="flex flex-wrap gap-2">
         <a href={idealMenuAppPath(plan.ideal.id)} className={BUTTON}>
-          この組み合わせをモグシルで開く
+          {OPEN_COMBO_LABEL}
         </a>
         <a href={`#${plan.ideal.id}`} className={BUTTON_SUB}>
           朝・晩を含む1日の献立を見る
@@ -292,7 +296,7 @@ function LunchCombos({ combos }: { combos: LunchCombo[] }) {
         ))}
       </ul>
       <p className="text-xs leading-relaxed text-ink-soft">
-        モグシルで開くと、昼の商品をほかの商品に入れかえて、朝・晩を含めた1日の合計をその場でたしかめられます（1日の食事に料理が入っているときは、置き換える前に確かめます）。商品の値は各社の公式サイトの栄養成分表示
+        「{OPEN_COMBO_LABEL}」を押すと、昼の商品をほかの商品に入れかえて、朝・晩を含めた1日の合計をその場でたしかめられます（1日の食事に料理が入っているときは、置き換える前に確かめます）。商品の値は各社の公式サイトの栄養成分表示
         {fetchedAt && `（${fetchedAt} 時点）`}
         です。商品名から各社の商品ページを開けます。販売が終わったり、地域によって扱いがなかったりすることがあります。果物やヨーグルトなど商品名のない品目は、日本食品標準成分表の値で計算しています。
       </p>
@@ -372,13 +376,13 @@ function MenuCard({ plan, catalog, nested, dishPaths }: { plan: PlannedMenu; cat
         <p className="text-xs leading-relaxed text-ink-soft">※ 市販品はパッケージの栄養成分表示にある成分だけで計算しています（ビタミン・ミネラルは実際より少なく出ます）。</p>
       )}
       <a href={idealMenuAppPath(ideal.id)} className={BUTTON}>
-        この献立をモグシルで開く
+        {OPEN_MENU_LABEL}
       </a>
     </li>
   )
 }
 
-const sizeNote = `量は30〜49歳女性・身体活動ふつう（1日 約${Math.round(TARGETS.energyKcal).toLocaleString()} kcal）に合わせています。モグシルで開くと、年齢・性別・活動量に合わせて量が変わり、料理を入れかえることもできます。`
+const sizeNote = `量は30〜49歳女性・身体活動ふつう（1日 約${Math.round(TARGETS.energyKcal).toLocaleString()} kcal）に合わせています。「${OPEN_MENU_LABEL}」を押すと、年齢・性別・活動量に合わせて量が変わり、料理を入れかえることもできます。`
 
 function PageLinks({ current }: { current?: string }) {
   return (
@@ -418,7 +422,7 @@ export function MenuGenrePage({ page, plans, catalog, dishPaths }: { page: MenuP
     </>
   )
   return (
-    <StaticLayout crumbs={[{ name: 'モグシル', path: '/' }, { name: '献立の例', path: MENUS_INDEX_PATH }, { name: page.title }]}>
+    <StaticLayout section="menus" crumbs={[{ name: 'モグシル', path: '/' }, { name: '献立の例', path: MENUS_INDEX_PATH }, { name: page.title }]}>
       <article className="space-y-5">
         {combos.length > 0 ? (
           // コンビニの昼ごはん：見出しのすぐ下に比較表を置き、くわしい説明はそのあとにする（開いてすぐ、組み合わせを見くらべられるように）
@@ -461,12 +465,12 @@ export function MenuGenrePage({ page, plans, catalog, dishPaths }: { page: MenuP
 export function MenusIndexPage({ groups }: { groups: { page: MenuPage; plans: PlannedMenu[] }[] }) {
   const total = groups.reduce((n, g) => n + g.plans.length, 0)
   return (
-    <StaticLayout crumbs={[{ name: 'モグシル', path: '/' }, { name: '献立の例' }]}>
+    <StaticLayout section="menus" crumbs={[{ name: 'モグシル', path: '/' }, { name: '献立の例' }]}>
       <article className="space-y-5">
         <header className="space-y-2">
           <h1 className="text-2xl leading-snug font-bold sm:text-3xl">{MENUS_INDEX_HEADING}</h1>
           <p className="text-sm leading-relaxed">
-            モグシルの「理想の献立」{total}種を、ジャンルごとにまとめました。どれも1日のカロリー・PFCバランス（たんぱく質・脂質・炭水化物）・食塩が目安に合うように、料理の組み合わせと量を決めています。市販品を使わない献立は、ビタミンやミネラルもほぼ目安に届きます。
+            栄養バランスの整う1日の献立の例{total}種を、ジャンルごとにまとめました。どれも1日のカロリー・PFCバランス（たんぱく質・脂質・炭水化物）・食塩が目安に合うように、料理の組み合わせと量を決めています。市販品を使わない献立は、ビタミンやミネラルもほぼ目安に届きます。
           </p>
           <p className="text-xs leading-relaxed text-ink-soft">{sizeNote}</p>
         </header>

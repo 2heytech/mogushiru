@@ -10,7 +10,7 @@ import { recentMyDishes } from '../store/useAppStore'
 import { dishImage, foodImage, menuItemImage, productImage, SUPPLEMENT_IMAGE } from './illustration'
 import { DISH_CATEGORY_LABEL, PRODUCT_CATEGORY_LAST, STORE_FILTER_PREFIX, shortNutrientLabel } from './labels'
 
-// 料理をえらぶ画面のカードを作る（種類ごとの候補と並び）
+// 料理を選ぶ画面のカードを作る（種類ごとの候補と並び）
 export type Kind = 'dish' | 'product' | 'food' | 'myDish' | 'supplement'
 export type Tab = 'all' | Kind
 
@@ -114,7 +114,7 @@ function entries(kind: Kind, { catalog, slot, query, category, showAlcohol, favo
         },
       }))
     case 'myDish':
-      // カスタマイズした料理は、最後に保存したものから。保存したときの人前で追加する
+      // アレンジした料理は、最後に保存したものから。保存したときの人前で追加する
       return recentMyDishes([...catalog.myDishes.values()]).map((d) => ({ fields: [d.name], card: myDishCard(d, catalog) }))
   }
 }
@@ -154,7 +154,7 @@ export function myDishCard(d: MyDish, catalog: Catalog): Card {
     key: `myDish:${d.id}`,
     kind: 'myDish',
     name: d.name,
-    sub: portion === 1 ? 'カスタマイズ' : `カスタマイズ・${formatPortion(portion)}`,
+    sub: portion === 1 ? 'アレンジ' : `アレンジ・${formatPortion(portion)}`,
     kcal: myDishKcal(d.ingredients, catalog) * portion,
     image: menuItemImage({ uid: '', ...item }, catalog),
     item,
@@ -182,7 +182,7 @@ export function cardForKey(key: string, { catalog, showAlcohol }: Pick<Filter, '
   return null
 }
 
-// 料理をえらぶ画面の「飲み物」の列：最近入れたもの → この区分の定番 の順に、飲み物だけ
+// 料理を選ぶ画面の「飲み物」の列：最近入れたもの → この区分の定番 の順に、飲み物だけ
 export const DRINK_STRIP_MAX = 10
 export function drinkStripCards(filter: Pick<Filter, 'catalog' | 'showAlcohol' | 'slot'>, recent: RecentDrink[]): Card[] {
   const keys = [...new Set([...recent.map((d) => d.key), ...STANDARD_DRINKS[filter.slot]])]
@@ -208,17 +208,17 @@ function favoriteEntries(filter: Filter): Entry[] {
   return [...entries('myDish', filter), ...entries('product', { ...filter, category: 'favorite' })]
 }
 
-// この区分で上に出すカスタマイズした料理か
+// この区分で上に出すアレンジした料理か
 const prioritized = (filter: Filter, card: Card) => {
   const my = card.kind === 'myDish' ? filter.catalog.myDishes.get(card.item.refId) : undefined
   return Boolean(my && prioritizedIn(my, filter.slot))
 }
 
-// カスタマイズした料理は、この区分で保存したものを定番より上に。ほかの区分のものは定番の後に
+// アレンジした料理は、この区分で保存したものを定番より上に。ほかの区分のものは定番の後に
 const pickRank = (filter: Filter, card: Card) =>
   card.kind === 'myDish' ? (prioritized(filter, card) ? -1 : NOT_POPULAR - 1) : popularRank(filter.slot, card.key)
 
-// カスタマイズした料理を、この区分で上に出すもの → ほか の順に（それぞれの中は新しい順のまま）
+// アレンジした料理を、この区分で上に出すもの → ほか の順に（それぞれの中は新しい順のまま）
 const myDishesFirst = (filter: Filter, xs: Entry[]) => [...xs].sort((a, b) => Number(prioritized(filter, b.card)) - Number(prioritized(filter, a.card)))
 
 export function buildCards(tab: Tab, filter: Filter): Card[] {
@@ -229,11 +229,11 @@ export function buildCards(tab: Tab, filter: Filter): Card[] {
     const kinds: Kind[] = filter.query ? KIND_ORDER : ['myDish', 'dish', 'food']
     const groups = kinds.map((k) => ({ items: entries(k, { ...filter, category: 'all' }), fields: (e: Entry) => e.fields }))
     const ranked = rankAcross(groups, filter.query)
-    // カスタマイズした料理は定番より上に（並べ替えは安定なので、その中は新しい順のまま）
+    // アレンジした料理は定番より上に（並べ替えは安定なので、その中は新しい順のまま）
     if (!filter.query) ranked.sort((a, b) => pickRank(filter, a.card) - pickRank(filter, b.card))
     return ranked.map((e) => e.card)
   }
-  // 料理タブでも、この区分のカスタマイズした料理を先頭に、ほかの区分のものは最後に（絞り込みが「すべて」のとき）
+  // 料理タブでも、この区分のアレンジした料理を先頭に、ほかの区分のものは最後に（絞り込みが「すべて」のとき）
   if (tab === 'dish' && filter.category === 'all') {
     const mine = entries('myDish', filter)
     const groups = [mine.filter((e) => prioritized(filter, e.card)), entries('dish', filter), mine.filter((e) => !prioritized(filter, e.card))]

@@ -112,7 +112,7 @@ export function UiIcon({ name, className }: { name: UiIconName; className?: stri
         </>
       )}
       {name === 'pick' && (
-        // 自分でえらぶ：お皿にお箸で1品ずつ。朝・昼・晩の「＋」と同じコーラルの＋
+        // 自分で選ぶ：お皿にお箸で1品ずつ。朝・昼・晩の「＋」と同じコーラルの＋
         <>
           <ellipse cx="21" cy="30" rx="13" ry="7.5" fill="#fff" {...s} />
           <ellipse cx="21" cy="29" rx="7" ry="3.2" fill="#ffc94d" />

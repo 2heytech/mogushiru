@@ -1,4 +1,4 @@
-// 理想の献立：朝・昼・晩・その他で自然な組み合わせになり、1日の栄養の目安（PFC・カロリー・食塩・栄養素）に近い1日の食事。
+// 献立の例：朝・昼・晩・その他で自然な組み合わせになり、1日の栄養の目安（PFC・カロリー・食塩・栄養素）に近い1日の食事。
 // 献立は1人前（女性30〜49歳・ふつうの1日の目安 約2,000kcal）で組み、呼び出すときにプロフィールの目安に合わせて量を調整する。
 //
 // 量の調整（adjustIdealMenu）
@@ -565,13 +565,13 @@ function tooSalty(before: Salts, after: Salts, targets: Targets, perMeal: boolea
   return perMeal && slot !== 'other' && more(after.bySlot[slot], before.bySlot[slot]) && after.bySlot[slot] > mealGoals(slot, targets).salt - margin / 2
 }
 
-// 理想の献立を、プロフィールの目安（targets）に合わせた量の1日の食事にする
+// 献立の例を、プロフィールの目安（targets）に合わせた量の1日の食事にする
 export function adjustIdealMenu(menu: IdealMenu, catalog: Catalog, targets: Targets): DayMenu {
   return planIdealMenu(menu, catalog, targets).menu
 }
 
 // 同じ目安・同じデータでの量の調整は、一覧を切り替えたり戻ったりするたびに計算しなおさない
-// （毎食バランスで1食ずつえらぶときは、その区分の候補をしぼるために献立をまとめて調整するので）。
+// （毎食バランスで1食ずつ選ぶときは、その区分の候補をしぼるために献立をまとめて調整するので）。
 // 返す1日の食事は共有するので、書きかえずに使う
 const planCache = new WeakMap<Targets, WeakMap<Catalog, Map<string, DayMenu>>>()
 export const hasAdjustedIdealMenu = (menu: IdealMenu, catalog: Catalog, targets: Targets): boolean => Boolean(planCache.get(targets)?.get(catalog)?.has(menu.id))

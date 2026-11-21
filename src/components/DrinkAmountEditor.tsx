@@ -7,7 +7,7 @@ const STEP_BUTTON = 'grid h-11 w-11 shrink-0 place-items-center rounded-full bg-
 export function DrinkAmountEditor({ item, spec, onChange }: { item: MenuItem; spec: DrinkSpec; onChange: (amount: Pick<MenuItem, 'portion' | 'cup'>) => void }) {
   const cup = drinkCup(item, spec)
   const count = drinkCount(item, spec)
-  // 合計の量（mL）。1杯の量がえらべるもの・mL で数える市販品だけ
+  // 合計の量（mL）。1杯の量が選べるもの・mL で数える市販品だけ
   const totalMl = spec.sizes.length > 1 || (spec.per === 'ml' && cup.ml > 0) ? Math.round(count * cup.ml) : null
   return (
     <div className="space-y-3">

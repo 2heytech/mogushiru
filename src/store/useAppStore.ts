@@ -30,12 +30,12 @@ type State = {
   myProducts: Product[]
   favoriteProductIds: string[]
   savedMenus: SavedMenu[]
-  // いまの1日の食事をどの献立から呼び出したか（理想の献立・保存した食事）。手を加えたら edited
+  // いまの1日の食事をどの献立から呼び出したか（献立の例・保存した食事）。手を加えたら edited
   menuSource: MenuSource | null
   // 作り方を何人分で見るか。栄養の計算の人前とは別（自分の分だけ数えて、家族の分まで作ることがあるため）。料理をまたいで覚えておく
   recipeServings: number
   setRecipeServings: (n: number) => void
-  // 最近入れた飲み物（「dish:beer」などのキーと、そのときの1杯の量）。料理をえらぶ画面で先に出す
+  // 最近入れた飲み物（「dish:beer」などのキーと、そのときの1杯の量）。料理を選ぶ画面で先に出す
   recentDrinks: RecentDrink[]
   rememberDrink: (key: string, cup?: DrinkSize) => void
   // 「食品を調べる」で最近栄養素を見た食品（新しい順）。さがす前の画面に出して、もう一度すぐひらけるようにする
@@ -67,9 +67,9 @@ type State = {
   saveMenu: (name: string) => void
   // 呼び出すと今の1日の食事を置き換える。prepare でなくなった料理を外すなどしてから入れる
   loadMenu: (id: string, prepare?: (menu: DayMenu) => DayMenu) => void
-  // 理想の献立など、外から作った1日の食事で置き換える（項目の uid は付け直す）。name を渡すと呼び出した献立として覚える
+  // 献立の例など、外から作った1日の食事で置き換える（項目の uid は付け直す）。name を渡すと呼び出した献立として覚える
   replaceMenu: (menu: DayMenu, name?: string) => void
-  // 1つの区分だけ置き換える（理想の献立から1食だけ呼び出すときなど。uid は付け直す）
+  // 1つの区分だけ置き換える（献立の例から1食だけ呼び出すときなど。uid は付け直す）
   replaceSlot: (slot: Slot, items: MenuItem[]) => void
   deleteMenu: (id: string) => void
 }
@@ -79,7 +79,7 @@ export type MenuSource = { name: string; edited: boolean }
 // 呼び出した献立に手を加えたら「変更あり」にする
 const touched = (s: { menuSource: MenuSource | null }) => (s.menuSource && !s.menuSource.edited ? { menuSource: { ...s.menuSource, edited: true } } : {})
 
-// カスタマイズした料理を、最後に保存したものから順に
+// アレンジした料理を、最後に保存したものから順に
 export const recentMyDishes = (dishes: MyDish[]): MyDish[] =>
   [...dishes].sort((a, b) => (b.updatedAt ?? b.createdAt).localeCompare(a.updatedAt ?? a.createdAt))
 
@@ -130,7 +130,7 @@ export const useAppStore = create<State>()(
       rememberLookup: ({ kind, refId }) => set((s) => ({ recentLookups: rememberLookup(s.recentLookups, { kind, refId }) })),
       clearRecentLookups: () => set({ recentLookups: [] }),
       setProfile: (profile) => set({ profile, profileSet: true }),
-      // カスタマイズした料理を別の区分にも入れたら、その区分でも上に出すようにする
+      // アレンジした料理を別の区分にも入れたら、その区分でも上に出すようにする
       addItem: (slot, item) => {
         const id = uid()
         set((s) => ({

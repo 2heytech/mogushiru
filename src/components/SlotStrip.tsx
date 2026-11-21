@@ -38,7 +38,7 @@ function AddButton({ slot, onAdd, className = '' }: { slot: Slot; onAdd: (slot: 
       onClick={() => onAdd(slot)}
       className={`min-h-11 rounded-full border-2 border-dashed border-coral px-4 text-sm font-bold text-coral-ink hover:bg-coral/10 ${className}`}
     >
-      ＋ 料理をえらぶ
+      ＋ 料理を選ぶ
     </button>
   )
 }
@@ -106,7 +106,7 @@ export function SlotStrip(props: Props) {
                 <span className={`text-2xs leading-tight tabular-nums ${items.length === 0 ? 'font-bold text-coral-ink' : ''}`}>{items.length === 0 ? '追加' : `${items.length}品`}</span>
                 <span className="text-2xs leading-tight whitespace-nowrap text-ink-soft tabular-nums">{Math.round(b.kcal)} kcal</span>
                 <SlotKcalBar kcal={b.kcal} target={b.targetKcal} level={b.energy} className="mt-0.5 w-[85%]" />
-                {/* ひらけることを矢印で（空の食事は、押すとすぐ料理をえらぶ画面なので出さない） */}
+                {/* ひらけることを矢印で（空の食事は、押すとすぐ料理を選ぶ画面なので出さない） */}
                 <svg viewBox="0 0 16 16" aria-hidden className={`h-4 w-4 text-coral-ink transition-transform ${items.length === 0 ? 'invisible' : active ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M3.5 6l4.5 4.5L12.5 6" />
                 </svg>

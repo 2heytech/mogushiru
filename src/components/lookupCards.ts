@@ -12,7 +12,7 @@ import { DISH_CATEGORY_LABEL, PRODUCT_STORES } from './labels'
 import { dishCard, myDishCard, productCard, productStore, type Card } from './pickerCards'
 
 // 「食品を調べる」の「名前でさがす」：食材・料理・市販品を名前や種類でさがして、その栄養素を見る。
-// 料理をえらぶ画面（pickerCards.ts）とちがって、どの食事に入れるかは決めずにさがすので、並びは区分によらない
+// 料理を選ぶ画面（pickerCards.ts）とちがって、どの食事に入れるかは決めずにさがすので、並びは区分によらない
 
 export type LookupKind = 'food' | 'dish' | 'product'
 export const LOOKUP_KINDS: LookupKind[] = ['food', 'dish', 'product']
@@ -171,7 +171,7 @@ export function lookupIndex({ catalog, showAlcohol }: { catalog: Catalog; showAl
     .sort((a, b) => mealFirstRank(`dish:${a.id}`) - mealFirstRank(`dish:${b.id}`) || Number(Boolean(a.source)) - Number(Boolean(b.source)))
 
   // 市販品：自分で登録したもの → コンビニ・メーカーの商品。同じ商品が古いJANでも入っていることがあるので1回だけ。
-  // 箱売りや地域ちがいの同じ商品は1つにまとめる（料理をえらぶ画面と同じ。一致したものの中でまとめる）
+  // 箱売りや地域ちがいの同じ商品は1つにまとめる（料理を選ぶ画面と同じ。一致したものの中でまとめる）
   const products = [...new Set(catalog.products.values())].filter((p) => !isSupplement(p) && drinkable(p.category))
   const mine = (p: Product) => p.jan.startsWith(MY_PRODUCT_PREFIX)
   const productGroup = (items: Product[]) =>
@@ -239,7 +239,7 @@ const NO_RESULT: LookupResult = { sections: [], split: null }
 
 // 名前でさがす。一致したものがある種類だけを返す。
 // 種類の中の並びは、かたまりの順 → 一致の度合い（語と完全一致 → 語の先頭 → 名前の途中 → 読みがなの途中だけ）→ 元の並び。
-// 料理をえらぶ画面の検索（search.ts の rankAcross）は、短い言葉で先頭が一致するものがあれば途中の一致を出さないが、
+// 料理を選ぶ画面の検索（search.ts の rankAcross）は、短い言葉で先頭が一致するものがあれば途中の一致を出さないが、
 // ここでは出す（「肉」で鶏むね肉、「いも」でじゃがいも、「パン」で食パンが見つかるように）。
 // そのかわり、ふだんの呼び名のある食材を、成分表の細かい分け方の食材（「いのしし 肉 脂身つき 生」など）より先に並べる。
 // 何も見つからないときは、言葉を2つに分けて、両方に一致するものをさがす（「さば缶」→「さば」と「缶」）

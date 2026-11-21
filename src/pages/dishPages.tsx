@@ -6,7 +6,7 @@ import { dailyReference, formatAmount, RANKING_NUTRIENTS } from '../domain/ranki
 import { DEFAULT_SERVINGS, extraTexts, materialLines, recipeLines, type RecipeLine } from '../domain/recipe'
 import { computeTargets, DEFAULT_PROFILE } from '../domain/targets'
 import type { Dish, DishCategory, DishRecipe, NutrientKey } from '../domain/types'
-import { DISHES_INDEX_PATH, dishAppPath, dishPagePath, NUTRIENTS_INDEX_PATH, nutrientPagePath, READING_LINKS, SITE_NAME, SITE_URL } from '../routes'
+import { DISHES_INDEX_PATH, dishAddPath, dishAppPath, dishPagePath, NUTRIENTS_INDEX_PATH, nutrientPagePath, READING_LINKS, SITE_NAME, SITE_URL, VIEW_PATH } from '../routes'
 import { OPERATOR_NAME, OPERATOR_URL } from '../site'
 import { dishCuisine } from './dishCuisine'
 import { NUTRIENT_COPY } from './nutrientCopy'
@@ -339,6 +339,9 @@ function NutrientTable({ d }: { d: DishPageData }) {
   )
 }
 
+// アプリで、この料理を1日の食事に入れるボタン（ページの上と、追従するボタン）
+const ADD_LABEL = 'この料理を1日の食事に入れる'
+
 // ページの中の場所へとぶリンク（栄養・材料・つくり方）
 const JUMP = 'inline-flex min-h-9 items-center rounded-full bg-cream px-3 text-xs font-bold text-coral-ink'
 
@@ -346,7 +349,7 @@ export function DishPage({ data: d, related }: { data: DishPageData; related: Di
   const { dish, recipe } = d
   const n = dish.nutrients
   return (
-    <StaticLayout crumbs={[{ name: SITE_NAME, path: '/' }, { name: DISHES_INDEX_NAME, path: DISHES_INDEX_PATH }, { name: dish.name }]}>
+    <StaticLayout section="dishes" cta={{ href: dishAddPath(dish.id), label: ADD_LABEL }} crumbs={[{ name: SITE_NAME, path: '/' }, { name: DISHES_INDEX_NAME, path: DISHES_INDEX_PATH }, { name: dish.name }]}>
       <article className="space-y-4">
         <header className={`${CARD} flex flex-col gap-4 sm:flex-row sm:items-center`}>
           <img src={dishImage(dish)} alt="" width={144} height={144} className="h-28 w-28 shrink-0 self-center sm:h-36 sm:w-36" />
@@ -359,6 +362,11 @@ export function DishPage({ data: d, related }: { data: DishPageData; related: Di
             <p className="text-sm leading-relaxed">
               {dish.name}は、1人前 <strong>{d.kcal} kcal</strong>、たんぱく質 {g1(n.protein)} g、脂質 {g1(n.fat)} g、炭水化物 {g1(n.carb)} g、食塩相当量 {g1(n.salt)} g です。ビタミン・ミネラルなど{NUTRIENT_COUNT}成分の量と、
               {SERVINGS}人分の作り方（約{recipe.minutes}分）をまとめました。
+            </p>
+            <p>
+              <a href={dishAddPath(dish.id)} className={BUTTON}>
+                {ADD_LABEL}
+              </a>
             </p>
             <p className="flex flex-wrap gap-2">
               <a href="#nutrition" className={JUMP}>
@@ -415,7 +423,7 @@ export function DishPage({ data: d, related }: { data: DishPageData; related: Di
           </h3>
           <NutrientTable d={d} />
           <p className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
-            <a href={dishAppPath(dish.id)} className={BUTTON}>
+            <a href={dishAppPath(dish.id)} className={BUTTON_SUB}>
               材料と量を変えて栄養を計算する
             </a>
             <a href={NUTRIENTS_INDEX_PATH} className={`${LINK} text-sm`}>
@@ -451,8 +459,8 @@ export function DishPage({ data: d, related }: { data: DishPageData; related: Di
             ))}
           </ol>
           <p className="mt-4">
-            <a href={dishAppPath(dish.id)} className={BUTTON_SUB}>
-              人数や材料を変えて見る
+            <a href={dishAppPath(dish.id, 'recipe')} className={BUTTON_SUB}>
+              作る人数を変えて見る
             </a>
           </p>
         </section>
@@ -500,14 +508,18 @@ export const dishesIndexDescription = (pages: DishPageData[]) =>
 export function DishesIndexPage({ pages }: { pages: DishPageData[] }) {
   const groups = CATEGORY_ORDER.map((c) => ({ category: c, items: pages.filter((p) => p.dish.category === c) })).filter((g) => g.items.length > 0)
   return (
-    <StaticLayout crumbs={[{ name: SITE_NAME, path: '/' }, { name: DISHES_INDEX_NAME }]}>
+    <StaticLayout section="dishes" crumbs={[{ name: SITE_NAME, path: '/' }, { name: DISHES_INDEX_NAME }]}>
       <div className="space-y-4">
         <header className={CARD}>
           <h1 className="text-2xl leading-snug font-bold">
             {DISHES_INDEX_NAME}と<span className="inline-block">作り方（{pages.length}品）</span>
           </h1>
           <p className="mt-2 text-sm leading-relaxed">
-            ふだんの料理{pages.length}品の、1人前のカロリーと栄養（たんぱく質・食塩・ビタミン・ミネラルなど26成分）をまとめました。{SERVINGS}人分の材料と作り方も載せています。モグシルでは、人数や材料を変えて栄養を計算できます。
+            ふだんの料理{pages.length}品の、1人前のカロリーと栄養（たんぱく質・食塩・ビタミン・ミネラルなど26成分）をまとめました。{SERVINGS}人分の材料と作り方も載せています。
+            <a href={VIEW_PATH.customize} className={LINK}>
+              料理をアレンジ
+            </a>
+            では、材料や量を変えて栄養を計算できます。
           </p>
           <p className="mt-3 flex flex-wrap gap-2 text-xs">
             {groups.map((g) => (

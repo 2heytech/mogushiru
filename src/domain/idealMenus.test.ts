@@ -10,7 +10,7 @@ import { SLOTS, type Goal, type Profile } from './types'
 const F35: Profile = { sex: 'female', age: 35, activity: 'normal' }
 
 // 93種の献立をプロフィールごとに組み直すテストがあり、CIでは5秒をこえることがあるので長めにする
-describe('理想の献立', { timeout: 30_000 }, () => {
+describe('献立の例', { timeout: 30_000 }, () => {
   // コンビニの商品は毎月のデータ更新でなくなることがある。落ちたら、同じお店の似た商品に差し替える
   it('献立の料理・市販品がすべてデータにある', () => {
     for (const m of IDEAL_MENUS) {

@@ -54,7 +54,7 @@ type Filters = { genre: IdealGenre | null; breakfast: BreakfastStyle | null; lun
 const NO_FILTERS: Filters = { genre: null, breakfast: null, lunch: null, dinner: null }
 const valueOf = (e: Entry, key: keyof Filters) => (key === 'genre' ? e.menu.genre : e.facets[key])
 
-// しぼりこみの1行。えらんだものをもう一度押すと外れる。ほかの条件と合わせて1件もないものは押せない
+// しぼりこみの1行。選んだものをもう一度押すと外れる。ほかの条件と合わせて1件もないものは押せない
 export function FacetRow<T extends string>({
   label,
   icon,
@@ -99,9 +99,9 @@ export function FacetRow<T extends string>({
   )
 }
 
-// 「1日でバランス」の理想の献立の一覧（献立をつくる窓）。プロフィールの目安に合わせた量で、朝・昼・晩の絵とカロリー・食塩を添えて出す。
+// 「1日でバランス」の献立の例の一覧（献立をつくる窓）。プロフィールの目安に合わせた量で、朝・昼・晩の絵とカロリー・食塩を添えて出す。
 // 数が多いので、食べたい料理の名前でさがすか、ジャンルと朝・昼・晩の好みでしぼって選ぶ。
-// 毎食バランスの献立は、朝・昼・晩を1食ずつえらぶ流れ（MenuBuilder.tsx）で出すので、ここには出さない。
+// 毎食バランスの献立は、朝・昼・晩を1食ずつ選ぶ流れ（MenuBuilder.tsx）で出すので、ここには出さない。
 // 市販品を使う献立は、コンビニ・メーカーの商品を読み終えるまで「読み込み中」にし、読み終えても商品がなければ出さない
 export function IdealMenuList({ catalog, targets, storesLoaded, onLoad }: ListProps) {
   const [filters, setFilters] = useState<Filters>(NO_FILTERS)
@@ -109,7 +109,7 @@ export function IdealMenuList({ catalog, targets, storesLoaded, onLoad }: ListPr
   const [shown, setShown] = useState(PAGE)
   // スマホでは、しぼりこみの条件をたたんでおく（候補の一覧を上に見せる）。「絞り込み」でひらく
   const [filtersOpen, setFiltersOpen] = useState(false)
-  // 広い画面（lg 以上）では、左に候補の一覧、右にえらんでいる献立の中身を並べる
+  // 広い画面（lg 以上）では、左に候補の一覧、右に選んでいる献立の中身を並べる
   const wide = useMediaQuery('(min-width: 1024px)')
   // データにない市販品を使う献立は出さない（読み込み中は出しておく）
   const entries = useMemo<Entry[]>(
@@ -140,9 +140,9 @@ export function IdealMenuList({ catalog, targets, storesLoaded, onLoad }: ListPr
     setQuery('')
     setShown(PAGE)
   }
-  // 1件もないジャンルは出さない（いまえらんでいるものは外せるように残す）
+  // 1件もないジャンルは出さない（いま選んでいるものは外せるように残す）
   const genres = options('genre', IDEAL_GENRES, (g) => g).filter((o) => o.key === filters.genre || entries.some((e) => e.menu.genre === o.key))
-  // えらんでいる条件（スマホで、たたんだままでも見えるように並べる。押すと外れる）
+  // 選んでいる条件（スマホで、たたんだままでも見えるように並べる。押すと外れる）
   const picked: { key: keyof Filters; label: string }[] = [
     ...(filters.genre ? [{ key: 'genre' as const, label: filters.genre }] : []),
     ...(filters.breakfast ? [{ key: 'breakfast' as const, label: `朝：${BREAKFAST_LABEL[filters.breakfast]}` }] : []),
@@ -156,7 +156,7 @@ export function IdealMenuList({ catalog, targets, storesLoaded, onLoad }: ListPr
   )
   return (
     <>
-      {/* えらび方：食べたい料理でさがすか、ジャンルと朝・昼・晩の好みでしぼる */}
+      {/* 選び方：食べたい料理でさがすか、ジャンルと朝・昼・晩の好みでしぼる */}
       <div className="mb-2 space-y-2">
         <input
           type="search"
@@ -169,7 +169,7 @@ export function IdealMenuList({ catalog, targets, storesLoaded, onLoad }: ListPr
           placeholder="料理名でさがす（例：刺身、カツ）"
           className="min-h-11 w-full rounded-full border-2 border-white bg-white px-4 text-base outline-none focus:border-coral md:max-w-md"
         />
-        {/* スマホ：「絞り込み」と、えらんでいる条件、件数だけを出す */}
+        {/* スマホ：「絞り込み」と、選んでいる条件、件数だけを出す */}
         <div className="flex flex-wrap items-center gap-1.5 md:hidden">
           <button
             type="button"
@@ -285,11 +285,11 @@ function GenreChip({ genre }: { genre: IdealGenre }) {
 // 広い画面の一覧の列：献立の名前・カロリー・食塩。どの行も同じ位置に出して、見くらべやすくする
 const COMPARE_COLS = 'grid grid-cols-[minmax(0,1fr)_5rem_3.75rem] items-center gap-x-2'
 
-// 広い画面：左に候補の一覧（名前・カロリー・食塩の位置をそろえた行）、右にえらんでいる献立の中身。
-// 行を押すと右の中身が切り替わり、「これにする」で1日の食事に入れる。はじめは、いちばん上の献立をえらんでおく
+// 広い画面：左に候補の一覧（名前・カロリー・食塩の位置をそろえた行）、右に選んでいる献立の中身。
+// 行を押すと右の中身が切り替わり、「これにする」で1日の食事に入れる。はじめは、いちばん上の献立を選んでおく
 function IdealMenuCompare({ entries, tokens, catalog, targets, storesLoaded, onLoad, more }: ListProps & { entries: Entry[]; tokens: string[]; more: ReactNode }) {
   const [selectedId, setSelectedId] = useState<string | null>(null)
-  // えらんでいた献立が一覧から外れたら（しぼりこみを変えたときなど）、いちばん上のものに。読み込み中のものはえらべない
+  // 選んでいた献立が一覧から外れたら（しぼりこみを変えたときなど）、いちばん上のものに。読み込み中のものは選べない
   const ready = entries.filter((e) => idealMenuAvailable(e.menu, catalog))
   const selected = ready.find((e) => e.menu.id === selectedId) ?? ready[0]
   return (
@@ -405,7 +405,7 @@ function IdealMenuRow({
   )
 }
 
-// 広い画面の右側：えらんでいる献立の中身。朝・昼・晩・その他の料理と量、1日の合計、栄養のポイント。
+// 広い画面の右側：選んでいる献立の中身。朝・昼・晩・その他の料理と量、1日の合計、栄養のポイント。
 // 一覧をスクロールしてもついてくる（窓の見出しの下に止める）。長いときは、この中だけスクロールする
 function IdealMenuDetail({ ideal, catalog, targets, onLoad }: { ideal: IdealMenu; catalog: Catalog; targets: Targets; onLoad: ListProps['onLoad'] }) {
   const plan = useIdealPlan(ideal, catalog, targets)
@@ -417,10 +417,10 @@ function IdealMenuDetail({ ideal, catalog, targets, onLoad }: { ideal: IdealMenu
   return (
     <section
       id="ideal-menu-detail"
-      aria-label={`えらんでいる献立：${ideal.name}`}
+      aria-label={`選んでいる献立：${ideal.name}`}
       className="sticky top-16 max-h-[calc(90dvh-5rem)] overflow-y-auto rounded-2xl bg-white p-4 shadow-sm"
     >
-      <p className="text-2xs text-ink-soft">えらんでいる献立</p>
+      <p className="text-2xs text-ink-soft">選んでいる献立</p>
       <div className="flex items-start gap-2">
         <h3 className="min-w-0 flex-1 pt-1 text-lg leading-snug font-bold">
           {ideal.name}

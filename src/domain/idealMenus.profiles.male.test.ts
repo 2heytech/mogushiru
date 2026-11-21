@@ -1,4 +1,4 @@
-// 理想の献立を、男性の15プロフィール（年齢 × 活動量）で確かめる。男女でファイルを分けて、並列に走らせる
+// 献立の例を、男性の15プロフィール（年齢 × 活動量）で確かめる。男女でファイルを分けて、並列に走らせる
 import { describe, expect, it } from 'vitest'
 import { IDEAL_MENUS, menuItemRole } from './idealMenus'
 import { catalog, label, planned, products, profilesOf } from './idealMenus.testkit'
@@ -6,7 +6,7 @@ import { nutrientChecks } from './nutrientChecks'
 import { slotBalance } from './slotBalance'
 import { SLOTS } from './types'
 
-describe('理想の献立（男性）', () => {
+describe('献立の例（男性）', () => {
   it.each(profilesOf('male').map((p) => [label(p), p] as const))('%s：カロリー・PFC・食塩が目安に収まり、とりすぎがなく、量も自然な範囲', (_, profile) => {
     for (const m of IDEAL_MENUS) {
       const { t, menu, summary: s } = planned(m, profile)

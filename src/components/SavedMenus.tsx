@@ -4,6 +4,7 @@ import type { MealSlot } from '../domain/idealMeals'
 import { knownItemsOnly, menuTotals, type Catalog, type MenuTotals } from '../domain/nutrition'
 import type { Targets } from '../domain/targets'
 import { SLOTS, type DayMenu, type MenuItem, type Slot } from '../domain/types'
+import { READING_LINKS } from '../routes'
 import type { SavedMenu } from '../store/useAppStore'
 import { confirmDialog } from './confirm'
 import { CustomizeIcon } from './CustomizeIcon'
@@ -29,7 +30,7 @@ export type MenuActionsLayout = 'row' | 'bar'
 const slotTitle = (slot: Slot) => `${SLOT_LABEL[slot]}${slot === 'other' ? '' : 'ごはん'}`
 
 // 1日の食事の操作。
-// row＝見出しやPCの上のバーに横並び：「献立案から選ぶ」「保存」「呼び出す」「リセット」（料理を足すのは、朝・昼・晩それぞれの「＋ 料理をえらぶ」）
+// row＝見出しやPCの上のバーに横並び：「献立の例から選ぶ」「保存」「呼び出す」「リセット」（料理を足すのは、朝・昼・晩それぞれの「＋ 料理を選ぶ」）
 // bar＝スマホの下に固定のバー：料理を足したり直したりしている間は「料理を追加」をいちばん目立たせ、
 //   献立全体の選びなおし・保存した食事の呼び出し・料理をアレンジ・リセット・最初の画面にもどるは「メニュー」の中に置く（3.8・3.14）
 export function MenuActions({
@@ -95,7 +96,7 @@ export function MenuActions({
             <UiIcon name="save" className="h-6 w-6 shrink-0" />
             保存
           </button>
-          <button type="button" onClick={() => setSheet('more')} aria-haspopup="dialog" aria-label="ほかの操作（献立案から選ぶ・呼び出す・料理をアレンジ・リセット・最初の画面にもどる）" className={BAR_SMALL}>
+          <button type="button" onClick={() => setSheet('more')} aria-haspopup="dialog" aria-label="ほかの操作（献立の例から選ぶ・呼び出す・料理をアレンジ・リセット・最初の画面にもどる）" className={BAR_SMALL}>
             <svg viewBox="0 0 24 24" className="h-6 w-6 shrink-0 text-ink-soft" fill="currentColor" aria-hidden>
               <circle cx="5" cy="12" r="2.2" />
               <circle cx="12" cy="12" r="2.2" />
@@ -133,7 +134,7 @@ export function MenuActions({
                 >
                   <UiIcon name="build" className="h-9 w-9 shrink-0" />
                   <span className="min-w-0 flex-1">
-                    <span className="block font-bold">{empty ? '献立案から選ぶ' : '献立案から選びなおす'}</span>
+                    <span className="block font-bold">{empty ? '献立の例から選ぶ' : '献立の例から選びなおす'}</span>
                     <span className="block text-xs text-ink-soft">バランスの整った献立を、1日分か1食ずつ選ぶ</span>
                   </span>
                 </button>
@@ -200,11 +201,24 @@ export function MenuActions({
                   <UiIcon name="start" className="h-9 w-9 shrink-0" />
                   <span className="min-w-0 flex-1">
                     <span className="block font-bold">最初の画面にもどる</span>
-                    <span className="block text-xs text-ink-soft">{empty ? '始め方をえらびなおす' : '入れた料理は、そのまま残ります'}</span>
+                    <span className="block text-xs text-ink-soft">{empty ? '始め方を選びなおす' : '入れた料理は、そのまま残ります'}</span>
                   </span>
                 </button>
               </li>
             </ul>
+            {/* 読みもののページ（食品成分ランキング・献立の例・料理のカロリー・栄養）への入口。入れた料理は、そのまま残る */}
+            <nav aria-label="読みもの" className="mt-4">
+              <p className="px-1 text-xs font-bold text-ink-soft">読みもの</p>
+              <ul className="mt-1.5 flex flex-wrap gap-2">
+                {READING_LINKS.map((l) => (
+                  <li key={l.key}>
+                    <a href={l.path} className="inline-flex min-h-11 items-center rounded-full bg-white px-4 text-sm font-bold text-coral-ink shadow-sm transition hover:bg-coral/5">
+                      {l.name}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </nav>
           </Sheet>,
             document.body,
           )}
@@ -214,7 +228,7 @@ export function MenuActions({
     <div className="flex flex-wrap items-center gap-2">
       <button type="button" onClick={onOpenBuild} aria-haspopup="dialog" className={`${SECONDARY} font-bold text-coral-ink ring-1 ring-coral/60`}>
         <UiIcon name="build" className="h-6 w-6 shrink-0" />
-        献立案から選ぶ
+        献立の例から選ぶ
       </button>
       <button type="button" onClick={onOpenSave} disabled={empty} aria-haspopup="dialog" className={SECONDARY}>
         <UiIcon name="save" className="h-6 w-6 shrink-0" />
@@ -246,7 +260,7 @@ const dateLabel = (iso: string) => {
   return `${d.getMonth() + 1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`
 }
 
-// 「どの食事に追加しますか？」と、朝・昼・晩・その他からえらぶ窓（いま入っている品数とカロリーつき）。
+// 「どの食事に追加しますか？」と、朝・昼・晩・その他から選ぶ窓（いま入っている品数とカロリーつき）。
 // スマホの下のバーの「料理を追加」と、「料理をアレンジ」の画面でお気に入りの料理を1日の食事に足すときに使う
 export function SlotChoiceSheet({
   title = 'どの食事に追加しますか？',
@@ -365,7 +379,7 @@ export function SaveMenuDialog({ saved, onSave, onClose }: { saved: SavedMenu[];
   )
 }
 
-// 保存した1日の食事を呼び出す（削除もできる）。理想の献立から献立をつくるのは「献立をつくる」（MenuBuilder.tsx）
+// 保存した1日の食事を呼び出す（削除もできる）。献立の例から献立をつくるのは「献立をつくる」（MenuBuilder.tsx）
 export function SavedMenusDialog({
   menu,
   saved,
@@ -431,7 +445,7 @@ export function SavedMenusDialog({
   )
 }
 
-// 理想の献立から、朝・昼・晩のどれか1食だけを呼び出す（「朝に追加」などの料理をえらぶ画面からひらく）
+// 献立の例から、朝・昼・晩のどれか1食だけを呼び出す（「朝に追加」などの料理を選ぶ画面からひらく）
 export function IdealMealDialog({
   slot,
   menu,
@@ -451,7 +465,7 @@ export function IdealMealDialog({
 }) {
   const label = SLOT_LABEL[slot]
   return (
-    <Sheet title={`${label}ごはんの理想の献立`} onClose={onClose} wide tall>
+    <Sheet title={`${label}ごはんの献立の例`} onClose={onClose} wide tall>
       <IdealMealList
         slot={slot}
         catalog={catalog}

@@ -21,7 +21,7 @@ import { nutrientPagePath, NUTRIENTS_INDEX_PATH, rankingAppPath, SITE_NAME, VIEW
 import type { DishPageData } from './dishPages'
 import { NUTRIENT_COPY, type NutrientCopy } from './nutrientCopy'
 import type { OgCard } from './ogCard'
-import { barWidth, BUTTON, BUTTON_SUB, CARD, LINK, StaticLayout } from './StaticLayout'
+import { barWidth, BUTTON, BUTTON_SUB, CALC_LABEL, CARD, LINK, StaticLayout } from './StaticLayout'
 
 // 成分ごとのランキングのページ（/nutrients/<slug>/）と、その一覧（/nutrients/）。
 // アプリの「ランキングを並べ替え」と同じ計算（よく使う食品だけ・1回の量はアプリの目安）で並べる
@@ -308,7 +308,12 @@ function ReferenceTable({ data }: { data: NutrientPageData }) {
             </li>
             {key === 'iron' && <li>女性は、50歳未満を月経あり、50歳以上を月経なしとして計算しています。</li>}
             {supplementOnly && <li>上限は、サプリメントなど通常の食品以外からとる量にかかります。</li>}
-            <li>年齢・性別・身長・体重・ふだんの運動を入れると、アプリで自分の目安を計算できます。</li>
+            <li>
+              <a href={VIEW_PATH.menu} className={LINK}>
+                栄養バランスの計算
+              </a>
+              で年齢・性別・身長・体重・ふだんの運動を入れると、自分の目安で見られます。
+            </li>
           </>
         )}
       </ul>
@@ -543,7 +548,7 @@ export function NutrientPage({ data }: { data: NutrientPageData }) {
   })
   if (data.dishes.length > 0) sections.push({ id: 'dishes', label: '料理', node: <DishList data={data} /> })
   return (
-    <StaticLayout crumbs={[{ name: SITE_NAME, path: '/' }, { name: NUTRIENTS_INDEX_HEADING, path: NUTRIENTS_INDEX_PATH }, { name: copy.name }]}>
+    <StaticLayout section="nutrients" crumbs={[{ name: SITE_NAME, path: '/' }, { name: NUTRIENTS_INDEX_HEADING, path: NUTRIENTS_INDEX_PATH }, { name: copy.name }]}>
       <article className="space-y-6">
         <header>
           {/* スマホで「ラ／ンキング」のように言葉の途中で折り返さないよう、言葉のまとまり（「ビタミンCが多い」「食べ物」「ランキング」）ごとに折り返す */}
@@ -601,14 +606,14 @@ export function NutrientPage({ data }: { data: NutrientPageData }) {
             モグシルでもっとくわしく
           </h2>
           <p className="text-sm leading-relaxed">
-            アプリでは、食品の種類（魚介類・野菜類など）でしぼったり、成分表のすべての食品からさがしたりできます。料理を選べば、1日の{info.label}が目安に足りているかも分かります。登録はいりません。
+            「ランキングを並べ替え」では、食品の種類（魚介類・野菜類など）でしぼったり、成分表のすべての食品からさがしたりできます。「栄養バランスを計算」で料理を選べば、1日の{info.label}が目安に足りているかも分かります。登録はいりません。
           </p>
           <div className="flex flex-wrap gap-2">
             <a href={rankingAppPath(key)} className={BUTTON}>
-              くらべ方や種類を変えて見る
+              くらべ方や種類を変えて並べ替える
             </a>
-            <a href="/" className={BUTTON_SUB}>
-              料理を選んで1日の栄養をたしかめる
+            <a href={VIEW_PATH.menu} className={BUTTON_SUB}>
+              {CALC_LABEL}
             </a>
           </div>
         </section>
@@ -653,7 +658,7 @@ export function NutrientPage({ data }: { data: NutrientPageData }) {
 export function NutrientsIndexPage({ pages }: { pages: NutrientPageData[] }) {
   const byKey = new Map(pages.map((p) => [p.key, p]))
   return (
-    <StaticLayout crumbs={[{ name: SITE_NAME, path: '/' }, { name: NUTRIENTS_INDEX_HEADING }]}>
+    <StaticLayout section="nutrients" crumbs={[{ name: SITE_NAME, path: '/' }, { name: NUTRIENTS_INDEX_HEADING }]}>
       <article className="space-y-6">
         <header>
           <h1 className="text-2xl leading-snug font-bold sm:text-3xl">
@@ -667,7 +672,7 @@ export function NutrientsIndexPage({ pages }: { pages: NutrientPageData[] }) {
             <a href={VIEW_PATH.ranking} className={BUTTON_SUB}>
               条件を変えて並べ替える
             </a>
-            <span className="text-xs leading-relaxed text-ink-soft">成分・くらべ方（100kcalあたり・100円あたりなど）・食品の種類をえらんで、成分表のすべての食品を並べ替えられます。</span>
+            <span className="text-xs leading-relaxed text-ink-soft">成分・くらべ方（100kcalあたり・100円あたりなど）・食品の種類を選んで、成分表のすべての食品を並べ替えられます。</span>
           </p>
         </header>
         {NUTRIENT_GROUPS.map((g) => {

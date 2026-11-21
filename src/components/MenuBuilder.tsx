@@ -14,16 +14,16 @@ import { SLOT_LABEL } from './labels'
 import { SlotIcon } from './Mascot'
 import { Sheet } from './SavedMenus'
 
-// 献立案から選ぶ：理想の献立から、1日の食事をつくる。上の切り替えで、えらび方を変えられる。
-//   1日分まとめて … 1日の合計で目安がそろう献立を、1日分まとめてえらぶ（はじめはこちら）
-//   1食ずつ … 朝ごはん → 昼ごはん → 晩ごはんの順に、その1食だけで区分の目安に収まる1食をえらぶ
+// 献立の例から選ぶ：献立の例から、1日の食事をつくる。上の切り替えで、選び方を変えられる。
+//   1日分まとめて … 1日の合計で目安がそろう献立を、1日分まとめて選ぶ（はじめはこちら）
+//   1食ずつ … 朝ごはん → 昼ごはん → 晩ごはんの順に、その1食だけで区分の目安に収まる1食を選ぶ
 // はじめに「どちらのバランスにするか」を聞かず、まず候補を見せる（ちがいが分からなくても進めるように）。
 // 保存した1日の食事を呼び出すのは、別の入口（SavedMenusDialog）
 export type BuildMode = 'day' | 'meal'
 
 const MODES: Record<BuildMode, { label: string; lead: string }> = {
   day: { label: '1日分まとめて', lead: '朝・昼・晩の合計で、1日の栄養の目安がそろう献立です。' },
-  meal: { label: '1食ずつ', lead: '朝・昼・晩を1食ずつえらびます。どの1食も、その1食だけで目安に収まります。' },
+  meal: { label: '1食ずつ', lead: '朝・昼・晩を1食ずつ選びます。どの1食も、その1食だけで目安に収まります。' },
 }
 const MODE_KEYS = ['day', 'meal'] as const
 
@@ -61,16 +61,16 @@ function ModeDiagram({ mode }: { mode: BuildMode }) {
 }
 
 const HELP: Record<BuildMode, string> = {
-  day: 'ごはん・パン・麺を中心に量を変えて、1日の目安に合わせます。ごはんは大盛りまでにして、足りない分は「＋」の一品を足します。えらぶと、いまの1日の食事と置き換わります。',
-  meal: 'どの1食も、その1食だけでカロリー・PFCバランス・食塩・飽和脂肪酸が、朝・昼・晩それぞれの目安（1日の目安 × 配分）に収まります。ごはん・パン・麺を中心に量を変え、足りない分は「＋」の一品を足します。えらぶと、いまのその食事と置き換わります（その他はそのまま）。',
+  day: 'ごはん・パン・麺を中心に量を変えて、1日の目安に合わせます。ごはんは大盛りまでにして、足りない分は「＋」の一品を足します。選ぶと、いまの1日の食事と置き換わります。',
+  meal: 'どの1食も、その1食だけでカロリー・PFCバランス・食塩・飽和脂肪酸が、朝・昼・晩それぞれの目安（1日の目安 × 配分）に収まります。ごはん・パン・麺を中心に量を変え、足りない分は「＋」の一品を足します。選ぶと、いまのその食事と置き換わります（その他はそのまま）。',
 }
 
-// えらび方の切り替え（1日分まとめて／1食ずつ）と、そのひとこと
+// 選び方の切り替え（1日分まとめて／1食ずつ）と、そのひとこと
 function ModeTabs({ mode, targets, onChange }: { mode: BuildMode; targets: Targets; onChange: (mode: BuildMode) => void }) {
   const [help, setHelp] = useState(false)
   return (
     <div className="mb-3">
-      <div role="tablist" aria-label="献立のえらび方" className="flex gap-1 rounded-full bg-white p-1 shadow-sm md:max-w-md">
+      <div role="tablist" aria-label="献立の選び方" className="flex gap-1 rounded-full bg-white p-1 shadow-sm md:max-w-md">
         {MODE_KEYS.map((m) => (
           <button
             key={m}
@@ -133,28 +133,28 @@ export function MenuBuilderDialog({
   onDone,
   onClose,
 }: {
-  // はじめにひらくえらび方
+  // はじめにひらく選び方
   initialMode?: BuildMode
   menu: DayMenu
   catalog: Catalog
   targets: Targets
   storesLoaded: boolean
   onLoadDay: (ideal: IdealMenu, menu: DayMenu) => void
-  // 1食ずつで1食えらぶたびに、その区分を置き換える
+  // 1食ずつで1食選ぶたびに、その区分を置き換える
   onLoadMeal: (slot: MealSlot, items: MenuItem[]) => void
-  // 1食ずつで、晩ごはんまでえらび終えた
+  // 1食ずつで、晩ごはんまで選び終えた
   onDone: () => void
   onClose: () => void
 }) {
   const [mode, setMode] = useState<BuildMode>(initialMode)
-  // ひらいたときに1日の食事に何か入っていたか（入っていれば、えらぶと置き換わることを先に伝える）
+  // ひらいたときに1日の食事に何か入っていたか（入っていれば、選ぶと置き換わることを先に伝える）
   const [startedWithItems] = useState(() => SLOTS.some((s) => menu[s].length > 0))
   const empty = SLOTS.every((s) => menu[s].length === 0)
   // いまのデータにある市販品だけで組める献立
   const available = useMemo(() => IDEAL_MENUS.filter((m) => idealMenuAvailable(m, catalog)), [catalog])
   const adjusted = useAdjustedIdealMenus(available, catalog, targets)
   return (
-    <Sheet title="献立案から選ぶ" onClose={onClose} wide tall>
+    <Sheet title="献立の例から選ぶ" onClose={onClose} wide tall>
       <ModeTabs mode={mode} targets={targets} onChange={setMode} />
       {mode === 'day' ? (
         <IdealMenuList
@@ -182,7 +182,7 @@ export function MenuBuilderDialog({
 
 type Pick = { key: string; name: string; image: string | null }
 
-// 1食ずつ：朝ごはん → 昼ごはん → 晩ごはんの順に1食ずつ。えらぶとその区分に入れて次へ。上の3つを押すと、その食事にもどれる。
+// 1食ずつ：朝ごはん → 昼ごはん → 晩ごはんの順に1食ずつ。選ぶとその区分に入れて次へ。上の3つを押すと、その食事にもどれる。
 // 配分が0%の区分（朝食をとらない設定など）はとばす
 function MealSteps({
   menus,
@@ -229,15 +229,15 @@ function MealSteps({
     )
     const done = { ...picks, [slot]: { key: meal.key, name: mealName(meal), image: face ? menuItemImage(face, catalog) : null } }
     setPicks(done)
-    // まだえらんでいない食事へ（後ろを先に）。ぜんぶえらんだら終わり
+    // まだ選んでいない食事へ（後ろを先に）。ぜんぶ選んだら終わり
     const rest = [...steps.slice(index + 1), ...steps.slice(0, index)].filter((s) => !done[s])
     if (rest.length === 0) onDone()
     else go(steps.indexOf(rest[0]))
   }
   return (
     <>
-      {replacing && <p className="mb-3 rounded-2xl bg-white/60 px-3 py-2 text-xs text-ink-soft">えらんだ1食で、いまの{steps.map((s) => SLOT_LABEL[s]).join('・')}の食事を順に置き換えます。</p>}
-      <ol aria-label="えらぶ順" className="mb-3 grid gap-1.5" style={{ gridTemplateColumns: `repeat(${steps.length}, minmax(0, 1fr))` }}>
+      {replacing && <p className="mb-3 rounded-2xl bg-white/60 px-3 py-2 text-xs text-ink-soft">選んだ1食で、いまの{steps.map((s) => SLOT_LABEL[s]).join('・')}の食事を順に置き換えます。</p>}
+      <ol aria-label="選ぶ順" className="mb-3 grid gap-1.5" style={{ gridTemplateColumns: `repeat(${steps.length}, minmax(0, 1fr))` }}>
         {steps.map((s, i) => {
           const p = picks[s]
           const current = i === index
@@ -259,7 +259,7 @@ function MealSteps({
                   <span className={`block text-xs font-bold ${current ? 'text-coral-ink' : ''}`}>
                     {i + 1}. {SLOT_LABEL[s]}ごはん
                   </span>
-                  <span className="block truncate text-2xs text-ink-soft">{p ? p.name : current ? 'えらんでいます' : 'まだ'}</span>
+                  <span className="block truncate text-2xs text-ink-soft">{p ? p.name : current ? '選んでいます' : 'まだ'}</span>
                 </span>
               </button>
             </li>
