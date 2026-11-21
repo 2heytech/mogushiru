@@ -1,5 +1,5 @@
 import { menuItemImage } from '../components/illustration'
-import { itemName, portionLabel } from '../components/itemName'
+import { itemName, portionLabel, portionText } from '../components/itemName'
 import { SLOT_LABEL } from '../components/labels'
 import { SlotIcon } from '../components/Mascot'
 import { idealMealLeads, mealFaceItem } from '../domain/idealMenuFacets'
@@ -343,7 +343,8 @@ function MenuCard({ plan, catalog, nested, dishPaths }: { plan: PlannedMenu; cat
                 {src && <img src={src} alt="" width={40} height={40} loading="lazy" className="h-10 w-10 shrink-0" />}
                 <span className="min-w-0">
                   {items.map((item, i) => {
-                    const portion = portionLabel(item, catalog)
+                    // 料理の「×1.1」は、「ごはん×1.1（約165g）」「サーモン丼×1.2人前」と書く
+                    const portion = portionText(item, catalog)
                     const brand = item.kind === 'product' ? catalog.products.get(item.refId)?.brand : undefined
                     const dishPath = item.kind === 'dish' ? dishPaths?.get(item.refId) : undefined
                     return (
@@ -384,6 +385,47 @@ function MenuCard({ plan, catalog, nested, dishPaths }: { plan: PlannedMenu; cat
 
 const sizeNote = `量は30〜49歳女性・身体活動ふつう（1日 約${Math.round(TARGETS.energyKcal).toLocaleString()} kcal）に合わせています。「${OPEN_MENU_LABEL}」を押すと、年齢・性別・活動量に合わせて量が変わり、料理を入れかえることもできます。`
 
+// 「×1.2」の読み方（料理に ×のついた献立があるページに出す）
+const TIMES_NOTE = '料理の「×1.2」は、1人前の1.2倍の量です。ごはんやパンなどには、重さも書き添えています。'
+
+// ページの上に置く、献立の目次。名前から、その献立のところへ移る。
+// スマホでは、たたんでおく（ひらいたままだと、最初の献立がずっと下へ行くため）。広い画面では、いつも出しておく。
+// 画面の広さでひらく・たたむを変えるために、同じリンクを2つ書き出して、どちらかだけを見せる
+function MenuToc({ plans }: { plans: PlannedMenu[] }) {
+  const title = `目次：このページの献立（${plans.length}種）`
+  const links = (
+    <ol className="flex flex-wrap gap-1.5">
+      {plans.map((plan) => (
+        <li key={plan.ideal.id}>
+          <a href={`#${plan.ideal.id}`} className="inline-flex min-h-9 items-center rounded-full bg-cream px-3 text-sm text-coral-ink hover:bg-coral/15">
+            {plan.ideal.name}
+          </a>
+        </li>
+      ))}
+    </ol>
+  )
+  const box = 'rounded-[var(--radius-card)] bg-white/70 px-4 shadow-sm'
+  return (
+    <>
+      <details className={`group ${box} py-1 sm:hidden`}>
+        <summary className="flex min-h-11 cursor-pointer list-none items-center gap-1 text-sm font-bold [&::-webkit-details-marker]:hidden">
+          {title}
+          <span aria-hidden className="text-coral-ink transition-transform group-open:rotate-180">
+            ▾
+          </span>
+        </summary>
+        <nav aria-label="このページの献立" className="pb-3">
+          {links}
+        </nav>
+      </details>
+      <nav aria-label="このページの献立" className={`${box} hidden space-y-2 py-3 sm:block`}>
+        <p className="text-sm font-bold">{title}</p>
+        {links}
+      </nav>
+    </>
+  )
+}
+
 function PageLinks({ current }: { current?: string }) {
   return (
     <ul className="flex flex-wrap gap-1.5">
@@ -407,6 +449,7 @@ function PageLinks({ current }: { current?: string }) {
 export function MenuGenrePage({ page, plans, catalog, dishPaths }: { page: MenuPage; plans: PlannedMenu[]; catalog: Catalog; dishPaths?: DishPaths }) {
   const combos = lunchCombos(plans, catalog)
   const hasDishLinks = plans.some((p) => SLOTS.some((slot) => p.menu[slot].some((item) => item.kind === 'dish' && dishPaths?.has(item.refId))))
+  const hasTimes = plans.some((p) => SLOTS.some((slot) => p.menu[slot].some((item) => item.kind === 'dish' && portionLabel(item, catalog) !== '')))
   // 「目安に合うように」／「目安に合い、ビタミンやミネラルもほぼ目安に届くように」（市販品は、表示にない成分が計算に入らないので後ろを書かない）
   const fit = plans.some((p) => idealMenuHasProducts(p.ideal)) ? '目安に合う' : '目安に合い、ビタミンやミネラルもほぼ目安に届く'
   const lead = (
@@ -417,6 +460,7 @@ export function MenuGenrePage({ page, plans, catalog, dishPaths }: { page: MenuP
       </p>
       <p className="text-xs leading-relaxed text-ink-soft">
         {sizeNote}
+        {hasTimes && TIMES_NOTE}
         {hasDishLinks && '下線のある料理は、名前からカロリー・栄養と作り方のページを開けます。'}
       </p>
     </>
@@ -451,6 +495,7 @@ export function MenuGenrePage({ page, plans, catalog, dishPaths }: { page: MenuP
             1日の献立の例（{plans.length}種）
           </h2>
         )}
+        <MenuToc plans={plans} />
         <ol className="space-y-4">
           {plans.map((plan) => (
             <MenuCard key={plan.ideal.id} plan={plan} catalog={catalog} nested={combos.length > 0} dishPaths={dishPaths} />

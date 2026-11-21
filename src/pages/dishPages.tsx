@@ -4,6 +4,7 @@ import { detailGroups, type DetailGroup, type DetailRow } from '../domain/foodDe
 import { itemTotals, pfcRatio, type Catalog } from '../domain/nutrition'
 import { dailyReference, formatAmount, RANKING_NUTRIENTS } from '../domain/ranking'
 import { DEFAULT_SERVINGS, extraTexts, materialLines, recipeLines, type RecipeLine } from '../domain/recipe'
+import { normalizeForSearch } from '../domain/search'
 import { computeTargets, DEFAULT_PROFILE } from '../domain/targets'
 import type { Dish, DishCategory, DishRecipe, NutrientKey } from '../domain/types'
 import { DISHES_INDEX_PATH, dishAddPath, dishAppPath, dishPagePath, NUTRIENTS_INDEX_PATH, nutrientPagePath, READING_LINKS, SITE_NAME, SITE_URL, VIEW_PATH } from '../routes'
@@ -505,11 +506,104 @@ export const dishesIndexTitle = (pages: DishPageData[]) => `${DISHES_INDEX_HEADI
 export const dishesIndexDescription = (pages: DishPageData[]) =>
   `肉じゃが・唐揚げ・さばの味噌煮・豚汁など、ふだんの料理${pages.length}品の1人前のカロリーと、たんぱく質・食塩・ビタミン・ミネラルなど26成分をまとめました。${SERVINGS}人分の材料と作り方も載せています。`
 
+// 一覧のページの、名前の検索・しぼりこみ・並べかえ。動かすのは public/dish-index.js（このページだけが読む小さなプログラム）。
+// ここで書き出すもの：料理の行の data-key（名前と読み）・data-kcal・data-protein・data-salt・data-min と、フォーム。
+// しぼりこみの条件・並べかえの順はここで決め、フォームの data-* に書いてプログラムへ渡す（数字を2か所に書かない）
+type IndexKey = 'kcal' | 'protein' | 'salt' | 'min'
+
+// しぼりこみ：行の data-<key> が min 以上・max 以下の料理だけを残す
+export const INDEX_FILTERS: { id: string; label: string; note: string; key: IndexKey; min?: number; max?: number }[] = [
+  { id: 'protein', label: '高たんぱく', note: '20g以上', key: 'protein', min: 20 },
+  { id: 'kcal', label: '低カロリー', note: '300kcal以下', key: 'kcal', max: 300 },
+  { id: 'salt', label: '食塩ひかえめ', note: '1g以下', key: 'salt', max: 1 },
+  { id: 'min', label: 'すぐ作れる', note: '15分以内', key: 'min', max: 15 },
+]
+
+// 並べかえ：value は「<key>:<asc か desc>」。'' は、もとの並び（種類ごと）
+const INDEX_SORTS: { value: '' | `${IndexKey}:${'asc' | 'desc'}`; label: string }[] = [
+  { value: '', label: '種類ごと' },
+  { value: 'kcal:asc', label: 'カロリーが低い順' },
+  { value: 'protein:desc', label: 'たんぱく質が多い順' },
+  { value: 'salt:asc', label: '食塩が少ない順' },
+  { value: 'min:asc', label: '作る時間が短い順' },
+]
+
+const round1 = (v: number | null) => Math.round((v ?? 0) * 10) / 10
+
+// 行に書く数字（しぼりこみ・並べかえは、画面に出ているこの数字でくらべる）
+export const dishIndexValues = (p: DishPageData): Record<IndexKey, number> => ({ kcal: p.kcal, protein: round1(p.dish.nutrients.protein), salt: round1(p.dish.nutrients.salt), min: p.recipe.minutes })
+
+// さがすときにくらべる文字：名前と読み（「からあげ」「カラアゲ」「唐揚げ」のどれでも見つかる）。区切りの「・」は入れない
+export const dishIndexKey = (dish: Dish): string =>
+  [dish.name, ...dish.kana.split(/\s+/)]
+    .map((w) => normalizeForSearch(w).replace(/・/g, ''))
+    .filter(Boolean)
+    .join(' ')
+
+const DISH_ROWS = 'grid gap-x-4 gap-y-1 text-sm sm:grid-cols-2 lg:grid-cols-3'
+
+function DishIndexFilter({ total }: { total: number }) {
+  return (
+    // noscript:hidden＝プログラムを動かさない設定のブラウザでは、使えないフォームを出さない
+    <form data-dish-filter="" role="search" aria-label="料理をさがす" className={`${CARD} space-y-3 noscript:hidden`}>
+      <div className="relative lg:max-w-xl">
+        <svg viewBox="0 0 24 24" aria-hidden className="pointer-events-none absolute top-1/2 left-3.5 h-5 w-5 -translate-y-1/2 text-ink-soft" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
+          <circle cx="11" cy="11" r="6.5" />
+          <path d="M16 16l4.5 4.5" />
+        </svg>
+        <input
+          type="search"
+          name="q"
+          placeholder="料理の名前でさがす"
+          aria-label="料理の名前でさがす"
+          autoComplete="off"
+          enterKeyHint="search"
+          className="min-h-12 w-full rounded-full border-2 border-cream bg-cream pr-4 pl-11 text-base outline-none focus:border-coral"
+        />
+      </div>
+      <fieldset>
+        <legend className="text-sm font-bold">しぼりこむ</legend>
+        {/* スマホでは2列（名前の下に数字）、広い画面では横にならべる */}
+        <div className="mt-1.5 grid grid-cols-2 gap-1.5 sm:flex sm:flex-wrap">
+          {INDEX_FILTERS.map((f) => (
+            <label key={f.id} className="cursor-pointer">
+              <input type="checkbox" name="f" value={f.id} data-key={f.key} data-min={f.min} data-max={f.max} className="peer sr-only" />
+              <span className="flex min-h-11 flex-col items-center justify-center rounded-2xl border-2 border-cream bg-cream px-3 py-1 text-sm leading-tight font-bold text-coral-ink peer-checked:border-coral peer-checked:bg-coral peer-checked:text-ink-strong peer-focus-visible:border-coral-ink sm:flex-row sm:gap-1.5 sm:rounded-full">
+                {f.label}
+                <span className="text-xs font-normal">{f.note}</span>
+              </span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+        <label className="flex items-center gap-2 text-sm font-bold">
+          並べかえ
+          <select name="sort" className="min-h-11 rounded-full border-2 border-cream bg-cream px-3 text-sm font-normal text-ink outline-none focus:border-coral">
+            {INDEX_SORTS.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <p data-dish-count="" data-total={total} role="status" className="text-sm tabular-nums">
+          {total}品
+        </p>
+        <button type="reset" data-dish-reset="" hidden className="ml-auto inline-flex min-h-11 items-center rounded-full px-3 text-sm font-bold text-coral-ink underline underline-offset-2">
+          条件をクリア
+        </button>
+      </div>
+    </form>
+  )
+}
+
 export function DishesIndexPage({ pages }: { pages: DishPageData[] }) {
   const groups = CATEGORY_ORDER.map((c) => ({ category: c, items: pages.filter((p) => p.dish.category === c) })).filter((g) => g.items.length > 0)
   return (
     <StaticLayout section="dishes" crumbs={[{ name: SITE_NAME, path: '/' }, { name: DISHES_INDEX_NAME }]}>
-      <div className="space-y-4">
+      {/* group/dishes：食塩・時間でしぼりこむ・並べかえる間（data-salt・data-min がつく）だけ、行にその値を書き足す */}
+      <div data-dish-index="" className="group/dishes space-y-4">
         <header className={CARD}>
           <h1 className="text-2xl leading-snug font-bold">
             {DISHES_INDEX_NAME}と<span className="inline-block">作り方（{pages.length}品）</span>
@@ -521,29 +615,48 @@ export function DishesIndexPage({ pages }: { pages: DishPageData[] }) {
             </a>
             では、材料や量を変えて栄養を計算できます。
           </p>
-          <p className="mt-3 flex flex-wrap gap-2 text-xs">
+          <p data-dish-jumps="" className="mt-3 flex flex-wrap gap-2 text-xs">
             {groups.map((g) => (
-              <a key={g.category} href={`#${g.category}`} className="rounded-full bg-cream px-3 py-1.5 font-bold text-coral-ink">
-                {DISH_CATEGORY_LABEL[g.category]}（{g.items.length}）
+              <a key={g.category} href={`#${g.category}`} data-jump={g.category} className="rounded-full bg-cream px-3 py-1.5 font-bold text-coral-ink">
+                {DISH_CATEGORY_LABEL[g.category]}（<span data-n="">{g.items.length}</span>）
               </a>
             ))}
           </p>
         </header>
+        <DishIndexFilter total={pages.length} />
+        {/* 並べかえたときの一覧（種類で分けない）。行は、下の種類ごとの一覧から移してくる */}
+        <section data-dish-results="" hidden className={CARD} aria-label="条件に合う料理">
+          <ul className={DISH_ROWS} />
+        </section>
+        <p data-dish-empty="" hidden className={`${CARD} text-sm leading-relaxed`}>
+          条件に合う料理がありません。条件をへらすか、ひらがなや短い言葉でさがしてみてください。
+        </p>
         {groups.map((g) => (
-          <section key={g.category} id={g.category} className={CARD} aria-labelledby={`h-${g.category}`}>
+          <section key={g.category} id={g.category} data-dish-section="" className={`${CARD} scroll-mt-4`} aria-labelledby={`h-${g.category}`}>
             <h2 id={`h-${g.category}`} className="mb-2 text-lg font-bold">
               {DISH_CATEGORY_LABEL[g.category]}
             </h2>
-            <ul className="grid gap-x-4 gap-y-1 text-sm sm:grid-cols-2 lg:grid-cols-3">
-              {g.items.map((p) => (
-                <li key={p.dish.id} className="flex items-center gap-2 py-1">
-                  <img src={dishImage(p.dish)} alt="" width={36} height={36} className="h-9 w-9 shrink-0" loading="lazy" />
-                  <a href={p.path} className={LINK}>
-                    {p.dish.name}
-                  </a>
-                  <span className="ml-auto shrink-0 text-xs text-ink-soft tabular-nums">{p.kcal} kcal</span>
-                </li>
-              ))}
+            <ul className={DISH_ROWS}>
+              {g.items.map((p) => {
+                const v = dishIndexValues(p)
+                return (
+                  <li key={p.dish.id} data-key={dishIndexKey(p.dish)} data-kcal={v.kcal} data-protein={v.protein} data-salt={v.salt} data-min={v.min} className="flex items-center gap-2 py-1">
+                    <img src={dishImage(p.dish)} alt="" width={36} height={36} className="h-9 w-9 shrink-0" loading="lazy" />
+                    <span className="min-w-0 leading-snug">
+                      <a href={p.path} className={LINK}>
+                        {p.dish.name}
+                      </a>
+                      {/* 数字は、行が変わるときに1つずつまとまって次の行へ行く */}
+                      <span className="flex flex-wrap gap-x-2 text-xs text-ink-soft tabular-nums">
+                        <span>{v.kcal} kcal</span>
+                        <span>たんぱく質 {v.protein.toFixed(1)} g</span>
+                        <span className="hidden group-data-[salt]/dishes:inline">食塩 {v.salt.toFixed(1)} g</span>
+                        <span className="hidden group-data-[min]/dishes:inline">{v.min}分</span>
+                      </span>
+                    </span>
+                  </li>
+                )
+              })}
             </ul>
           </section>
         ))}

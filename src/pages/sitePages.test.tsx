@@ -7,6 +7,7 @@ import { servingFor } from '../domain/serving'
 import type { Dish, Food, Product } from '../domain/types'
 import { FOOD_PAGE_IDS, foodIdFromPath, foodPagePath } from '../routes'
 import { CUISINE_DISH_IDS } from './dishCuisine'
+import { INDEX_FILTERS } from './dishPages'
 import { nutrientPageData } from './nutrientPages'
 import { buildSitePages, NOT_FOUND_PAGE, renderDocument, sitemapXml, withUpdatedDate, type SitePage } from './sitePages'
 
@@ -406,6 +407,32 @@ describe('HTML のひな形への差しこみ', () => {
     for (const path of links) expect(pages.some((p) => p.path === path), path).toBe(true)
     expect(washoku.body).toContain('下線のある料理は、名前からカロリー・栄養と作り方のページを開けます。')
   })
+
+  it('献立の例の料理の「×1.1」には、重さか「人前」を書き添える（ごはん×1.1（約165g）・サーモン丼×1.2人前）', () => {
+    const body = page('/menus/washoku/').body.replace(/<!-- -->/g, '').replace(/<[^>]+>/g, '')
+    expect(body).toMatch(/ごはん×\d\.\d（約\d+g）/)
+    expect(body).toMatch(/サーモン丼×\d\.\d人前/)
+    // 献立の中に、「×1.1」だけで終わるものはない（上の説明の「×1.2」は別）
+    expect(body.replace('料理の「×1.2」は', '')).not.toMatch(/×\d(\.\d)?(?!\.?\d|（約|人前)/)
+    expect(body).toContain('料理の「×1.2」は、1人前の1.2倍の量です。')
+  })
+
+  it('献立の例のページの上に目次があり、名前からその献立のところへ移れる', () => {
+    for (const p of pages.filter((p) => /^\/menus\/[a-z0-9-]+\/$/.test(p.path))) {
+      // スマホ用（たたんである）と広い画面用（いつも出ている）の2つ。中身は同じ
+      const tocs = [...p.body.matchAll(/<nav aria-label="このページの献立"[^>]*>(.+?)<\/nav>/g)].map((m) => [...m[1].matchAll(/href="#([a-z0-9-]+)"/g)].map((l) => l[1]))
+      expect(tocs.length, p.path).toBe(2)
+      expect(tocs[1], p.path).toEqual(tocs[0])
+      const links = tocs[0]
+      const cards = [...p.body.matchAll(/<li id="([a-z0-9-]+)"/g)].map((m) => m[1])
+      expect(links.length, p.path).toBeGreaterThan(2)
+      // 目次の行き先は、どれもページの中の献立で、並びも同じ
+      expect(cards.filter((id) => links.includes(id)), p.path).toEqual(links)
+      expect(p.body, p.path).toContain(`目次：このページの献立（${links.length}種）`)
+      expect(p.body, p.path).toMatch(/<details class="[^"]*sm:hidden">\s*<summary[^>]*>目次/)
+      expect(p.body, p.path).toMatch(/<nav aria-label="このページの献立" class="[^"]*hidden [^"]*sm:block">/)
+    }
+  })
 })
 
 describe('料理のカロリー・栄養と作り方のページ', () => {
@@ -585,6 +612,55 @@ describe('料理のカロリー・栄養と作り方のページ', () => {
     const index = page('/dishes/').body
     const shown = [...index.matchAll(/href="(\/dishes\/[a-z0-9-]+\/)"/g)].map((m) => `https://mogushiru.app${m[1]}`)
     expect(ld.itemListElement.map((i) => i.url)).toEqual(shown)
+  })
+
+  // 一覧のページの、料理の行に書いた値（public/dish-index.js が読む）
+  const indexRows = [...page('/dishes/').body.matchAll(/<li data-key="([^"]*)" data-kcal="(\d+)" data-protein="([\d.]+)" data-salt="([\d.]+)" data-min="(\d+)"/g)].map((m) => ({
+    key: m[1],
+    kcal: Number(m[2]),
+    protein: Number(m[3]),
+    salt: Number(m[4]),
+    min: Number(m[5]),
+  }))
+
+  it('一覧のページの料理の行に、さがす・しぼりこむ・並べかえるための値がある（名前と読み・カロリー・たんぱく質・食塩・時間）', () => {
+    const index = page('/dishes/')
+    expect(indexRows.length).toBe(dishPages.length)
+    // 名前でも読みでも見つかる。カタカナはひらがなにそろえ、区切りの「・」は入れない
+    expect(indexRows.map((r) => r.key)).toContain('鶏の唐揚げ からあげ とりのからあげ')
+    expect(indexRows.map((r) => r.key)).toContain('かれーらいす かれーらいす')
+    expect(indexRows.map((r) => r.key)).toContain('焼き鳥(ねぎまたれ) やきとり ねぎま たれ')
+    for (const r of indexRows) expect(r.key).not.toMatch(/[ァ-ヶA-Z・]/)
+    // 行には、カロリーとたんぱく質をいつも出す。食塩・時間は、それでしぼりこむ・並べかえる間だけ（ふだんはかくす）
+    const karaage = /<li data-key="鶏の唐揚げ[^>]*>(.+?)<\/li>/.exec(index.body)![1].replace(/<!-- -->/g, '')
+    expect(karaage.replace(/<\/span>/g, '|').replace(/<[^>]+>/g, '')).toMatch(/^鶏の唐揚げ\d+ kcal\|たんぱく質 \d+\.\d g\|食塩 \d+\.\d g\|\d+分\|/)
+    expect(karaage).toMatch(/<span class="hidden [^"]*">食塩 /)
+    expect(karaage).toMatch(/<span class="hidden [^"]*">\d+分/)
+  })
+
+  it('一覧のページに、名前の検索・しぼりこみ・並べかえのフォームがある。どの条件でも、料理が10品より多く残る', () => {
+    const index = page('/dishes/')
+    const form = /<form data-dish-filter=""[^>]*>(.+?)<\/form>/.exec(index.body)![1]
+    expect(form).toMatch(/<input type="search"[^>]* name="q"/)
+    // しぼりこみの数字は、フォームに書いてプログラムへ渡す
+    const boxes = [...form.matchAll(/<input type="checkbox"([^>]*)>/g)].map((m) => Object.fromEntries([...m[1].matchAll(/ (data-key|data-min|data-max|value)="([^"]*)"/g)].map((a) => [a[1], a[2]])))
+    expect(boxes).toEqual(INDEX_FILTERS.map((f) => ({ value: f.id, 'data-key': f.key, ...(f.min === undefined ? {} : { 'data-min': String(f.min) }), ...(f.max === undefined ? {} : { 'data-max': String(f.max) }) })))
+    for (const f of INDEX_FILTERS) {
+      const left = indexRows.filter((r) => (f.min === undefined || r[f.key] >= f.min) && (f.max === undefined || r[f.key] <= f.max))
+      expect(left.length, f.label).toBeGreaterThan(10)
+      expect(left.length, f.label).toBeLessThan(indexRows.length)
+    }
+    expect([...form.matchAll(/<option value="([^"]*)"/g)].map((m) => m[1])).toEqual(['', 'kcal:asc', 'protein:desc', 'salt:asc', 'min:asc'])
+    // プログラムを動かさない設定のブラウザでは、使えないフォームを出さない
+    expect(index.body).toMatch(/<form data-dish-filter=""[^>]*class="[^"]*noscript:hidden/)
+  })
+
+  it('一覧のページは、アプリのプログラムは読まず、検索・しぼりこみの小さなプログラムだけを読む', () => {
+    const out = renderDocument(TEMPLATE, page('/dishes/'))
+    expect(out).not.toContain('type="module"')
+    expect(out.match(/<script src="[^"]+"[^>]*>/g)).toEqual(['<script src="/dish-index.js" defer>'])
+    expect(existsSync(new URL('../../public/dish-index.js', import.meta.url))).toBe(true)
+    expect(renderDocument(TEMPLATE, page('/dishes/karaage/'))).not.toMatch(/<script src=/)
   })
 
   it('動画・評価など、ページにないものはレシピのデータに書かない', () => {
@@ -808,7 +884,8 @@ describe('定番の食品のページ（/foods/natto/ など）', () => {
     expect(out).not.toContain('type="module"')
     expect(out.match(/<script src="[^"]+"[^>]*>/g)).toEqual(['<script src="/back-reload.js" defer>'])
     expect(existsSync(new URL('../../public/back-reload.js', import.meta.url))).toBe(true)
-    for (const p of pages.filter((x) => x.kind === 'static')) expect(p.script, p.path).toBe(foodIdFromPath(p.path) ? '/back-reload.js' : undefined)
+    // 料理の一覧だけは、検索・しぼりこみの小さなプログラムを読む
+    for (const p of pages.filter((x) => x.kind === 'static')) expect(p.script, p.path).toBe(foodIdFromPath(p.path) ? '/back-reload.js' : p.path === '/dishes/' ? '/dish-index.js' : undefined)
     expect(renderDocument(TEMPLATE, page('/nutrients/iron/'))).not.toMatch(/<script src=/)
   })
 })

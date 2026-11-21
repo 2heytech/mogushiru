@@ -104,6 +104,8 @@ const WEBSITE_JSON_LD = {
 
 // 食品のページが読むプログラム（public/back-reload.js）。アプリで食品の窓をひらいたまま読みこみ直したあとの「戻る」で、アプリの画面にもどれるようにする
 const BACK_RELOAD_SCRIPT = '/back-reload.js'
+// 料理の一覧のページが読むプログラム（public/dish-index.js）。名前の検索・しぼりこみ・並べかえ
+const DISH_INDEX_SCRIPT = '/dish-index.js'
 
 const og = (name: string, made: { card: OgCard; alt: string }): SitePage['og'] => ({ path: `/og/${name}.png`, ...made })
 
@@ -220,6 +222,7 @@ export function buildSitePages({ catalog, prices }: { catalog: Catalog; prices: 
       crumbs: [{ name: SITE_NAME, path: '/' }, { name: DISHES_INDEX_NAME }],
       og: og('dishes', dishesIndexOgCard(dishes)),
       jsonLd: [dishesItemListJsonLd(dishes)],
+      script: DISH_INDEX_SCRIPT,
     },
     ...dishes.map((d) => ({
       path: d.path,
