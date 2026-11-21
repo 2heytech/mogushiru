@@ -3,10 +3,17 @@ import { IDEAL_MENUS } from './domain/idealMenus'
 import { RANKING_NUTRIENTS } from './domain/ranking'
 import { menusFor } from './pages/menuPages'
 import {
+  addTargetFromParam,
   appLinkParam,
   dishAddPath,
   dishAppPath,
   dishTabFromParam,
+  FOOD_PAGE_IDS,
+  FOOD_SLUG,
+  foodAddPath,
+  foodAppPath,
+  foodIdFromPath,
+  foodPagePath,
   hasAppLinkHash,
   idealMenuAppPath,
   legacyQueryRedirect,
@@ -145,6 +152,41 @@ describe('読みもののページから、アプリを指定つきで開くリ�
     // 指定がなければ、何もしない
     expect(withoutAppLinkParam('n', '', '')).toBeNull()
     expect(withoutAppLinkParam('n', '?x=1', '#ranking')).toBeNull()
+  })
+})
+
+describe('食品のページの URL', () => {
+  it('定番の12食品に、重ならない URL がある（/foods/natto/ など）。並びは「定番の食品」の順', () => {
+    expect(FOOD_PAGE_IDS).toEqual(['01088', '01026', '12004', '04046', '13003', '13025', '07107', '11220', '10134', '04032', '06263', '02006'])
+    const paths = FOOD_PAGE_IDS.map(foodPagePath)
+    expect(new Set(paths).size).toBe(12)
+    for (const path of paths) expect(path).toMatch(/^\/foods\/[a-z-]+\/$/)
+    expect(foodPagePath('04046')).toBe('/foods/natto/')
+    expect(foodPagePath('11220')).toBe('/foods/chicken-breast/')
+    // ページのない食品
+    expect(foodPagePath('04047')).toBeNull()
+    expect(Object.keys(FOOD_SLUG).sort()).toEqual([...FOOD_PAGE_IDS].sort())
+  })
+
+  it('URL から食品番号に戻せる。アプリでは「食品を調べる」の画面（その食品の栄養素の窓をひらいているあいだのアドレス）', () => {
+    for (const id of FOOD_PAGE_IDS) expect(foodIdFromPath(foodPagePath(id)!)).toBe(id)
+    expect(foodIdFromPath('/foods/natto')).toBe('04046')
+    expect(foodIdFromPath('/foods/')).toBeNull()
+    expect(foodIdFromPath('/foods/nothing/')).toBeNull()
+    expect(foodIdFromPath('/dishes/natto/')).toBeNull()
+    expect(viewFromLocation('/foods/natto/')).toBe('foods')
+    expect(viewFromLocation('/foods/nothing/')).toBe('menu')
+  })
+
+  it('アプリで食品の栄養素を見る・1日の食事に入れるリンクは、# のうしろに書く。入れるものが料理か食品かを見分けられる', () => {
+    expect(foodAppPath('04046')).toBe('/foods/#food=04046')
+    expect(foodAddPath('04046')).toBe('/#add=food.04046')
+    expect(hasAppLinkHash('#food=04046')).toBe(true)
+    expect(hasAppLinkHash('#add=food.04046')).toBe(true)
+    expect(addTargetFromParam(appLinkParam('add', '', '#add=food.04046')!)).toEqual({ kind: 'food', id: '04046' })
+    expect(addTargetFromParam(appLinkParam('add', '', '#add=nikujaga')!)).toEqual({ kind: 'dish', id: 'nikujaga' })
+    // 料理の id には「.」が入らない（/customize/?dish= を送るときの決まりと同じ）
+    expect(addTargetFromParam('food-salad')).toEqual({ kind: 'dish', id: 'food-salad' })
   })
 })
 

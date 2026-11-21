@@ -27,8 +27,10 @@ import { SiteFooter } from './components/SiteFooter'
 import { adjustIdealMenu, IDEAL_MENUS, idealMenuAvailable, idealMenuHasProducts } from './domain/idealMenus'
 import { isMealSlot, type MealSlot } from './domain/idealMeals'
 import {
+  addTargetFromParam,
   appLinkParam,
   dishTabFromParam,
+  foodIdFromPath,
   hasAppLinkHash,
   legacyRedirect,
   menuScreenFromState,
@@ -45,6 +47,7 @@ import {
   type View,
 } from './routes'
 import { ConfirmHost } from './components/ConfirmDialog'
+import { addChoice } from './components/addChoice'
 import { IdealMealDialog, MenuActions, SaveMenuDialog, SavedMenusDialog, SlotChoiceSheet } from './components/SavedMenus'
 import { MenuBuilderDialog } from './components/MenuBuilder'
 import { DayInfo } from './components/SummaryPanel'
@@ -195,8 +198,9 @@ function useView(): { view: View; screen: MenuScreen; go: (v: View, screen?: Men
       if (legacy) window.history.replaceState(window.history.state, '', legacy + search)
     }
     const sync = () => {
-      // アプリを開いたまま、指定つきの URL（/#menu=… など）に移ったときは、読みこみ直して指定を読む（指定は開いたときに1回だけ読むので）
-      if (hasAppLinkHash(window.location.hash)) {
+      // アプリを開いたまま、指定つきの URL（/#menu=… など）に移ったときは、読みこみ直して指定を読む（指定は開いたときに1回だけ読むので）。
+      // 食品のページの URL（/foods/natto/）に移ったとき（食品の窓を「戻る」で閉じたあとに「進む」）も、読みこみ直してそのページを出す
+      if (hasAppLinkHash(window.location.hash) || foodIdFromPath(window.location.pathname)) {
         window.location.reload()
         return
       }
@@ -315,8 +319,12 @@ export default function App() {
   const [lookup, setLookup] = useState<LookupState>(INITIAL_LOOKUP)
   // 栄養素の一覧をひらいている食品（名前でさがした候補か、ランキングの行を押したもの）
   const [foodDetail, setFoodDetail] = useState<LookupItem | null>(null)
+  // 食品のページの「食べた量で計算する」から来たとき（/foods/#food=<食品番号>）は、その食品の栄養素の一覧をひらく（量は1回の量から）
+  const [foodStart, setFoodStart] = useState(() => queryParam('food') ?? undefined)
+  useEffect(() => dropQueryParam('food'), [])
   const openFood = (item: LookupItem) => {
     rememberLookup(item)
+    setFoodStart(undefined)
     setFoodDetail(item)
   }
   // 献立の例から選ぶ窓
@@ -402,10 +410,13 @@ export default function App() {
     dropQueryParam('tab')
   }, [])
 
-  // 料理のページの「この料理を1日の食事に入れる」から来たとき（/#add=<料理id>）は、どの食事に入れるかを選ぶ窓を出す
+  // 料理・食品のページの「1日の食事に入れる」から来たとき（/#add=<料理id>・/#add=food.<食品番号>）は、どの食事に入れるかを選ぶ窓を出す
   const [addStart, setAddStart] = useState(() => queryParam('add') ?? undefined)
   useEffect(() => dropQueryParam('add'), [])
-  const addDish = addStart && catalog ? catalog.dishes.get(addStart) : undefined
+  const adding = addStart && catalog ? addChoice(addTargetFromParam(addStart), catalog) : null
+  // 栄養素の一覧をひらく食品：画面で押したものが先、なければ URL で指定されたもの
+  const startFood = foodStart && catalog ? addChoice({ kind: 'food', id: foodStart }, catalog)?.item : undefined
+  const shownFood = foodDetail ?? startFood ?? null
 
   // 献立の例のページから「この献立をアプリで開く」で来たとき（/#menu=<id>）は、その献立の例をプロフィールに合わせて入れる
   const menuRequest = useRef(queryParam('menu'))
@@ -856,15 +867,15 @@ export default function App() {
 
       {catalog && editing && renderEditor(catalog, editing)}
 
-      {/* 料理のページの「この料理を1日の食事に入れる」から来たとき。選んだ食事に1人前を入れて、1日の食事の画面へ */}
-      {catalog && totals && addDish && (
+      {/* 料理・食品のページの「1日の食事に入れる」から来たとき。選んだ食事に、料理は1人前、食品は1回の量を入れて、1日の食事の画面へ */}
+      {catalog && totals && adding && (
         <SlotChoiceSheet
           title="どの食事に入れますか？"
-          lead={`「${addDish.name}」（1人前 ${Math.round(addDish.nutrients.energyKcal ?? 0)} kcal）を、1日の食事に入れます。量や材料は、入れたあとで変えられます。`}
+          lead={adding.lead}
           menu={menu}
           totals={totals}
           onPick={(slot) => {
-            addItem(slot, { kind: 'dish', refId: addDish.id, portion: 1 })
+            addItem(slot, adding.item)
             setAddStart(undefined)
             setOpenSlot(slot)
             openDay()
@@ -946,11 +957,11 @@ export default function App() {
 
       <ConfirmHost />
 
-      {catalog && foodDetail && lookupItemExists(foodDetail, catalog) && (
+      {catalog && shownFood && lookupItemExists(shownFood, catalog) && (
         <FoodDetailDialog
           // 別の食品をひらいたら、量などを作り直す
-          key={`${foodDetail.kind}:${foodDetail.refId}`}
-          item={foodDetail}
+          key={`${shownFood.kind}:${shownFood.refId}`}
+          item={shownFood}
           catalog={catalog}
           targets={targets}
           profileSet={profileSet}
@@ -959,7 +970,10 @@ export default function App() {
             addItem(slot, item)
             addedOutside.current = true
           }}
-          onClose={() => setFoodDetail(null)}
+          onClose={() => {
+            setFoodDetail(null)
+            setFoodStart(undefined)
+          }}
         />
       )}
       {contentReady && <SiteFooter onAbout={() => setView('about')} />}

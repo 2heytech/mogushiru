@@ -66,6 +66,8 @@ export function viewFromLocation(pathname: string, hash = ''): View {
   const path = pathname.endsWith('/') ? pathname : `${pathname}/`
   const found = (Object.keys(VIEW_PATH) as View[]).find((v) => v !== 'menu' && VIEW_PATH[v] === path)
   if (found) return found
+  // 食品のページの URL（/foods/natto/）は、アプリの中では、その食品の栄養素の窓をひらいているあいだのアドレス。画面は「食品を調べる」
+  if (foodIdFromPath(path)) return 'foods'
   return LEGACY_HASH[hash] ?? 'menu'
 }
 
@@ -133,6 +135,40 @@ export const nutrientFromSlug = (slug: string | null | undefined): NutrientKey |
   return hit ? hit[0] : null
 }
 
+// ---- 食品のページ（/foods/<slug>/） ----
+// 定番の食品（食品を調べるの「定番の食品」と同じ12品）に、1食分と100gのカロリー・栄養のページを作る。
+// 成分表の食品番号と、URL の名前。並びは「定番の食品」に出す順：ごはん・食パン・卵・納豆・牛乳・ヨーグルト・バナナ・鶏むね肉・鮭・木綿豆腐・ブロッコリー・さつまいも。
+// アプリでその食品の栄養素の窓をひらいたときも、アドレスをこの URL にする（貼ったり読みこみ直したりすると、同じ食品のページがひらく）
+const FOOD_PAGES: readonly (readonly [foodId: string, slug: string])[] = [
+  ['01088', 'rice'],
+  ['01026', 'bread'],
+  ['12004', 'egg'],
+  ['04046', 'natto'],
+  ['13003', 'milk'],
+  ['13025', 'yogurt'],
+  ['07107', 'banana'],
+  ['11220', 'chicken-breast'],
+  ['10134', 'salmon'],
+  ['04032', 'tofu'],
+  ['06263', 'broccoli'],
+  ['02006', 'sweet-potato'],
+]
+
+// ページのある食品（並び順つき）
+export const FOOD_PAGE_IDS: readonly string[] = FOOD_PAGES.map(([id]) => id)
+export const FOOD_SLUG: Readonly<Record<string, string>> = Object.fromEntries(FOOD_PAGES)
+
+// 食品のページの URL（ページのない食品は null）
+export const foodPagePath = (foodId: string): string | null => (FOOD_SLUG[foodId] ? `${VIEW_PATH.foods}${FOOD_SLUG[foodId]}/` : null)
+
+// 食品のページの URL から、食品番号を読む（食品のページでなければ null）
+export function foodIdFromPath(pathname: string): string | null {
+  const path = pathname.endsWith('/') ? pathname : `${pathname}/`
+  if (!path.startsWith(VIEW_PATH.foods)) return null
+  const slug = path.slice(VIEW_PATH.foods.length, -1)
+  return FOOD_PAGES.find(([, s]) => s === slug)?.[0] ?? null
+}
+
 // ---- 読みもののページから、アプリを「この成分・この献立・この料理」で開くリンク ----
 // 指定は # のうしろに書く（/ranking/#n=iron）。? で書くと（/ranking/?n=iron）、検索エンジンが成分・献立・料理の数だけ
 // 別のページとして読みに来て、読んでほしいページ（料理の作り方など）に来る回数がへる。# のうしろは別のページとして数えられない。
@@ -144,9 +180,9 @@ export function appLinkParam(name: string, search: string, hash: string): string
   return new URLSearchParams(hash.replace(/^#/, '')).get(name) ?? new URLSearchParams(search).get(name)
 }
 
-// # のうしろに、アプリを開くときの指定（成分 n・献立 menu・料理 dish・1日の食事に入れる料理 add）があるか。
+// # のうしろに、アプリを開くときの指定（成分 n・献立 menu・料理 dish・1日の食事に入れる料理や食品 add・栄養素を見る食品 food）があるか。
 // アプリを開いたまま、指定つきの URL に移ったとき（アドレス欄に貼ったなど）に、読みこみ直して指定を読むために使う
-const APP_LINK_NAMES = ['n', 'menu', 'dish', 'add']
+const APP_LINK_NAMES = ['n', 'menu', 'dish', 'add', 'food']
 export const hasAppLinkHash = (hash: string): boolean => APP_LINK_NAMES.some((name) => appLinkParam(name, '', hash) !== null)
 
 // 読み終えた指定を取りのぞいた「? と # の部分」を返す（アドレス欄から消すため）。もともとなければ null
@@ -264,3 +300,13 @@ export const dishTabFromParam = (value: string | null | undefined): DishTab => (
 
 // アプリで、その料理を1日の食事に入れる URL（/#add=<料理id>）。どの食事に入れるかは、開いてから選ぶ
 export const dishAddPath = (id: string): string => appLink(VIEW_PATH.menu, 'add', id)
+
+// 食品（食材）を1日の食事に入れる URL（/#add=food.<食品番号>）。量は、その食品の1回の量。料理の id には「.」が入らないので、見分けられる
+const ADD_FOOD_PREFIX = 'food.'
+export const foodAddPath = (foodId: string): string => appLink(VIEW_PATH.menu, 'add', `${ADD_FOOD_PREFIX}${foodId}`)
+// /#add= の値から、入れるもの（料理か食品か）を読む
+export const addTargetFromParam = (value: string): { kind: 'dish' | 'food'; id: string } =>
+  value.startsWith(ADD_FOOD_PREFIX) ? { kind: 'food', id: value.slice(ADD_FOOD_PREFIX.length) } : { kind: 'dish', id: value }
+
+// アプリで、その食品の栄養素の窓を出す URL（/foods/#food=<食品番号>）。量を変えて計算したり、そのまま1日の食事に足したりできる
+export const foodAppPath = (foodId: string): string => appLink(VIEW_PATH.foods, 'food', foodId)

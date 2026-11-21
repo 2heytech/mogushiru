@@ -1,9 +1,11 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { mergeProducts, withNullNutrients } from '../data/products'
-import type { Catalog } from '../domain/nutrition'
+import { itemTotals, type Catalog } from '../domain/nutrition'
 import { NUTRIENT_GROUPS, type PriceTable } from '../domain/ranking'
+import { servingFor } from '../domain/serving'
 import type { Dish, Food, Product } from '../domain/types'
+import { FOOD_PAGE_IDS, foodIdFromPath, foodPagePath } from '../routes'
 import { CUISINE_DISH_IDS } from './dishCuisine'
 import { nutrientPageData } from './nutrientPages'
 import { buildSitePages, NOT_FOUND_PAGE, renderDocument, sitemapXml, type SitePage } from './sitePages'
@@ -615,6 +617,124 @@ describe('料理のカロリー・栄養と作り方のページ', () => {
   })
 })
 
+describe('定番の食品のページ（/foods/natto/ など）', () => {
+  const foodPages = FOOD_PAGE_IDS.map((id) => ({ id, food: catalog.foods.get(id)!, page: page(foodPagePath(id)!) }))
+  const text = (html: string) => html.replace(/<!-- -->/g, '').replace(/<[^>]+>/g, '')
+  const main = (p: SitePage) => /<main>[\s\S]*<\/main>/.exec(p.body)![0]
+
+  it('定番の12食品にページがあり、検索に載せる（サイトマップに入る）', () => {
+    expect(foodPages).toHaveLength(12)
+    for (const { id, page: p } of foodPages) {
+      expect(p, id).toBeDefined()
+      expect(p.kind).toBe('static')
+      expect(p.noindex).toBeUndefined()
+      expect(sitemapXml(pages)).toContain(`<loc>https://mogushiru.app${p.path}</loc>`)
+    }
+  })
+
+  it('タイトル・見出し・はじめの文は、その食品だけの量とカロリーからはじめる（ふだんの単位があれば1食分、なければ100g）', () => {
+    const natto = page('/foods/natto/')
+    expect(natto.title).toBe('納豆1パック（45g）のカロリーとたんぱく質｜モグシル')
+    expect(text(/<h1[^>]*>(.*?)<\/h1>/.exec(natto.body)![1])).toBe('納豆1パック（45g）のカロリーとたんぱく質')
+    expect(text(natto.body)).toContain('納豆のみなら、1パック（45g）で83kcal、たんぱく質7.4gです。100gあたりでは184kcal、たんぱく質16.5gです。')
+    expect(natto.description.startsWith('納豆のみなら、1パック（45g）で83kcal、たんぱく質7.4gです。')).toBe(true)
+    // 「1食分」としか言えない食品は、100gを先に答える
+    const chicken = page('/foods/chicken-breast/')
+    expect(chicken.title).toBe('鶏むね肉（皮なし）100gのカロリーとたんぱく質｜モグシル')
+    expect(text(chicken.body)).toContain('鶏むね肉（皮なし）のみなら、100gで105kcal、たんぱく質23.3gです。1食分（80g）では84kcal、たんぱく質18.6gです。')
+    // 1食分がちょうど100gの食品は、1食分だけ
+    expect(page('/foods/banana/').title).toBe('バナナ1本（100g）のカロリーと炭水化物｜モグシル')
+    expect(text(page('/foods/banana/').body)).not.toContain('100gあたりでは')
+    for (const { food, page: p } of foodPages) {
+      expect(p.title.startsWith(food.displayName), p.path).toBe(true)
+      expect(p.title, p.path).toMatch(/のカロリーと(たんぱく質|炭水化物|カルシウム|ビタミンC)｜モグシル$/)
+      expect(p.title.length, p.title).toBeLessThanOrEqual(40)
+      expect(p.body.match(/<h1/g), p.path).toHaveLength(1)
+    }
+  })
+
+  it('1食分と100gの26成分の表があり、値はアプリの「食品を調べる」と同じ計算', () => {
+    for (const { id, food, page: p } of foodPages) {
+      const table = /<table[\s\S]*?<\/table>/.exec(main(p))![0]
+      const rows = [...table.matchAll(/<tr class="border-t[^"]*">([\s\S]*?)<\/tr>/g)].map((m) => [...m[1].matchAll(/<t[hd][^>]*>([\s\S]*?)<\/t[hd]>/g)].map((c) => text(c[1]).trim()))
+      expect(rows, p.path).toHaveLength(26)
+      const serving = servingFor(food)
+      const kcal = (grams: number) => String(Math.round(itemTotals({ uid: '', kind: 'food', refId: id, portion: grams }, catalog).values.energyKcal))
+      const energy = rows.find((r) => r[0].startsWith('エネルギー'))!
+      expect(energy[1], p.path).toBe(kcal(serving.grams))
+      // 1食分が100gでない食品は、100gの列もある
+      if (serving.grams !== 100) expect(energy[2], p.path).toBe(kcal(100))
+      expect(energy.at(-1), p.path).toMatch(/^目安の[\d.]+%$/)
+      expect(rows.find((r) => r[0].startsWith('食塩相当量'))!.at(-1), p.path).toMatch(/^上限の[\d.]+%$/)
+    }
+  })
+
+  it('食品の状態と出典（成分表の名前と食品番号）を書く。近い食品と100gあたりでくらべる', () => {
+    for (const { id, food, page: p } of foodPages) {
+      const body = text(main(p))
+      expect(body, p.path).toContain('この値について')
+      expect(body, p.path).toContain(`文部科学省「日本食品標準成分表（八訂）増補2023年」の「${food.name.replace(/[　 ]+/g, ' ').trim()}」（食品番号 ${id}）`)
+    }
+    const chicken = text(main(page('/foods/chicken-breast/')))
+    expect(chicken).toContain('皮をのぞいた、生のむね肉')
+    expect(chicken).toContain('状態や種類でくらべる（100gあたり）')
+    expect(chicken).toContain('鶏むね肉（皮なし・焼き）')
+  })
+
+  it('アプリへのボタン：食べた量で計算する（その食品の栄養素の窓）・この食品を1日の食事に入れる', () => {
+    for (const { id, page: p } of foodPages) {
+      const buttons = new Map([...main(p).matchAll(/<a href="(\/(?:foods\/)?#[^"]+)"[^>]*>(.*?)<\/a>/g)].map((m) => [text(m[2]), m[1]]))
+      expect(buttons.get('食べた量で計算する'), p.path).toBe(`/foods/#food=${id}`)
+      expect(buttons.get('この食品を1日の食事に入れる'), p.path).toBe(`/#add=food.${id}`)
+    }
+  })
+
+  it('「食品を調べる」の最初の HTML と、ほかの食品のページ、成分のランキングの食品の名前から、ふつうのリンクでつながる', () => {
+    const lookup = page('/foods/')
+    const nutrientPages = pages.filter((p) => /^\/nutrients\/[a-z0-9-]+\/$/.test(p.path))
+    for (const { food, page: p } of foodPages) {
+      const link = `<a href="${p.path}"`
+      expect(lookup.body, p.path).toContain(link)
+      for (const other of foodPages) if (other.page !== p) expect(other.page.body, `${other.page.path} → ${p.path}`).toContain(link)
+      // ランキングでは、食品の名前がそのままリンク
+      const from = nutrientPages.filter((n) => new RegExp(`${link}[^>]*>${food.displayName.replace(/[（）]/g, '\\$&')}</a>`).test(n.body))
+      expect(from.length, p.path).toBeGreaterThanOrEqual(2)
+    }
+    // 食品のページへのリンクは、どれも実際にあるページを指す（ページのない食品の名前は、リンクにしない）
+    for (const p of pages) for (const m of p.body.matchAll(/href="(\/foods\/[a-z-]+\/)"/g)) expect(foodIdFromPath(m[1]), `${p.path} → ${m[1]}`).not.toBeNull()
+  })
+
+  it('多くとれる栄養素から成分のランキングへ、使う料理から料理のページへ行ける', () => {
+    const natto = main(page('/foods/natto/'))
+    expect(text(natto)).toContain('1パック（45g）で多くとれる栄養素')
+    expect(natto).toMatch(/<a href="\/nutrients\/fiber\/"[^>]*>食物繊維<\/a>/)
+    expect(natto).toMatch(/<a href="\/dishes\/[a-z0-9-]+\/"[^>]*>納豆ごはん<\/a>/)
+    for (const { page: p } of foodPages) {
+      for (const m of main(p).matchAll(/href="(\/(?:nutrients|dishes)\/[a-z0-9-]+\/)"/g)) expect(pages.some((x) => x.path === m[1]), `${p.path} → ${m[1]}`).toBe(true)
+    }
+  })
+
+  it('パンくずは「モグシル › 食品を調べる › 食品の名前」。style 属性は使わない', () => {
+    for (const { food, page: p } of foodPages) {
+      expect(p.crumbs).toEqual([{ name: 'モグシル', path: '/' }, { name: '食品を調べる', path: '/foods/' }, { name: food.displayName }])
+      expect(p.body, p.path).not.toContain('style=')
+    }
+    const out = renderDocument(TEMPLATE, page('/foods/natto/'))
+    expect(out).toContain('"@type":"BreadcrumbList"')
+    expect(out).toContain('"item":"https://mogushiru.app/foods/natto/"')
+    expect(out).toContain('<meta property="og:image" content="https://mogushiru.app/og/foods-natto.png" />')
+  })
+
+  it('アプリのプログラムは読まず、「戻る」でアプリの画面にもどるための小さなプログラムだけを読む（ほかの読みもののページは何も読まない）', () => {
+    const out = renderDocument(TEMPLATE, page('/foods/natto/'))
+    expect(out).not.toContain('type="module"')
+    expect(out.match(/<script src="[^"]+"[^>]*>/g)).toEqual(['<script src="/back-reload.js" defer>'])
+    expect(existsSync(new URL('../../public/back-reload.js', import.meta.url))).toBe(true)
+    for (const p of pages.filter((x) => x.kind === 'static')) expect(p.script, p.path).toBe(foodIdFromPath(p.path) ? '/back-reload.js' : undefined)
+    expect(renderDocument(TEMPLATE, page('/nutrients/iron/'))).not.toMatch(/<script src=/)
+  })
+})
+
 describe('読みもののページの上のメニューと、アプリへの入口', () => {
   const reading = pages.filter((p) => p.kind === 'static')
   const header = (p: SitePage) => /<header[\s\S]*?<\/header>/.exec(p.body)?.[0] ?? ''
@@ -638,21 +758,23 @@ describe('読みもののページの上のメニューと、アプリへの入�
     }
   })
 
-  it('いまいる場所（ランキング・献立の例・料理のカロリー・栄養）に印がつく', () => {
+  it('いまいる場所（食品を調べる・ランキング・献立の例・料理のカロリー・栄養）に印がつく', () => {
     const current = (p: SitePage) => /<a href="([^"]+)" aria-current="true"/.exec(header(p))?.[1]
     for (const p of reading) {
-      const section = /^\/(nutrients|menus|dishes)\//.exec(p.path)?.[1]
+      const section = /^\/(foods|nutrients|menus|dishes)\//.exec(p.path)?.[1]
       expect(current(p), p.path).toBe(section ? `/${section}/` : undefined)
     }
     expect(current(NOT_FOUND_PAGE())).toBeUndefined()
   })
 
-  it('長いページには、画面の下に追従するボタンがある。料理のページは「この料理を1日の食事に入れる」、ほかは「栄養バランスを計算する」', () => {
+  it('長いページには、画面の下に追従するボタンがある。料理のページは「この料理を1日の食事に入れる」、食品のページは「この食品を1日の食事に入れる」、ほかは「栄養バランスを計算する」', () => {
     for (const p of reading) {
       const found = sticky(p)
       expect(found, p.path).not.toBeNull()
       const id = /^\/dishes\/([a-z0-9-]+)\/$/.exec(p.path)?.[1]
+      const foodId = foodIdFromPath(p.path)
       if (id) expect([found![1], text(found![2])], p.path).toEqual([`/#add=${id}`, 'この料理を1日の食事に入れる'])
+      else if (foodId) expect([found![1], text(found![2])], p.path).toEqual([`/#add=food.${foodId}`, 'この食品を1日の食事に入れる'])
       else expect([found![1], text(found![2])], p.path).toEqual(['/', '栄養バランスを計算する'])
     }
     // 404 は短いので出さない

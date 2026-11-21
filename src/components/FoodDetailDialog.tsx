@@ -2,10 +2,12 @@ import { useState } from 'react'
 import { detailGroups, detailHighlights, type DetailRow, type MissingMode } from '../domain/foodDetail'
 import { itemTotals, pfcRatio, type Catalog } from '../domain/nutrition'
 import { FOOD_GROUP_LABEL } from '../domain/ranking'
-import { servingFor } from '../domain/serving'
+import { servingFor, servingText } from '../domain/serving'
 import type { Targets } from '../domain/targets'
 import { SLOTS, type MenuItem, type Slot } from '../domain/types'
+import { foodPagePath, SITE_NAME } from '../routes'
 import { MY_PRODUCT_PREFIX } from '../store/useAppStore'
+import { useDialogAddress } from './dialogAddress'
 import type { LookupItem } from './lookupCards'
 import { menuItemImage } from './illustration'
 import { itemName } from './itemName'
@@ -25,13 +27,12 @@ function metaOf(item: LookupItem, catalog: Catalog): Meta {
     const f = catalog.foods.get(item.refId)!
     const serving = servingFor(f)
     const official = f.name.replace(/　/g, ' ')
-    const same = serving.label === `${serving.grams}g`
     return {
       kind: '食材',
       sub: FOOD_GROUP_LABEL[f.group] ?? '',
       official: official === f.displayName ? undefined : official,
       missing: 'blank',
-      presets: [{ label: same ? serving.label : `${serving.label}（${serving.grams}g）`, portion: serving.grams }, ...(serving.grams === 100 ? [] : [{ label: '100g', portion: 100 }])],
+      presets: [{ label: servingText(serving), portion: serving.grams }, ...(serving.grams === 100 ? [] : [{ label: '100g', portion: 100 }])],
     }
   }
   if (item.kind === 'dish') {
@@ -119,6 +120,10 @@ export function FoodDetailDialog({
   onClose: () => void
 }) {
   const dialogRef = useDialog(onClose)
+  // 食品のページ（/foods/natto/ など）のある食品は、ひらいているあいだ、アドレスをそのページのものにする
+  const pagePath = start.kind === 'food' ? foodPagePath(start.refId) : null
+  const pageName = pagePath ? catalog.foods.get(start.refId)?.displayName : undefined
+  useDialogAddress(pagePath, pageName && `${pageName}のカロリーと栄養｜${SITE_NAME}`)
   const [portion, setPortion] = useState(start.portion)
   // 量のボタンで変えたときは、数字の入力欄を作り直して同じ量にそろえる
   const [editorKey, setEditorKey] = useState(0)
@@ -275,6 +280,14 @@ export function FoodDetailDialog({
               <p>
                 値は文部科学省「日本食品標準成分表（八訂）増補2023年」をもとに計算しています。
                 {meta.official && <>成分表の名前：{meta.official}</>}
+              </p>
+            )}
+            {pagePath && (
+              <p>
+                <a href={pagePath} className="font-bold text-coral-ink underline underline-offset-2">
+                  {name}のページ
+                </a>
+                では、1食分と100gの表、状態や種類でのちがい、使う料理を見られます。
               </p>
             )}
             {(item.kind === 'dish' || item.kind === 'myDish') && (

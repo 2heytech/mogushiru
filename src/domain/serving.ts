@@ -25,6 +25,9 @@ export type Serving = { grams: number; label: string }
 
 export const SERVING_RULES = rulesJson as ServingRules
 
+// 画面に出す量の書き方：「1パック（45g）」。呼び名が重さそのもの（「100g」）のときは、そのまま
+export const servingText = (s: Serving): string => (s.label === `${s.grams}g` ? s.label : `${s.label}（${s.grams}g）`)
+
 // 画面に出す、量の決め方の説明（アプリのランキングと /nutrients/ のページで同じ文を使う）
 export const SERVING_NOTE =
   '「1回の量」は、農林水産省「食事バランスガイド」の早見表の量や、1個・1パック・大さじ1などの重さをもとにモグシルが決めた目安です（例：ごはん150g、焼きのり3g、しょうゆ6g）。'
