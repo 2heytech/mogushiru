@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { highlightRanges, lookupWords, matchLookup, parseLookupQuery, splitCandidates, synonymsOf } from './lookupQuery'
+import { eachWord, hasLiteral, highlightRanges, lookupWords, matchLookup, parseLookupQuery, splitCandidates, synonymsOf, withoutNoiseSuffix } from './lookupQuery'
 
 const match = (query: string, visible: string[], readings: string[] = []) => matchLookup(parseLookupQuery(query)!, visible, readings)
 
@@ -99,5 +99,53 @@ describe('名前の中の、さがしている言葉と同じところ', () => {
     expect(highlightRanges('さば缶詰', ['さば', '缶'])).toEqual([[0, 3]])
     expect(highlightRanges('親子丼', lookupWords('おやこ'))).toEqual([])
     expect(highlightRanges('カレー', [])).toEqual([])
+  })
+})
+
+describe('食材を名前でさがすときの工夫', () => {
+  it('画面に出ない読みがな・別名の途中にだけ入っているものは 4（「しか」で、脱脂加糖＝だっしかとう）', () => {
+    expect(match('しか', ['ヨーグルト（加糖）'], ['よーぐると/だっしかとう'])?.rank).toBe(4)
+    // 別名の語と同じ・語の先頭からなら、名前の一致と同じ
+    expect(match('しか', ['鹿肉（にほんじか・赤身）'], ['しか/にほんじか/鹿肉/鹿/しかにく'])?.rank).toBe(0)
+    expect(match('鹿', ['鹿肉（にほんじか・赤身）'], ['しか/にほんじか/鹿肉/鹿/しかにく'])?.rank).toBe(0)
+    expect(match('シカ', ['鹿肉（にほんじか・赤身）'], ['しか/にほんじか/鹿肉/鹿/しかにく'])?.rank).toBe(0)
+  })
+
+  it('「カロリー」「栄養」などの言葉は、ほかに言葉があれば読みとばす', () => {
+    expect(match('鹿肉 カロリー', ['鹿肉'], [])?.rank).toBe(0)
+    expect(match('鹿肉　栄養素', ['鹿肉'], [])?.rank).toBe(0)
+    expect(lookupWords('鹿肉 カロリー')).toEqual(lookupWords('鹿肉'))
+    // それだけのときは、そのままさがす
+    expect(match('カロリー', ['カロリーメイト'], [])?.rank).toBe(1)
+    expect(match('カロリー', ['鹿肉'], [])).toBeNull()
+  })
+
+  it('1語の後ろに付いた「の栄養」「カロリー」を外した言葉', () => {
+    expect(withoutNoiseSuffix('鹿肉の栄養')).toBe('鹿肉')
+    expect(withoutNoiseSuffix('鹿肉カロリー')).toBe('鹿肉')
+    expect(withoutNoiseSuffix('牛肉の栄養成分')).toBe('牛肉')
+    // 外すものがない・外すと何も残らない・2語のときは null
+    expect(withoutNoiseSuffix('鹿肉')).toBeNull()
+    expect(withoutNoiseSuffix('カロリー')).toBeNull()
+    expect(withoutNoiseSuffix('鹿肉 牛肉の栄養')).toBeNull()
+  })
+
+  it('短い言葉をカタカナ・漢字で入れたとき、名前にその字のまま入っているか', () => {
+    const horse = parseLookupQuery('馬')!
+    expect(hasLiteral(horse, ['馬肉（赤身）'])).toBe(true)
+    // じゃがいもは、別名（馬鈴薯）にだけ入っている
+    expect(hasLiteral(horse, ['じゃがいも'])).toBe(false)
+    // ひらがな・長い言葉・2語のときは、いつも true
+    expect(hasLiteral(parseLookupQuery('うま')!, ['じゃがいも'])).toBe(true)
+    expect(hasLiteral(parseLookupQuery('馬鈴薯')!, ['じゃがいも'])).toBe(true)
+    expect(hasLiteral(parseLookupQuery('馬 肉')!, ['じゃがいも'])).toBe(true)
+  })
+
+  it('2つ以上の言葉を入れたときの、1つずつ（1語なら空）', () => {
+    expect(eachWord('鹿肉 牛肉')).toEqual(['鹿肉', '牛肉'])
+    expect(eachWord('鹿肉、牛肉　豚肉')).toEqual(['鹿肉', '牛肉', '豚肉'])
+    expect(eachWord('鹿肉')).toEqual([])
+    // 食品の名前ではない言葉は数えない
+    expect(eachWord('鹿肉 カロリー')).toEqual([])
   })
 })

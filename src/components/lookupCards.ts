@@ -1,8 +1,9 @@
-import { andQuery, matchLookup, parseLookupQuery, RANK_PREFIX, splitCandidates, type LookupQuery } from '../domain/lookupQuery'
+import { COMPARE_MAX, nearFoods } from '../domain/foodCompare'
+import { andQuery, eachWord, hasLiteral, matchLookup, parseLookupQuery, RANK_HIDDEN_ONLY, RANK_PREFIX, splitCandidates, withoutNoiseSuffix, type LookupQuery } from '../domain/lookupQuery'
 import type { Catalog } from '../domain/nutrition'
 import { mealFirstRank } from '../domain/popular'
 import { representativeProducts } from '../domain/productGroups'
-import { familiarFoodIds, FOOD_GROUP_LABEL, NAMED_FOOD_IDS } from '../domain/ranking'
+import { familiarFoodIds, FOOD_GROUP_LABEL, MORE_NAMED_FOOD_IDS, NAMED_FOOD_IDS } from '../domain/ranking'
 import { servingFor } from '../domain/serving'
 import { isSupplement } from '../domain/supplement'
 import type { Dish, DishCategory, Food, MenuItem, Product } from '../domain/types'
@@ -22,8 +23,9 @@ export const LOOKUP_KIND_LABEL: Record<LookupKind, string> = { food: '食材', d
 // 候補と、その種類の中の分け方（食材は食品群、料理は主食・主菜など、市販品は店・メーカー）
 export type LookupHit = { card: Card; facet: string }
 export type LookupSection = { kind: LookupKind; hits: LookupHit[] }
-// split：入れた言葉そのままでは見つからず、2つの言葉に分けてさがしたとき、その2つ
-export type LookupResult = { sections: LookupSection[]; split: [string, string] | null }
+// split：入れた言葉そのままでは見つからず、2つの言葉に分けてさがしたとき、その2つ。
+// either：2つ以上の言葉のすべてに一致するものがなく、どれかに一致するものを出したとき、その言葉（「鹿肉 牛肉」→ 鹿肉と牛肉）
+export type LookupResult = { sections: LookupSection[]; split: [string, string] | null; either?: string[] }
 
 // 栄養素を見る食品と量（1日の食事の項目と同じ形。量は MenuItem.portion と同じ決まり）
 export type LookupItem = Omit<MenuItem, 'uid'>
@@ -67,17 +69,18 @@ export function lookupFacetLabel(kind: LookupKind, facet: string): string {
 
 // ---- 候補 ----
 
-type Found = LookupHit & { rank: number; weak: boolean }
+// literal：短い言葉をカタカナ・漢字で入れたとき、名前にその字のまま入っているか
+type Found = LookupHit & { rank: number; weak: boolean; literal: boolean }
 
 // 候補のかたまり。カードは、一致したもの・その分け方のものだけ作る（食材は全部で2,538、市販品は2万近くあるので、さがす前に全部は作らない）
-type LookupGroup = {
+export type LookupGroup = {
   // 検索語に一致したものを、元の並びのまま返す
   find: (q: LookupQuery) => Found[]
   // その分け方のものを、元の並びのまま返す
   all: (facet: string) => LookupHit[]
 }
 
-// 種類ごとの候補を、先に並べるかたまりから順に持つ（食材なら、ふだんの呼び名のあるもの → 料理に使うもの → そのほか）
+// 種類ごとの候補を、先に並べるかたまりから順に持つ（食材なら、ふだんの呼び名のあるもの → 鹿肉などの名前でさがすもの → 料理に使うもの → そのほか）
 export type LookupIndex = {
   groups: Record<LookupKind, LookupGroup[]>
   // さがす前に出す「定番の食品」
@@ -115,7 +118,7 @@ function group<T>(
       kept(
         entries.flatMap((e) => {
           const m = matchLookup(q, e.visible, e.readings)
-          return m ? [{ x: e.x, facet: e.facet, ...m }] : []
+          return m ? [{ x: e.x, facet: e.facet, ...m, literal: hasLiteral(q, e.visible) }] : []
         }),
       ).map(({ x, ...rest }) => ({ card: card(x), ...rest })),
     all: (facet) => kept(entries.filter((e) => e.facet === facet)).map((e) => ({ card: card(e.x), facet: e.facet })),
@@ -179,12 +182,25 @@ export function lookupCard(item: Pick<LookupItem, 'kind' | 'refId'>, catalog: Ca
   return p && !isSupplement(p) ? productCard(p) : null
 }
 
+// 食材の候補のかたまり：ふだんの呼び名を付けたもの → 名前でさがす人のいるもの（鹿肉・馬肉 など。呼び名つき）→ 料理の材料に使っているもの → そのほか（成分表の細かい分け方）の順。
+// 鹿肉・馬肉などを別のかたまりにするのは、成分表の名前に「肉」という語のあるもの（うま 肉 赤肉 生）が、「肉」でさがしたときに鶏むね肉・牛もも肉より先に出ないようにするため。
+// 食材だけをさがすところ（食材をくらべる窓）でも使う
+export function foodLookupGroups(catalog: Pick<Catalog, 'foods' | 'dishes'>): LookupGroup[] {
+  const familiar = familiarFoodIds(catalog)
+  const foods: Food[][] = [[], [], [], []]
+  for (const f of catalog.foods.values()) foods[NAMED_FOOD_IDS.has(f.id) ? 0 : MORE_NAMED_FOOD_IDS.has(f.id) ? 1 : familiar.has(f.id) ? 2 : 3].push(f)
+  return foods.map((items) =>
+    group(
+      items,
+      (f) => ({ visible: [f.displayName], readings: [f.kana, f.name] }),
+      (f) => f.group,
+      foodCard,
+    ),
+  )
+}
+
 // さがす前に1回だけ作る（文字を打つたびに作り直さない）
 export function lookupIndex({ catalog, showAlcohol }: { catalog: Catalog; showAlcohol: boolean }): LookupIndex {
-  // 食材：ふだんの呼び名を付けたもの → 料理の材料に使っているもの → そのほか（成分表の細かい分け方）の順
-  const familiar = familiarFoodIds(catalog)
-  const foods: Food[][] = [[], [], []]
-  for (const f of catalog.foods.values()) foods[NAMED_FOOD_IDS.has(f.id) ? 0 : familiar.has(f.id) ? 1 : 2].push(f)
 
   // 料理：お気に入り（アレンジして保存した料理）→ 朝・昼・晩の定番 → そのほか。郷土料理は数が多いので基本の料理の後に
   const drinkable = (category?: string) => showAlcohol || category !== 'alcohol'
@@ -208,14 +224,7 @@ export function lookupIndex({ catalog, showAlcohol }: { catalog: Catalog; showAl
 
   return {
     groups: {
-      food: foods.map((items) =>
-        group(
-          items,
-          (f) => ({ visible: [f.displayName], readings: [f.kana, f.name] }),
-          (f) => f.group,
-          foodCard,
-        ),
-      ),
+      food: foodLookupGroups(catalog),
       dish: [
         group(
           myDishes,
@@ -241,36 +250,81 @@ export function lookupIndex({ catalog, showAlcohol }: { catalog: Catalog; showAl
 
 type Ranked = LookupSection & { best: number }
 
+// 1つの種類の中でさがして並べる
+function runKind(kind: LookupKind, groups: LookupGroup[], q: LookupQuery): Ranked {
+  const found = groups.map((g) => g.find(q))
+  // 短い言葉をカタカナ・漢字で入れたとき：先頭からの一致があれば、読みがなの途中にたまたま入っているだけのものは出さない
+  const hasStrong = found.some((list) => list.some((h) => h.rank <= RANK_PREFIX))
+  // 画面に出ない読みがな・別名の途中にだけ入っているもの（「しか」で脱脂加糖＝だっしかとう のヨーグルト）は、どのかたまりのものも最後にまとめる。
+  // 短い言葉をカタカナ・漢字で入れたときは、名前にその字のまま入っているものを先にする（「馬」で、別名が馬鈴薯のじゃがいもより馬肉が先）。
+  // 別名とぴったり同じもの（「牛肉」で、別名が牛肉の牛もも肉）は、名前に入っているものと同じに扱う。
+  // 並べ替えは安定なので、同じ度合いなら元の並びのまま
+  const late = (h: Found) => Number(h.rank >= RANK_HIDDEN_ONLY) * 2 + Number(!h.literal && h.rank > 0)
+  const sorted = found
+    .flatMap((list, g) => (hasStrong ? list.filter((h) => !h.weak) : list).map((h) => ({ h, g })))
+    .sort((a, b) => late(a.h) - late(b.h) || a.g - b.g || a.h.rank - b.h.rank)
+  const hits: LookupHit[] = sorted.map(({ h }) => ({ card: h.card, facet: h.facet }))
+  const best = sorted.reduce((min, { h }) => Math.min(min, h.rank), Infinity)
+  return { kind, hits, best }
+}
+
 function run(index: LookupIndex, q: LookupQuery): Ranked[] {
-  return LOOKUP_KINDS.map((kind) => {
-    const found = index.groups[kind].map((g) => g.find(q))
-    // 短い言葉をカタカナ・漢字で入れたとき：先頭からの一致があれば、読みがなの途中にたまたま入っているだけのものは出さない
-    const hasStrong = found.some((list) => list.some((h) => h.rank <= RANK_PREFIX))
-    const hits: LookupHit[] = []
-    let best = Infinity
-    for (const list of found) {
-      // 並べ替えは安定なので、同じ度合いなら元の並びのまま
-      const sorted = (hasStrong ? list.filter((h) => !h.weak) : list).sort((a, b) => a.rank - b.rank)
-      for (const { card, facet } of sorted) hits.push({ card, facet })
-      if (sorted.length > 0) best = Math.min(best, sorted[0].rank)
-    }
-    return { kind, hits, best }
-  }).filter((s) => s.hits.length > 0)
+  return LOOKUP_KINDS.map((kind) => runKind(kind, index.groups[kind], q)).filter((s) => s.hits.length > 0)
+}
+
+// 食材だけを名前でさがす（食材をくらべる窓の「食材を足す」）。並びは「食品を調べる」の食材と同じ。
+// 見つからないときは、後ろに付いた「の栄養」「カロリー」を外してさがす
+export function searchFoods(groups: LookupGroup[], query: string): Card[] {
+  const q = parseLookupQuery(query)
+  if (!q) return []
+  let hits = runKind('food', groups, q).hits
+  if (hits.length === 0) {
+    const plain = withoutNoiseSuffix(query)
+    const again = plain && parseLookupQuery(plain)
+    if (again) hits = runKind('food', groups, again).hits
+  }
+  return hits.map((h) => h.card)
+}
+
+// 2つ以上の食材の名前を入れたとき（「鹿肉 牛肉」）に、並べてくらべる食材を、1語につき1つ選ぶ（食品番号）。
+// 1つめは、その言葉でいちばん上に出る食材。2つめからは、その言葉で見つかる食材のうち、1つめに近いもの
+// （鹿肉の赤身なら、牛ひき肉ではなく牛ももの赤身）。近いものの中になければ、いちばん上に出る食材。2つ選べなければ空
+export function comparePicks(groups: LookupGroup[], words: string[], catalog: Pick<Catalog, 'foods'>): string[] {
+  const lists = words.map((w) => searchFoods(groups, w).map((c) => c.item.refId))
+  const first = lists[0]?.[0]
+  const base = first === undefined ? undefined : catalog.foods.get(first)
+  if (first === undefined || !base) return []
+  const near = nearFoods(base, catalog.foods.values())
+  const nearIds = [...near.others, ...near.same].map((f) => f.id)
+  const picks = [first]
+  for (const ids of lists.slice(1)) {
+    const pool = new Set(ids.filter((id) => !picks.includes(id)))
+    const pick = nearIds.find((id) => pool.has(id)) ?? [...pool][0]
+    if (pick !== undefined) picks.push(pick)
+  }
+  return picks.length > 1 ? picks.slice(0, COMPARE_MAX) : []
 }
 
 const NO_RESULT: LookupResult = { sections: [], split: null }
 
 // 名前でさがす。一致したものがある種類だけを返す。
-// 種類の中の並びは、かたまりの順 → 一致の度合い（語と完全一致 → 語の先頭 → 名前の途中 → 読みがなの途中だけ）→ 元の並び。
+// 種類の中の並びは、かたまりの順 → 一致の度合い（語と完全一致 → 語の先頭 → 名前の途中 → ひらがなにそろえた名前の途中）→ 元の並び。
+// 画面に出ない読みがな・別名の途中にだけ入っているものは、そのあとにまとめる。
 // 料理を選ぶ画面の検索（search.ts の rankAcross）は、短い言葉で先頭が一致するものがあれば途中の一致を出さないが、
 // ここでは出す（「肉」で鶏むね肉、「いも」でじゃがいも、「パン」で食パンが見つかるように）。
 // そのかわり、ふだんの呼び名のある食材を、成分表の細かい分け方の食材（「いのしし 肉 脂身つき 生」など）より先に並べる。
-// 何も見つからないときは、言葉を2つに分けて、両方に一致するものをさがす（「さば缶」→「さば」と「缶」）
+// 何も見つからないときは、後ろに付いた「の栄養」「カロリー」を外してさがす（「鹿肉の栄養」→「鹿肉」）。
+// それでもなければ、言葉を2つに分けて、両方に一致するものをさがす（「さば缶」→「さば」と「缶」）
 export function searchLookup(index: LookupIndex, query: string): LookupResult {
   const q = parseLookupQuery(query)
   if (!q) return NO_RESULT
   let found = run(index, q)
   let split: LookupResult['split'] = null
+  if (found.length === 0) {
+    const plain = withoutNoiseSuffix(query)
+    const again = plain && parseLookupQuery(plain)
+    if (again) found = run(index, again)
+  }
   if (found.length === 0) {
     for (const [a, b] of splitCandidates(query)) {
       const again = run(index, andQuery(a, b))
@@ -280,12 +334,28 @@ export function searchLookup(index: LookupIndex, query: string): LookupResult {
       break
     }
   }
+  // 2つ以上の言葉のすべてに一致するものがなければ、どれかに一致するものを、入れた言葉の順に出す（「鹿肉 牛肉」→ 鹿肉、牛肉）
+  let either: string[] | undefined
+  if (found.length === 0) {
+    const words = eachWord(query)
+    const parts = words.map((w) => ({ w, sections: run(index, parseLookupQuery(w)!) }))
+    // どの言葉も、それだけなら見つかるときだけ（「カレー ほげ」のように、見つからない言葉がまじっているときは出さない）
+    if (parts.length > 0 && parts.every((p) => p.sections.length > 0)) {
+      either = parts.map((p) => p.w)
+      found = LOOKUP_KINDS.flatMap((kind) => {
+        const seen = new Set<string>()
+        const hits = parts.flatMap((p) => p.sections.find((s) => s.kind === kind)?.hits ?? []).filter((h) => !seen.has(h.card.key) && Boolean(seen.add(h.card.key)))
+        const best = Math.min(...parts.map((p) => p.sections.find((s) => s.kind === kind)?.best ?? Infinity))
+        return hits.length > 0 ? [{ kind, hits, best }] : []
+      })
+    }
+  }
   // 並びは 食材 → 料理 → 市販品。食材には途中の一致しかなく、料理には語の先頭からの一致があるときだけ、料理を先にする
   const food = found.find((s) => s.kind === 'food')
   const dish = found.find((s) => s.kind === 'dish')
   const dishFirst = Boolean(food && dish && dish.best <= RANK_PREFIX && food.best > RANK_PREFIX)
   const order: Record<LookupKind, number> = dishFirst ? { dish: 0, food: 1, product: 2 } : { food: 0, dish: 1, product: 2 }
-  return { sections: found.sort((a, b) => order[a.kind] - order[b.kind]).map(({ kind, hits }) => ({ kind, hits })), split }
+  return { sections: found.sort((a, b) => order[a.kind] - order[b.kind]).map(({ kind, hits }) => ({ kind, hits })), split, ...(either ? { either } : {}) }
 }
 
 // 種類からさがす：その分け方のものを全部（食材の「野菜」、料理の「汁物」、市販品の「セブン-イレブン」など）

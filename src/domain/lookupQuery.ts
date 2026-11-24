@@ -57,9 +57,12 @@ export type LookupQuery = {
 }
 
 // 一致の度合い（小さいほど良い）：
-// 0 語と完全一致 / 1 語の先頭が一致 / 2 画面に出る名前の途中に含まれる / 3 読みがな・成分表の名前の途中にだけ含まれる
+// 0 語と完全一致 / 1 語の先頭が一致 / 2 画面に出る名前の途中に含まれる /
+// 3 名前の漢字をひらがなにそろえると途中に含まれる（「にく」で鶏むね肉） /
+// 4 画面に出ない読みがな・別名・成分表の名前の途中にだけ含まれる（「しか」で脱脂加糖＝だっしかとう）
 export const RANK_PREFIX = 1
 export const RANK_READING_ONLY = 3
+export const RANK_HIDDEN_ONLY = 4
 
 // weak：短い言葉をカタカナ・漢字で入れたのに、画面に出る名前にはその字が入っていない一致。
 // 「ツナ」で小松菜（こまつな）、「ツナ」でもつ鍋（もつなべ）のように、読みがなの途中にたまたま入っているだけのことが多いので、
@@ -67,6 +70,27 @@ export const RANK_READING_ONLY = 3
 export type LookupMatch = { rank: number; weak: boolean }
 
 const SEPARATOR = /[\s　、,，]+/
+
+// 食品の名前ではない言葉（「鹿肉 カロリー」「牛肉 栄養」のように、検索サイトと同じ入れ方をする人がいる）。
+// ほかに言葉があるときだけ読みとばす（「カロリー」だけならそのままさがす）
+const NOISE = new Set(['栄養', '栄養素', '栄養価', '栄養成分', '成分', 'カロリー', 'かろりー', 'kcal', '比較', 'くらべる'].map((w) => normalizeForSearch(w)))
+// 空白なしで後ろに付けたとき（「鹿肉の栄養」「鹿肉カロリー」）。そのままでは何も見つからないときにだけ外す（withoutNoiseSuffix）
+const NOISE_SUFFIX = /(?:の)?(?:栄養素|栄養価|栄養成分|栄養|成分|カロリー)$/
+
+// さがす言葉を空白などで区切る。食品の名前ではない言葉は、ほかに言葉があれば読みとばす
+function queryWords(query: string): string[] {
+  const words = query.split(SEPARATOR).filter((w) => normalizeForSearch(w))
+  const named = words.filter((w) => !NOISE.has(normalizeForSearch(w)))
+  return named.length > 0 ? named : words
+}
+
+// 1語の後ろに付いた「の栄養」「カロリー」などを外した言葉（外すものがない・外すと何も残らないときは null）
+export function withoutNoiseSuffix(query: string): string | null {
+  const words = queryWords(query)
+  if (words.length !== 1) return null
+  const rest = words[0].replace(NOISE_SUFFIX, '')
+  return rest !== words[0] && normalizeForSearch(rest) ? rest : null
+}
 // カタカナ・漢字
 const KATAKANA_OR_KANJI = /[ァ-ヺ㐀-鿿々]/
 const STRICT_LENGTH = 2
@@ -80,7 +104,7 @@ function tokenRankers(word: string): Rank[] {
 
 // 何も入っていなければ null
 export function parseLookupQuery(query: string): LookupQuery | null {
-  const words = query.split(SEPARATOR).filter((w) => normalizeForSearch(w))
+  const words = queryWords(query)
   if (words.length === 0) return null
   const only = words.length === 1 ? sameScript(words[0]) : null
   return {
@@ -94,15 +118,32 @@ export function andQuery(a: string, b: string): LookupQuery {
   return { tokens: [tokenRankers(a), tokenRankers(b)], strict: null }
 }
 
+const NO_MATCH = 9
+
 function rankOne(rank: Rank, visible: string[], readings: string[]): number | null {
   const v = rank.plain(...visible)
-  // 読みがな・別名と、ひらがなにそろえた名前。語と同じ・語の先頭からなら、名前の一致と同じに扱う（「鶏胸肉」で「鶏むね肉」）。
-  // 途中に入っているだけなら「読みがなの途中だけ」（「うどん」で牛丼＝ぎゅうどん を、名前の一致にしない）
-  const r = Math.min(rank.plain(...readings) ?? RANK_READING_ONLY, rank.reading(...visible, ...readings) ?? RANK_READING_ONLY)
-  const strong = Math.min(v ?? RANK_READING_ONLY, r)
+  // ひらがなにそろえた名前と、画面に出ない読みがな・別名。語と同じ・語の先頭からなら、名前の一致と同じに扱う（「鶏胸肉」で「鶏むね肉」）。
+  // 途中に入っているだけなら、名前の一致にしない（「うどん」で牛丼＝ぎゅうどん）
+  const folded = rank.reading(...visible)
+  const hidden = Math.min(rank.plain(...readings) ?? NO_MATCH, rank.reading(...readings) ?? NO_MATCH)
+  const strong = Math.min(v ?? NO_MATCH, folded ?? NO_MATCH, hidden)
   if (strong <= RANK_PREFIX) return strong
   if (v !== null) return 2
-  return r < RANK_READING_ONLY ? RANK_READING_ONLY : null
+  if (folded !== null) return RANK_READING_ONLY
+  return hidden < NO_MATCH ? RANK_HIDDEN_ONLY : null
+}
+
+// 短い言葉をカタカナ・漢字で入れたとき、画面に出る名前にその字のまま入っているか（そうでない入れ方のときは、いつも true）。
+// 「馬」で、別名に馬鈴薯のあるじゃがいもより、馬肉を先に並べるのに使う（lookupCards.ts）
+export function hasLiteral(q: LookupQuery, visible: string[]): boolean {
+  const strict = q.strict
+  return strict === null || visible.some((s) => sameScript(s).includes(strict))
+}
+
+// 2つ以上の言葉を入れたとき、その1つずつ（すべてに一致するものがないときに、どれかに一致するものをさがす用）。1語なら空
+export function eachWord(query: string): string[] {
+  const words = queryWords(query)
+  return words.length > 1 ? words : []
 }
 
 // visible：画面に出る名前。readings：読みがな・別名・成分表の名前（画面には出ない）
@@ -118,9 +159,7 @@ export function matchLookup(q: LookupQuery, visible: string[], readings: string[
     if (best === null) return null
     if (best > worst) worst = best
   }
-  const strict = q.strict
-  const weak = strict !== null && worst > RANK_PREFIX && !visible.some((s) => sameScript(s).includes(strict))
-  return { rank: worst, weak }
+  return { rank: worst, weak: worst > RANK_PREFIX && !hasLiteral(q, visible) }
 }
 
 // 1つの言葉で何も見つからないときに試す、言葉の分け方（「さば缶」→「さば」と「缶」）。
@@ -129,7 +168,7 @@ const SPLIT_MIN_LENGTH = 3
 const SPLIT_MAX_TRIES = 6
 
 export function splitCandidates(query: string): [string, string][] {
-  const words = query.split(SEPARATOR).filter((w) => normalizeForSearch(w))
+  const words = queryWords(query)
   if (words.length !== 1) return []
   const chars = [...sameScript(words[0])]
   if (chars.length < SPLIT_MIN_LENGTH) return []
@@ -143,7 +182,7 @@ export function splitCandidates(query: string): [string, string][] {
 
 // さがしている言葉（区切って正規化したもの）
 export function lookupWords(query: string): string[] {
-  return query.split(SEPARATOR).map(normalizeReading).filter(Boolean)
+  return queryWords(query).map(normalizeReading).filter(Boolean)
 }
 
 // name の中で words のどれかと同じところを [はじめ, おわり) の並びで返す（ひらがな・カタカナ、全角・半角、大文字・小文字のちがいは同じとみなす）。

@@ -1,9 +1,9 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import type { Catalog } from '../domain/nutrition'
-import { NAMED_FOOD_IDS } from '../domain/ranking'
+import { MORE_NAMED_FOOD_IDS, NAMED_FOOD_IDS } from '../domain/ranking'
 import { NUTRIENT_KEYS, type Dish, type Food, type MyDish, type Nutrients, type Product } from '../domain/types'
-import { browseLookup, dishIngredientsText, foodCard, lookupCard, lookupDishCard, lookupFacets, lookupIndex, searchLookup, sortHits, STAPLE_FOOD_IDS } from './lookupCards'
+import { browseLookup, comparePicks, dishIngredientsText, foodCard, foodLookupGroups, lookupCard, lookupDishCard, lookupFacets, lookupIndex, searchFoods, searchLookup, sortHits, STAPLE_FOOD_IDS } from './lookupCards'
 
 // テスト用の架空の食材・料理・商品（値は実データではない）
 const n = (over: Partial<Nutrients> = {}): Nutrients => ({ ...(Object.fromEntries(NUTRIENT_KEYS.map((k) => [k, 0])) as Nutrients), ...over })
@@ -276,5 +276,121 @@ describe('食材と料理の見分け', () => {
 describe('書き方のゆれ', () => {
   it('「鶏胸肉」「とりむね肉」「鳥むね肉」で、鶏むね肉が出る', () => {
     for (const q of ['鶏胸肉', 'とりむね肉', '鳥むね肉', 'とりむねにく', '鶏むね']) expect(names(q, 'food'), q).toContain('鶏むね肉')
+  })
+})
+
+describe('食材を、漢字・ひらがな・カタカナでさがす', () => {
+  // 名前でさがす人のいる食材（鹿肉・馬肉 など）の番号を1つ借りる
+  const MORE = [...MORE_NAMED_FOOD_IDS][0]
+  const NAMED2 = [...NAMED_FOOD_IDS][1]
+  const NAMED3 = [...NAMED_FOOD_IDS][2]
+  const game = () => {
+    const c = catalog()
+    for (const f of [
+      // ふだんの呼び名のある食材。読みがなの途中にだけ「しか」が入っている（脱脂加糖）
+      food(NAMED2, 'ヨーグルト　脱脂加糖', 'ヨーグルト（加糖）', 'よーぐると/だっしかとう', '13'),
+      // 別名に「馬鈴薯」がある
+      food(NAMED3, 'じゃがいも　塊茎　皮なし　生', 'じゃがいも', 'かいけい/かわなし/なま/馬鈴薯/ばれいしょ', '02'),
+      food(MORE, '＜畜肉類＞　しか　にほんじか　赤肉　生', '鹿肉（にほんじか・赤身）', 'しか/にほんじか/あかにく/なま/鹿肉/鹿/しかにく'),
+      food('90030', '＜畜肉類＞　うま　肉　赤肉　生', 'うま 肉 赤肉 生', 'うま/にく/あかにく/なま/馬肉/馬/ばにく'),
+      food('90031', '＜畜肉類＞　うし　［和牛肉］　もも　赤肉　生', 'うし 和牛肉 もも 赤肉 生', 'うし/わぎゅうにく/もも/牛肉/ぎゅうにく'),
+    ])
+      c.foods.set(f.id, f)
+    return c
+  }
+
+  it('鹿肉・しか・シカ・鹿 のどれでも、鹿肉が先頭', () => {
+    for (const q of ['鹿肉', 'しか', 'シカ', '鹿', 'しかにく', 'シカ肉']) expect(names(q, 'food', game())?.[0], q).toBe('鹿肉（にほんじか・赤身）')
+  })
+
+  it('読みがなの途中にだけ入っているものは、ふだんの呼び名のある食材でも後ろ（「しか」で、脱脂加糖のヨーグルト）', () => {
+    expect(names('しか', 'food', game())).toEqual(['鹿肉（にほんじか・赤身）', 'ヨーグルト（加糖）'])
+    // カタカナ・漢字で入れたときは、出さない
+    expect(names('シカ', 'food', game())).toEqual(['鹿肉（にほんじか・赤身）'])
+  })
+
+  it('短い言葉を漢字で入れたときは、名前にその字のあるものが先（「馬」で、別名が馬鈴薯のじゃがいもより馬肉）', () => {
+    expect(names('馬', 'food', game())).toEqual(['うま 肉 赤肉 生', 'じゃがいも'])
+    // 別名とぴったり同じもの（「牛肉」）は、名前に入っているものと同じに扱う
+    expect(names('牛肉', 'food', game())).toEqual(['うし 和牛肉 もも 赤肉 生'])
+  })
+
+  it('呼び名を付けた食材は、ふだんよく使うもの → 名前でさがす人のいるもの（鹿肉など）→ そのほか の順', () => {
+    expect(names('にく', 'food', game())).toEqual(['鶏むね肉', '鹿肉（にほんじか・赤身）', 'ぶた ひき肉 生', 'いのしし 肉 脂身つき 生', 'うま 肉 赤肉 生', 'うし 和牛肉 もも 赤肉 生'])
+  })
+
+  it('「カロリー」「栄養」を付けて入れても、食材が見つかる', () => {
+    expect(names('鹿肉 カロリー', 'food', game())).toEqual(['鹿肉（にほんじか・赤身）'])
+    expect(names('鹿肉の栄養', 'food', game())).toEqual(['鹿肉（にほんじか・赤身）'])
+    expect(names('鹿肉カロリー', 'food', game())).toEqual(['鹿肉（にほんじか・赤身）'])
+  })
+
+  it('2つの言葉の両方に一致するものがなければ、どちらかに一致するものを、入れた順に出す（鹿肉 牛肉）', () => {
+    const r = result('鹿肉 牛肉', game())
+    expect(r.either).toEqual(['鹿肉', '牛肉'])
+    expect(r.sections.map((s) => [s.kind, s.hits.map((h) => h.card.name)])).toEqual([['food', ['鹿肉（にほんじか・赤身）', 'うし 和牛肉 もも 赤肉 生']]])
+    // 見つからない言葉がまじっているときは、出さない。両方に一致するものがあるときは、ふつうにさがす
+    expect(result('鹿肉 ほげ', game())).toEqual({ sections: [], split: null })
+    expect(result('うし もも', game()).either).toBeUndefined()
+  })
+
+  it('食材だけをさがす（食材をくらべる窓の「食材を足す」）', () => {
+    const groups = foodLookupGroups(game())
+    expect(searchFoods(groups, 'しか').map((c) => c.name)).toEqual(['鹿肉（にほんじか・赤身）', 'ヨーグルト（加糖）'])
+    // 料理・市販品は出さない
+    expect(searchFoods(groups, 'カレー').map((c) => c.name)).toEqual(['カレー粉'])
+    expect(searchFoods(groups, '鹿肉の栄養').map((c) => c.name)).toEqual(['鹿肉（にほんじか・赤身）'])
+    expect(searchFoods(groups, '')).toEqual([])
+    expect(searchFoods(groups, 'ほげほげ')).toEqual([])
+  })
+
+  describe('配信用のデータ（public/data/foods.json）で', () => {
+    const foods = (JSON.parse(readFileSync(new URL('../../public/data/foods.json', import.meta.url), 'utf8')) as { foods: Food[] }).foods
+    const real: Catalog = { foods: new Map(foods.map((f) => [f.id, f])), dishes: new Map(), products: new Map(), myDishes: new Map() }
+    const groups = foodLookupGroups(real)
+    const first = (q: string) => searchFoods(groups, q)[0]?.name
+
+    it.each([
+      ['鹿肉', '鹿肉（にほんじか・赤身）'],
+      ['しか', '鹿肉（にほんじか・赤身）'],
+      ['シカ', '鹿肉（にほんじか・赤身）'],
+      ['鹿', '鹿肉（にほんじか・赤身）'],
+      ['ジビエ', '鹿肉（にほんじか・赤身）'],
+      ['馬肉', '馬肉（赤身）'],
+      ['馬', '馬肉（赤身）'],
+      ['ばにく', '馬肉（赤身）'],
+      ['猪', 'いのしし肉（脂身つき）'],
+      ['羊', 'ラム肉（ロース）'],
+      ['鯨', 'くじら肉（赤身）'],
+      ['ハラミ', '牛ハラミ（生）'],
+      ['牛肉', '牛ひき肉'],
+      ['ぎゅうにく', '牛ひき肉'],
+    ])('「%s」の先頭は %s', (q, name) => {
+      expect(first(q)).toBe(name)
+    })
+
+    it('「牛肉」で、鹿肉（きゅうしゅうじか）は出ない', () => {
+      expect(searchFoods(groups, '牛肉').some((c) => c.name.startsWith('鹿肉'))).toBe(false)
+      expect(searchFoods(groups, 'ぎゅうにく').some((c) => c.name.startsWith('鹿肉'))).toBe(false)
+    })
+
+    it('食材の名前を2つ入れたとき（鹿肉 牛肉）に並べる食材：1つめは先頭の食材、2つめは、その言葉で見つかる中で1つめに近いもの', () => {
+      const picks = (words: string[]) => comparePicks(groups, words, real).map((id) => real.foods.get(id)?.displayName)
+      // 牛肉の先頭は牛ひき肉だが、鹿肉の赤身とくらべるのは、牛ももの赤身
+      expect(picks(['鹿肉', '牛肉'])).toEqual(['鹿肉（にほんじか・赤身）', '牛もも肉（輸入・赤身）'])
+      expect(picks(['鹿肉', '牛肉', '豚肉'])).toEqual(['鹿肉（にほんじか・赤身）', '牛もも肉（輸入・赤身）', '豚もも肉（生）'])
+      // 近い食材の中にないときは、その言葉の先頭の食材
+      expect(picks(['鹿肉', '納豆'])).toEqual(['鹿肉（にほんじか・赤身）', '納豆'])
+      // 見つからない言葉は数えない。2つ選べなければ空
+      expect(picks(['鹿肉', 'ほげほげ'])).toEqual([])
+      expect(picks(['ほげほげ', '牛肉'])).toEqual([])
+    })
+
+    it('名前でさがす人のいる食材（鹿肉など）は、配信用のデータにあり、ふだんの呼び名のある食材（成分ランキングに出す食材）とは重ならない', () => {
+      for (const id of MORE_NAMED_FOOD_IDS) {
+        expect(real.foods.has(id), id).toBe(true)
+        expect(NAMED_FOOD_IDS.has(id), id).toBe(false)
+      }
+    })
   })
 })

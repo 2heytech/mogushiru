@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
+import { nearFoods, startPartners } from '../domain/foodCompare'
 import { detailGroups, detailHighlights, type DetailRow, type MissingMode } from '../domain/foodDetail'
 import { itemTotals, pfcRatio, type Catalog } from '../domain/nutrition'
 import { FOOD_GROUP_LABEL } from '../domain/ranking'
@@ -17,7 +18,8 @@ import { PortionEditor } from './PortionEditor'
 import { useDialog } from './useDialog'
 
 // 「食品を調べる」で選んだ食品（食材・料理・市販品）の栄養素の一覧。
-// 量を変えると、その量での値にすぐ変わる。見ている量のまま、1日の食事に足せる
+// 量を変えると、その量での値にすぐ変わる。見ている量のまま、1日の食事に足せる。
+// 食材は、近い食材（鹿肉なら牛肉・豚肉・鶏肉）と並べてくらべる窓（FoodCompare）をひらける
 
 type Preset = { label: string; portion: number }
 type Meta = { kind: string; sub: string; official?: string; missing: MissingMode; presets: Preset[] }
@@ -108,6 +110,8 @@ export function FoodDetailDialog({
   targets,
   profileSet,
   onAdd,
+  onCompare,
+  above = false,
   onClose,
 }: {
   item: LookupItem
@@ -117,6 +121,10 @@ export function FoodDetailDialog({
   profileSet: boolean
   // 見ている量のまま、1日の食事（朝・昼・晩・その他）に足す
   onAdd: (slot: Slot, item: LookupItem) => void
+  // 食材を並べてくらべる窓をひらく（食品番号。先頭がこの食材）。渡さなければ、くらべる入口を出さない
+  onCompare?: (foodIds: string[]) => void
+  // くらべる窓（FoodCompare）の上に重ねてひらくとき
+  above?: boolean
   onClose: () => void
 }) {
   const dialogRef = useDialog(onClose)
@@ -141,6 +149,11 @@ export function FoodDetailDialog({
   const ratio = pfcRatio(v)
   const product = item.kind === 'product' ? catalog.products.get(item.refId) : undefined
   const dish = item.kind === 'dish' ? catalog.dishes.get(item.refId) : undefined
+  // 食材は、近い食材（ほかの種類の近いもの。なければ、同じ食材の部位・状態ちがい）とくらべる入口を出す
+  const partners = useMemo(() => {
+    const food = start.kind === 'food' && onCompare ? catalog.foods.get(start.refId) : undefined
+    return food ? startPartners(nearFoods(food, catalog.foods.values())) : []
+  }, [start.kind, start.refId, catalog, onCompare])
   const pfc = [
     { k: 'p', key: 'protein' },
     { k: 'f', key: 'fat' },
@@ -152,7 +165,7 @@ export function FoodDetailDialog({
   }
 
   return (
-    <div className="fixed inset-0 z-30 flex items-end bg-ink/30 md:items-center md:justify-center" onClick={onClose}>
+    <div className={`fixed inset-0 flex items-end bg-ink/30 md:items-center md:justify-center ${above ? 'z-40' : 'z-30'}`} onClick={onClose}>
       <div
         ref={dialogRef}
         tabIndex={-1}
@@ -255,6 +268,25 @@ export function FoodDetailDialog({
               </div>
             )}
           </div>
+
+          {onCompare && item.kind === 'food' && (
+            <section aria-label="近い食材とくらべる" className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-2xl bg-white p-3 shadow-sm">
+              <div className="min-w-0 flex-1 basis-60">
+                <h3 className="text-sm font-bold">近い食材とくらべる</h3>
+                <p className="mt-0.5 text-xs text-ink-soft">
+                  {partners.length > 0 ? `${partners.map((f) => f.displayName).join('・')} と、成分を並べて見られます。ほかの食材にも入れかえられます。` : 'ほかの食材を選んで、成分を並べて見られます。'}
+                </p>
+              </div>
+              <button
+                type="button"
+                aria-haspopup="dialog"
+                onClick={() => onCompare([start.refId, ...partners.map((f) => f.id)])}
+                className="min-h-11 w-full rounded-full bg-coral px-5 text-sm font-bold text-ink-strong shadow-sm transition hover:bg-coral-dark sm:w-auto"
+              >
+                並べてくらべる
+              </button>
+            </section>
+          )}
 
           <div className="md:columns-2 md:gap-3">
             {groups.map((g) => (

@@ -16,6 +16,7 @@ import { LoadProblemContext } from './components/loadProblemContext'
 import { LoadProblemNote } from './components/LoadProblemNote'
 import { ArrangeLink, BackRow, StartChoice } from './components/StartChoice'
 import { RankingView } from './components/RankingView'
+import { FoodCompare } from './components/FoodCompare'
 import { FoodDetailDialog } from './components/FoodDetailDialog'
 import { FoodLookup } from './components/FoodLookup'
 import { inAppLink } from './components/inAppLink'
@@ -28,6 +29,7 @@ import { isMealSlot, type MealSlot } from './domain/idealMeals'
 import {
   addTargetFromParam,
   appLinkParam,
+  compareIdsFromParam,
   dishTabFromParam,
   foodIdFromPath,
   hasAppLinkHash,
@@ -336,6 +338,13 @@ export default function App() {
     setFoodStart(undefined)
     setFoodDetail(item)
   }
+  // 「食材をくらべる」窓に並べている食材（食品番号）。窓を閉じても覚えておき、もう一度ひらいたら続きから。
+  // /foods/#compare=<食品番号>,… で来たときは、その食材を並べた窓をひらく
+  const [compareIds, setCompareIds] = useState(() => compareIdsFromParam(queryParam('compare')))
+  const [compareOpen, setCompareOpen] = useState(() => compareIds.length > 0)
+  useEffect(() => dropQueryParam('compare'), [])
+  // くらべる窓の食材の名前を押してひらいた、その食材の栄養素の一覧（くらべる窓の上に重ねる。閉じると、くらべる窓にもどる）
+  const [compareDetail, setCompareDetail] = useState<string | null>(null)
   // 献立の例から選ぶ窓
   const [builderOpen, setBuilderOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
@@ -426,6 +435,7 @@ export default function App() {
   // 栄養素の一覧をひらく食品：画面で押したものが先、なければ URL で指定されたもの
   const startFood = foodStart && catalog ? addChoice({ kind: 'food', id: foodStart }, catalog)?.item : undefined
   const shownFood = foodDetail ?? startFood ?? null
+  const comparedFood = compareOpen && compareDetail && catalog ? addChoice({ kind: 'food', id: compareDetail }, catalog)?.item : undefined
 
   // 献立の例のページから「この献立をアプリで開く」で来たとき（/#menu=<id>）は、その献立の例をプロフィールに合わせて入れる
   const menuRequest = useRef(queryParam('menu'))
@@ -695,6 +705,10 @@ export default function App() {
             recent={recentLookups}
             onClearRecent={clearRecentLookups}
             onOpen={openFood}
+            onCompare={(ids) => {
+              if (ids) setCompareIds(ids)
+              setCompareOpen(true)
+            }}
           />
         </main>
       ) : catalog && view === 'ranking' ? (
@@ -977,10 +991,42 @@ export default function App() {
             addItem(slot, item)
             addedOutside.current = true
           }}
+          // 近い食材と並べてくらべる：この窓は下にのこし、くらべる窓を上にひらく（閉じると、この食材の一覧にもどる）
+          onCompare={(ids) => {
+            setCompareIds(ids)
+            setCompareOpen(true)
+          }}
           onClose={() => {
             setFoodDetail(null)
             setFoodStart(undefined)
           }}
+        />
+      )}
+      {catalog && compareOpen && (
+        <FoodCompare
+          ids={compareIds}
+          catalog={catalog}
+          onChange={setCompareIds}
+          onOpenFood={setCompareDetail}
+          onClose={() => {
+            setCompareOpen(false)
+            setCompareDetail(null)
+          }}
+        />
+      )}
+      {catalog && comparedFood && (
+        <FoodDetailDialog
+          key={`compare:${comparedFood.refId}`}
+          item={comparedFood}
+          catalog={catalog}
+          targets={targets}
+          profileSet={profileSet}
+          above
+          onAdd={(slot, item) => {
+            addItem(slot, item)
+            addedOutside.current = true
+          }}
+          onClose={() => setCompareDetail(null)}
         />
       )}
       {contentReady && <SiteFooter />}
