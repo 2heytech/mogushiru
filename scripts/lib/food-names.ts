@@ -2,8 +2,13 @@
 // 原表の食品名は「＜大分類＞ （中分類） 食品 ［区分］ 部位 調理法」のように分類語を重ねた形なので、
 // 表示用に分類の記号を外し、よく使う呼び方（ごはん・鶏肉など）を検索語として足す。
 
-export type Synonym = { match: string; add: string[]; group?: string }
-export type FoodNames = { synonyms: Synonym[]; displayNames: { id: string; name: string }[] }
+// word: true のときは、食品名を空白で区切った語（かっこ ＜＞（）［］ は外す）のどれかと match が同じときだけ当てる。
+// 「しか」を「しかくまめ」「きゅうしゅうじか」に当てないため
+export type Synonym = { match: string; add: string[]; group?: string; word?: boolean }
+export type NamedFood = { id: string; name: string }
+// moreNames：ふだんはあまり買わないが、名前でさがす人のいる食品（鹿肉・馬肉 など）の呼び名。
+// 表示名と検索の並びは displayNames と同じに扱うが、「よく使う食品」（成分ランキング）には入れない
+export type FoodNames = { synonyms: Synonym[]; displayNames: NamedFood[]; moreNames?: NamedFood[] }
 
 // 全角空白などを半角空白1つに揃える
 export const squashSpaces = (s: string) => s.replace(/[\s　]+/g, ' ').trim()
@@ -33,10 +38,20 @@ export function makeDisplayName(name: string): string {
   return out.join(' ')
 }
 
+// 食品名を空白で区切った語（分類のかっこは外す）
+const BRACKETS = /[＜＞（）［］]/g
+export const nameWords = (name: string): string[] =>
+  squashSpaces(name)
+    .split(' ')
+    .map((t) => t.replace(BRACKETS, ''))
+    .filter(Boolean)
+
 // 食品名に当てはまる同義語を集める（重複は除く）
 export function synonymTerms(name: string, group: string, synonyms: Synonym[]): string[] {
   const n = squashSpaces(name)
-  const terms = synonyms.filter((s) => (!s.group || s.group === group) && n.includes(s.match)).flatMap((s) => s.add)
+  const words = nameWords(name)
+  const hit = (s: Synonym) => (s.word ? words.includes(s.match) : n.includes(s.match))
+  const terms = synonyms.filter((s) => (!s.group || s.group === group) && hit(s)).flatMap((s) => s.add)
   return [...new Set(terms)]
 }
 

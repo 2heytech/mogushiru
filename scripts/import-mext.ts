@@ -1,13 +1,13 @@
 // 使い方: npx tsx scripts/import-mext.ts data/raw/mext-honpyo.xlsx [data/raw/mext-fattyacid-1.xlsx]
 // 2つ目は脂肪酸成分表の第1表（可食部100g当たり）。指定すると飽和・一価不飽和・多価不飽和・n-3系・n-6系脂肪酸を足す。
-// 表示名・検索語は data/food-names.json と形態素解析（kuromoji）のよみで付ける。
+// 表示名・検索語は data/food-names.json・data/food-aliases.json（漢字や別の呼び名）と形態素解析（kuromoji）のよみで付ける。
 // 出力: data/generated/foods.full.json（原表記つき）, public/data/foods.json（配信用）
 import ExcelJS from 'exceljs'
 import kuromoji from 'kuromoji'
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import { dirname, join } from 'node:path'
-import { makeDisplayName, synonymTerms, toHiragana, type FoodNames } from './lib/food-names'
+import { makeDisplayName, synonymTerms, toHiragana, type FoodNames, type Synonym } from './lib/food-names'
 import { applyFattyAcids, FOOD_GROUPS, findColumns, readFattyAcids, rowToFood } from './lib/mext'
 
 const SOURCE = {
@@ -51,9 +51,17 @@ async function main() {
   }
 
   const names = JSON.parse(readFileSync('data/food-names.json', 'utf8')) as FoodNames
-  const displayNames = new Map(names.displayNames.map((d) => [d.id, d.name]))
+  const aliases = JSON.parse(readFileSync('data/food-aliases.json', 'utf8')) as { synonyms: Synonym[] }
+  const synonyms = [...names.synonyms, ...aliases.synonyms]
+  // よく使う食品の表示名（displayNames）と、名前でさがす人のいる食品の表示名（moreNames）。画面に出す名前としては同じに扱う
+  const named = [...names.displayNames, ...(names.moreNames ?? [])]
+  const displayNames = new Map(named.map((d) => [d.id, d.name]))
+  if (displayNames.size !== named.length) throw new Error('food-names.json の displayNames・moreNames に、同じ食品番号が2回あります')
   const unknownIds = [...displayNames.keys()].filter((id) => !foods.some((f) => f.id === id))
   if (unknownIds.length) throw new Error(`food-names.json に存在しない食品番号: ${unknownIds.join(', ')}`)
+  // どの食品にも当たらない検索語の決まりは、書きまちがい
+  const unused = synonyms.filter((s) => !foods.some((f) => synonymTerms(f.name, f.group, [s]).length > 0))
+  if (unused.length) throw new Error(`どの食品にも当たらない検索語: ${unused.map((s) => s.match).join(', ')}`)
   const tokenizer = await buildTokenizer()
   const reading = (s: string) =>
     toHiragana(tokenizer.tokenize(s).map((t) => (t.reading && t.reading !== '*' ? t.reading : t.surface_form)).join(''))
@@ -68,14 +76,14 @@ async function main() {
     const words = [...plain.split(' '), ...displayName.split(/[\s（）]+/)].filter(Boolean)
     // 辞書にない語は漢字が残るので、よみとしては使わない
     const readings = words.map(reading).filter((w) => !/[\u4e00-\u9fff]/u.test(w))
-    const kana = [...new Set([...readings, ...synonymTerms(name, group, names.synonyms)])]
+    const kana = [...new Set([...readings, ...synonymTerms(name, group, synonyms)])]
       .filter((w) => !plain.includes(w) && !displayName.includes(w))
       // 検索は空白を詰めて部分一致するので、語の境目をまたいだ一致（「かじつ なま」→「つな」）が起きないよう / で区切る
       .join('/')
     return { id, name, displayName, kana, group, per100g, ...(traceFlags.length ? { traceFlags } : {}) }
   })
   mkdirSync('public/data', { recursive: true })
-  // 表示名を整えたよく使う食品を先に並べ、検索結果の上に出す
+  // 表示名を整えた食品を先に並べ、検索結果の上に出す（よく使う食品 → 名前でさがす人のいる食品 → そのほか）
   const byId = new Map(slim.map((f) => [f.id, f]))
   const curated = [...displayNames.keys()].map((id) => byId.get(id)!)
   const rest = slim.filter((f) => !displayNames.has(f.id))

@@ -6,6 +6,8 @@ import {
   ABOUT_PATH,
   addTargetFromParam,
   appLinkParam,
+  compareAppPath,
+  compareIdsFromParam,
   dishAddPath,
   dishAppPath,
   dishTabFromParam,
@@ -159,6 +161,25 @@ describe('読みもののページから、アプリを指定つきで開くリ�
     // 指定がなければ、何もしない
     expect(withoutAppLinkParam('n', '', '')).toBeNull()
     expect(withoutAppLinkParam('n', '?x=1', '#ranking')).toBeNull()
+  })
+})
+
+describe('食材をくらべる窓の URL', () => {
+  it('/foods/#compare=<食品番号>,… で、その食材を並べた窓をひらく', () => {
+    const url = compareAppPath(['11275', '11076'])
+    expect(url).toBe('/foods/#compare=11275,11076')
+    const hash = url.slice(url.indexOf('#'))
+    expect(viewFromLocation('/foods/', hash)).toBe('foods')
+    expect(hasAppLinkHash(hash)).toBe(true)
+    expect(compareIdsFromParam(appLinkParam('compare', '', hash))).toEqual(['11275', '11076'])
+    // 読み終えたら、アドレス欄から消す
+    expect(withoutAppLinkParam('compare', '', hash)).toBe('')
+  })
+
+  it('食品番号の形でないもの・同じ番号の2つめは捨てる', () => {
+    expect(compareIdsFromParam('11275,abc,11275,1234,11076,')).toEqual(['11275', '11076'])
+    expect(compareIdsFromParam('')).toEqual([])
+    expect(compareIdsFromParam(null)).toEqual([])
   })
 })
 

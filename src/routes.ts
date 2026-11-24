@@ -186,9 +186,9 @@ export function appLinkParam(name: string, search: string, hash: string): string
   return new URLSearchParams(hash.replace(/^#/, '')).get(name) ?? new URLSearchParams(search).get(name)
 }
 
-// # のうしろに、アプリを開くときの指定（成分 n・献立 menu・料理 dish・1日の食事に入れる料理や食品 add・栄養素を見る食品 food）があるか。
+// # のうしろに、アプリを開くときの指定（成分 n・献立 menu・料理 dish・1日の食事に入れる料理や食品 add・栄養素を見る食品 food・くらべる食材 compare）があるか。
 // アプリを開いたまま、指定つきの URL に移ったとき（アドレス欄に貼ったなど）に、読みこみ直して指定を読むために使う
-const APP_LINK_NAMES = ['n', 'menu', 'dish', 'add', 'food']
+const APP_LINK_NAMES = ['n', 'menu', 'dish', 'add', 'food', 'compare']
 export const hasAppLinkHash = (hash: string): boolean => APP_LINK_NAMES.some((name) => appLinkParam(name, '', hash) !== null)
 
 // 読み終えた指定を取りのぞいた「? と # の部分」を返す（アドレス欄から消すため）。もともとなければ null
@@ -316,3 +316,11 @@ export const addTargetFromParam = (value: string): { kind: 'dish' | 'food'; id: 
 
 // アプリで、その食品の栄養素の窓を出す URL（/foods/#food=<食品番号>）。量を変えて計算したり、そのまま1日の食事に足したりできる
 export const foodAppPath = (foodId: string): string => appLink(VIEW_PATH.foods, 'food', foodId)
+
+// アプリで、食材を並べてくらべる窓を出す URL（/foods/#compare=<食品番号>,<食品番号>…）。窓をひらいているあいだのアドレスにもする（貼ると、同じ食材をくらべた窓がひらく）。
+// 区切りの「,」は、そのまま書く（%2C にしない。読みやすさのため）
+const COMPARE_PARAM = 'compare'
+const FOOD_ID = /^\d{5}$/
+export const compareAppPath = (foodIds: readonly string[]): string => `${VIEW_PATH.foods}#${COMPARE_PARAM}=${foodIds.join(',')}`
+// #compare= の値から、食品番号を読む（番号の形でないもの・同じ番号の2つめは捨てる）
+export const compareIdsFromParam = (value: string | null | undefined): string[] => [...new Set((value ?? '').split(',').filter((id) => FOOD_ID.test(id)))]

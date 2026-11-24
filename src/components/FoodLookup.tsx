@@ -6,6 +6,7 @@ import type { RecentLookup } from '../store/useAppStore'
 import { inAppLink } from './inAppLink'
 import {
   browseLookup,
+  comparePicks,
   LOOKUP_KIND_LABEL,
   LOOKUP_KINDS,
   LOOKUP_SORT_LABEL,
@@ -29,7 +30,8 @@ import { useMediaQuery } from './useMediaQuery'
 // 「食品を調べる」の画面（名前でさがす）。成分の多い順に見る「成分ランキング」は、上のメニューの別の画面（RankingView.tsx）。
 // さがす前：最近見た食品・定番の食品（押すとすぐ栄養素の一覧）と、種類からさがす入口（食材の野菜・肉、料理の主菜・汁物、市販品の店など）。
 // 名前を入れると、食材・料理・市販品の候補がカロリーとたんぱく質・脂質・炭水化物つきで出る。種類・その中の分け方でしぼり、並べかえられる。
-// 候補を押すと、その食品の栄養素の一覧（FoodDetailDialog）がひらく
+// さがす欄の下の切り替え（すべて・食材・料理・市販品）で、さがす種類を先に決められる（食材だけをさがす、など。選んだ種類は、変えるまでそのまま）。
+// 候補を押すと、その食品の栄養素の一覧（FoodDetailDialog）がひらく。食材を並べてくらべる窓（FoodCompare）の入口もここ
 
 // 「すべて」で種類ごとに出す数（せまい画面／広い画面）と、1つの種類だけを見るときに1回で出す数
 const PREVIEW_NARROW = 3
@@ -183,12 +185,21 @@ function FacetChips({ label, chips, active, onPick }: { label: string; chips: { 
   )
 }
 
-// さがす前に出す「種類からさがす」。押すと、その種類の一覧になる（そのあと名前を入れると、その中でさがす）
-function Categories({ showAlcohol, onPick }: { showAlcohol: boolean; onPick: (kind: LookupKind, facet: LookupFacet) => void }) {
+// さがす種類ごとの、さがす欄の例
+const PLACEHOLDER: Record<LookupKind | 'all', string> = {
+  all: '食品名でさがす（例：納豆）',
+  food: '食材名でさがす（例：鹿肉）',
+  dish: '料理名でさがす（例：肉じゃが）',
+  product: '商品名でさがす（例：サラダチキン）',
+}
+
+// さがす前に出す「種類からさがす」。押すと、その種類の一覧になる（そのあと名前を入れると、その中でさがす）。
+// kinds：さがす種類を決めているときは、その種類だけ
+function Categories({ showAlcohol, kinds = LOOKUP_KINDS, onPick }: { showAlcohol: boolean; kinds?: LookupKind[]; onPick: (kind: LookupKind, facet: LookupFacet) => void }) {
   return (
     <section aria-label="種類からさがす" className="space-y-3 rounded-[var(--radius-card)] bg-white/60 p-3 sm:p-4">
       <h2 className={SECTION_TITLE}>種類からさがす</h2>
-      {LOOKUP_KINDS.map((kind) => {
+      {kinds.map((kind) => {
         const facets = lookupFacets(kind, { showAlcohol, home: true })
         return (
           <div key={kind} className="space-y-1.5">
@@ -237,6 +248,7 @@ export function FoodLookup({
   recent,
   onClearRecent,
   onOpen,
+  onCompare,
 }: {
   catalog: Catalog
   // コンビニ・メーカーの商品を読み終えたか（読み込み中はそう出す）
@@ -249,6 +261,8 @@ export function FoodLookup({
   recent: RecentLookup[]
   onClearRecent: () => void
   onOpen: (item: LookupItem) => void
+  // 食材を並べてくらべる窓をひらく。食材（食品番号）を渡さなければ、前にくらべていた食材の続きから
+  onCompare: (foodIds?: string[]) => void
 }) {
   const { query, kind, facet, sort } = state
   const loadFailed = useLoadFailed()
@@ -270,8 +284,9 @@ export function FoodLookup({
   const scoped = kind !== 'all' && facet !== null
   // さがす言葉を入れずに、種類の一覧を見ている
   const browsing = !searching && scoped
-  // 1つの種類にしか見つからなければ、はじめからその種類を広く出す。選んでいた種類に候補がなくなったら「すべて」に戻す（しぼっているあいだは、その種類のまま）
-  const active: LookupKind | 'all' = scoped ? kind : sections.length === 1 ? sections[0].kind : sections.some((s) => s.kind === kind) ? kind : 'all'
+  // さがす種類を決めているあいだは、その種類だけを出す（候補がなくても、ほかの種類に変えない）。
+  // 「すべて」のときは、1つの種類にしか見つからなければ、はじめからその種類を広く出す
+  const active: LookupKind | 'all' = kind !== 'all' ? kind : sections.length === 1 ? sections[0].kind : 'all'
 
   // いま見ている種類の候補（「すべて」のときは null）と、その中の分け方ごとの数
   const kindHits = useMemo<LookupHit[] | null>(() => {
@@ -293,6 +308,11 @@ export function FoodLookup({
     })
   }, [kindHits, searching, facet, sort, catalog])
 
+  // 食材の名前を2つ以上入れたとき（鹿肉 牛肉）に、並べてくらべる食材（1語につき1つ）
+  const eitherFoods = useMemo(
+    () => (result.either && kind !== 'dish' && kind !== 'product' ? comparePicks(index.groups.food, result.either, catalog).flatMap((id) => catalog.foods.get(id) ?? []) : []),
+    [result.either, kind, index, catalog],
+  )
   // 候補の名前の中で色をつける言葉（2つに分けてさがしたときは、その2つ）
   const words = useMemo(() => (result.split ? result.split.flatMap(lookupWords) : lookupWords(deferred)), [result.split, deferred])
   const recentCards = useMemo(() => recent.flatMap((r) => lookupCard(r, catalog) ?? []), [recent, catalog])
@@ -313,7 +333,11 @@ export function FoodLookup({
     set({ query: q, kind: k, facet: f })
     requestAnimationFrame(() => boxRef.current?.scrollIntoView?.({ block: 'start' }))
   }
-  const home = () => set({ query: '', kind: 'all', facet: null, sort: 'default' })
+  // 種類の一覧（さがす前の画面）にもどる。さがす種類（食材だけ、など）は、そのまま
+  const home = () => set({ query: '', facet: null, sort: 'default' })
+  // さがす種類の切り替え（さがす前から出す）。さがしているときは、種類ごとの数を添える
+  const countOf = (k: LookupKind) => sections.find((s) => s.kind === k)?.hits.length ?? 0
+  const kindTabs = [{ kind: 'all' as const, label: 'すべて', count: total }, ...LOOKUP_KINDS.map((k) => ({ kind: k, label: LOOKUP_KIND_LABEL[k], count: countOf(k) }))]
   const scopeLabel = scoped ? lookupFacetLabel(kind, facet) : null
   const loadingNote = !storesLoaded && (
     <p className="text-xs text-ink-soft" role="status">
@@ -403,17 +427,62 @@ export function FoodLookup({
             const first = (list ?? sections[0]?.hits)?.[0]
             if (first && searching && query === deferred) onOpen(first.card.item)
           }}
-          placeholder={scopeLabel ? `${scopeLabel}の中でさがす` : '食品名でさがす（例：納豆）'}
-          aria-label="食品・料理・市販品の名前でさがして、栄養素を見る"
+          placeholder={scopeLabel ? `${scopeLabel}の中でさがす` : PLACEHOLDER[kind]}
+          aria-label={kind === 'all' ? '食品・料理・市販品の名前でさがして、栄養素を見る' : `${LOOKUP_KIND_LABEL[kind]}の名前でさがして、栄養素を見る`}
           enterKeyHint="search"
           className="min-h-12 w-full rounded-full border-2 border-white bg-white pr-4 pl-11 text-base shadow-sm outline-none focus:border-coral"
         />
       </div>
 
+      {/* さがす種類（さがす前から選べる。料理を選ぶ画面の種類の切り替えと同じ形で、スマホは1行に収める）。種類の一覧を見ているあいだは出さない */}
+      {!browsing && (
+        <div className="flex gap-0.5 rounded-full bg-white p-1 shadow-sm lg:w-fit" role="group" aria-label="さがす種類">
+          {kindTabs.map((c) => (
+            <button
+              key={c.kind}
+              type="button"
+              aria-pressed={kind === c.kind}
+              onClick={() => pickKind(c.kind)}
+              className={`min-h-11 flex-1 rounded-full px-1 text-xs leading-tight whitespace-nowrap lg:min-h-9 lg:flex-none lg:px-4 ${kind === c.kind ? 'bg-coral font-bold text-ink-strong' : 'text-ink-soft'}`}
+            >
+              {c.label}
+              {searching && <span className="block text-2xs leading-tight tabular-nums lg:ml-1.5 lg:inline">{c.count > 999 ? '999+' : c.count}件</span>}
+            </button>
+          ))}
+        </div>
+      )}
+
       {!searching && !browsing && (
         // さがす前：押すとすぐ見られる食品と、種類からさがす入口
         <div className="space-y-4">
-          <p className="text-sm text-ink-soft">食材・料理・市販品の名前を入れると、カロリーと栄養素がすぐ見られます。「カレー レトルト」のように、空白で区切ってもさがせます。</p>
+          <p className="text-sm text-ink-soft">
+            {kind === 'food'
+              ? '食材（肉・魚・野菜など、成分表の食品）だけをさがします。漢字・ひらがな・カタカナのどれでもさがせます（鹿肉・しか・シカ）。'
+              : kind === 'dish'
+                ? '料理だけをさがします。名前を入れると、1人前のカロリーと栄養素がすぐ見られます。'
+                : kind === 'product'
+                  ? 'コンビニやメーカーの市販品だけをさがします。「カレー レトルト」のように、空白で区切ってもさがせます。'
+                  : '食材・料理・市販品の名前を入れると、カロリーと栄養素がすぐ見られます。漢字・ひらがな・カタカナのどれでもさがせます（鹿肉・しか・シカ）。食材だけをさがしたいときは、上の「食材」を選んでください。'}
+          </p>
+          {(kind === 'all' || kind === 'food') && (
+            <button
+              type="button"
+              aria-haspopup="dialog"
+              onClick={() => onCompare()}
+              className="flex min-h-14 w-full items-center gap-3 rounded-2xl bg-white px-3.5 py-2 text-left shadow-sm transition hover:bg-coral/5 lg:max-w-xl"
+            >
+              <span aria-hidden className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-ok/20 text-lg">
+                ⚖️
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-sm font-bold">食材をくらべる</span>
+                <span className="block text-xs text-ink-soft">鹿肉と牛肉・豚肉など、近い食材の成分を並べて見られます</span>
+              </span>
+              <span aria-hidden className="shrink-0 font-bold text-coral-ink">
+                ›
+              </span>
+            </button>
+          )}
           {recentCards.length > 0 && (
             <section aria-label="最近見た食品" className="space-y-1.5">
               <div className="flex items-center justify-between gap-2">
@@ -433,7 +502,7 @@ export function FoodLookup({
               <QuickChips cards={index.staples} onOpen={onOpen} />
             </section>
           )}
-          <Categories showAlcohol={showAlcohol} onPick={(k, f) => browse(k, f.id)} />
+          <Categories showAlcohol={showAlcohol} kinds={kind === 'all' ? LOOKUP_KINDS : [kind]} onPick={(k, f) => browse(k, f.id)} />
         </div>
       )}
 
@@ -463,10 +532,7 @@ export function FoodLookup({
                 )}
                 {loadingNote && <div className="mt-1">{loadingNote}</div>}
               </div>
-              <Categories
-                showAlcohol={showAlcohol}
-                onPick={(k, f) => browse(k, f.id, '')}
-              />
+              <Categories showAlcohol={showAlcohol} kinds={kind === 'all' ? LOOKUP_KINDS : [kind]} onPick={(k, f) => browse(k, f.id, '')} />
             </>
           ) : (
             <>
@@ -475,21 +541,29 @@ export function FoodLookup({
                   「{deferred.trim()}」そのままでは見つからなかったので、「{result.split[0]}」と「{result.split[1]}」の両方をふくむものを出しています。
                 </p>
               )}
-              {sections.length > 1 && (
-                // 料理を選ぶ画面の種類の切り替えと同じ形（スマホは1行に収める）
-                <div className="flex gap-0.5 rounded-full bg-white p-1 shadow-sm lg:w-fit" role="group" aria-label="種類でしぼる">
-                  {[{ kind: 'all' as const, label: 'すべて', count: total }, ...sections.map((s) => ({ kind: s.kind, label: LOOKUP_KIND_LABEL[s.kind], count: s.hits.length }))].map((c) => (
+              {result.either && (
+                <div className="space-y-2 rounded-2xl bg-white/70 px-3 py-2">
+                  <p className="text-xs text-ink-soft">{result.either.map((w) => `「${w}」`).join('')}のすべてをふくむものはなかったので、どれかをふくむものを出しています。</p>
+                  {eitherFoods.length > 1 && (
+                    // 食材の名前を2つ以上入れたとき（鹿肉 牛肉）：その食材を並べてくらべる近道
                     <button
-                      key={c.kind}
                       type="button"
-                      aria-pressed={active === c.kind}
-                      onClick={() => pickKind(c.kind)}
-                      className={`min-h-11 flex-1 rounded-full px-1 text-xs leading-tight whitespace-nowrap lg:min-h-9 lg:flex-none lg:px-4 ${active === c.kind ? 'bg-coral font-bold text-ink-strong' : 'text-ink-soft'}`}
+                      aria-haspopup="dialog"
+                      onClick={() => onCompare(eitherFoods.map((f) => f.id))}
+                      className="flex min-h-12 w-full items-center gap-2.5 rounded-2xl bg-white px-3 py-1.5 text-left shadow-sm transition hover:bg-coral/5 lg:max-w-xl"
                     >
-                      {c.label}
-                      <span className="block text-2xs leading-tight tabular-nums lg:ml-1.5 lg:inline">{c.count > 999 ? '999+' : c.count}件</span>
+                      <span aria-hidden className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-ok/20">
+                        ⚖️
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block text-sm font-bold text-coral-ink">この食材を並べてくらべる</span>
+                        <span className="block text-xs text-ink-soft">{eitherFoods.map((f) => f.displayName).join(' と ')}</span>
+                      </span>
+                      <span aria-hidden className="shrink-0 font-bold text-coral-ink">
+                        ›
+                      </span>
                     </button>
-                  ))}
+                  )}
                 </div>
               )}
               {kindList || (

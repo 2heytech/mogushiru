@@ -167,6 +167,10 @@ export function dailyReference(nutrient: NutrientKey, t: Targets): { value: numb
 // ふだんの呼び名（表示名）を付けた食材（data/food-names.json）
 export const NAMED_FOOD_IDS: ReadonlySet<string> = new Set(foodNames.displayNames.map((d) => d.id))
 
+// ふだんはあまり買わないが、名前でさがす人のいる食材（鹿肉・馬肉・くじら など。data/food-names.json の moreNames）。
+// 呼び名は付けてあり、名前でさがすときは上の食材と同じに扱うが、「よく使う食材」（成分ランキング）には入れない
+export const MORE_NAMED_FOOD_IDS: ReadonlySet<string> = new Set(foodNames.moreNames.map((d) => d.id))
+
 // 表示名を付けた食材と、ふだんの料理の材料を「よく使う食材」とする。
 // 郷土料理（source のある料理）にだけ使う食材は、めずらしいもの（くじら・どじょう など）が多いので入れない。
 // 郷土料理の材料でも、ふだんよく使うもの（煮干し・高野豆腐 など）は data/food-names.json で表示名を付けて入れる

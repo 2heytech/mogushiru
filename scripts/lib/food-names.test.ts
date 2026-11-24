@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { makeDisplayName, synonymTerms, toHiragana } from './food-names'
+import { makeDisplayName, nameWords, synonymTerms, toHiragana } from './food-names'
 
 describe('表示名', () => {
   it.each([
@@ -31,6 +31,17 @@ describe('同義語', () => {
   })
   it('全角空白の食品名でも空白を揃えて照合する', () => {
     expect(synonymTerms('＜魚類＞　（まぐろ類）　缶詰　水煮', '10', synonyms)).toEqual(['ツナ'])
+  })
+  it('word を付けた決まりは、語がぴったり同じときだけ（「うし」は、きゅうしゅうじか に入っていても足さない）', () => {
+    const rules = [
+      { match: 'うし', add: ['牛肉'], word: true },
+      { match: 'しか', add: ['鹿肉'], word: true },
+    ]
+    expect(nameWords('＜畜肉類＞　うし　［和牛肉］　かた　脂身つき　生')).toEqual(['畜肉類', 'うし', '和牛肉', 'かた', '脂身つき', '生'])
+    expect(synonymTerms('＜畜肉類＞　うし　［和牛肉］　かた　脂身つき　生', '11', rules)).toEqual(['牛肉'])
+    expect(synonymTerms('＜畜肉類＞　しか　にほんじか　きゅうしゅうじか　赤肉　生', '11', rules)).toEqual(['鹿肉'])
+    // word のない決まりは、名前のどこかに入っていれば足す
+    expect(synonymTerms('＜畜肉類＞　しか　にほんじか　きゅうしゅうじか　赤肉　生', '11', [{ match: 'うし', add: ['牛肉'] }])).toEqual(['牛肉'])
   })
   it('カタカナをひらがなにする', () => {
     expect(toHiragana('セイハクマイ')).toBe('せいはくまい')
