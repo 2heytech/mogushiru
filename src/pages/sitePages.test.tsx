@@ -12,7 +12,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { RAKUTEN_AFFILIATE_ID } from '../site'
 import { AboutPage } from './aboutPage'
 import { AD_NOTICE, NutrientPage, nutrientPageData } from './nutrientPages'
-import { RAKUTEN_CREDIT, RAKUTEN_SHOP_SCRIPT, rakutenApi, rakutenSearchFor, SHOP_ROWS, SHOP_SIZE, type RakutenApi } from './rakuten'
+import { RAKUTEN_CREDIT, RAKUTEN_SHOP_SCRIPT, rakutenApi, rakutenMeasure, rakutenSearchFor, SHOP_ROWS, SHOP_SIZE, type RakutenApi } from './rakuten'
 import { buildSitePages, NOT_FOUND_PAGE, renderDocument, sitemapXml, withUpdatedDate, type SitePage } from './sitePages'
 
 // ビルドで書き出すページを、配信用のデータ（public/data）から作ってたしかめる
@@ -772,7 +772,8 @@ describe('楽天市場でさがす欄（広告。楽天アフィリエイト）'
   it('リンクは、楽天市場の検索結果へのアフィリエイトのリンク。新しいタブでひらき、検索エンジンに広告のリンクだと伝える', () => {
     for (const p of withAds) {
       for (const { href, attrs } of linksOf(shopOf(p.body))) {
-        expect(href.startsWith(`https://hb.afl.rakuten.co.jp/hgc/${RAKUTEN_AFFILIATE_ID}/?pc=`), href).toBe(true)
+        // ID のすぐあとは、計測 ID の文字（src/site.ts。空なら何もなし）
+        expect(href.startsWith(`https://hb.afl.rakuten.co.jp/hgc/${RAKUTEN_AFFILIATE_ID}/${rakutenMeasure()}?pc=`), href).toBe(true)
         const url = new URL(href)
         expect([...url.searchParams.keys()], href).toEqual(['pc', 'link_type'])
         expect(url.searchParams.get('link_type')).toBe('text')
@@ -876,7 +877,7 @@ describe('楽天市場でさがす欄（広告。楽天アフィリエイト）'
 
   describe('商品の例を画像つきで出す（楽天市場商品検索 API。public/rakuten-shop.js）', () => {
     // テスト用の値（架空。形だけ合わせてある）
-    const TEST_API: RakutenApi = { appId: '01234567-89ab-cdef-0123-456789abcdef', accessKey: 'pk_TESTtest0123456789', affiliateId: '0123abcd.4567ef01.89abcdef.01234567' }
+    const TEST_API: RakutenApi = { appId: '01234567-89ab-cdef-0123-456789abcdef', accessKey: 'pk_TESTtest0123456789', affiliateId: '0123abcd.4567ef01.89abcdef.01234567', measure: '_RTLink00000' }
     const data = nutrientPageData('iron', catalog, prices)!
     const on = renderToStaticMarkup(<NutrientPage data={{ ...data, shopApi: TEST_API }} />)
     const off = renderToStaticMarkup(<NutrientPage data={{ ...data, shopApi: null }} />)
@@ -884,7 +885,7 @@ describe('楽天市場でさがす欄（広告。楽天アフィリエイト）'
 
     it('設定は、空か、使える形（アプリ ID・アクセスキー・アフィリエイトの ID がそろったときだけ出す）', () => {
       expect(rakutenApi('', '')).toBeNull()
-      expect(rakutenApi(TEST_API.appId, TEST_API.accessKey, TEST_API.affiliateId)).toEqual(TEST_API)
+      expect(rakutenApi(TEST_API.appId, TEST_API.accessKey, TEST_API.affiliateId, TEST_API.measure)).toEqual(TEST_API)
       for (const p of withAds) expect(p.script, p.path).toBe(rakutenApi() ? RAKUTEN_SHOP_SCRIPT : undefined)
     })
 
@@ -895,6 +896,11 @@ describe('楽天市場でさがす欄（広告。楽天アフィリエイト）'
       expect(attr(section, 'data-key')).toBe(TEST_API.accessKey)
       expect(attr(section, 'data-aff')).toBe(TEST_API.affiliateId)
       expect(attr(section, 'data-rows')).toBe(String(SHOP_ROWS))
+      // 計測 ID の文字は、あるときだけ書く（プログラムが、商品のリンクに入れる）
+      expect(attr(section, 'data-mid')).toBe(TEST_API.measure)
+      const plain = renderToStaticMarkup(<NutrientPage data={{ ...data, shopApi: { ...TEST_API, measure: '' } }} />)
+      expect(plain).toContain(' data-aff="')
+      expect(plain).not.toContain('data-mid')
       expect(SHOP_ROWS).toBeGreaterThan(0)
       expect(SHOP_ROWS).toBeLessThanOrEqual(SHOP_SIZE)
     })
@@ -957,7 +963,7 @@ describe('楽天市場でさがす欄（広告。楽天アフィリエイト）'
       const marks = new Set([...script.matchAll(/\[(data-shop[a-z-]*)\]/g)].map((m) => m[1]))
       expect(marks.size).toBeGreaterThanOrEqual(10)
       for (const mark of marks) expect(on, mark).toContain(` ${mark}="`)
-      for (const name of ['data-app', 'data-key', 'data-aff', 'data-rows', 'data-word', 'data-genre']) {
+      for (const name of ['data-app', 'data-key', 'data-aff', 'data-mid', 'data-rows', 'data-word', 'data-genre']) {
         expect(script, name).toContain(`getAttribute('${name}')`)
         expect(on, name).toContain(` ${name}="`)
       }

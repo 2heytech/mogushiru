@@ -7,8 +7,8 @@ import { describe, expect, it } from 'vitest'
 
 type Picked = { name: string; price: number; href: string; image: string; free: boolean; stars: string; reviews: number }
 type Shop = {
-  searchUrl: (conf: { app: string; key: string; aff: string }, word: string, genre: string) => string
-  pickItems: (data: unknown, max: number) => Picked[]
+  searchUrl: (conf: { app: string; key: string; aff: string; mid?: string }, word: string, genre: string) => string
+  pickItems: (data: unknown, max: number, conf?: { aff: string; mid?: string }) => Picked[]
   yen: (n: number) => string
 }
 
@@ -122,6 +122,30 @@ describe('商品の例を出すプログラム（public/rakuten-shop.js）', () 
     for (const image of images) expect(shop.pickItems({ Items: [item({ mediumImageUrls: [image] })] }, 6), image).toEqual([])
     // 楽天のアドレスは通す
     for (const link of ['https://item.rakuten.co.jp/shop/a/', 'https://hb.afl.rakuten.co.jp/hgc/x/?pc=a&m=b', 'https://HB.AFL.RAKUTEN.CO.JP/hgc/x/']) expect(shop.pickItems({ Items: [item({ affiliateUrl: link })] }, 6)[0].href, link).toBe(link)
+  })
+
+  it('計測 ID の文字があれば、API がくれたアフィリエイトのリンクの、ID のすぐあとに入れる。ちがう形のリンクは、そのまま', () => {
+    const MID = '_RTLink00000'
+    const rest = '?pc=https%3A%2F%2Fitem.rakuten.co.jp%2Fshop%2Fa%2F&m=http%3A%2F%2Fm.rakuten.co.jp%2Fshop%2Fi%2F1%2F&rafcid=wsc'
+    const link = `https://hb.afl.rakuten.co.jp/hgc/${CONF.aff}/${rest}`
+    const pick = (affiliateUrl: string, conf?: { aff: string; mid?: string }) => shop.pickItems({ Items: [item({ affiliateUrl })] }, 6, conf)[0].href
+    expect(pick(link, { ...CONF, mid: MID })).toBe(`https://hb.afl.rakuten.co.jp/hgc/${CONF.aff}/${MID}${rest}`)
+    // 行き先（pc）は変わらない
+    expect(new URL(pick(link, { ...CONF, mid: MID })).searchParams.get('pc')).toBe('https://item.rakuten.co.jp/shop/a/')
+    // 計測 ID の文字がない・形がちがうときは、そのまま
+    for (const mid of [undefined, '', 'a b', 'a/b', 'a?b', 'a&b', '計測', 'x'.repeat(41)]) expect(pick(link, { ...CONF, mid }), String(mid)).toBe(link)
+    expect(pick(link)).toBe(link)
+    // ほかの形のリンク（ほかの人の ID・もう計測 ID が入っている・商品のページそのもの・ほかの場所）は、そのまま
+    for (const other of [
+      `https://hb.afl.rakuten.co.jp/hgc/ffffffff.ffffffff.ffffffff.ffffffff/${rest}`,
+      `https://hb.afl.rakuten.co.jp/hgc/${CONF.aff}/other${rest}`,
+      `https://hb.afl.rakuten.co.jp/ichiba/${CONF.aff}/${rest}`,
+      `https://hb.afl.rakuten.co.jp/hgc/${CONF.aff}/`,
+      'https://item.rakuten.co.jp/shop/a/',
+    ])
+      expect(pick(other, { ...CONF, mid: MID }), other).toBe(other)
+    // API には、計測 ID の文字を送らない
+    expect(shop.searchUrl({ ...CONF, mid: MID }, 'ひじき', '100227')).toBe(shop.searchUrl(CONF, 'ひじき', '100227'))
   })
 
   it('エラーの答え・商品のない答え・こわれた答えは、商品なし（文字のリンクのままになる）', () => {

@@ -559,7 +559,7 @@ const SHOP_LABEL = '楽天市場でさがす'
 // ランキングの上位の食品を、楽天市場でさがす欄（楽天アフィリエイト。rakuten.ts）。
 // - もとは文字のリンク（食品の名前 → 楽天市場の検索結果）。新しいタブでひらき、検索エンジンには広告のリンクだと伝える（rel="sponsored nofollow"）
 // - api があるときは、public/rakuten-shop.js が、欄が画面に近づいたときに食品ごとの商品の例（画像・名前・値段）を足す。
-//   プログラムが読むのは data-shop で始まる印と data-word・data-genre、商品のひな形（template）。見た目は、ここのクラスで決める：
+//   プログラムが読むのは data-shop で始まる印と data-word・data-genre、商品のひな形（template）。data-mid は、商品のリンクに入れる計測 ID の文字（あるときだけ）。見た目は、ここのクラスで決める：
 //   食品（li）に data-shop-row が付くと、文字のリンクが行の見出しになって横いっぱいに広がり（wait は読みこみ中、on は商品あり）、その下に商品が並ぶ
 // - 楽天のプログラム（ウィジェット）は読みこまない
 function ShopLinks({ data }: { data: NutrientPageData }) {
@@ -570,6 +570,7 @@ function ShopLinks({ data }: { data: NutrientPageData }) {
       aria-labelledby="shop"
       className={`${CARD} scroll-mt-4`}
       {...(api && { 'data-shop': '', 'data-app': api.appId, 'data-key': api.accessKey, 'data-aff': api.affiliateId, 'data-rows': rows })}
+      {...(api?.measure && { 'data-mid': api.measure })}
     >
       <h2 id="shop" className="flex flex-wrap items-center gap-x-2 gap-y-1 text-lg font-bold">
         {/* スマホで言葉の途中で折り返さないよう、「〜が多い食品を」「楽天市場でさがす」のまとまりで折り返す */}

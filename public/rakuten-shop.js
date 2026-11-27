@@ -21,7 +21,7 @@
   // 画像を読みこんでよい場所（public/_headers の img-src と同じ）
   var IMAGE_HOSTS = ['thumbnail.image.rakuten.co.jp']
 
-  // 楽天市場商品検索 API のアドレス。conf：{ app, key, aff }（アプリ ID・アクセスキー・アフィリエイトの ID）
+  // 楽天市場商品検索 API のアドレス。conf：{ app, key, aff, mid }（アプリ ID・アクセスキー・アフィリエイトの ID・計測 ID の文字。mid は API には送らない）
   function searchUrl(conf, word, genre) {
     var q = [
       ['applicationId', conf.app],
@@ -59,8 +59,17 @@
     return IMAGE_HOSTS.indexOf(host) >= 0
   }
 
-  // API の答えから、出す商品を選ぶ：名前・値段・楽天へのリンク・楽天の画像がそろった商品を、上から max 個。同じ商品（同じ名前・同じ画像）は1つだけ
-  function pickItems(data, max) {
+  // 計測 ID の文字（conf.mid。成果をサイトごとに分けて見るための印）を、API がくれたアフィリエイトのリンクに入れる。
+  // 入れるのは、リンクが「…/hgc/<アフィリエイトの ID>/?…」の形のときだけ（文字のリンクと同じ場所：ID のすぐあと）。ちがう形なら、そのまま
+  function tagUrl(href, conf) {
+    if (!conf || !conf.aff || !/^[0-9A-Za-z_-]{1,40}$/.test(conf.mid || '')) return href
+    var head = 'https://hb.afl.rakuten.co.jp/hgc/' + conf.aff + '/'
+    return href.indexOf(head + '?') === 0 ? head + conf.mid + href.slice(head.length) : href
+  }
+
+  // API の答えから、出す商品を選ぶ：名前・値段・楽天へのリンク・楽天の画像がそろった商品を、上から max 個。同じ商品（同じ名前・同じ画像）は1つだけ。
+  // conf（{ aff, mid }）があれば、リンクに計測 ID の文字を入れる
+  function pickItems(data, max, conf) {
     var raw = (data && (data.Items || data.items)) || []
     var out = []
     var seen = {}
@@ -83,7 +92,7 @@
       out.push({
         name: name,
         price: Math.round(price),
-        href: href,
+        href: tagUrl(href, conf),
         image: /[?&]_ex=\d+x\d+/.test(image) ? image.replace(/([?&]_ex=)\d+x\d+/, '$1' + IMAGE_SIZE) : image,
         // 送料がこみの商品（postageFlag が 0）
         free: it.postageFlag === 0 || it.postageFlag === '0',
@@ -107,7 +116,12 @@
   var box = document.querySelector('section[data-shop]')
   var card = box && box.querySelector('template[data-shop-card]')
   if (!card || !card.content || !window.fetch || !window.IntersectionObserver) return
-  var conf = { app: box.getAttribute('data-app') || '', key: box.getAttribute('data-key') || '', aff: box.getAttribute('data-aff') || '' }
+  var conf = {
+    app: box.getAttribute('data-app') || '',
+    key: box.getAttribute('data-key') || '',
+    aff: box.getAttribute('data-aff') || '',
+    mid: box.getAttribute('data-mid') || '',
+  }
   if (!conf.app || !conf.key || !conf.aff) return
 
   var list = function (nodes) {
@@ -190,7 +204,7 @@
           }, RETRY_WAIT)
           return
         }
-        var items = pickItems(data, SHOW)
+        var items = pickItems(data, SHOW, conf)
         if (items.length >= MIN) show(li, items)
         else fail(li)
         step()

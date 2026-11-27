@@ -2,11 +2,13 @@ import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import type { RankingRow } from '../domain/ranking'
 import type { Food } from '../domain/types'
-import { RAKUTEN_ACCESS_KEY, RAKUTEN_AFFILIATE_ID, RAKUTEN_APP_ID } from '../site'
-import { RAKUTEN_SEARCH_IDS, rakutenAffiliateUrl, rakutenApi, rakutenEnabled, rakutenGenreId, rakutenSearchFor, rakutenSearchUrl, SHOP_SIZE, shopPicks } from './rakuten'
+import { RAKUTEN_ACCESS_KEY, RAKUTEN_AFFILIATE_ID, RAKUTEN_APP_ID, RAKUTEN_MEASURE_ID } from '../site'
+import { RAKUTEN_SEARCH_IDS, rakutenAffiliateUrl, rakutenApi, rakutenEnabled, rakutenGenreId, rakutenMeasure, rakutenSearchFor, rakutenSearchUrl, SHOP_SIZE, shopPicks } from './rakuten'
 
 // テスト用の ID（架空の値。形だけ合わせてある）
 const TEST_ID = '0123abcd.4567ef01.89abcdef.01234567'
+// 計測 ID としてリンクに入れる文字（架空。楽天アフィリエイトの管理画面で作るリンクに入る形）
+const TEST_MEASURE = '_RTLink00000'
 
 const foods = (JSON.parse(readFileSync(new URL('../../public/data/foods.json', import.meta.url), 'utf8')) as { foods: Food[] }).foods
 const food = (id: string) => foods.find((f) => f.id === id)!
@@ -17,7 +19,10 @@ describe('楽天アフィリエイトのリンク', () => {
     // テスト用の値（架空。形だけ合わせてある）
     const app = '01234567-89ab-cdef-0123-456789abcdef'
     const key = 'pk_TESTtest0123456789'
-    expect(rakutenApi(app, key, TEST_ID)).toEqual({ appId: app, accessKey: key, affiliateId: TEST_ID })
+    expect(rakutenApi(app, key, TEST_ID, '')).toEqual({ appId: app, accessKey: key, affiliateId: TEST_ID, measure: '' })
+    // 計測 ID の文字は、使える形のときだけ持つ（形がちがっても、商品は出す）
+    expect(rakutenApi(app, key, TEST_ID, TEST_MEASURE)?.measure).toBe(TEST_MEASURE)
+    expect(rakutenApi(app, key, TEST_ID, 'a b')?.measure).toBe('')
     for (const [a, k, id] of [
       ['', key, TEST_ID],
       [app, '', TEST_ID],
@@ -67,6 +72,28 @@ describe('楽天アフィリエイトのリンク', () => {
     expect(new URL(link).searchParams.get('pc')).toBe(url)
     expect(rakutenAffiliateUrl(url, '')).toBeNull()
     expect(rakutenAffiliateUrl(url, 'not-an-id')).toBeNull()
+  })
+
+  it('計測 ID の文字は、アフィリエイトの ID のすぐあとに入れる。空・形がちがうときは入れない', () => {
+    const url = rakutenSearchUrl({ word: 'ひじき', genre: 'food' })
+    const plain = `https://hb.afl.rakuten.co.jp/hgc/${TEST_ID}/?pc=${encodeURIComponent(url)}&link_type=text`
+    const link = rakutenAffiliateUrl(url, TEST_ID, TEST_MEASURE)!
+    expect(link).toBe(`https://hb.afl.rakuten.co.jp/hgc/${TEST_ID}/${TEST_MEASURE}?pc=${encodeURIComponent(url)}&link_type=text`)
+    // 行き先は変わらない
+    expect(new URL(link).searchParams.get('pc')).toBe(url)
+    expect(rakutenAffiliateUrl(url, TEST_ID, '')).toBe(plain)
+    // アドレスをこわす字（「/」「?」「&」「"」・空白・かな）や、長すぎる文字は入れない
+    for (const bad of ['a/b', 'a?b', 'a&b=1', 'a"b', 'a b', '計測', '<x>', '..', 'x'.repeat(41)]) {
+      expect(rakutenMeasure(bad), bad).toBe('')
+      expect(rakutenAffiliateUrl(url, TEST_ID, bad), bad).toBe(plain)
+    }
+    for (const ok of [TEST_MEASURE, 'mogu-1', 'A_b-9']) expect(rakutenMeasure(ok), ok).toBe(ok)
+    // 食品ごとのリンクにも入る
+    const picks = shopPicks([row('14001'), row('13003')], TEST_ID, SHOP_SIZE, TEST_MEASURE)
+    expect(picks.length).toBe(2)
+    for (const p of picks) expect(p.href.startsWith(`https://hb.afl.rakuten.co.jp/hgc/${TEST_ID}/${TEST_MEASURE}?pc=https%3A%2F%2Fsearch.rakuten.co.jp%2F`), p.label).toBe(true)
+    // リポジトリに入れてある値：空（計測 ID なし）か、使える形
+    expect(RAKUTEN_MEASURE_ID === '' || rakutenMeasure(RAKUTEN_MEASURE_ID) === RAKUTEN_MEASURE_ID).toBe(true)
   })
 })
 
