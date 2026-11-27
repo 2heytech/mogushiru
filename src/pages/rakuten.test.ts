@@ -66,7 +66,8 @@ describe('楽天アフィリエイトのリンク', () => {
 
   it('楽天のアドレスを、ID つきのアフィリエイトのリンクにする。ID が空・形がちがうときは作らない', () => {
     const url = rakutenSearchUrl({ word: 'ひじき', genre: 'food' })
-    const link = rakutenAffiliateUrl(url, TEST_ID)!
+    // 計測 ID のコードがないとき（あるときは、下のテスト）
+    const link = rakutenAffiliateUrl(url, TEST_ID, '')!
     expect(link).toBe(`https://hb.afl.rakuten.co.jp/hgc/${TEST_ID}/?pc=${encodeURIComponent(url)}&link_type=text`)
     // 行き先を取り出すと、もとの検索結果のアドレスにもどる
     expect(new URL(link).searchParams.get('pc')).toBe(url)
@@ -135,7 +136,7 @@ describe('食品ごとの、さがす言葉', () => {
 describe('欄に出す食品を選ぶ', () => {
   it('ランキングの上から順に選ぶ。出さない食品はとばし、同じ名前は上の1つだけ', () => {
     // 鶏むね肉（皮つき・焼き）・大根の葉・鶏ささみ（焼き）・鶏むね肉（皮なし）・ささみ・豚レバー
-    const picks = shopPicks(['11287', '06130', '11228', '11220', '11227', '11166'].map(row), TEST_ID)
+    const picks = shopPicks(['11287', '06130', '11228', '11220', '11227', '11166'].map(row), TEST_ID, SHOP_SIZE, '')
     expect(picks.map((p) => p.label)).toEqual(['鶏むね肉', '鶏ささみ', '豚レバー'])
     expect(picks.map((p) => p.food.id)).toEqual(['11287', '11228', '11166'])
     for (const p of picks) expect(p.href.startsWith(`https://hb.afl.rakuten.co.jp/hgc/${TEST_ID}/?pc=https%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2F`), p.label).toBe(true)
