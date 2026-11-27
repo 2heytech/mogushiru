@@ -25,5 +25,5 @@ export const RAKUTEN_MEASURE_ID: string = '_RTLink160192'
 // - どちらも、ページの中に入って、だれでも見られる値。アプリは「Webアプリケーション」で登録し、「許可されたWebサイト」に
 //   このサイト（mogushiru.app）を入れておく（ほかのサイトからは呼べない。PR ごとのプレビューの URL からも呼べない）
 // - どちらかが空・形がちがうときは、商品を出さず、文字のリンクだけにする
-export const RAKUTEN_APP_ID: string = ''
-export const RAKUTEN_ACCESS_KEY: string = ''
+export const RAKUTEN_APP_ID: string = '69300ba2-e0f2-4f1a-9045-11f3bcbcdc93'
+export const RAKUTEN_ACCESS_KEY: string = 'pk_GlUQ2bYA6OX43ogqHd7KjEBs1QxdvHaRumtf1JEvqqq'
