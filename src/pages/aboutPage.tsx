@@ -4,7 +4,7 @@ import { DISHES_INDEX_PATH, NUTRIENTS_INDEX_PATH, SITE_NAME, SITE_NAME_KANA, VIE
 import { CONTACT_FORM_URL, OPERATOR_NAME, REPOSITORY_URL } from '../site'
 import { AD_NOTICE, NUTRIENTS_INDEX_HEADING } from './nutrientPages'
 import type { OgCard } from './ogCard'
-import { rakutenEnabled } from './rakuten'
+import { rakutenApi, rakutenEnabled } from './rakuten'
 import { LINK, StaticLayout } from './StaticLayout'
 
 // 「このサイトについて」（/about/）。運営者・数値の確かめ方・使うときの注意・プライバシー・広告・出典とライセンス・問い合わせ先を1まいにまとめる。
@@ -14,6 +14,8 @@ export const ABOUT_HEADING = 'このサイトについて'
 export const ABOUT_TITLE = `${ABOUT_HEADING}｜${SITE_NAME}`
 // 広告（楽天アフィリエイト）を出しているか。出していないときは、「広告」の欄ごと出さない
 const ADS = rakutenEnabled()
+// 楽天市場の商品の例（画像・名前・値段）を出しているか（楽天市場商品検索 API。rakuten.ts）。出しているときは、楽天のサーバーとの通信のことを書く
+const PRODUCTS = rakutenApi() !== null
 export const ABOUT_DESCRIPTION = `${SITE_NAME}の運営者、数値の確かめ方、使うときの注意、プライバシー、${ADS ? '広告、' : ''}データの出典とライセンス、お問い合わせ先。`
 
 export const ABOUT_OG: { card: OgCard; alt: string } = {
@@ -157,8 +159,9 @@ const SOURCES: { name: ReactNode; note: ReactNode }[] = [
   },
 ]
 
-// ads：広告（楽天アフィリエイト）を出しているか。出していないときは、「広告」の欄と、プライバシーの楽天の行を出さない
-export function AboutPage({ ads = ADS }: { ads?: boolean }) {
+// ads：広告（楽天アフィリエイト）を出しているか。出していないときは、「広告」の欄と、プライバシーの楽天の行を出さない。
+// products：楽天市場の商品の例を出しているか（ads のときだけ）。出しているかどうかで、楽天との通信の説明が変わる
+export function AboutPage({ ads = ADS, products = PRODUCTS }: { ads?: boolean; products?: boolean }) {
   const parts = PARTS.filter((p) => ads || p.id !== 'about-ads')
   return (
     <StaticLayout crumbs={[{ name: SITE_NAME, path: '/' }, { name: ABOUT_HEADING }]}>
@@ -291,7 +294,14 @@ export function AboutPage({ ads = ADS }: { ads?: boolean }) {
                 <a href="#about-ads" className={LINK}>
                   広告
                 </a>
-                ）を押すと、楽天のサイトに移ります。そのとき、楽天が Cookie などを使って、どのサイトからの紹介かを記録します。リンクを押さないかぎり、このサイトを開いただけで楽天に情報が送られることはありません。
+                ）を押すと、楽天のサイトに移ります。そのとき、楽天が Cookie などを使って、どのサイトからの紹介かを記録します。
+                {!products && 'リンクを押さないかぎり、このサイトを開いただけで楽天に情報が送られることはありません。'}
+              </li>
+            )}
+            {ads && products && (
+              <li>
+                楽天市場の商品の例を出す欄（広告）があるページでは、その欄が画面に近づいたときに、お使いのブラウザから楽天のサーバーへ、さがす食品の名前を送って商品の情報を受け取り、商品の画像を読みこみます。このとき、IP
+                アドレスやブラウザの種類など通信に要る情報と、このサイト（mogushiru.app）から来たことが、楽天に伝わります。入力した内容（年齢・体重・食事など）は送りません。欄のないページでは、楽天との通信はありません。
               </li>
             )}
           </ul>
@@ -304,15 +314,25 @@ export function AboutPage({ ads = ADS }: { ads?: boolean }) {
               <a href={NUTRIENTS_INDEX_PATH} className={LINK}>
                 {NUTRIENTS_INDEX_HEADING}
               </a>
-              の成分ごとのページにある「楽天市場でさがす」のリンクから、楽天市場で買い物をすると、運営者に紹介料が支払われます。
+              の成分ごとのページにある「楽天市場でさがす」の欄のリンク{products && '（食品の名前と、商品の例）'}から、楽天市場で買い物をすると、運営者に紹介料が支払われます。
             </p>
             <ul className={BULLETS}>
               <li>広告のリンクがあるページには、ページのはじめに「{AD_NOTICE}」、リンクの欄の見出しに「広告」と書いています。</li>
               <li>ランキングの順位と数値は、広告とは関係なく、食品成分表の値だけで決めています。お金をもらって順位を上げたり、載せたりしている食品はありません。</li>
               <li>リンクを出す食品は、ランキング（ふだん1回に食べる量）の上から順に選んでいます。とりすぎに気をつけたい成分（塩分・飽和脂肪酸・カフェイン）とカロリーのページには、リンクを出していません。</li>
-              <li>リンクの先は、楽天市場でその食品の名前をさがした結果です。出てくる商品を、このサイトが選んだり、すすめたりしているわけではありません。商品の成分や値段は、楽天市場の商品のページで確かめてください。</li>
+              {products ? (
+                <li>
+                  食品の名前のリンクの先は、楽天市場でその名前をさがした結果です。欄に出る商品の例（画像・名前・値段）は、同じ言葉でさがした結果を、楽天の「楽天市場商品検索
+                  API」から受け取って、上から順に出したものです。このサイトが選んだり、すすめたりしているわけではありません。値段はページを開いたときのものです。商品の成分・値段・送料・在庫は、楽天市場の商品のページで確かめてください。
+                </li>
+              ) : (
+                <li>リンクの先は、楽天市場でその食品の名前をさがした結果です。出てくる商品を、このサイトが選んだり、すすめたりしているわけではありません。商品の成分や値段は、楽天市場の商品のページで確かめてください。</li>
+              )}
               <li>
-                リンクは文字だけで、楽天の画像やプログラムは読みこんでいません。リンクを押して楽天のサイトに移ったあとの情報の扱いは、
+                {products
+                  ? '楽天のプログラム（スクリプト）は読みこんでいません。商品の情報と画像は、欄が画面に近づいたときに楽天のサーバーから読みこみます（上の「プライバシー」）。'
+                  : 'リンクは文字だけで、楽天の画像やプログラムは読みこんでいません。'}
+                リンクを押して楽天のサイトに移ったあとの情報の扱いは、
                 <Ext href={RAKUTEN_PRIVACY_URL}>楽天グループの個人情報保護方針</Ext>
                 をごらんください。
               </li>

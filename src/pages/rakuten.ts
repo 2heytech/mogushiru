@@ -1,10 +1,12 @@
 import type { RankingRow } from '../domain/ranking'
 import type { Food } from '../domain/types'
-import { RAKUTEN_AFFILIATE_ID } from '../site'
+import { RAKUTEN_ACCESS_KEY, RAKUTEN_AFFILIATE_ID, RAKUTEN_APP_ID } from '../site'
 
 // 楽天アフィリエイト：成分のページの「〜が多い食品を楽天市場でさがす」の欄（nutrientPages.tsx）。
 // - 行き先は、楽天市場の検索結果（食品の名前でさがす）。商品を1つずつ選んで載せることはしない（値段や在庫が変わっても、リンクが古くならない）
-// - 文字のリンクだけ。楽天のプログラム（ウィジェット）や画像は読みこまないので、ページを開いただけでは楽天に何も送られない
+// - もとは文字のリンク。楽天ウェブサービスのアプリ ID とアクセスキー（src/site.ts）があるときは、欄が画面に近づいたときに、
+//   食品ごとの商品の例を画像つきで出す（public/rakuten-shop.js。楽天市場商品検索 API を、見ている人のブラウザから呼ぶ）。
+//   楽天のプログラム（ウィジェット）は読みこまない。取れないとき・プログラムが動かないときは、文字のリンクのまま
 // - 出す食品は、ランキング（ふだん1回に食べる量）の上位から順に選ぶ。広告のために順位や数値を変えない
 // - アフィリエイトの ID（src/site.ts）が空・形がちがうときは、リンクも「広告」の表示も出さない
 
@@ -12,6 +14,17 @@ const ID_FORM = /^[0-9a-f]{8}(\.[0-9a-f]{8}){3}$/i
 
 // ID が使える形か（8桁の英数字を「.」で4つつないだもの）
 export const rakutenEnabled = (id: string = RAKUTEN_AFFILIATE_ID): boolean => ID_FORM.test(id)
+
+// 楽天市場商品検索 API を呼ぶのに要る値（どれもページに載る公開の値）
+export type RakutenApi = { appId: string; accessKey: string; affiliateId: string }
+
+const APP_FORM = /^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i
+const KEY_FORM = /^pk_[0-9A-Za-z_-]{10,}$/
+
+// 商品を画像つきで出せるか。アプリ ID・アクセスキー・アフィリエイトの ID が、どれも使える形のときだけ
+export function rakutenApi(appId: string = RAKUTEN_APP_ID, accessKey: string = RAKUTEN_ACCESS_KEY, affiliateId: string = RAKUTEN_AFFILIATE_ID): RakutenApi | null {
+  return APP_FORM.test(appId) && KEY_FORM.test(accessKey) && rakutenEnabled(affiliateId) ? { appId, accessKey, affiliateId } : null
+}
 
 // 楽天市場のジャンル。検索を食べ物にしぼる（名前だけでさがすと、同じ名前の食べ物でないものがまじるおそれがあるため）
 const GENRE = {
@@ -23,9 +36,13 @@ export type RakutenGenre = keyof typeof GENRE | 'all'
 
 export type RakutenSearch = { word: string; genre: RakutenGenre }
 
+// ジャンルの番号（しぼらないときは空）。検索結果のアドレスと、商品検索 API の genreId に使う
+export const rakutenGenreId = (genre: RakutenGenre): string => (genre === 'all' ? '' : GENRE[genre])
+
 // 楽天市場の検索結果のアドレス
 export function rakutenSearchUrl({ word, genre }: RakutenSearch): string {
-  return `https://search.rakuten.co.jp/search/mall/${encodeURIComponent(word)}/${genre === 'all' ? '' : `${GENRE[genre]}/`}`
+  const id = rakutenGenreId(genre)
+  return `https://search.rakuten.co.jp/search/mall/${encodeURIComponent(word)}/${id ? `${id}/` : ''}`
 }
 
 // 楽天のアドレスを、アフィリエイトのリンクにする。ID が使えなければ null
@@ -160,10 +177,17 @@ export function rakutenSearchFor(food: Pick<Food, 'id' | 'displayName' | 'group'
   return { word: entry?.word ?? plain, label: entry?.label ?? plain, genre: entry?.genre ?? groupGenre(food.group) }
 }
 
-export type ShopPick = { food: Food; label: string; href: string }
+// word・genreId：商品検索 API でさがす言葉とジャンル（リンクの先の検索結果と同じ）
+export type ShopPick = { food: Food; label: string; href: string; word: string; genreId: string }
 
 // 欄に出す食品の数
 export const SHOP_SIZE = 8
+// そのうち、はじめから商品を画像つきで出す食品の数（上から）。のこりは「ほかの食品の商品も見る」を押したときに出す
+export const SHOP_ROWS = 4
+// 商品の例を出すプログラム（public/rakuten-shop.js）。欄のあるページだけが読む
+export const RAKUTEN_SHOP_SCRIPT = '/rakuten-shop.js'
+// 楽天ウェブサービスのクレジット（API で取った商品を出すときに添える、楽天の指定の文字のリンク）
+export const RAKUTEN_CREDIT = { text: 'Supported by Rakuten Developers', href: 'https://developers.rakuten.com/' }
 
 // ランキングの上から順に、楽天市場でさがせる食品を選ぶ。同じ名前（「鶏むね肉（皮つき・焼き）」と「鶏むね肉（皮なし）」）は、上の1つだけ
 export function shopPicks(rows: RankingRow[], id: string = RAKUTEN_AFFILIATE_ID, max = SHOP_SIZE): ShopPick[] {
@@ -176,7 +200,7 @@ export function shopPicks(rows: RankingRow[], id: string = RAKUTEN_AFFILIATE_ID,
     const href = rakutenAffiliateUrl(rakutenSearchUrl(search), id)
     if (!href) return []
     seen.add(search.label).add(search.word)
-    picks.push({ food: r.food, label: search.label, href })
+    picks.push({ food: r.food, label: search.label, href, word: search.word, genreId: rakutenGenreId(search.genre) })
   }
   return picks
 }
