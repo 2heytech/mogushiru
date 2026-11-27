@@ -12,7 +12,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { RAKUTEN_AFFILIATE_ID } from '../site'
 import { AboutPage } from './aboutPage'
 import { AD_NOTICE, NutrientPage, nutrientPageData } from './nutrientPages'
-import { rakutenSearchFor, SHOP_SIZE } from './rakuten'
+import { RAKUTEN_CREDIT, RAKUTEN_SHOP_SCRIPT, rakutenApi, rakutenSearchFor, SHOP_ROWS, SHOP_SIZE, type RakutenApi } from './rakuten'
 import { buildSitePages, NOT_FOUND_PAGE, renderDocument, sitemapXml, withUpdatedDate, type SitePage } from './sitePages'
 
 // ビルドで書き出すページを、配信用のデータ（public/data）から作ってたしかめる
@@ -848,16 +848,125 @@ describe('楽天市場でさがす欄（広告。楽天アフィリエイト）'
     }
   })
 
-  it('文字のリンクだけ：楽天の画像・プログラムは読みこまない（ページを開いただけでは、楽天に何も送られない）', () => {
+  it('ページの HTML は、楽天の画像・プログラムを読みこまない（商品の例は、欄が画面に近づいたときに、このサイトの小さなプログラムが足す）', () => {
+    const api = rakutenApi()
     for (const p of withAds) {
       const out = renderDocument(TEMPLATE, p)
-      expect(out, p.path).not.toMatch(/<script src=/)
+      // 読むプログラムは、このサイトの rakuten-shop.js だけ（商品の例を出せる設定のときだけ）
+      expect(out.match(/<script src="[^"]+"[^>]*>/g) ?? [], p.path).toEqual(api ? [`<script src="${RAKUTEN_SHOP_SCRIPT}" defer>`] : [])
       expect(out, p.path).not.toMatch(/<(img|iframe|link|script)[^>]+(src|href)="https?:\/\/[^"]*rakuten/)
       expect(p.body, p.path).not.toMatch(/<img[^>]+src="https?:/)
       expect(p.body, p.path).not.toContain(' style="')
     }
-    // 読みこんでよい場所の決まり（CSP）に、楽天を足していない
-    expect(readFileSync(new URL('../../public/_headers', import.meta.url), 'utf8')).not.toContain('rakuten')
+    expect(RAKUTEN_SHOP_SCRIPT).toBe('/rakuten-shop.js')
+    expect(existsSync(new URL('../../public/rakuten-shop.js', import.meta.url))).toBe(true)
+    // 欄のないページは、設定があっても読まない
+    for (const path of NO_ADS) expect(page(path).script, path).toBeUndefined()
+  })
+
+  it('読みこんでよい場所の決まり（CSP）に足した楽天は、商品検索 API への問い合わせと、商品の画像だけ（スクリプトは足さない）', () => {
+    const csp = /^\s+Content-Security-Policy: (.*)$/m.exec(readFileSync(new URL('../../public/_headers', import.meta.url), 'utf8'))![1]
+    const rule = (name: string) => csp.split(';').map((x) => x.trim().split(/\s+/)).find((x) => x[0] === name)!.slice(1)
+    expect(rule('connect-src')).toEqual(["'self'", 'https://cloudflareinsights.com', 'https://openapi.rakuten.co.jp'])
+    expect(rule('img-src')).toEqual(["'self'", 'https://thumbnail.image.rakuten.co.jp'])
+    expect(rule('script-src')).toEqual(["'self'", 'https://static.cloudflareinsights.com'])
+    expect(rule('style-src')).toEqual(["'self'"])
+    expect(csp.match(/rakuten/g)).toHaveLength(2)
+  })
+
+  describe('商品の例を画像つきで出す（楽天市場商品検索 API。public/rakuten-shop.js）', () => {
+    // テスト用の値（架空。形だけ合わせてある）
+    const TEST_API: RakutenApi = { appId: '01234567-89ab-cdef-0123-456789abcdef', accessKey: 'pk_TESTtest0123456789', affiliateId: '0123abcd.4567ef01.89abcdef.01234567' }
+    const data = nutrientPageData('iron', catalog, prices)!
+    const on = renderToStaticMarkup(<NutrientPage data={{ ...data, shopApi: TEST_API }} />)
+    const off = renderToStaticMarkup(<NutrientPage data={{ ...data, shopApi: null }} />)
+    const attr = (tag: string, name: string) => new RegExp(` ${name}="([^"]*)"`).exec(tag)?.[1]
+
+    it('設定は、空か、使える形（アプリ ID・アクセスキー・アフィリエイトの ID がそろったときだけ出す）', () => {
+      expect(rakutenApi('', '')).toBeNull()
+      expect(rakutenApi(TEST_API.appId, TEST_API.accessKey, TEST_API.affiliateId)).toEqual(TEST_API)
+      for (const p of withAds) expect(p.script, p.path).toBe(rakutenApi() ? RAKUTEN_SHOP_SCRIPT : undefined)
+    })
+
+    it('欄に、API を呼ぶのに要る値と、はじめから商品を出す食品の数を書く', () => {
+      const section = /<section[^>]*aria-labelledby="shop"[^>]*>/.exec(on)![0]
+      expect(attr(section, 'data-shop')).toBe('')
+      expect(attr(section, 'data-app')).toBe(TEST_API.appId)
+      expect(attr(section, 'data-key')).toBe(TEST_API.accessKey)
+      expect(attr(section, 'data-aff')).toBe(TEST_API.affiliateId)
+      expect(attr(section, 'data-rows')).toBe(String(SHOP_ROWS))
+      expect(SHOP_ROWS).toBeGreaterThan(0)
+      expect(SHOP_ROWS).toBeLessThanOrEqual(SHOP_SIZE)
+    })
+
+    it('食品ごとに、さがす言葉とジャンル（文字のリンクの先の検索結果と同じ）と、商品を入れる場所がある。文字のリンクはそのまま残す', () => {
+      const foods = [...shopOf(on).matchAll(/<li[^>]*data-shop-food=""[^>]*>([\s\S]*?)<\/ul><\/li>/g)]
+      expect(foods).toHaveLength(SHOP_SIZE)
+      for (const [li, inner] of foods) {
+        const tag = /<li[^>]*>/.exec(li)![0]
+        const [link] = linksOf(inner)
+        const [, word, genre = ''] = /^https:\/\/search\.rakuten\.co\.jp\/search\/mall\/([^/]+)\/(?:(\d+)\/)?$/.exec(new URL(link.href).searchParams.get('pc')!)!
+        expect(attr(tag, 'data-word')).toBe(decodeURIComponent(word))
+        expect(attr(tag, 'data-genre')).toBe(genre)
+        expect(link.attrs).toContain('rel="sponsored nofollow noopener"')
+        // 商品を入れる場所は、はじめは空で、かくしてある
+        expect(inner).toMatch(/<ul[^>]*data-shop-items=""[^>]*hidden=""[^>]*>$|<ul[^>]*hidden=""[^>]*data-shop-items=""[^>]*>$/)
+      }
+      expect(linksOf(shopOf(on))).toHaveLength(SHOP_SIZE)
+      expect(attr(/<li[^>]*data-shop-food=""[^>]*>/.exec(on)![0], 'data-word')).toBe('あさり水煮缶')
+    })
+
+    it('商品のひな形：リンクは新しいタブでひらき、広告のリンクだと伝える。画像のアドレス・名前・値段は、プログラムが入れる', () => {
+      const template = /<template data-shop-card="">([\s\S]*?)<\/template>/.exec(on)![1]
+      const a = /<a[^>]*>/.exec(template)![0]
+      expect(a).toContain('target="_blank"')
+      expect(a).toContain('rel="sponsored nofollow noopener"')
+      expect(a).not.toContain('href=')
+      expect(/<img[^>]*>/.exec(template)![0]).not.toContain('src=')
+      for (const mark of ['data-shop-name', 'data-shop-price', 'data-shop-free', 'data-shop-review', 'data-shop-stars', 'data-shop-reviews']) expect(template, mark).toContain(`${mark}=""`)
+      expect(text(template)).toContain('（広告・新しいタブでひらく）')
+    })
+
+    it('商品を出したときだけ見せるもの（説明・楽天ウェブサービスのクレジット・「ほかの食品の商品も見る」）は、はじめはかくしてある', () => {
+      const shop = shopOf(on)
+      const marked = [...shop.matchAll(/<(?:span|p|button)[^>]*data-shop-(?:on|more)=""[^>]*>/g)].map((m) => m[0])
+      expect(marked).toHaveLength(4)
+      for (const tag of marked) expect(tag).toContain('hidden=""')
+      expect(shop).toMatch(/<button type="button" hidden="" data-shop-more=""[^>]*>ほかの食品の商品も見る<\/button>/)
+      expect(shop).toContain(`<a href="${RAKUTEN_CREDIT.href}" target="_blank" rel="noopener"`)
+      expect(text(shop)).toContain(RAKUTEN_CREDIT.text)
+      // プログラムが動かないときに見える文は、文字のリンクの説明
+      const visible = text(shop.replace(/<(span|p|button)[^>]*hidden=""[^>]*>[\s\S]*?<\/\1>/g, '').replace(/<template[\s\S]*?<\/template>/, ''))
+      expect(visible).toContain('名前を押すと、楽天市場の検索結果を新しいタブでひらきます。')
+      expect(visible).not.toContain('商品の例')
+      expect(visible).not.toContain(RAKUTEN_CREDIT.text)
+    })
+
+    it('設定がないときは、文字のリンクだけ（プログラムのための印・ひな形・ボタン・クレジットを出さない）', () => {
+      expect(linksOf(shopOf(off))).toHaveLength(SHOP_SIZE)
+      expect(off).not.toContain('data-shop')
+      expect(off).not.toContain('<template')
+      expect(off).not.toContain('<button')
+      expect(off).not.toContain(RAKUTEN_CREDIT.text)
+      expect(off).not.toContain('pk_')
+      expect(text(shopOf(off))).toContain('名前を押すと、楽天市場の検索結果を新しいタブでひらきます。')
+    })
+
+    it('プログラムがさがす印（data-shop-…）は、どれもページに書いてある', () => {
+      const script = readFileSync(new URL('../../public/rakuten-shop.js', import.meta.url), 'utf8')
+      const marks = new Set([...script.matchAll(/\[(data-shop[a-z-]*)\]/g)].map((m) => m[1]))
+      expect(marks.size).toBeGreaterThanOrEqual(10)
+      for (const mark of marks) expect(on, mark).toContain(` ${mark}="`)
+      for (const name of ['data-app', 'data-key', 'data-aff', 'data-rows', 'data-word', 'data-genre']) {
+        expect(script, name).toContain(`getAttribute('${name}')`)
+        expect(on, name).toContain(` ${name}="`)
+      }
+      // プログラムが食品に付ける印（行にする・読みこみ中・商品あり）は、見た目のクラスが見ている
+      expect(script).toContain("setAttribute('data-shop-row', 'wait')")
+      expect(script).toContain("setAttribute('data-shop-row', 'on')")
+      expect(on).toContain('data-[shop-row]:col-span-full')
+      expect(on).toContain('group-data-[shop-row=wait]/food:animate-pulse')
+    })
   })
 
   it('ID が空のとき（欄に出す食品がないとき）は、欄も「広告」の表示も出さない', () => {
@@ -871,7 +980,7 @@ describe('楽天市場でさがす欄（広告。楽天アフィリエイト）'
     expect(body).toContain('id="list-serving"')
   })
 
-  it('「このサイトについて」に、広告の説明がある：楽天アフィリエイトに参加していること・順位は広告と関係なく決めていること・楽天に情報が送られるのはリンクを押したときだけ', () => {
+  it('「このサイトについて」に、広告の説明がある：楽天アフィリエイトに参加していること・順位は広告と関係なく決めていること・楽天に情報が送られるとき', () => {
     const about = page('/about/').body
     const start = about.indexOf('<section aria-labelledby="about-ads"')
     expect(start).toBeGreaterThan(-1)
@@ -882,8 +991,22 @@ describe('楽天市場でさがす欄（広告。楽天アフィリエイト）'
     expect(ads).toContain(`ページのはじめに「${AD_NOTICE}」、リンクの欄の見出しに「広告」と書いています。`)
     expect(ads).toContain('とりすぎに気をつけたい成分（塩分・飽和脂肪酸・カフェイン）とカロリーのページには、リンクを出していません。')
     expect(about).toMatch(/<a href="https:\/\/privacy\.rakuten\.co\.jp\/" target="_blank" rel="noopener noreferrer"[^>]*>楽天グループの個人情報保護方針<\/a>/)
-    expect(text(about)).toContain('リンクを押さないかぎり、このサイトを開いただけで楽天に情報が送られることはありません。')
     expect(page('/about/').description).toContain('広告')
+    // 商品の例を出していないとき：楽天に情報が送られるのは、リンクを押したときだけ
+    const linksOnly = text(renderToStaticMarkup(<AboutPage ads products={false} />))
+    expect(linksOnly).toContain('リンクを押さないかぎり、このサイトを開いただけで楽天に情報が送られることはありません。')
+    expect(linksOnly).toContain('リンクは文字だけで、楽天の画像やプログラムは読みこんでいません。')
+    expect(linksOnly).not.toContain('商品の例')
+    // 商品の例を出しているとき：欄が画面に近づくと、楽天のサーバーから商品の情報と画像を読みこむことを書く
+    const withProducts = text(renderToStaticMarkup(<AboutPage ads products />))
+    expect(withProducts).not.toContain('リンクを押さないかぎり')
+    expect(withProducts).not.toContain('楽天の画像やプログラムは読みこんでいません')
+    expect(withProducts).toContain('その欄が画面に近づいたときに、お使いのブラウザから楽天のサーバーへ、さがす食品の名前を送って商品の情報を受け取り、商品の画像を読みこみます。')
+    expect(withProducts).toContain('入力した内容（年齢・体重・食事など）は送りません。')
+    expect(withProducts).toContain('楽天のプログラム（スクリプト）は読みこんでいません。')
+    expect(withProducts).toContain('このサイトが選んだり、すすめたりしているわけではありません。値段はページを開いたときのものです。')
+    // 本番のページは、いまの設定のほう
+    expect(text(about)).toContain(rakutenApi() ? '商品の画像を読みこみます。' : 'リンクを押さないかぎり、このサイトを開いただけで楽天に情報が送られることはありません。')
   })
 
   it('広告を出していないときは、「このサイトについて」に広告の欄を出さない', () => {
@@ -1042,8 +1165,11 @@ describe('定番の食品のページ（/foods/natto/ など）', () => {
     expect(out.match(/<script src="[^"]+"[^>]*>/g)).toEqual(['<script src="/back-reload.js" defer>'])
     expect(existsSync(new URL('../../public/back-reload.js', import.meta.url))).toBe(true)
     // 料理の一覧だけは、検索・しぼりこみの小さなプログラムを読む
-    for (const p of pages.filter((x) => x.kind === 'static')) expect(p.script, p.path).toBe(foodIdFromPath(p.path) ? '/back-reload.js' : p.path === '/dishes/' ? '/dish-index.js' : undefined)
-    expect(renderDocument(TEMPLATE, page('/nutrients/iron/'))).not.toMatch(/<script src=/)
+    // 成分のページのうち、楽天市場の商品の例を出すページは、そのための小さなプログラムを読む（設定があるときだけ。くわしくは「楽天市場でさがす欄」のテスト）
+    const shop = (p: SitePage) => (rakutenApi() && p.body.includes('id="shop"') ? RAKUTEN_SHOP_SCRIPT : undefined)
+    for (const p of pages.filter((x) => x.kind === 'static')) expect(p.script, p.path).toBe(foodIdFromPath(p.path) ? '/back-reload.js' : p.path === '/dishes/' ? '/dish-index.js' : shop(p))
+    expect(renderDocument(TEMPLATE, page('/nutrients/salt/'))).not.toMatch(/<script src=/)
+    expect(renderDocument(TEMPLATE, page('/menus/'))).not.toMatch(/<script src=/)
   })
 })
 

@@ -55,6 +55,7 @@ import {
   type NutrientPageData,
 } from './nutrientPages'
 import type { OgCard } from './ogCard'
+import { RAKUTEN_SHOP_SCRIPT } from './rakuten'
 import { AppFallback, NotFoundPage, type Crumb } from './StaticLayout'
 
 // ビルドのあと（scripts/prerender.tsx）に書き出すページの一覧と、その HTML の作り方。
@@ -192,6 +193,8 @@ export function buildSitePages({ catalog, prices }: { catalog: Catalog; prices: 
       description: nutrientPageDescription(d),
       kind: 'static' as const,
       body: html(<NutrientPage data={d} />),
+      // 商品を画像つきで出すページだけ、そのためのプログラムを読む（public/rakuten-shop.js）
+      script: d.shop.length > 0 && d.shopApi ? RAKUTEN_SHOP_SCRIPT : undefined,
       crumbs: [{ name: SITE_NAME, path: '/' }, { name: NUTRIENTS_INDEX_HEADING, path: NUTRIENTS_INDEX_PATH }, { name: NUTRIENT_COPY[d.key]!.name }],
       og: og(`nutrients-${NUTRIENT_SLUG[d.key]}`, nutrientOgCard(d)),
     })),

@@ -2,8 +2,8 @@ import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import type { RankingRow } from '../domain/ranking'
 import type { Food } from '../domain/types'
-import { RAKUTEN_AFFILIATE_ID } from '../site'
-import { RAKUTEN_SEARCH_IDS, rakutenAffiliateUrl, rakutenEnabled, rakutenSearchFor, rakutenSearchUrl, SHOP_SIZE, shopPicks } from './rakuten'
+import { RAKUTEN_ACCESS_KEY, RAKUTEN_AFFILIATE_ID, RAKUTEN_APP_ID } from '../site'
+import { RAKUTEN_SEARCH_IDS, rakutenAffiliateUrl, rakutenApi, rakutenEnabled, rakutenGenreId, rakutenSearchFor, rakutenSearchUrl, SHOP_SIZE, shopPicks } from './rakuten'
 
 // テスト用の ID（架空の値。形だけ合わせてある）
 const TEST_ID = '0123abcd.4567ef01.89abcdef.01234567'
@@ -13,6 +13,38 @@ const food = (id: string) => foods.find((f) => f.id === id)!
 const row = (id: string): RankingRow => ({ food: food(id), value: 1, serving: { grams: 100, label: '1回' }, servingAmount: 1 }) as RankingRow
 
 describe('楽天アフィリエイトのリンク', () => {
+  it('商品を画像つきで出す設定（楽天ウェブサービスのアプリ ID・アクセスキー）は、空か、使える形。3つそろったときだけ使う', () => {
+    // テスト用の値（架空。形だけ合わせてある）
+    const app = '01234567-89ab-cdef-0123-456789abcdef'
+    const key = 'pk_TESTtest0123456789'
+    expect(rakutenApi(app, key, TEST_ID)).toEqual({ appId: app, accessKey: key, affiliateId: TEST_ID })
+    for (const [a, k, id] of [
+      ['', key, TEST_ID],
+      [app, '', TEST_ID],
+      [app, key, ''],
+      ['01234567-89ab-cdef-0123-456789abcde', key, TEST_ID],
+      [`${app}&x=1`, key, TEST_ID],
+      [app, 'sk_TESTtest0123456789', TEST_ID],
+      [app, 'pk_short', TEST_ID],
+      [app, `${key}"><script>`, TEST_ID],
+      [app, key, 'abc'],
+    ])
+      expect(rakutenApi(a, k, id), `${a} ${k} ${id}`).toBeNull()
+    // リポジトリに入れてある値：両方とも空（文字のリンクだけ）か、両方とも使える形
+    expect([RAKUTEN_APP_ID, RAKUTEN_ACCESS_KEY].filter(Boolean).length === 0 || rakutenApi() !== null).toBe(true)
+  })
+
+  it('商品検索 API でさがす言葉とジャンルは、文字のリンクの先（楽天市場の検索結果）と同じ', () => {
+    expect([rakutenGenreId('food'), rakutenGenreId('drink'), rakutenGenreId('all')]).toEqual(['100227', '100316', ''])
+    const picks = shopPicks([row('14001'), row('13003'), row('15168')], TEST_ID)
+    expect(picks.map((p) => [p.label, p.word, p.genreId])).toEqual([
+      ['オリーブ油', 'オリーブオイル', '100227'],
+      ['牛乳', '牛乳', '100316'],
+      ['あんパン', 'あんぱん', ''],
+    ])
+    for (const p of picks) expect(new URL(p.href).searchParams.get('pc')).toBe(rakutenSearchUrl({ word: p.word, genre: p.genreId === '100227' ? 'food' : p.genreId === '100316' ? 'drink' : 'all' }))
+  })
+
   it('ID は、空か、8桁の英数字を「.」で4つつないだ形', () => {
     expect(RAKUTEN_AFFILIATE_ID === '' || rakutenEnabled(RAKUTEN_AFFILIATE_ID)).toBe(true)
     expect(rakutenEnabled(TEST_ID)).toBe(true)
