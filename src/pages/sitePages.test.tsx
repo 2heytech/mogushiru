@@ -8,7 +8,11 @@ import type { Dish, Food, Product } from '../domain/types'
 import { FOOD_PAGE_IDS, foodIdFromPath, foodPagePath } from '../routes'
 import { CUISINE_DISH_IDS } from './dishCuisine'
 import { INDEX_FILTERS } from './dishPages'
-import { nutrientPageData } from './nutrientPages'
+import { renderToStaticMarkup } from 'react-dom/server'
+import { RAKUTEN_AFFILIATE_ID } from '../site'
+import { AboutPage } from './aboutPage'
+import { AD_NOTICE, NutrientPage, nutrientPageData } from './nutrientPages'
+import { rakutenSearchFor, SHOP_SIZE } from './rakuten'
 import { buildSitePages, NOT_FOUND_PAGE, renderDocument, sitemapXml, withUpdatedDate, type SitePage } from './sitePages'
 
 // ビルドで書き出すページを、配信用のデータ（public/data）から作ってたしかめる
@@ -704,7 +708,7 @@ describe('このサイトについて（/about/）', () => {
     expect(out).not.toContain('type="module"')
     expect(out).not.toContain('読み込み中')
     expect([...about.body.matchAll(/<h1[^>]*>(.*?)<\/h1>/g)].map((m) => m[1])).toEqual(['このサイトについて'])
-    expect([...main.matchAll(/<h2[^>]*>(.*?)<\/h2>/g)].map((m) => m[1])).toEqual(['モグシルとは', '運営者', '数値の確かめ方', '使うときの注意', 'プライバシー', '出典とライセンス', 'お問い合わせ'])
+    expect([...main.matchAll(/<h2[^>]*>(.*?)<\/h2>/g)].map((m) => m[1])).toEqual(['モグシルとは', '運営者', '数値の確かめ方', '使うときの注意', 'プライバシー', '広告', '出典とライセンス', 'お問い合わせ'])
     expect(sitemapXml(pages)).toContain('<loc>https://mogushiru.app/about/</loc>')
   })
 
@@ -727,13 +731,166 @@ describe('このサイトについて（/about/）', () => {
   it('上の目次から、ページの中の見出しへ行ける', () => {
     const ids = [...main.matchAll(/<h2 id="([^"]+)"/g)].map((m) => m[1])
     const jumps = [...main.matchAll(/<a href="#([^"]+)"/g)].map((m) => m[1])
-    expect(ids).toHaveLength(7)
+    expect(ids).toHaveLength(8)
     for (const id of ids) expect(jumps, id).toContain(id)
     for (const id of jumps) expect(ids, id).toContain(id)
   })
 
   it('どのページのフッターからも、ふつうのリンクで行ける（アプリの画面からも）', () => {
     for (const p of pages.filter((x) => x.kind === 'static')) expect(p.body, p.path).toMatch(/<footer[\s\S]*<a href="\/about\/"[^>]*>このサイトについて/)
+  })
+})
+
+describe('楽天市場でさがす欄（広告。楽天アフィリエイト）', () => {
+  const nutrientPages = pages.filter((p) => /^\/nutrients\/[a-z0-9-]+\/$/.test(p.path))
+  // とりすぎに気をつけたい成分（塩分・飽和脂肪酸・カフェイン）と、カロリー
+  const NO_ADS = ['/nutrients/salt/', '/nutrients/saturated-fat/', '/nutrients/caffeine/', '/nutrients/calories/']
+  const withAds = nutrientPages.filter((p) => !NO_ADS.includes(p.path))
+  const shopOf = (body: string) => {
+    const start = body.indexOf('<section aria-labelledby="shop"')
+    return start < 0 ? '' : body.slice(start, body.indexOf('</section>', start))
+  }
+  const linksOf = (html: string) => [...html.matchAll(/<a href="(https:\/\/hb\.afl\.rakuten\.co\.jp\/[^"]+)"([^>]*)>/g)].map((m) => ({ href: m[1].replace(/&amp;/g, '&'), attrs: m[2] }))
+  const text = (html: string) => html.replace(/<[^>]+>/g, '')
+
+  it('アフィリエイトの ID が入っている（空にすると、欄も「広告」の表示も出なくなる）', () => {
+    expect(RAKUTEN_AFFILIATE_ID).toMatch(/^[0-9a-f]{8}(\.[0-9a-f]{8}){3}$/)
+  })
+
+  it(`とりたい成分の22ページに、ランキングの上位の食品を楽天市場でさがすリンクが${SHOP_SIZE}つずつある`, () => {
+    expect(withAds).toHaveLength(22)
+    for (const p of withAds) {
+      const shop = shopOf(p.body)
+      expect(shop, p.path).toContain('食品を</span><span class="inline-block">楽天市場でさがす</span>')
+      expect(linksOf(shop), p.path).toHaveLength(SHOP_SIZE)
+      // ページの中の楽天へのリンクは、この欄のものだけ
+      expect(linksOf(p.body), p.path).toHaveLength(SHOP_SIZE)
+    }
+    expect(text(shopOf(page('/nutrients/iron/').body))).toContain('鉄分が多い食品を楽天市場でさがす')
+  })
+
+  it('リンクは、楽天市場の検索結果へのアフィリエイトのリンク。新しいタブでひらき、検索エンジンに広告のリンクだと伝える', () => {
+    for (const p of withAds) {
+      for (const { href, attrs } of linksOf(shopOf(p.body))) {
+        expect(href.startsWith(`https://hb.afl.rakuten.co.jp/hgc/${RAKUTEN_AFFILIATE_ID}/?pc=`), href).toBe(true)
+        const url = new URL(href)
+        expect([...url.searchParams.keys()], href).toEqual(['pc', 'link_type'])
+        expect(url.searchParams.get('link_type')).toBe('text')
+        // 行き先は、楽天市場の検索結果（食べ物・飲み物のジャンル、またはジャンルなし）
+        expect(url.searchParams.get('pc'), href).toMatch(/^https:\/\/search\.rakuten\.co\.jp\/search\/mall\/[^/?#]+\/((100227|100316)\/)?$/)
+        expect(attrs, href).toContain('target="_blank"')
+        expect(attrs, href).toContain('rel="sponsored nofollow noopener"')
+        expect(attrs, href).toMatch(/aria-label="[^"]+を楽天市場でさがす（広告・新しいタブでひらく）"/)
+      }
+    }
+    // 鉄分のページの1つめは、あさり水煮缶
+    const first = new URL(linksOf(shopOf(page('/nutrients/iron/').body))[0].href).searchParams.get('pc')!
+    expect(decodeURIComponent(first)).toBe('https://search.rakuten.co.jp/search/mall/あさり水煮缶/100227/')
+  })
+
+  it('出す食品は、1回の量の一覧の上から順。売られていない食品（大根の葉）はとばし、同じ名前は1つだけ', () => {
+    for (const key of NUTRIENT_GROUPS.flatMap((g) => g.keys)) {
+      const data = nutrientPageData(key, catalog, prices)!
+      const serving = data.lists.find((l) => l.metric === 'serving')!.rows
+      const expected: string[] = []
+      for (const r of serving) {
+        const search = rakutenSearchFor(r.food)
+        if (search && !expected.includes(search.label)) expected.push(search.label)
+      }
+      const labels = data.shop.map((s) => s.label)
+      expect(new Set(labels).size, key).toBe(labels.length)
+      if (data.shop.length > 0) expect(labels, key).toEqual(expected.slice(0, SHOP_SIZE))
+    }
+    const calcium = nutrientPageData('calcium', catalog, prices)!
+    expect(calcium.lists.find((l) => l.metric === 'serving')!.rows.some((r) => r.food.displayName === '大根の葉')).toBe(true)
+    expect(calcium.shop.map((s) => s.label)).not.toContain('大根の葉')
+    expect(nutrientPageData('protein', catalog, prices)!.shop.map((s) => s.label).slice(0, 2)).toEqual(['鶏むね肉', '鶏ささみ'])
+  })
+
+  it('欄は、1回の量の一覧（と種類べつ）のすぐあと。目次からも行ける', () => {
+    for (const p of withAds) {
+      const at = (id: string) => p.body.indexOf(`id="${id}"`)
+      expect(at('list-serving'), p.path).toBeLessThan(at('shop'))
+      if (at('by-group') >= 0) expect(at('by-group'), p.path).toBeLessThan(at('shop'))
+      expect(at('shop'), p.path).toBeLessThan(at('list-per100g'))
+      expect(p.body, p.path).toContain('<a href="#shop"')
+    }
+    // 1回の量の一覧が最初のページでは、1日の目安の表の前
+    const iron = page('/nutrients/iron/').body
+    expect(iron.indexOf('id="shop"')).toBeLessThan(iron.indexOf('id="reference"'))
+  })
+
+  it('広告のリンクがあるページは、はじめ（見出しのすぐ下）に「このページには広告のリンクを含みます。」、欄の見出しと目次に「広告」と書く', () => {
+    for (const p of withAds) {
+      const notice = p.body.indexOf(AD_NOTICE)
+      expect(notice, p.path).toBeGreaterThan(p.body.indexOf('</h1>'))
+      expect(notice, p.path).toBeLessThan(p.body.indexOf('aria-label="このページの内容"'))
+      const shop = shopOf(p.body)
+      expect(shop.slice(0, shop.indexOf('</h2>')), p.path).toContain('>広告</span>')
+      expect(text(shop), p.path).toContain('楽天アフィリエイトのリンクです。リンクから楽天市場で買い物をすると、モグシルの運営者に紹介料が入ります。')
+      expect(shop, p.path).toContain('<a href="/about/#about-ads"')
+      expect(p.body, p.path).toMatch(/<a href="#shop"[^>]*>楽天市場でさがす<span[^>]*>広告<\/span><\/a>/)
+    }
+  })
+
+  it('とりすぎに気をつけたい成分とカロリーのページには出さない。成分のページのほかにも、楽天のリンクはない', () => {
+    for (const path of NO_ADS) {
+      const body = page(path).body
+      expect(body, path).not.toContain('rakuten')
+      expect(body, path).not.toContain('id="shop"')
+      expect(body, path).not.toContain(AD_NOTICE)
+    }
+    for (const p of pages) {
+      if (withAds.includes(p)) continue
+      expect(p.body, p.path).not.toContain('hb.afl.rakuten.co.jp')
+      // 「このサイトについて」は、この知らせの言葉を説明の中で引いている
+      if (p.path !== '/about/') expect(p.body, p.path).not.toContain(AD_NOTICE)
+    }
+  })
+
+  it('文字のリンクだけ：楽天の画像・プログラムは読みこまない（ページを開いただけでは、楽天に何も送られない）', () => {
+    for (const p of withAds) {
+      const out = renderDocument(TEMPLATE, p)
+      expect(out, p.path).not.toMatch(/<script src=/)
+      expect(out, p.path).not.toMatch(/<(img|iframe|link|script)[^>]+(src|href)="https?:\/\/[^"]*rakuten/)
+      expect(p.body, p.path).not.toMatch(/<img[^>]+src="https?:/)
+      expect(p.body, p.path).not.toContain(' style="')
+    }
+    // 読みこんでよい場所の決まり（CSP）に、楽天を足していない
+    expect(readFileSync(new URL('../../public/_headers', import.meta.url), 'utf8')).not.toContain('rakuten')
+  })
+
+  it('ID が空のとき（欄に出す食品がないとき）は、欄も「広告」の表示も出さない', () => {
+    const data = nutrientPageData('iron', catalog, prices)!
+    const body = renderToStaticMarkup(<NutrientPage data={{ ...data, shop: [] }} />)
+    expect(body).not.toContain('rakuten')
+    expect(body).not.toContain('id="shop"')
+    expect(body).not.toContain('href="#shop"')
+    expect(body).not.toContain(AD_NOTICE)
+    expect(body).not.toContain('>広告<')
+    expect(body).toContain('id="list-serving"')
+  })
+
+  it('「このサイトについて」に、広告の説明がある：楽天アフィリエイトに参加していること・順位は広告と関係なく決めていること・楽天に情報が送られるのはリンクを押したときだけ', () => {
+    const about = page('/about/').body
+    const start = about.indexOf('<section aria-labelledby="about-ads"')
+    expect(start).toBeGreaterThan(-1)
+    const ads = text(about.slice(start, about.indexOf('</section>', start)))
+    expect(ads).toContain('楽天グループ株式会社の「楽天アフィリエイト」に参加しています。')
+    expect(ads).toContain('運営者に紹介料が支払われます。')
+    expect(ads).toContain('ランキングの順位と数値は、広告とは関係なく、食品成分表の値だけで決めています。')
+    expect(ads).toContain(`ページのはじめに「${AD_NOTICE}」、リンクの欄の見出しに「広告」と書いています。`)
+    expect(ads).toContain('とりすぎに気をつけたい成分（塩分・飽和脂肪酸・カフェイン）とカロリーのページには、リンクを出していません。')
+    expect(about).toMatch(/<a href="https:\/\/privacy\.rakuten\.co\.jp\/" target="_blank" rel="noopener noreferrer"[^>]*>楽天グループの個人情報保護方針<\/a>/)
+    expect(text(about)).toContain('リンクを押さないかぎり、このサイトを開いただけで楽天に情報が送られることはありません。')
+    expect(page('/about/').description).toContain('広告')
+  })
+
+  it('広告を出していないときは、「このサイトについて」に広告の欄を出さない', () => {
+    const body = renderToStaticMarkup(<AboutPage ads={false} />)
+    expect(body).not.toContain('about-ads')
+    expect(body).not.toContain('楽天')
+    expect(body).toContain('id="about-privacy"')
   })
 })
 

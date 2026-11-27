@@ -21,6 +21,7 @@ import { foodPagePath, nutrientPagePath, NUTRIENTS_INDEX_PATH, rankingAppPath, S
 import type { DishPageData } from './dishPages'
 import { NUTRIENT_COPY, type NutrientCopy } from './nutrientCopy'
 import type { OgCard } from './ogCard'
+import { shopPicks, type ShopPick } from './rakuten'
 import { barWidth, BUTTON, BUTTON_SUB, CALC_LABEL, CARD, LINK, StaticLayout } from './StaticLayout'
 
 // 成分ごとのランキングのページ（/nutrients/<slug>/）と、その一覧（/nutrients/）。
@@ -66,6 +67,8 @@ export type NutrientPageData = {
   // この成分が多い料理（作り方のページがある料理。量は1人前）
   dishes: { id: string; name: string; path: string; category: string; amount: number }[]
   dishTotal: number
+  // 楽天市場でさがすリンク（広告）を出す食品。1回の量の一覧の上から順（rakuten.ts）。とりたい成分のページだけ
+  shop: ShopPick[]
 }
 
 // いちばん上に出す一覧。たんぱく質は「安くとれる食品」をさがす人が多いので、100円あたりを先に出す。ほかの成分は1回の量から
@@ -143,6 +146,8 @@ export function nutrientPageData(key: NutrientKey, catalog: Pick<Catalog, 'foods
     groups: groupLists(serving),
     dishes: dishList(key, dishPages),
     dishTotal: dishPages.length,
+    // 「塩分が多い食品を買う」とすすめることになるので、とりすぎに気をつけたい成分とカロリーのページには出さない
+    shop: wanted ? shopPicks(serving) : [],
   }
 }
 
@@ -538,6 +543,63 @@ function DishList({ data }: { data: NutrientPageData }) {
   )
 }
 
+// 「広告」の印。広告のリンクがある欄の見出しに付ける
+function AdMark() {
+  return <span className="rounded-full border border-ink-soft/60 px-2 py-0.5 text-2xs leading-none font-normal text-ink-soft">広告</span>
+}
+
+// ページのはじめに出す、広告があることの知らせ（広告のリンクがあるページだけ）
+export const AD_NOTICE = 'このページには広告のリンクを含みます。'
+// 目次での呼び名
+const SHOP_LABEL = '楽天市場でさがす'
+
+// ランキングの上位の食品を、楽天市場でさがすリンク（楽天アフィリエイト。rakuten.ts）。
+// 文字のリンクだけで、楽天のプログラムや画像は読みこまない。新しいタブでひらき、検索エンジンには広告のリンクだと伝える（rel="sponsored nofollow"）
+function ShopLinks({ data }: { data: NutrientPageData }) {
+  const { copy } = data
+  return (
+    <section aria-labelledby="shop" className={`${CARD} scroll-mt-4`}>
+      <h2 id="shop" className="flex flex-wrap items-center gap-x-2 gap-y-1 text-lg font-bold">
+        {/* スマホで言葉の途中で折り返さないよう、「〜が多い食品を」「楽天市場でさがす」のまとまりで折り返す */}
+        <span>
+          <span className="inline-block">{copy.rich}食品を</span>
+          <span className="inline-block">楽天市場でさがす</span>
+        </span>
+        <AdMark />
+      </h2>
+      <p className="mt-1 text-xs leading-relaxed text-ink-soft">
+        ふだん1回に食べる量で{copy.rich}食品を、ランキングの上から順に{data.shop.length}つ選びました。名前を押すと、楽天市場の検索結果を新しいタブでひらきます。
+      </p>
+      <ul className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+        {data.shop.map((s) => (
+          <li key={s.food.id}>
+            <a
+              href={s.href}
+              target="_blank"
+              rel="sponsored nofollow noopener"
+              aria-label={`${s.label}を楽天市場でさがす（広告・新しいタブでひらく）`}
+              className="flex h-full min-h-12 items-center gap-2 rounded-2xl bg-cream px-3 py-2 text-sm leading-snug font-bold hover:bg-coral/20"
+            >
+              {/* スマホは名前の幅をとるために、絵を出さない（ランキングの行と同じ） */}
+              <img src={foodImage(s.food)} alt="" width={32} height={32} loading="lazy" className="hidden h-8 w-8 shrink-0 sm:block" />
+              <span className="min-w-0 flex-1 text-balance">{s.label}</span>
+              <span aria-hidden className="shrink-0 text-coral-ink">
+                ↗
+              </span>
+            </a>
+          </li>
+        ))}
+      </ul>
+      <p className="mt-3 text-xs leading-relaxed text-ink-soft">
+        楽天アフィリエイトのリンクです。リンクから楽天市場で買い物をすると、モグシルの運営者に紹介料が入ります。ランキングの順位と数値は、広告とは関係なく、食品成分表の値で決めています。楽天市場に出てくる商品の成分は、このページの値と同じとはかぎりません。
+        <a href="/about/#about-ads" className={LINK}>
+          広告について
+        </a>
+      </p>
+    </section>
+  )
+}
+
 // 見出しを言葉のまとまりに分ける（「ビタミンCが多い」「食べ物・食品」「ランキング」）
 function headingParts(copy: NutrientCopy): string[] {
   const tail = 'ランキング'
@@ -555,6 +617,8 @@ export function NutrientPage({ data }: { data: NutrientPageData }) {
   data.lists.forEach((l, i) => {
     sections.push({ id: `list-${l.metric}`, label: METRIC_SHORT[l.metric], node: <RankingList data={data} metric={l.metric} rows={l.rows} /> })
     if (l.metric === 'serving' && data.groups.length > 0) sections.push({ id: 'by-group', label: '種類べつ', node: <GroupLists data={data} /> })
+    // 楽天市場でさがす欄（広告）は、食品を選ぶもとの「1回の量」の一覧（と種類べつ）のすぐあとに置く
+    if (l.metric === 'serving' && data.shop.length > 0) sections.push({ id: 'shop', label: SHOP_LABEL, node: <ShopLinks data={data} /> })
     if (i === 0) sections.push({ id: 'reference', label: key === 'caffeine' ? '1日の上限の目安' : '1日の目安', node: <ReferenceTable data={data} /> })
   })
   if (data.dishes.length > 0) sections.push({ id: 'dishes', label: '料理', node: <DishList data={data} /> })
@@ -570,6 +634,8 @@ export function NutrientPage({ data }: { data: NutrientPageData }) {
               </span>
             ))}
           </h1>
+          {/* 広告のリンクがあるページは、開いてすぐ見えるところに、そのことを書く（ステルスマーケティングの規制） */}
+          {data.shop.length > 0 && <p className="mt-1 text-xs text-ink-soft">{AD_NOTICE}</p>}
           <p className="mt-2 text-sm leading-relaxed">
             {copy.about}
             よく使う食品 {data.familiarCount.toLocaleString()} 品から、{copy.rich}
@@ -599,8 +665,9 @@ export function NutrientPage({ data }: { data: NutrientPageData }) {
             <ul className="flex flex-wrap gap-1.5">
               {sections.map((x) => (
                 <li key={x.id}>
-                  <a href={`#${x.id}`} className="inline-flex min-h-9 items-center rounded-full bg-white px-3 text-sm shadow-sm hover:bg-cream">
+                  <a href={`#${x.id}`} className="inline-flex min-h-9 items-center gap-1.5 rounded-full bg-white px-3 text-sm shadow-sm hover:bg-cream">
                     {x.label}
+                    {x.id === 'shop' && <AdMark />}
                   </a>
                 </li>
               ))}

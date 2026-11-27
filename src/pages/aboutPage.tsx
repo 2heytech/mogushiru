@@ -1,16 +1,20 @@
 import type { ReactNode } from 'react'
 import { OperatorLink } from '../components/OperatorLink'
-import { DISHES_INDEX_PATH, SITE_NAME, SITE_NAME_KANA, VIEW_PATH } from '../routes'
+import { DISHES_INDEX_PATH, NUTRIENTS_INDEX_PATH, SITE_NAME, SITE_NAME_KANA, VIEW_PATH } from '../routes'
 import { CONTACT_FORM_URL, OPERATOR_NAME, REPOSITORY_URL } from '../site'
+import { AD_NOTICE, NUTRIENTS_INDEX_HEADING } from './nutrientPages'
 import type { OgCard } from './ogCard'
+import { rakutenEnabled } from './rakuten'
 import { LINK, StaticLayout } from './StaticLayout'
 
-// 「このサイトについて」（/about/）。運営者・数値の確かめ方・使うときの注意・プライバシー・出典とライセンス・問い合わせ先を1まいにまとめる。
+// 「このサイトについて」（/about/）。運営者・数値の確かめ方・使うときの注意・プライバシー・広告・出典とライセンス・問い合わせ先を1まいにまとめる。
 // だれが作り、数値をどう確かめているかを、プログラムを動かさなくても読めるように、読みもののページにしてある（以前はアプリの画面）
 
 export const ABOUT_HEADING = 'このサイトについて'
 export const ABOUT_TITLE = `${ABOUT_HEADING}｜${SITE_NAME}`
-export const ABOUT_DESCRIPTION = `${SITE_NAME}の運営者、数値の確かめ方、使うときの注意、プライバシー、データの出典とライセンス、お問い合わせ先。`
+// 広告（楽天アフィリエイト）を出しているか。出していないときは、「広告」の欄ごと出さない
+const ADS = rakutenEnabled()
+export const ABOUT_DESCRIPTION = `${SITE_NAME}の運営者、数値の確かめ方、使うときの注意、プライバシー、${ADS ? '広告、' : ''}データの出典とライセンス、お問い合わせ先。`
 
 export const ABOUT_OG: { card: OgCard; alt: string } = {
   card: {
@@ -52,10 +56,14 @@ const PARTS = [
   { id: 'about-check', title: '数値の確かめ方' },
   { id: 'about-caution', title: '使うときの注意' },
   { id: 'about-privacy', title: 'プライバシー' },
+  { id: 'about-ads', title: '広告' },
   { id: 'about-sources', title: '出典とライセンス' },
   { id: 'about-contact', title: 'お問い合わせ' },
 ] as const
-const titleOf = (id: (typeof PARTS)[number]['id']) => PARTS.find((p) => p.id === id)!.title
+type PartId = (typeof PARTS)[number]['id']
+const titleOf = (id: PartId) => PARTS.find((p) => p.id === id)!.title
+// 楽天グループの、個人情報の扱いの説明
+const RAKUTEN_PRIVACY_URL = 'https://privacy.rakuten.co.jp/'
 
 // 出典。政府のデータは利用規約にそって「加工して作成」を出典とは別に書く
 const SOURCES: { name: ReactNode; note: ReactNode }[] = [
@@ -149,7 +157,9 @@ const SOURCES: { name: ReactNode; note: ReactNode }[] = [
   },
 ]
 
-export function AboutPage() {
+// ads：広告（楽天アフィリエイト）を出しているか。出していないときは、「広告」の欄と、プライバシーの楽天の行を出さない
+export function AboutPage({ ads = ADS }: { ads?: boolean }) {
+  const parts = PARTS.filter((p) => ads || p.id !== 'about-ads')
   return (
     <StaticLayout crumbs={[{ name: SITE_NAME, path: '/' }, { name: ABOUT_HEADING }]}>
       <div className="space-y-4">
@@ -157,7 +167,7 @@ export function AboutPage() {
           <h1 className="text-2xl font-bold">{ABOUT_HEADING}</h1>
           <nav aria-label="このページの中身">
             <ul className="flex flex-wrap gap-x-4 text-sm">
-              {PARTS.map((p) => (
+              {parts.map((p) => (
                 <li key={p.id}>
                   <a href={`#${p.id}`} className={`${LINK} inline-flex min-h-11 items-center`}>
                     {p.title}
@@ -275,8 +285,40 @@ export function AboutPage() {
               にそって扱われます。
             </li>
             <li>お問い合わせは Google フォームで受け付けます。送っていただいた内容は Google のサービスに保存され、運営者だけが読みます。メールアドレスは返信のためだけに使います。</li>
+            {ads && (
+              <li>
+                楽天市場へのリンク（
+                <a href="#about-ads" className={LINK}>
+                  広告
+                </a>
+                ）を押すと、楽天のサイトに移ります。そのとき、楽天が Cookie などを使って、どのサイトからの紹介かを記録します。リンクを押さないかぎり、このサイトを開いただけで楽天に情報が送られることはありません。
+              </li>
+            )}
           </ul>
         </Section>
+
+        {ads && (
+          <Section id="about-ads" title={titleOf('about-ads')}>
+            <p>
+              {SITE_NAME}は、運営の費用をまかなうため、楽天グループ株式会社の「楽天アフィリエイト」に参加しています。
+              <a href={NUTRIENTS_INDEX_PATH} className={LINK}>
+                {NUTRIENTS_INDEX_HEADING}
+              </a>
+              の成分ごとのページにある「楽天市場でさがす」のリンクから、楽天市場で買い物をすると、運営者に紹介料が支払われます。
+            </p>
+            <ul className={BULLETS}>
+              <li>広告のリンクがあるページには、ページのはじめに「{AD_NOTICE}」、リンクの欄の見出しに「広告」と書いています。</li>
+              <li>ランキングの順位と数値は、広告とは関係なく、食品成分表の値だけで決めています。お金をもらって順位を上げたり、載せたりしている食品はありません。</li>
+              <li>リンクを出す食品は、ランキング（ふだん1回に食べる量）の上から順に選んでいます。とりすぎに気をつけたい成分（塩分・飽和脂肪酸・カフェイン）とカロリーのページには、リンクを出していません。</li>
+              <li>リンクの先は、楽天市場でその食品の名前をさがした結果です。出てくる商品を、このサイトが選んだり、すすめたりしているわけではありません。商品の成分や値段は、楽天市場の商品のページで確かめてください。</li>
+              <li>
+                リンクは文字だけで、楽天の画像やプログラムは読みこんでいません。リンクを押して楽天のサイトに移ったあとの情報の扱いは、
+                <Ext href={RAKUTEN_PRIVACY_URL}>楽天グループの個人情報保護方針</Ext>
+                をごらんください。
+              </li>
+            </ul>
+          </Section>
+        )}
 
         <Section id="about-sources" title={titleOf('about-sources')}>
           <ul className="space-y-2.5">
