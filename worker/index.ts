@@ -7,8 +7,16 @@ import { legacyQueryRedirect } from '../src/routes'
 // 静的なファイル（dist/）を返す口。wrangler.jsonc の assets.binding
 export type Env = { ASSETS: { fetch: (request: Request) => Promise<Response> } }
 
+// ここで作る答え（301）には、public/_headers の設定が付かない（付くのは、静的なファイルを返したときだけ）。
+// 中身のない答えなので読みこみ先の決まり（CSP）などは要らないが、https で開かせる設定（HSTS）と nosniff は、ほかのページと同じものを付けておく
+// （public/_headers と同じ値。src/pages/sitePages.test.tsx で、ずれていないかを確かめる）
+export const REDIRECT_HEADERS = {
+  'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+  'X-Content-Type-Options': 'nosniff',
+}
+
 // 送り先は変わらないので、ブラウザや途中のキャッシュに1日おぼえさせてよい
-const redirect = (to: URL) => new Response(null, { status: 301, headers: { Location: to.toString(), 'Cache-Control': 'public, max-age=86400' } })
+const redirect = (to: URL) => new Response(null, { status: 301, headers: { ...REDIRECT_HEADERS, Location: to.toString(), 'Cache-Control': 'public, max-age=86400' } })
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {

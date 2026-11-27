@@ -14,6 +14,7 @@ import { AboutPage } from './aboutPage'
 import { AD_NOTICE, NutrientPage, nutrientPageData } from './nutrientPages'
 import { RAKUTEN_CREDIT, RAKUTEN_SHOP_SCRIPT, rakutenApi, rakutenSearchFor, SHOP_ROWS, SHOP_SIZE, type RakutenApi } from './rakuten'
 import { buildSitePages, NOT_FOUND_PAGE, renderDocument, sitemapXml, withUpdatedDate, type SitePage } from './sitePages'
+import { REDIRECT_HEADERS } from '../../worker/index'
 
 // ビルドで書き出すページを、配信用のデータ（public/data）から作ってたしかめる
 const readData = <T,>(file: string) => JSON.parse(readFileSync(new URL(`../../public/data/${file}`, import.meta.url), 'utf8')) as T
@@ -872,6 +873,12 @@ describe('楽天市場でさがす欄（広告。楽天アフィリエイト）'
     expect(rule('script-src')).toEqual(["'self'", 'https://static.cloudflareinsights.com'])
     expect(rule('style-src')).toEqual(["'self'"])
     expect(csp.match(/rakuten/g)).toHaveLength(2)
+  })
+
+  it('プログラムが作る 301 の答え（worker/index.ts）に付けるヘッダーは、ほかのページ（public/_headers の「/*」）と同じ値', () => {
+    const headers = readFileSync(new URL('../../public/_headers', import.meta.url), 'utf8')
+    expect(Object.keys(REDIRECT_HEADERS)).toEqual(['Strict-Transport-Security', 'X-Content-Type-Options'])
+    for (const [name, value] of Object.entries(REDIRECT_HEADERS)) expect(headers, name).toContain(`\n  ${name}: ${value}\n`)
   })
 
   describe('商品の例を画像つきで出す（楽天市場商品検索 API。public/rakuten-shop.js）', () => {

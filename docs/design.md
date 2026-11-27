@@ -403,7 +403,7 @@ Search Console を見ると、検索結果に出はじめた言葉のほとん�
   - `/ranking/?n=<成分>` → `/nutrients/<成分>/`（成分のページの「くらべ方や種類を変えて見る」は `/ranking/#n=<同じ名前>` なので、名前はそのまま対応する）
   - `/customize/?dish=<料理>` → `/dishes/<料理>/`（そのページがあるときだけ。計画にはないが、改修前の検索実績で `http://…/customize/?dish=tenshinhan` が表示回数の上位に残っていたので、同じしくみで送る）
   - `#` の指定（`/ranking/#n=…`）と、指定のない URL は、これまでどおりアプリの画面を出す
-  - 静的なファイルの配信（`_redirects`）は `?` のうしろを見分けられないので、小さなプログラムにした。動くのは `/ranking/` と `/customize/` だけ（`wrangler.jsonc` の `assets.run_worker_first`）。ほかのページは、これまでどおりファイルをそのまま返す。`_headers` の設定は、プログラムを通ったページにも付く（手元の `wrangler dev` で確かめた）
+  - 静的なファイルの配信（`_redirects`）は `?` のうしろを見分けられないので、小さなプログラムにした。動くのは `/ranking/` と `/customize/` だけ（`wrangler.jsonc` の `assets.run_worker_first`）。ほかのページは、これまでどおりファイルをそのまま返す。`_headers` の設定は、プログラムを通ったページにも付く（手元の `wrangler dev` で確かめた）。プログラムが自分で作る 301 の答えには付かないので、https で開かせる設定（HSTS）と nosniff は、プログラムの中で同じ値を付ける（`REDIRECT_HEADERS`。2026-11-28 の点検で足した）
 - `/ranking/`（並べ替える道具の画面）を検索に載せない（`routes.ts` の `NOINDEX_VIEWS`）
   - 成分ごとの読みもののページ（`/nutrients/<成分>/`）と中身が重なるので、検索の受け皿は一覧の `/nutrients/`（食品成分ランキング）にする
   - 最初に返す HTML の `<head>` に `<meta name="robots" content="noindex">` を入れ、サイトマップから外す。プログラムであとから付けたり外したりしない。`robots.txt` では止めない（止めると、検索エンジンが noindex を読めない）。canonical は `/ranking/` 自身のまま

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import worker, { type Env } from './index'
+import worker, { REDIRECT_HEADERS, type Env } from './index'
 
 // 静的なファイルの代わり：ある料理のページだけ 200、ほかは 404。アプリの画面は 200
 const env: Env = {
@@ -41,5 +41,14 @@ describe('以前の ? つきの URL を、読みもののページへ 301 で送
 
   it('読むだけでないリクエスト（POST など）は送らない', async () => {
     expect((await get('https://mogushiru.app/ranking/?n=iron', 'POST')).status).toBe(200)
+  })
+
+  it('301 の答えにも、https で開かせる設定（HSTS）と nosniff を付ける（public/_headers は、ここで作る答えには付かない）', async () => {
+    for (const url of ['https://mogushiru.app/ranking/?n=iron', 'https://mogushiru.app/customize/?dish=nikujaga']) {
+      const res = await get(url)
+      expect(res.status, url).toBe(301)
+      expect(res.headers.get('Strict-Transport-Security'), url).toBe(REDIRECT_HEADERS['Strict-Transport-Security'])
+      expect(res.headers.get('X-Content-Type-Options'), url).toBe('nosniff')
+    }
   })
 })
