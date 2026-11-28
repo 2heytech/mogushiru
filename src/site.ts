@@ -29,3 +29,10 @@ export const RAKUTEN_MEASURE_ID: string = '_RTLink160192'
 // - どちらかが空・形がちがうときは、API は使わず、前もって選んだ商品の画像（data/rakuten-picks.json）か、文字のリンクだけにする
 export const RAKUTEN_APP_ID: string = ''
 export const RAKUTEN_ACCESS_KEY: string = ''
+
+// Google アナリティクス（GA4）の測定 ID（「G-」で始まる。ページの中に入って、だれでも見られる値）。
+// 入っていると、全部のページが public/ga.js を読み、公開サイト（mogushiru.app）で開いたときだけ Google アナリティクスに送る
+// （入れ方は src/analytics.ts）。「このサイトについて」の「プライバシー」にも、Google アナリティクスのことを書く。
+// 空・形がちがうときは、何も読まず、何も送らず、プライバシーの文も出さない。
+// このリポジトリをもとに別のサイトを作るときは、空にするか、自分の測定 ID に書きかえる
+export const GA_MEASUREMENT_ID: string = 'G-SDBYH4XGJ3'

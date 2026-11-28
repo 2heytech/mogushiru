@@ -10,6 +10,7 @@ import { CUISINE_DISH_IDS } from './dishCuisine'
 import { INDEX_FILTERS } from './dishPages'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { AD_NOTICE } from '../components/RakutenShelf'
+import { gaEnabled } from '../analytics'
 import { RAKUTEN_AFFILIATE_ID } from '../site'
 import { AboutPage } from './aboutPage'
 import { NutrientPage, nutrientPageData } from './nutrientPages'
@@ -756,6 +757,46 @@ describe('このサイトについて（/about/）', () => {
   it('どのページのフッターからも、ふつうのリンクで行ける（アプリの画面からも）', () => {
     for (const p of pages.filter((x) => x.kind === 'static')) expect(p.body, p.path).toMatch(/<footer[\s\S]*<a href="\/about\/"[^>]*>このサイトについて/)
   })
+
+  it('プライバシー：Google アナリティクスを使っているときは、Cookie・Google に送るもの・送らないもの・止め方を書く', () => {
+    const privacyOf = (html: string) => {
+      const start = html.indexOf('<section aria-labelledby="about-privacy"')
+      return html.slice(start, html.indexOf('</section>', start))
+    }
+    const html = privacyOf(renderToStaticMarkup(<AboutPage ads products="picks" analytics />))
+    const on = text(html)
+    expect(on).not.toContain('Cookie は使っていません。')
+    expect(on).toContain('このサイトが Cookie を使うのは、下の Google アナリティクス（アクセス解析）のためだけです。')
+    expect(on).toContain('Google アナリティクスは Cookie を使って、同じブラウザからの訪問を見分けます。')
+    expect(on).toContain('Google に送られるのは、開いたページのアドレスと題名、参照元、見ていた時間、ページを最後まで読んだこと、ほかのサイトへのリンク（楽天市場など）を押したこと、ブラウザや端末の種類、画面の大きさ、言語、おおよその国・地域です。')
+    expect(on).toContain('入力した内容（年齢・体重・食事など）や、名前・メールアドレスなど個人を特定する情報は送りません。')
+    expect(on).toContain('広告のための機能（Google シグナル・広告のパーソナライズ）は使っていません。')
+    expect(on).toContain('EU（欧州経済領域）・英国・スイスからの訪問では、Cookie を使わない設定にしています。')
+    expect(on).toContain('止めても、このサイトはそのまま使えます。')
+    for (const [href, name] of [
+      ['https://marketingplatform.google.com/intl/ja/about/analytics/', 'Google アナリティクス'],
+      ['https://policies.google.com/privacy?hl=ja', 'Google のプライバシーポリシー'],
+      ['https://policies.google.com/technologies/partner-sites?hl=ja', 'Google のサービスを使用するサイトやアプリから収集した情報の Google による使用'],
+      ['https://tools.google.com/dlpage/gaoptout?hl=ja', 'Google アナリティクス オプトアウト アドオン'],
+    ]) {
+      expect(html, name).toContain(`<a href="${href}" target="_blank" rel="noopener noreferrer"`)
+      expect(on, name).toContain(name)
+    }
+    // 入力した内容は端末の中だけ、という約束と、Cloudflare の解析の説明は、そのまま
+    expect(on).toContain('運営者を含め、だれにも送られません。')
+    expect(on).toContain('個人を特定する情報や Cookie は使いません。')
+    // 広告を出していないときは、楽天の名前を出さない
+    const noAds = text(privacyOf(renderToStaticMarkup(<AboutPage ads={false} analytics />)))
+    expect(noAds).toContain('ほかのサイトへのリンクを押したこと、')
+    expect(noAds).not.toContain('楽天')
+    // 使っていないとき（測定 ID が空）：Google のことは書かず、「Cookie は使っていません」のまま
+    const off = text(privacyOf(renderToStaticMarkup(<AboutPage analytics={false} />)))
+    expect(off).toContain('Cookie は使っていません。')
+    expect(off).not.toContain('Google アナリティクス')
+    expect(off).not.toContain('オプトアウト')
+    // 本番のページは、いまの設定のほう
+    expect(text(privacyOf(about.body)).includes('Google アナリティクス')).toBe(gaEnabled())
+  })
 })
 
 describe('楽天市場でさがす欄（広告。楽天アフィリエイト）', () => {
@@ -941,9 +982,11 @@ describe('楽天市場でさがす欄（広告。楽天アフィリエイト）'
   it('読みこんでよい場所の決まり（CSP）に足した楽天は、商品検索 API への問い合わせと、商品の画像（画像のサーバーと、商品リンクの画像の入口）だけ（スクリプトは足さない）', () => {
     const csp = /^\s+Content-Security-Policy: (.*)$/m.exec(readFileSync(new URL('../../public/_headers', import.meta.url), 'utf8'))![1]
     const rule = (name: string) => csp.split(';').map((x) => x.trim().split(/\s+/)).find((x) => x[0] === name)!.slice(1)
-    expect(rule('connect-src')).toEqual(["'self'", 'https://cloudflareinsights.com', 'https://openapi.rakuten.co.jp'])
-    expect(rule('img-src')).toEqual(["'self'", 'https://thumbnail.image.rakuten.co.jp', 'https://hbb.afl.rakuten.co.jp'])
-    expect(rule('script-src')).toEqual(["'self'", 'https://static.cloudflareinsights.com'])
+    // Google アナリティクスの場所（src/analytics.test.ts で確かめる）は、ここでは外して見る
+    const notGoogle = (name: string) => rule(name).filter((x) => !/google/.test(x))
+    expect(notGoogle('connect-src')).toEqual(["'self'", 'https://cloudflareinsights.com', 'https://openapi.rakuten.co.jp'])
+    expect(notGoogle('img-src')).toEqual(["'self'", 'https://thumbnail.image.rakuten.co.jp', 'https://hbb.afl.rakuten.co.jp'])
+    expect(notGoogle('script-src')).toEqual(["'self'", 'https://static.cloudflareinsights.com'])
     expect(rule('style-src')).toEqual(["'self'"])
     expect(csp.match(/rakuten/g)).toHaveLength(3)
     // 前もって選んだ商品の画像のアドレスは、どれも、読みこんでよい場所にある

@@ -9,6 +9,9 @@
 #   成分のページの「楽天市場でさがす」の欄のために、楽天市場商品検索 API（openapi.rakuten.co.jp。public/rakuten-shop.js）への
 #   問い合わせと、楽天の商品の画像（thumbnail.image.rakuten.co.jp と、楽天アフィリエイトの商品リンクの画像の入口 hbb.afl.rakuten.co.jp。
 #   入口は、画像のサーバーへ送りなおす）を足している。楽天のスクリプトは読みこまない。
+#   Google アナリティクス（public/ga.js が読む。src/analytics.ts）のために、Google のプログラム（www.googletagmanager.com の gtag.js）と、
+#   送信先（*.google-analytics.com・*.analytics.google.com・*.googletagmanager.com。Google が案内している、GA4 に要る場所）を足している。
+#   広告のための機能（Google シグナル）は使わないので、そのための場所（doubleclick.net・google.com など）は足さない。
 #   外のサイトの画像・スクリプトを足すときは、ここにも足さないと読みこまれない
 /*
   X-Content-Type-Options: nosniff
@@ -17,7 +20,7 @@
   Strict-Transport-Security: max-age=31536000; includeSubDomains
   X-Frame-Options: DENY
   Cross-Origin-Opener-Policy: same-origin
-  Content-Security-Policy: default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; connect-src 'self' https://cloudflareinsights.com https://openapi.rakuten.co.jp; img-src 'self' https://thumbnail.image.rakuten.co.jp https://hbb.afl.rakuten.co.jp; font-src 'self' data:; style-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests
+  Content-Security-Policy: default-src 'self'; script-src 'self' https://static.cloudflareinsights.com https://www.googletagmanager.com; connect-src 'self' https://cloudflareinsights.com https://openapi.rakuten.co.jp https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com; img-src 'self' https://thumbnail.image.rakuten.co.jp https://hbb.afl.rakuten.co.jp https://*.google-analytics.com https://*.googletagmanager.com; font-src 'self' data:; style-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests
 
 # ビルドで名前に中身の印（ハッシュ）がつくファイルは書き替わらないので、1年キャッシュしてよい
 # （data/ と illustrations/ は名前が変わらないまま中身が更新されるので、毎回新しさを確かめる既定のまま）
