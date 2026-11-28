@@ -9,7 +9,9 @@ export const CONTACT_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSe6mLs
 // 楽天アフィリエイトの ID（8桁の英数字を「.」で4つつないだもの。リンクの中に入って、だれでも見られる値）。
 // 成分のページの「楽天市場でさがす」のリンクに使う（src/pages/rakuten.ts）。空にすると、リンクも「広告」の表示も出さない。
 // 楽天アフィリエイトの管理画面の「URLからリンクを作成」が作るリンクに入っている ID を、そのまま使う。
-// このリポジトリをもとに別のサイトを作るときは、空にするか、自分の ID に書きかえる（下の計測 ID も）
+// このリポジトリをもとに別のサイトを作るときは、空にするか、自分の ID に書きかえる（下の計測 ID も）。
+// 前もって選んだ商品（data/rakuten-picks.json）のリンクには、この ID の持ち主が管理画面で作った、店ごとの ID が入っている。
+// その商品は、ここの ID が data/rakuten-picks.json の affiliateId と同じときだけ出す（ID を書きかえたら、出なくなる）
 export const RAKUTEN_AFFILIATE_ID: string = '10050a54.f2753104.10050a55.ed345923'
 
 // 楽天アフィリエイトの「計測 ID」のコード（リンクの中に入って、だれでも見られる値）。
@@ -24,6 +26,6 @@ export const RAKUTEN_MEASURE_ID: string = '_RTLink160192'
 // 商品を画像つきで出すのに使う（public/rakuten-shop.js が、見ている人のブラウザから API を呼ぶ）。
 // - どちらも、ページの中に入って、だれでも見られる値。アプリは「Webアプリケーション」で登録し、「許可されたWebサイト」に
 //   このサイト（mogushiru.app）を入れておく（ほかのサイトからは呼べない。PR ごとのプレビューの URL からも呼べない）
-// - どちらかが空・形がちがうときは、商品を出さず、文字のリンクだけにする
+// - どちらかが空・形がちがうときは、API は使わず、前もって選んだ商品の画像（data/rakuten-picks.json）か、文字のリンクだけにする
 export const RAKUTEN_APP_ID: string = ''
 export const RAKUTEN_ACCESS_KEY: string = ''
