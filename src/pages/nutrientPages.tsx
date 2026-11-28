@@ -21,7 +21,7 @@ import { foodPagePath, nutrientPagePath, NUTRIENTS_INDEX_PATH, rankingAppPath, S
 import type { DishPageData } from './dishPages'
 import { NUTRIENT_COPY, type NutrientCopy } from './nutrientCopy'
 import type { OgCard } from './ogCard'
-import { RAKUTEN_CREDIT, rakutenApi, SHOP_ROWS, shopPicks, type RakutenApi, type ShopPick } from './rakuten'
+import { ITEM_IMAGE_SIZE, RAKUTEN_CREDIT, RAKUTEN_PICKS_DATE, rakutenApi, SHOP_ROWS, shopPicks, type RakutenApi, type ShopPick } from './rakuten'
 import { barWidth, BUTTON, BUTTON_SUB, CALC_LABEL, CARD, LINK, StaticLayout } from './StaticLayout'
 
 // 成分ごとのランキングのページ（/nutrients/<slug>/）と、その一覧（/nutrients/）。
@@ -556,15 +556,82 @@ export const AD_NOTICE = 'このページには広告のリンクを含みます
 // 目次での呼び名
 const SHOP_LABEL = '楽天市場でさがす'
 
+// 「楽天市場でさがす」の欄の、食品1つ分。api：楽天市場商品検索 API で商品を出すか（出すときは、前もって選んだ商品を使わない）。
+// クラスを `…${…}` でつなぐときは、「${」の前に空白を入れる（つめて書くと、Tailwind が前のクラスを見つけられず、CSS に入らない）
+function ShopFood({ pick: s, api }: { pick: ShopPick; api: boolean }) {
+  // 前もって選んだ商品。あれば、文字のリンクが見出しになる
+  const items = api ? [] : s.items
+  const head = items.length > 0
+  return (
+    <li
+      className={api ? 'group/food min-w-0 data-[shop-row]:col-span-full' : head ? 'col-span-full min-w-0 sm:col-span-2' : undefined}
+      {...(api && { 'data-shop-food': '', 'data-word': s.word, 'data-genre': s.genreId })}
+    >
+      <a
+        href={s.href}
+        target="_blank"
+        rel="sponsored nofollow noopener"
+        aria-label={`${s.label}を楽天市場でさがす（広告・新しいタブでひらく）`}
+        className={`flex min-h-12 items-center gap-2 rounded-2xl bg-cream px-3 py-2 text-sm leading-snug font-bold hover:bg-coral/20 ${head ? '' : 'h-full'} ${api ? 'group-data-[shop-row]/food:h-auto' : ''}`}
+      >
+        {/* スマホは名前の幅をとるために、絵を出さない（ランキングの行と同じ）。行の見出しになったときは、幅があるので出す */}
+        <img src={foodImage(s.food)} alt="" width={32} height={32} loading="lazy" className={`h-8 w-8 shrink-0 ${head ? 'block' : 'hidden group-data-[shop-row]/food:block sm:block'}`} />
+        <span className="min-w-0 flex-1 text-balance">{s.label}</span>
+        {/* 行の見出しになったときだけ出す。スマホは、食品の名前が折り返さないように短くする */}
+        {(api || head) && (
+          <span className={`shrink-0 text-xs font-normal text-coral-ink ${head ? '' : 'hidden group-data-[shop-row]/food:inline'}`}>
+            <span className="hidden sm:inline">楽天市場で</span>もっと見る
+          </span>
+        )}
+        <span aria-hidden className="shrink-0 text-coral-ink">
+          ↗
+        </span>
+      </a>
+      {/* 前もって選んだ商品（画像だけ）。画像は、楽天のサーバーから読みこむ（画面に近づいたときに読む：loading="lazy"） */}
+      {head && (
+        <ul aria-label={`${s.label}の商品の例（楽天市場）`} className="mt-2 grid grid-cols-3 gap-2">
+          {items.map((it, i) => (
+            <li key={it.href} className="min-w-0">
+              <a
+                href={it.href}
+                target="_blank"
+                rel="sponsored nofollow noopener"
+                aria-label={`${s.label}の商品の例${i + 1}（楽天市場・広告・新しいタブでひらく）`}
+                className="block rounded-2xl border border-ink/10 bg-white p-1.5 hover:border-coral"
+              >
+                <img src={it.src} alt="" width={ITEM_IMAGE_SIZE} height={ITEM_IMAGE_SIZE} loading="lazy" className="aspect-square w-full rounded-xl object-contain" />
+              </a>
+            </li>
+          ))}
+        </ul>
+      )}
+      {/* API で取った商品の例を入れる場所。スマホは横に送る1列（欄が縦に長くなりすぎないように）、広い画面は横に6つ。
+          読みこみ中は、商品が入ったときと同じぐらいの高さをあけて（下がずれないように）、うすく光らせる */}
+      {api && (
+        <ul
+          data-shop-items=""
+          hidden
+          aria-label={`${s.label}の商品の例（楽天市場）`}
+          className="mt-2 flex min-h-60 snap-x gap-2 overflow-x-auto pb-1 group-data-[shop-row=wait]/food:animate-pulse group-data-[shop-row=wait]/food:rounded-2xl group-data-[shop-row=wait]/food:bg-cream md:grid md:min-h-52 md:grid-cols-6 md:overflow-visible md:pb-0"
+        />
+      )}
+    </li>
+  )
+}
+
 // ランキングの上位の食品を、楽天市場でさがす欄（楽天アフィリエイト。rakuten.ts）。
 // - もとは文字のリンク（食品の名前 → 楽天市場の検索結果）。新しいタブでひらき、検索エンジンには広告のリンクだと伝える（rel="sponsored nofollow"）
 // - api があるときは、public/rakuten-shop.js が、欄が画面に近づいたときに食品ごとの商品の例（画像・名前・値段）を足す。
 //   プログラムが読むのは data-shop で始まる印と data-word・data-genre、商品のひな形（template）。data-mid は、商品のリンクに入れる計測 ID の文字（あるときだけ）。見た目は、ここのクラスで決める：
 //   食品（li）に data-shop-row が付くと、文字のリンクが行の見出しになって横いっぱいに広がり（wait は読みこみ中、on は商品あり）、その下に商品が並ぶ
+// - api がないあいだは、前もって選んだ商品（ShopPick の items。data/rakuten-picks.json）のある食品に、商品の画像を3つ並べる（プログラムは使わない）。
+//   その食品は、文字のリンクが見出しになって、スマホは横いっぱい、広い画面は半分の幅をとる。商品の名前・値段は出さない（選んだあとで変わるので）
 // - 楽天のプログラム（ウィジェット）は読みこまない
 function ShopLinks({ data }: { data: NutrientPageData }) {
   const { copy, shopApi: api } = data
   const rows = Math.min(SHOP_ROWS, data.shop.length)
+  // 前もって選んだ商品を出す食品の数（API で出すときは 0）
+  const picked = api ? 0 : data.shop.filter((s) => s.items.length > 0).length
   return (
     <section
       aria-labelledby="shop"
@@ -583,47 +650,23 @@ function ShopLinks({ data }: { data: NutrientPageData }) {
       <p className="mt-1 text-xs leading-relaxed text-ink-soft">
         ふだん1回に食べる量で{copy.rich}食品を、ランキングの上から順に{data.shop.length}つ選びました。
         {/* data-shop-off は商品を出す前だけ、data-shop-on は商品を出したあとだけ見せる（プログラムが切りかえる） */}
-        <span {...(api && { 'data-shop-off': '' })}>名前を押すと、楽天市場の検索結果を新しいタブでひらきます。</span>
+        {picked > 0 ? (
+          <span>
+            {picked < data.shop.length && `そのうち上の${picked}つには、`}楽天市場の商品の例を出しています。商品の画像や食品の名前を押すと、楽天市場のページを新しいタブでひらきます。
+          </span>
+        ) : (
+          <span {...(api && { 'data-shop-off': '' })}>名前を押すと、楽天市場の検索結果を新しいタブでひらきます。</span>
+        )}
         {api && (
           <span hidden data-shop-on="">
             楽天市場の商品の例を出しています。商品や食品の名前を押すと、楽天市場のページを新しいタブでひらきます。
           </span>
         )}
       </p>
-      <ul className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+      {/* 前もって選んだ商品のある食品は幅をとるので、あいたところを、あとの食品でつめる（grid-flow-dense） */}
+      <ul className={`mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4 ${picked > 0 ? 'grid-flow-dense' : ''}`}>
         {data.shop.map((s) => (
-          <li key={s.food.id} className={api ? 'group/food min-w-0 data-[shop-row]:col-span-full' : undefined} {...(api && { 'data-shop-food': '', 'data-word': s.word, 'data-genre': s.genreId })}>
-            <a
-              href={s.href}
-              target="_blank"
-              rel="sponsored nofollow noopener"
-              aria-label={`${s.label}を楽天市場でさがす（広告・新しいタブでひらく）`}
-              className={`flex h-full min-h-12 items-center gap-2 rounded-2xl bg-cream px-3 py-2 text-sm leading-snug font-bold hover:bg-coral/20${api ? ' group-data-[shop-row]/food:h-auto' : ''}`}
-            >
-              {/* スマホは名前の幅をとるために、絵を出さない（ランキングの行と同じ）。行の見出しになったときは、幅があるので出す */}
-              <img src={foodImage(s.food)} alt="" width={32} height={32} loading="lazy" className="hidden h-8 w-8 shrink-0 group-data-[shop-row]/food:block sm:block" />
-              <span className="min-w-0 flex-1 text-balance">{s.label}</span>
-              {/* 行の見出しになったときだけ出す。スマホは、食品の名前が折り返さないように短くする */}
-              {api && (
-                <span className="hidden shrink-0 text-xs font-normal text-coral-ink group-data-[shop-row]/food:inline">
-                  <span className="hidden sm:inline">楽天市場で</span>もっと見る
-                </span>
-              )}
-              <span aria-hidden className="shrink-0 text-coral-ink">
-                ↗
-              </span>
-            </a>
-            {/* 商品の例を入れる場所。スマホは横に送る1列（欄が縦に長くなりすぎないように）、広い画面は横に6つ。
-                読みこみ中は、商品が入ったときと同じぐらいの高さをあけて（下がずれないように）、うすく光らせる */}
-            {api && (
-              <ul
-                data-shop-items=""
-                hidden
-                aria-label={`${s.label}の商品の例（楽天市場）`}
-                className="mt-2 flex min-h-60 snap-x gap-2 overflow-x-auto pb-1 group-data-[shop-row=wait]/food:animate-pulse group-data-[shop-row=wait]/food:rounded-2xl group-data-[shop-row=wait]/food:bg-cream md:grid md:min-h-52 md:grid-cols-6 md:overflow-visible md:pb-0"
-              />
-            )}
-          </li>
+          <ShopFood key={s.food.id} pick={s} api={api !== null} />
         ))}
       </ul>
       {api && (
@@ -666,6 +709,12 @@ function ShopLinks({ data }: { data: NutrientPageData }) {
         {api && (
           <span hidden data-shop-on="">
             商品と値段は、ページを開いたときの楽天市場の検索結果で、このサイトが選んだものではありません。
+          </span>
+        )}
+        {picked > 0 && (
+          <span>
+            商品の例は、{RAKUTEN_PICKS_DATE}
+            に楽天市場でさがして、このサイトが選んだものです（おすすめの順ではありません）。売り切れたり、内容が変わったりしていることがあります。値段・在庫・内容は、楽天市場の商品のページで確かめてください。
           </span>
         )}
         <a href="/about/#about-ads" className={LINK}>
