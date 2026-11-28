@@ -1,8 +1,9 @@
 import type { ReactNode } from 'react'
 import { OperatorLink } from '../components/OperatorLink'
+import { AD_NOTICE } from '../components/RakutenShelf'
 import { DISHES_INDEX_PATH, NUTRIENTS_INDEX_PATH, SITE_NAME, SITE_NAME_KANA, VIEW_PATH } from '../routes'
 import { CONTACT_FORM_URL, OPERATOR_NAME, REPOSITORY_URL } from '../site'
-import { AD_NOTICE, NUTRIENTS_INDEX_HEADING } from './nutrientPages'
+import { NUTRIENTS_INDEX_HEADING } from './nutrientPages'
 import type { OgCard } from './ogCard'
 import { RAKUTEN_PICKS_DATE, rakutenEnabled, rakutenProducts, type RakutenProducts } from './rakuten'
 import { LINK, StaticLayout } from './StaticLayout'
@@ -322,13 +323,17 @@ export function AboutPage({ ads = ADS, products = PRODUCTS }: { ads?: boolean; p
               <a href={NUTRIENTS_INDEX_PATH} className={LINK}>
                 {NUTRIENTS_INDEX_HEADING}
               </a>
-              の成分ごとのページにある「楽天市場でさがす」の欄のリンク{products && '（商品の種類の名前と、商品の例）'}から、楽天市場で買い物をすると、運営者に紹介料が支払われます。
+              の成分ごとのページと、
+              <a href={VIEW_PATH.ranking} className={LINK}>
+                成分ランキング
+              </a>
+              の画面（成分を選んで並べ替える画面）にある「楽天市場でさがす」の欄のリンク{products && '（商品の種類の名前と、商品の例）'}から、楽天市場で買い物をすると、運営者に紹介料が支払われます。
             </p>
             <ul className={BULLETS}>
               <li>広告のリンクがあるページには、ページのはじめに「{AD_NOTICE}」、リンクの欄の見出しに「広告」と書いています。</li>
               <li>ランキングの順位と数値は、広告とは関係なく、食品成分表の値だけで決めています。お金をもらって順位を上げたり、載せたりしている食品はありません。</li>
               <li>
-                欄に出しているのは、その成分をおぎなうのに使われる商品の種類（たんぱく質ならプロテイン、食物繊維なら難消化性デキストリン、カルシウムならカルシウムのサプリメントなど）です。ランキングの食品そのものへのリンクは出していません。サプリメントなどでおぎなうことの少ない成分（カロリー・脂質・炭水化物・オメガ6脂肪酸・一価不飽和脂肪酸）と、とりすぎに気をつけたい成分（塩分・飽和脂肪酸・カフェイン）のページには、リンクを出していません。
+                欄に出しているのは、その成分をおぎなうのに使われる商品の種類（たんぱく質ならプロテイン、食物繊維なら難消化性デキストリン、カルシウムならカルシウムのサプリメントなど）です。ランキングの食品そのものへのリンクは出していません。サプリメントなどでおぎなうことの少ない成分（カロリー・脂質・炭水化物・オメガ6脂肪酸・一価不飽和脂肪酸）と、とりすぎに気をつけたい成分（塩分・飽和脂肪酸・カフェイン）には、欄を出していません（成分ランキングの画面で、その成分を選んでいるときも同じです）。
               </li>
               <li>
                 サプリメントなどは、食事でとりきれない分をおぎなうためのものです。このサイトは、商品の体へのはたらきを確かめたり、うけあったりはしていません。使うときは、商品に書いてある1日の目安の量を守り、薬を飲んでいる人・通院している人・妊娠中や授乳中の人は、医師や薬剤師に相談してください。

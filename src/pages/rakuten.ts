@@ -2,7 +2,8 @@ import type { NutrientKey } from '../domain/types'
 import picksJson from '../../data/rakuten-picks.json'
 import { RAKUTEN_ACCESS_KEY, RAKUTEN_AFFILIATE_ID, RAKUTEN_APP_ID, RAKUTEN_MEASURE_ID } from '../site'
 
-// 楽天アフィリエイト：成分のページの「〜のサプリメントなどを楽天市場でさがす」の欄（nutrientPages.tsx）。
+// 楽天アフィリエイト：「〜のサプリメントなどを楽天市場でさがす」の欄（見た目は components/RakutenShelf.tsx）。
+// 出すところは、成分のページ（nutrientPages.tsx）と、アプリの「成分ランキング」の画面（components/RankingView.tsx。選んでいる成分の欄を、一覧の下に出す）。
 // - 出すのは、その成分をおぎなうのに使われる商品の種類（たんぱく質ならプロテイン、食物繊維なら難消化性デキストリン、カルシウムならカルシウムのサプリ。下の KINDS と SHELVES）。
 //   ランキングの食品そのものは出さない（「脂質が多い食品を買う」とすすめることになるのをさけるため、とりたい成分でも、合う種類のない成分のページには欄を出さない）
 // - 種類の名前のリンクの行き先は、楽天市場の検索結果（種類の名前でさがす。値段や在庫が変わっても、リンクが古くならない）
@@ -11,6 +12,7 @@ import { RAKUTEN_ACCESS_KEY, RAKUTEN_AFFILIATE_ID, RAKUTEN_APP_ID, RAKUTEN_MEASU
 //     種類ごとの商品の例を出す（public/rakuten-shop.js。楽天市場商品検索 API を、見ている人のブラウザから呼ぶ）。取れないとき・プログラムが動かないときは、文字のリンクのまま
 //   picks：それがないあいだは、前もって選んだ商品（data/rakuten-picks.json。楽天アフィリエイトの「商品リンク作成」で作ったリンク）を、
 //     種類ごとに、画像だけで出す（名前・値段は出さない。選んだあとで変わるので）。プログラムは使わない
+//   アプリの「成分ランキング」の画面では、picks のときだけ商品を出す（api のあいだは、文字のリンクだけ。public/rakuten-shop.js は成分のページのためのもの）
 //   楽天のプログラム（ウィジェット）は、どちらでも読みこまない
 // - ランキングの順位や数値は、広告のために変えない
 // - アフィリエイトの ID（src/site.ts）が空・形がちがうときは、リンクも「広告」の表示も出さない

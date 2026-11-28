@@ -7,7 +7,7 @@ export const REPOSITORY_URL = 'https://github.com/2heytech/mogushiru'
 export const CONTACT_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSe6mLsOybTqTCWe0cGSyQRd5xCpzFScVyyC4d758j2cKOKNxw/viewform'
 
 // 楽天アフィリエイトの ID（8桁の英数字を「.」で4つつないだもの。リンクの中に入って、だれでも見られる値）。
-// 成分のページの「楽天市場でさがす」のリンクに使う（src/pages/rakuten.ts）。空にすると、リンクも「広告」の表示も出さない。
+// 成分のページと、アプリの「成分ランキング」の画面の、「楽天市場でさがす」のリンクに使う（src/pages/rakuten.ts）。空にすると、リンクも「広告」の表示も出さない。
 // 楽天アフィリエイトの管理画面の「URLからリンクを作成」が作るリンクに入っている ID を、そのまま使う。
 // このリポジトリをもとに別のサイトを作るときは、空にするか、自分の ID に書きかえる（下の計測 ID も）。
 // 前もって選んだ商品（data/rakuten-picks.json）のリンクには、この ID の持ち主が管理画面で作った、店ごとの ID が入っている。
