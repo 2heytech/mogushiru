@@ -1,18 +1,16 @@
-import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
-import type { RankingRow } from '../domain/ranking'
-import type { Food } from '../domain/types'
+import { NUTRIENT_GROUPS } from '../domain/ranking'
+import type { NutrientKey } from '../domain/types'
 import { RAKUTEN_ACCESS_KEY, RAKUTEN_AFFILIATE_ID, RAKUTEN_APP_ID, RAKUTEN_MEASURE_ID } from '../site'
-import { RAKUTEN_SEARCH_IDS, rakutenAffiliateUrl, rakutenApi, rakutenEnabled, rakutenGenreId, rakutenMeasure, rakutenSearchFor, rakutenSearchUrl, SHOP_SIZE, shopPicks } from './rakuten'
+import { RAKUTEN_KINDS, RAKUTEN_PICKS, RAKUTEN_SHELF_KEYS, rakutenAffiliateUrl, rakutenApi, rakutenEnabled, rakutenGenreId, rakutenMeasure, rakutenSearchUrl, shopSection } from './rakuten'
 
 // テスト用の ID（架空の値。形だけ合わせてある）
 const TEST_ID = '0123abcd.4567ef01.89abcdef.01234567'
 // 計測 ID としてリンクに入れる文字（架空。楽天アフィリエイトの管理画面で作るリンクに入る形）
 const TEST_MEASURE = '_RTLink00000'
 
-const foods = (JSON.parse(readFileSync(new URL('../../public/data/foods.json', import.meta.url), 'utf8')) as { foods: Food[] }).foods
-const food = (id: string) => foods.find((f) => f.id === id)!
-const row = (id: string): RankingRow => ({ food: food(id), value: 1, serving: { grams: 100, label: '1回' }, servingAmount: 1 }) as RankingRow
+const ALL_KEYS = NUTRIENT_GROUPS.flatMap((g) => g.keys)
+const picksOf = (key: NutrientKey, id = TEST_ID, measure = '') => shopSection(key, id, measure)?.picks ?? []
 
 describe('楽天アフィリエイトのリンク', () => {
   it('商品を画像つきで出す設定（楽天ウェブサービスのアプリ ID・アクセスキー）は、空か、使える形。3つそろったときだけ使う', () => {
@@ -41,13 +39,18 @@ describe('楽天アフィリエイトのリンク', () => {
 
   it('商品検索 API でさがす言葉とジャンルは、文字のリンクの先（楽天市場の検索結果）と同じ', () => {
     expect([rakutenGenreId('food'), rakutenGenreId('drink'), rakutenGenreId('all')]).toEqual(['100227', '100316', ''])
-    const picks = shopPicks([row('14001'), row('13003'), row('15168')], TEST_ID)
+    // 食べ物（アマニ油）は「食品」、飲み物（トマトジュース）は「水・ソフトドリンク」、サプリメント・プロテインはジャンルでしぼらない
+    const picks = [...picksOf('n3Fat'), ...picksOf('potassium'), ...picksOf('calcium')]
     expect(picks.map((p) => [p.label, p.word, p.genreId])).toEqual([
-      ['オリーブ油', 'オリーブオイル', '100227'],
-      ['牛乳', '牛乳', '100316'],
-      ['あんパン', 'あんぱん', ''],
+      ['DHA・EPA のサプリ', 'DHA EPA サプリ', ''],
+      ['アマニ油', 'アマニ油', '100227'],
+      ['トマトジュース（食塩無添加）', 'トマトジュース 食塩無添加', '100316'],
+      ['野菜ジュース（食塩無添加）', '野菜ジュース 食塩無添加', '100316'],
+      ['カルシウムのサプリ', 'カルシウム サプリ', ''],
+      ['カルシウム＋マグネシウムのサプリ', 'カルシウム マグネシウム サプリ', ''],
     ])
-    for (const p of picks) expect(new URL(p.href).searchParams.get('pc')).toBe(rakutenSearchUrl({ word: p.word, genre: p.genreId === '100227' ? 'food' : p.genreId === '100316' ? 'drink' : 'all' }))
+    for (const key of ALL_KEYS)
+      for (const p of picksOf(key)) expect(new URL(p.href).searchParams.get('pc'), p.label).toBe(rakutenSearchUrl({ word: p.word, genre: p.genreId === '100227' ? 'food' : p.genreId === '100316' ? 'drink' : 'all' }))
   })
 
   it('ID は、空か、8桁の英数字を「.」で4つつないだ形', () => {
@@ -56,7 +59,7 @@ describe('楽天アフィリエイトのリンク', () => {
     for (const bad of ['', 'abc', '0123abcd.4567ef01.89abcdef', `${TEST_ID}/?pc=x`, ' 0123abcd.4567ef01.89abcdef.01234567']) expect(rakutenEnabled(bad), bad).toBe(false)
   })
 
-  it('行き先は、楽天市場の検索結果。食べ物のジャンルにしぼる', () => {
+  it('行き先は、楽天市場の検索結果。食べ物・飲み物は、ジャンルでしぼれる', () => {
     expect(rakutenSearchUrl({ word: 'ひじき', genre: 'food' })).toBe(`https://search.rakuten.co.jp/search/mall/${encodeURIComponent('ひじき')}/100227/`)
     expect(rakutenSearchUrl({ word: '牛乳', genre: 'drink' })).toBe(`https://search.rakuten.co.jp/search/mall/${encodeURIComponent('牛乳')}/100316/`)
     expect(rakutenSearchUrl({ word: 'アップルパイ', genre: 'all' })).toBe(`https://search.rakuten.co.jp/search/mall/${encodeURIComponent('アップルパイ')}/`)
@@ -89,66 +92,87 @@ describe('楽天アフィリエイトのリンク', () => {
       expect(rakutenAffiliateUrl(url, TEST_ID, bad), bad).toBe(plain)
     }
     for (const ok of [TEST_MEASURE, 'mogu-1', 'A_b-9']) expect(rakutenMeasure(ok), ok).toBe(ok)
-    // 食品ごとのリンクにも入る
-    const picks = shopPicks([row('14001'), row('13003')], TEST_ID, SHOP_SIZE, TEST_MEASURE)
-    expect(picks.length).toBe(2)
+    // 種類ごとのリンクにも入る
+    const picks = picksOf('protein', TEST_ID, TEST_MEASURE)
+    expect(picks.length).toBe(4)
     for (const p of picks) expect(p.href.startsWith(`https://hb.afl.rakuten.co.jp/hgc/${TEST_ID}/${TEST_MEASURE}?pc=https%3A%2F%2Fsearch.rakuten.co.jp%2F`), p.label).toBe(true)
     // リポジトリに入れてある値：空（計測 ID なし）か、使える形
     expect(RAKUTEN_MEASURE_ID === '' || rakutenMeasure(RAKUTEN_MEASURE_ID) === RAKUTEN_MEASURE_ID).toBe(true)
   })
 })
 
-describe('食品ごとの、さがす言葉', () => {
-  it('表にない食品は、名前からかっこを取った言葉でさがす', () => {
-    expect(rakutenSearchFor({ id: '99999', displayName: 'ひじき（乾）', group: '09' })).toEqual({ word: 'ひじき', label: 'ひじき', genre: 'food' })
-    expect(rakutenSearchFor({ id: '99999', displayName: '鶏むね肉（皮つき・焼き）', group: '11' })).toEqual({ word: '鶏むね肉', label: '鶏むね肉', genre: 'food' })
+describe('成分ごとの、出す商品の種類', () => {
+  it('たんぱく質はプロテイン、食物繊維は難消化性デキストリンなど、カルシウムはカルシウムのサプリ', () => {
+    expect(picksOf('protein').map((p) => p.label)).toEqual(['ホエイプロテイン', 'ソイプロテイン', 'プロテインバー', 'プロテインドリンク'])
+    expect(picksOf('fiber').map((p) => p.label)).toEqual(['難消化性デキストリン', 'イヌリン', 'サイリウム（オオバコ）', 'グアーガム分解物'])
+    expect(picksOf('calcium').map((p) => p.label)).toEqual(['カルシウムのサプリ', 'カルシウム＋マグネシウムのサプリ'])
+    expect(shopSection('protein', TEST_ID)!.title).toBe('プロテインなど')
+    expect(shopSection('fiber', TEST_ID)!.title).toBe('食物繊維のサプリメントなど')
+    expect(shopSection('calcium', TEST_ID)!.title).toBe('カルシウムのサプリメントなど')
+    for (const p of picksOf('protein')) expect(p.href.startsWith(`https://hb.afl.rakuten.co.jp/hgc/${TEST_ID}/?pc=https%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2F`), p.label).toBe(true)
   })
 
-  it('飲み物は「水・ソフトドリンク」、お菓子・菓子パンはジャンルでしぼらない', () => {
-    expect(rakutenSearchFor({ id: '99999', displayName: '抹茶（粉）', group: '16' })?.genre).toBe('drink')
-    expect(rakutenSearchFor({ id: '99999', displayName: 'アップルパイ', group: '15' })?.genre).toBe('all')
-    expect(rakutenSearchFor(food('13003'))).toEqual({ word: '牛乳', label: '牛乳', genre: 'drink' })
-    expect(rakutenSearchFor(food('04053'))?.genre).toBe('drink')
+  it('脂質・炭水化物・カロリー・オメガ6・一価不飽和脂肪酸と、とりすぎに気をつけたい成分のページには、欄を出さない', () => {
+    const none: NutrientKey[] = ['energyKcal', 'fat', 'carb', 'n6Fat', 'monoUnsatFat', 'salt', 'satFat', 'caffeine']
+    for (const key of none) expect(shopSection(key, TEST_ID), key).toBeNull()
+    expect(ALL_KEYS.filter((key) => shopSection(key, TEST_ID) !== null).sort()).toEqual([...RAKUTEN_SHELF_KEYS].sort())
+    expect([...RAKUTEN_SHELF_KEYS, ...none].sort()).toEqual([...ALL_KEYS].sort())
+    expect(RAKUTEN_SHELF_KEYS).toHaveLength(18)
   })
 
-  it('店での言い方でさがす（オリーブ油 → オリーブオイル、かき → 牡蠣）。葉だけでは売られていない食品は出さない', () => {
-    expect(rakutenSearchFor(food('14001'))).toEqual({ word: 'オリーブオイル', label: 'オリーブ油', genre: 'food' })
-    expect(rakutenSearchFor(food('10292'))).toEqual({ word: '牡蠣', label: 'かき（牡蠣）', genre: 'food' })
-    expect(rakutenSearchFor(food('06130'))).toBeNull()
-    expect(rakutenSearchFor(food('06034'))).toBeNull()
-  })
-
-  it('表の食品番号は、成分表にある。言葉と名前は空でない', () => {
-    for (const id of RAKUTEN_SEARCH_IDS) {
-      const f = foods.find((x) => x.id === id)
-      expect(f, id).toBeDefined()
-      const search = rakutenSearchFor(f!)
-      if (!search) continue
-      expect(search.word.trim(), id).toBe(search.word)
-      expect(search.word.length, id).toBeGreaterThan(0)
-      expect(search.label.length, id).toBeGreaterThan(0)
-      // 欄に出す名前に、成分表のままの長い名前（全角の空白で区切ったもの）を使わない
-      expect(search.label, id).not.toContain('　')
+  it('どの欄も、種類は2つから4つ。同じ種類を2度出さない。見出しは「〜など」', () => {
+    for (const key of RAKUTEN_SHELF_KEYS) {
+      const section = shopSection(key, TEST_ID)!
+      expect(section.picks.length, key).toBeGreaterThanOrEqual(2)
+      expect(section.picks.length, key).toBeLessThanOrEqual(4)
+      expect(new Set(section.picks.map((p) => p.key)).size, key).toBe(section.picks.length)
+      expect(new Set(section.picks.map((p) => p.label)).size, key).toBe(section.picks.length)
+      expect(section.title, key).toMatch(/など$/)
     }
   })
-})
 
-describe('欄に出す食品を選ぶ', () => {
-  it('ランキングの上から順に選ぶ。出さない食品はとばし、同じ名前は上の1つだけ', () => {
-    // 鶏むね肉（皮つき・焼き）・大根の葉・鶏ささみ（焼き）・鶏むね肉（皮なし）・ささみ・豚レバー
-    const picks = shopPicks(['11287', '06130', '11228', '11220', '11227', '11166'].map(row), TEST_ID, SHOP_SIZE, '')
-    expect(picks.map((p) => p.label)).toEqual(['鶏むね肉', '鶏ささみ', '豚レバー'])
-    expect(picks.map((p) => p.food.id)).toEqual(['11287', '11228', '11166'])
-    for (const p of picks) expect(p.href.startsWith(`https://hb.afl.rakuten.co.jp/hgc/${TEST_ID}/?pc=https%3A%2F%2Fsearch.rakuten.co.jp%2Fsearch%2Fmall%2F`), p.label).toBe(true)
+  it('カリウムは、サプリメントではなく、食塩を足していない野菜の飲み物を出す。ビタミンAは、β-カロテンを出す（とりすぎになりやすいものをすすめない）', () => {
+    const potassium = shopSection('potassium', TEST_ID)!
+    expect(potassium.food).toBe(true)
+    expect(potassium.picks.map((p) => p.label).join()).not.toContain('サプリ')
+    for (const p of potassium.picks) expect(p.word, p.label).toContain('食塩無添加')
+    expect(potassium.caution).toContain('腎臓')
+    const vitaminA = shopSection('vitaminA', TEST_ID)!
+    expect(vitaminA.picks.map((p) => p.label)).toEqual(['β-カロテンのサプリ', 'マルチビタミン'])
+    expect(vitaminA.food).toBe(false)
+    expect(vitaminA.caution).toContain('とりすぎ')
+    // ほかの欄は、サプリメントなどの欄（使い方の注意を添える）
+    for (const key of RAKUTEN_SHELF_KEYS) if (key !== 'potassium') expect(shopSection(key, TEST_ID)!.food, key).toBe(false)
   })
 
-  it(`${SHOP_SIZE}つまで`, () => {
-    const many = ['10283', '11166', '11232', '11271', '11272', '04052', '04053', '04041', '04039', '06201', '11092', '06086'].map(row)
-    expect(shopPicks(many, TEST_ID)).toHaveLength(SHOP_SIZE)
-    expect(shopPicks(many, TEST_ID, 3)).toHaveLength(3)
+  it('種類の表：名前とさがす言葉は空でない。どの種類も、どこかの欄で使う。さがす言葉は種類ごとにちがう', () => {
+    const used = new Set(RAKUTEN_SHELF_KEYS.flatMap((key) => picksOf(key).map((p) => p.key)))
+    expect([...used].sort()).toEqual(Object.keys(RAKUTEN_KINDS).sort())
+    const kinds = Object.values(RAKUTEN_KINDS)
+    expect(new Set(kinds.map((k) => k.word)).size).toBe(kinds.length)
+    expect(new Set(kinds.map((k) => k.label)).size).toBe(kinds.length)
+    for (const [key, kind] of Object.entries(RAKUTEN_KINDS)) {
+      expect(kind.label.length, key).toBeGreaterThan(0)
+      expect(kind.word.trim(), key).toBe(kind.word)
+      expect(kind.word.length, key).toBeGreaterThan(0)
+    }
   })
 
-  it('ID が空のときは、何も選ばない（欄も「広告」の表示も出ない）', () => {
-    expect(shopPicks(['10283', '11166'].map(row), '')).toEqual([])
+  it('種類の説明には、体へのはたらき（効く・治る・防ぐ・やせる など）を書かない', () => {
+    const claims = /効|治|予防|防ぐ|防ぎ|改善|やせ|ダイエット|健康に|病気|血圧|血糖|コレステロール|免疫|おすすめ|人気|ランキング1位/
+    for (const [key, kind] of Object.entries(RAKUTEN_KINDS)) {
+      expect(kind.label, key).not.toMatch(claims)
+      if (kind.note) expect(kind.note, key).not.toMatch(claims)
+    }
+    for (const key of RAKUTEN_SHELF_KEYS) expect(shopSection(key, TEST_ID)!.title, key).not.toMatch(claims)
+  })
+
+  it('どの種類にも、前もって選んだ商品がある（data/rakuten-picks.json の見出しは、種類のさがす言葉）', () => {
+    expect(Object.keys(RAKUTEN_PICKS.picks).sort()).toEqual(Object.values(RAKUTEN_KINDS).map((k) => k.word).sort())
+  })
+
+  it('ID が空・形がちがうときは、欄を出さない（「広告」の表示も出ない）', () => {
+    expect(shopSection('protein', '')).toBeNull()
+    expect(shopSection('protein', 'not-an-id')).toBeNull()
   })
 })
