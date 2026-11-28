@@ -1,4 +1,5 @@
 import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { trackPageView } from './analytics'
 import { Customizer } from './components/Customizer'
 import { prioritySlots, withSlot } from './domain/customize'
 import { CustomizeView } from './components/CustomizeView'
@@ -228,8 +229,13 @@ function useView(): { view: View; screen: MenuScreen; go: (v: View, screen?: Men
       window.removeEventListener('hashchange', sync)
     }
   }, [])
+  // 画面を切りかえたら、タブの名前を変え、Google アナリティクスにも「ページを開いた」と送る（アドレスは画面のパスだけ。src/analytics.ts）。
+  // ひらいたときの1回目は、ページを読みこんだときに public/ga.js が送るので、ここでは送らない
+  const viewShown = useRef<View | null>(null)
   useEffect(() => {
     document.title = VIEW_META[view].title
+    if (viewShown.current !== null && viewShown.current !== view) trackPageView(VIEW_PATH[view], VIEW_META[view].title)
+    viewShown.current = view
   }, [view])
   // 最初の画面と1日の食事を行き来すると、押したボタン（入口・「最初の画面にもどる」）が消えてフォーカスの場所がなくなるので、本文（main）に移す。
   // 「料理をアレンジ」の画面との行き来（「料理をアレンジ」「1日の食事にもどる」）も同じ。

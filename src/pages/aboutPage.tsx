@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { gaEnabled } from '../analytics'
 import { OperatorLink } from '../components/OperatorLink'
 import { AD_NOTICE } from '../components/RakutenShelf'
 import { DISHES_INDEX_PATH, NUTRIENTS_INDEX_PATH, SITE_NAME, SITE_NAME_KANA, VIEW_PATH } from '../routes'
@@ -18,6 +19,9 @@ const ADS = rakutenEnabled()
 // 楽天市場の商品の例を、どう出しているか（rakuten.ts）。api：楽天市場商品検索 API で、画像・名前・値段。picks：前もって選んだ商品の画像。
 // 出しているときは、楽天のサーバーとの通信のことを書く
 const PRODUCTS = rakutenProducts()
+// Google アナリティクスを使っているか（測定 ID があるとき。src/analytics.ts）。使っていないときは、プライバシーの Google アナリティクスの文を出さず、
+// 「Cookie は使っていません」と書く
+const ANALYTICS = gaEnabled()
 export const ABOUT_DESCRIPTION = `${SITE_NAME}の運営者、数値の確かめ方、使うときの注意、プライバシー、${ADS ? '広告、' : ''}データの出典とライセンス、お問い合わせ先。`
 
 export const ABOUT_OG: { card: OgCard; alt: string } = {
@@ -68,6 +72,11 @@ type PartId = (typeof PARTS)[number]['id']
 const titleOf = (id: PartId) => PARTS.find((p) => p.id === id)!.title
 // 楽天グループの、個人情報の扱いの説明
 const RAKUTEN_PRIVACY_URL = 'https://privacy.rakuten.co.jp/'
+// Google アナリティクスの紹介・Google の個人情報の扱いの説明・Google アナリティクスへの送信を止めるブラウザの追加機能
+const GA_ABOUT_URL = 'https://marketingplatform.google.com/intl/ja/about/analytics/'
+const GOOGLE_PRIVACY_URL = 'https://policies.google.com/privacy?hl=ja'
+const GOOGLE_PARTNER_SITES_URL = 'https://policies.google.com/technologies/partner-sites?hl=ja'
+const GA_OPTOUT_URL = 'https://tools.google.com/dlpage/gaoptout?hl=ja'
 
 // 出典。政府のデータは利用規約にそって「加工して作成」を出典とは別に書く
 const SOURCES: { name: ReactNode; note: ReactNode }[] = [
@@ -162,8 +171,9 @@ const SOURCES: { name: ReactNode; note: ReactNode }[] = [
 ]
 
 // ads：広告（楽天アフィリエイト）を出しているか。出していないときは、「広告」の欄と、プライバシーの楽天の行を出さない。
-// products：楽天市場の商品の例の出し方（ads のときだけ。出していないときは null）。出し方で、楽天との通信と、商品の選び方の説明が変わる
-export function AboutPage({ ads = ADS, products = PRODUCTS }: { ads?: boolean; products?: RakutenProducts }) {
+// products：楽天市場の商品の例の出し方（ads のときだけ。出していないときは null）。出し方で、楽天との通信と、商品の選び方の説明が変わる。
+// analytics：Google アナリティクスを使っているか。使っているときは、プライバシーに、Cookie と、Google に送るもの・送らないもの・止め方を書く
+export function AboutPage({ ads = ADS, products = PRODUCTS, analytics = ANALYTICS }: { ads?: boolean; products?: RakutenProducts; analytics?: boolean }) {
   const parts = PARTS.filter((p) => ads || p.id !== 'about-ads')
   return (
     <StaticLayout crumbs={[{ name: SITE_NAME, path: '/' }, { name: ABOUT_HEADING }]}>
@@ -278,12 +288,33 @@ export function AboutPage({ ads = ADS, products = PRODUCTS }: { ads?: boolean; p
           <ul className={BULLETS}>
             <li>入力した内容（年齢・性別・身長・体重・運動、保存した1日の食事、お気に入り、登録した商品、最近見た食品）は、お使いの端末のブラウザの中だけに保存します。運営者を含め、だれにも送られません。</li>
             <li>消したいときは、ブラウザの設定でこのサイトのデータ（サイトデータ）を削除してください。</li>
-            <li>Cookie は使っていません。</li>
+            <li>{analytics ? 'このサイトが Cookie を使うのは、下の Google アナリティクス（アクセス解析）のためだけです。' : 'Cookie は使っていません。'}</li>
             <li>
               何人が使っているかを知るために、Cloudflare の
               <Ext href="https://www.cloudflare.com/web-analytics/">Web Analytics</Ext>
               を使っています（EU からの訪問には使いません）。開いたページ、参照元、ブラウザの種類などが Cloudflare に送られますが、個人を特定する情報や Cookie は使いません。
             </li>
+            {analytics && (
+              <li>
+                どのページがよく読まれているか、どこから来た人が多いかをくわしく知って、サイトを直していくために、Google の
+                <Ext href={GA_ABOUT_URL}>Google アナリティクス</Ext>
+                も使っています。Google アナリティクスは Cookie を使って、同じブラウザからの訪問を見分けます。Google
+                に送られるのは、開いたページのアドレスと題名、参照元、見ていた時間、ページを最後まで読んだこと、ほかのサイトへのリンク{ads && '（楽天市場など）'}を押したこと、ブラウザや端末の種類、画面の大きさ、言語、おおよその国・地域です。入力した内容（年齢・体重・食事など）や、名前・メールアドレスなど個人を特定する情報は送りません。IP
+                アドレスは、おおよその地域を調べるのに使われますが、記録されません。広告のための機能（Google シグナル・広告のパーソナライズ）は使っていません。EU（欧州経済領域）・英国・スイスからの訪問では、Cookie
+                を使わない設定にしています。
+              </li>
+            )}
+            {analytics && (
+              <li>
+                Google アナリティクスが集めた情報は、
+                <Ext href={GOOGLE_PRIVACY_URL}>Google のプライバシーポリシー</Ext>
+                にそって扱われます（
+                <Ext href={GOOGLE_PARTNER_SITES_URL}>Google のサービスを使用するサイトやアプリから収集した情報の Google による使用</Ext>
+                ）。Google アナリティクスへの送信を止めたいときは、ブラウザに
+                <Ext href={GA_OPTOUT_URL}>Google アナリティクス オプトアウト アドオン</Ext>
+                を入れてください。止めても、このサイトはそのまま使えます。
+              </li>
+            )}
             <li>
               サイトは Cloudflare から配信しています。配信のための通信の記録（IP アドレスなど）は、Cloudflare の
               <Ext href="https://www.cloudflare.com/ja-jp/privacypolicy/">プライバシーポリシー</Ext>
