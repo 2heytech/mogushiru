@@ -9,9 +9,10 @@ import { FOOD_PAGE_IDS, foodIdFromPath, foodPagePath, nutrientPagePath } from '.
 import { CUISINE_DISH_IDS } from './dishCuisine'
 import { INDEX_FILTERS } from './dishPages'
 import { renderToStaticMarkup } from 'react-dom/server'
+import { AD_NOTICE } from '../components/RakutenShelf'
 import { RAKUTEN_AFFILIATE_ID } from '../site'
 import { AboutPage } from './aboutPage'
-import { AD_NOTICE, NutrientPage, nutrientPageData } from './nutrientPages'
+import { NutrientPage, nutrientPageData } from './nutrientPages'
 import {
   ITEM_IMAGE_SIZE,
   pickedItems,
@@ -1259,7 +1260,10 @@ describe('楽天市場でさがす欄（広告。楽天アフィリエイト）'
     expect(ads).toContain('ランキングの順位と数値は、広告とは関係なく、食品成分表の値だけで決めています。')
     expect(ads).toContain(`ページのはじめに「${AD_NOTICE}」、リンクの欄の見出しに「広告」と書いています。`)
     expect(ads).toContain('欄に出しているのは、その成分をおぎなうのに使われる商品の種類（たんぱく質ならプロテイン、食物繊維なら難消化性デキストリン、カルシウムならカルシウムのサプリメントなど）です。ランキングの食品そのものへのリンクは出していません。')
-    expect(ads).toContain('サプリメントなどでおぎなうことの少ない成分（カロリー・脂質・炭水化物・オメガ6脂肪酸・一価不飽和脂肪酸）と、とりすぎに気をつけたい成分（塩分・飽和脂肪酸・カフェイン）のページには、リンクを出していません。')
+    expect(ads).toContain('サプリメントなどでおぎなうことの少ない成分（カロリー・脂質・炭水化物・オメガ6脂肪酸・一価不飽和脂肪酸）と、とりすぎに気をつけたい成分（塩分・飽和脂肪酸・カフェイン）には、欄を出していません（成分ランキングの画面で、その成分を選んでいるときも同じです）。')
+    // 欄は、成分ごとのページと、アプリの「成分ランキング」の画面の2か所
+    expect(ads).toContain('の成分ごとのページと、成分ランキングの画面（成分を選んで並べ替える画面）にある「楽天市場でさがす」の欄のリンク')
+    expect(about).toContain('<a href="/ranking/" class=')
     expect(ads).toContain('このサイトは、商品の体へのはたらきを確かめたり、うけあったりはしていません。')
     expect(ads).toContain('商品に書いてある1日の目安の量を守り、')
     expect(about).toMatch(/<a href="https:\/\/privacy\.rakuten\.co\.jp\/" target="_blank" rel="noopener noreferrer"[^>]*>楽天グループの個人情報保護方針<\/a>/)

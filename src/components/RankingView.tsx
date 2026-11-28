@@ -16,13 +16,29 @@ import { matches } from '../domain/search'
 import { SERVING_NOTE } from '../domain/serving'
 import type { Targets } from '../domain/targets'
 import type { NutrientKey } from '../domain/types'
+import { rakutenProducts, shopSection } from '../pages/rakuten'
 import { nutrientPagePath, NUTRIENTS_INDEX_PATH, VIEW_META } from '../routes'
 import type { LookupItem } from './lookupCards'
+import { AD_NOTICE, RakutenShelf, SHELF_ID } from './RakutenShelf'
 
 const PAGE = 30
 
 // 一覧の見出しに出す、くらべる単位
 const METRIC_BASIS: Record<RankingMetric, string> = { serving: '1回に食べる量あたり', per100g: '100gあたり', per100kcal: '100kcalあたり', per100yen: '100円あたり' }
+
+// 「楽天市場でさがす」の欄（広告）に、前もって選んだ商品の画像を出すか。楽天市場商品検索 API で出す設定のあいだは、この画面では文字のリンクだけにする
+// （API で商品を出すプログラム public/rakuten-shop.js は、読みもののページのためのもの）
+const SHELF_PICTURES = rakutenProducts() === 'picks'
+
+// 「楽天市場でさがす」の欄へ、画面を送る。アプリは「#」をアプリのリンク（#n=iron など）に使うので、ふつうの「#shop」のリンクにはしない
+function toShelf() {
+  const heading = document.getElementById(SHELF_ID)
+  if (!heading) return
+  ;(heading.closest('section') ?? heading).scrollIntoView()
+  // キーボードや読み上げで使う人が、続きを欄から読めるように、見出しに移る
+  heading.tabIndex = -1
+  heading.focus({ preventScroll: true })
+}
 
 // 数字のキーは Object.entries で順番が崩れるので食品群番号で並べ直す
 const FOOD_GROUPS = Object.entries(FOOD_GROUP_LABEL).sort(([a], [b]) => a.localeCompare(b))
@@ -70,6 +86,8 @@ export function RankingView({
   const info = RANKING_NUTRIENTS.find((n) => n.key === nutrient)!
   const ref = dailyReference(nutrient, targets)
   const pagePath = nutrientPagePath(nutrient)
+  // 選んでいる成分の「楽天市場でさがす」の欄（広告。成分ごとの読みもののページと同じ中身）。欄のない成分（脂質・炭水化物・塩分など）は null
+  const shop = useMemo(() => shopSection(nutrient), [nutrient])
 
   const rows = useMemo(() => {
     const foods = [...catalog.foods.values()].filter(
@@ -100,6 +118,16 @@ export function RankingView({
         <h1 id="ranking-title" className="text-xl font-bold">
           {VIEW_META.ranking.heading}
         </h1>
+        {/* 広告のリンクがあるときは、開いてすぐ見えるところに、そのことを書く（ステルスマーケティングの規制）。欄は一覧の下なので、そこへ送るボタンも添える */}
+        {shop && (
+          <p className="mt-1 text-xs text-ink-soft">
+            {AD_NOTICE}{' '}
+            <button type="button" onClick={toShelf} className="font-bold text-coral-ink underline decoration-coral/60 underline-offset-2">
+              {shop.title}を楽天市場でさがす
+              <span aria-hidden> ↓</span>
+            </button>
+          </p>
+        )}
         <p className="mt-1 text-sm text-ink-soft">
           肉・魚・野菜・調味料などの食品（料理ではなく材料）を、成分の多い順に並べます。
           {info.caution ? `いまは${info.label}が多い食品。とりすぎに気をつけたいときの目安にどうぞ。` : `いまは${info.label}をとりやすい食品の順です。`}
@@ -327,6 +355,13 @@ export function RankingView({
             </button>
           )}
           <p className="text-xs text-ink-soft">{rows.length.toLocaleString()} 件の食品から。値は文部科学省「日本食品標準成分表（八訂）増補2023年」をもとに計算しています。{prices.size > 0 && '価格は総務省「小売物価統計調査（動向編）」2025年平均をもとに、可食部100gあたりに直したものです。'}</p>
+          {/* 楽天市場でさがす欄（広告）。ランキングを先に見せたいので、一覧の下に置く。成分を切りかえると、その成分の欄に変わる（欄のない成分では出さない）。
+              ランキングの順位や数値は、広告のために変えない */}
+          {shop && (
+            <div className="pt-3">
+              <RakutenShelf shop={shop} name={info.label} pictures={SHELF_PICTURES} />
+            </div>
+          )}
         </div>
       </div>
 
