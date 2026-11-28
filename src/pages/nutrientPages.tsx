@@ -21,7 +21,7 @@ import { foodPagePath, nutrientPagePath, NUTRIENTS_INDEX_PATH, rankingAppPath, S
 import type { DishPageData } from './dishPages'
 import { NUTRIENT_COPY, type NutrientCopy } from './nutrientCopy'
 import type { OgCard } from './ogCard'
-import { ITEM_IMAGE_SIZE, RAKUTEN_CREDIT, RAKUTEN_PICKS_DATE, rakutenApi, SHOP_ROWS, shopPicks, type RakutenApi, type ShopPick } from './rakuten'
+import { ITEM_IMAGE_SIZE, RAKUTEN_CREDIT, RAKUTEN_PICKS_DATE, rakutenApi, SHOP_ROWS, shopSection, type RakutenApi, type ShopPick, type ShopSection } from './rakuten'
 import { barWidth, BUTTON, BUTTON_SUB, CALC_LABEL, CARD, LINK, StaticLayout } from './StaticLayout'
 
 // 成分ごとのランキングのページ（/nutrients/<slug>/）と、その一覧（/nutrients/）。
@@ -67,9 +67,9 @@ export type NutrientPageData = {
   // この成分が多い料理（作り方のページがある料理。量は1人前）
   dishes: { id: string; name: string; path: string; category: string; amount: number }[]
   dishTotal: number
-  // 楽天市場でさがすリンク（広告）を出す食品。1回の量の一覧の上から順（rakuten.ts）。とりたい成分のページだけ
-  shop: ShopPick[]
-  // 商品を画像つきで出すのに要る値（楽天市場商品検索 API。rakuten.ts）。なければ、文字のリンクだけ
+  // 楽天市場でさがす欄（広告）。その成分をおぎなうのに使われる商品の種類（プロテイン・サプリメントなど。rakuten.ts）。出さないページは null
+  shop: ShopSection | null
+  // 商品の例を、楽天市場商品検索 API で出すのに要る値（rakuten.ts）。なければ、前もって選んだ商品の画像か、文字のリンクだけ
   shopApi: RakutenApi | null
 }
 
@@ -135,6 +135,7 @@ export function nutrientPageData(key: NutrientKey, catalog: Pick<Catalog, 'foods
     else lists.push({ metric: 'per100yen', rows: perYen.slice(0, SUB_LIST_SIZE) })
   }
   const top = per100g[0]
+  const shop = shopSection(key)
   const servingRank = top ? serving.findIndex((r) => r.food.id === top.food.id) + 1 : 0
   return {
     key,
@@ -148,9 +149,9 @@ export function nutrientPageData(key: NutrientKey, catalog: Pick<Catalog, 'foods
     groups: groupLists(serving),
     dishes: dishList(key, dishPages),
     dishTotal: dishPages.length,
-    // 「塩分が多い食品を買う」とすすめることになるので、とりすぎに気をつけたい成分とカロリーのページには出さない
-    shop: wanted ? shopPicks(serving) : [],
-    shopApi: wanted ? rakutenApi() : null,
+    // 欄を出す成分は rakuten.ts の表で決める（脂質・炭水化物や、とりすぎに気をつけたい成分のページには出さない）
+    shop,
+    shopApi: shop ? rakutenApi() : null,
   }
 }
 
@@ -556,28 +557,26 @@ export const AD_NOTICE = 'このページには広告のリンクを含みます
 // 目次での呼び名
 const SHOP_LABEL = '楽天市場でさがす'
 
-// 「楽天市場でさがす」の欄の、食品1つ分。api：楽天市場商品検索 API で商品を出すか（出すときは、前もって選んだ商品を使わない）。
+// 商品を並べる種類の枠。広い画面では2列に並ぶので、見出し・説明・商品の3段を、となりの種類とそろえる（subgrid。使えない古いブラウザでは、そろわないだけで、くずれない）
+const KIND_ROWS = 'min-w-0 sm:row-span-3 sm:grid sm:grid-rows-subgrid sm:gap-y-0'
+
+// 「楽天市場でさがす」の欄の、商品の種類1つ分（プロテイン・カルシウムのサプリなど）。api：楽天市場商品検索 API で商品を出すか（出すときは、前もって選んだ商品を使わない）。
 // クラスを `…${…}` でつなぐときは、「${」の前に空白を入れる（つめて書くと、Tailwind が前のクラスを見つけられず、CSS に入らない）
-function ShopFood({ pick: s, api }: { pick: ShopPick; api: boolean }) {
+function ShopKind({ pick: s, api }: { pick: ShopPick; api: boolean }) {
   // 前もって選んだ商品。あれば、文字のリンクが見出しになる
   const items = api ? [] : s.items
   const head = items.length > 0
   return (
-    <li
-      className={api ? 'group/food min-w-0 data-[shop-row]:col-span-full' : head ? 'col-span-full min-w-0 sm:col-span-2' : undefined}
-      {...(api && { 'data-shop-food': '', 'data-word': s.word, 'data-genre': s.genreId })}
-    >
+    <li className={api ? 'group/food min-w-0 data-[shop-row]:col-span-full' : head ? KIND_ROWS : 'min-w-0'} {...(api && { 'data-shop-food': '', 'data-word': s.word, 'data-genre': s.genreId })}>
       <a
         href={s.href}
         target="_blank"
         rel="sponsored nofollow noopener"
         aria-label={`${s.label}を楽天市場でさがす（広告・新しいタブでひらく）`}
-        className={`flex min-h-12 items-center gap-2 rounded-2xl bg-cream px-3 py-2 text-sm leading-snug font-bold hover:bg-coral/20 ${head ? '' : 'h-full'} ${api ? 'group-data-[shop-row]/food:h-auto' : ''}`}
+        className="flex min-h-12 items-center gap-2 rounded-2xl bg-cream px-3 py-2 text-sm leading-snug font-bold hover:bg-coral/20"
       >
-        {/* スマホは名前の幅をとるために、絵を出さない（ランキングの行と同じ）。行の見出しになったときは、幅があるので出す */}
-        <img src={foodImage(s.food)} alt="" width={32} height={32} loading="lazy" className={`h-8 w-8 shrink-0 ${head ? 'block' : 'hidden group-data-[shop-row]/food:block sm:block'}`} />
         <span className="min-w-0 flex-1 text-balance">{s.label}</span>
-        {/* 行の見出しになったときだけ出す。スマホは、食品の名前が折り返さないように短くする */}
+        {/* 商品の例が下に並ぶときだけ出す。スマホは、種類の名前が折り返さないように短くする */}
         {(api || head) && (
           <span className={`shrink-0 text-xs font-normal text-coral-ink ${head ? '' : 'hidden group-data-[shop-row]/food:inline'}`}>
             <span className="hidden sm:inline">楽天市場で</span>もっと見る
@@ -587,6 +586,8 @@ function ShopFood({ pick: s, api }: { pick: ShopPick; api: boolean }) {
           ↗
         </span>
       </a>
+      {/* その種類が何かの、短い説明（体へのはたらきは書かない）。説明のない種類も、商品を並べるときは場所だけ置く（となりの種類と、段をそろえるため） */}
+      {s.note ? <p className="mt-1.5 px-1 text-xs leading-relaxed text-ink-soft">{s.note}</p> : head && <span aria-hidden className="hidden sm:block" />}
       {/* 前もって選んだ商品（画像だけ）。画像は、楽天のサーバーから読みこむ（画面に近づいたときに読む：loading="lazy"） */}
       {head && (
         <ul aria-label={`${s.label}の商品の例（楽天市場）`} className="mt-2 grid grid-cols-3 gap-2">
@@ -619,19 +620,24 @@ function ShopFood({ pick: s, api }: { pick: ShopPick; api: boolean }) {
   )
 }
 
-// ランキングの上位の食品を、楽天市場でさがす欄（楽天アフィリエイト。rakuten.ts）。
-// - もとは文字のリンク（食品の名前 → 楽天市場の検索結果）。新しいタブでひらき、検索エンジンには広告のリンクだと伝える（rel="sponsored nofollow"）
-// - api があるときは、public/rakuten-shop.js が、欄が画面に近づいたときに食品ごとの商品の例（画像・名前・値段）を足す。
+// サプリメントなどを使うときの注意。サプリメントを出す欄に、いつも添える
+const SUPPLEMENT_CAUTION =
+  'サプリメントなどは、食事でとりきれない分をおぎなうためのものです。まずは、ふだんの食事からとることを考えましょう。使うときは、商品に書いてある1日の目安の量を守ってください。いくつかを合わせて使うと、同じ成分をとりすぎることがあります。薬を飲んでいる人、通院している人、妊娠中・授乳中の人、子どもに使うときは、医師や薬剤師に相談してください。'
+
+// その成分をおぎなうのに使われる商品（プロテイン・サプリメントなど）を、楽天市場でさがす欄（楽天アフィリエイト。rakuten.ts）。
+// - 商品の種類ごとに、文字のリンク（種類の名前 → 楽天市場の検索結果）。新しいタブでひらき、検索エンジンには広告のリンクだと伝える（rel="sponsored nofollow"）
+// - api があるときは、public/rakuten-shop.js が、欄が画面に近づいたときに種類ごとの商品の例（画像・名前・値段）を足す。
 //   プログラムが読むのは data-shop で始まる印と data-word・data-genre、商品のひな形（template）。data-mid は、商品のリンクに入れる計測 ID の文字（あるときだけ）。見た目は、ここのクラスで決める：
-//   食品（li）に data-shop-row が付くと、文字のリンクが行の見出しになって横いっぱいに広がり（wait は読みこみ中、on は商品あり）、その下に商品が並ぶ
-// - api がないあいだは、前もって選んだ商品（ShopPick の items。data/rakuten-picks.json）のある食品に、商品の画像を3つ並べる（プログラムは使わない）。
-//   その食品は、文字のリンクが見出しになって、スマホは横いっぱい、広い画面は半分の幅をとる。商品の名前・値段は出さない（選んだあとで変わるので）
+//   種類（li）に data-shop-row が付くと、文字のリンクが行の見出しになって横いっぱいに広がり（wait は読みこみ中、on は商品あり）、その下に商品が並ぶ
+// - api がないあいだは、前もって選んだ商品（ShopPick の items。data/rakuten-picks.json）を、種類ごとに画像で3つ並べる（プログラムは使わない）。
+//   商品の名前・値段は出さない（選んだあとで変わるので）
+// - 体へのはたらき（「〜に効く」など）は書かない。使うときの注意（目安の量を守る・医師や薬剤師に相談）を、欄の中に書く
 // - 楽天のプログラム（ウィジェット）は読みこまない
-function ShopLinks({ data }: { data: NutrientPageData }) {
+function ShopLinks({ data, shop }: { data: NutrientPageData; shop: ShopSection }) {
   const { copy, shopApi: api } = data
-  const rows = Math.min(SHOP_ROWS, data.shop.length)
-  // 前もって選んだ商品を出す食品の数（API で出すときは 0）
-  const picked = api ? 0 : data.shop.filter((s) => s.items.length > 0).length
+  const rows = Math.min(SHOP_ROWS, shop.picks.length)
+  // 前もって選んだ商品を出す種類の数（API で出すときは 0）
+  const picked = api ? 0 : shop.picks.filter((s) => s.items.length > 0).length
   return (
     <section
       aria-labelledby="shop"
@@ -640,40 +646,37 @@ function ShopLinks({ data }: { data: NutrientPageData }) {
       {...(api?.measure && { 'data-mid': api.measure })}
     >
       <h2 id="shop" className="flex flex-wrap items-center gap-x-2 gap-y-1 text-lg font-bold">
-        {/* スマホで言葉の途中で折り返さないよう、「〜が多い食品を」「楽天市場でさがす」のまとまりで折り返す */}
+        {/* スマホで言葉の途中で折り返さないよう、「〜のサプリメントなどを」「楽天市場でさがす」のまとまりで折り返す */}
         <span>
-          <span className="inline-block">{copy.rich}食品を</span>
+          <span className="inline-block">{shop.title}を</span>
           <span className="inline-block">楽天市場でさがす</span>
         </span>
         <AdMark />
       </h2>
       <p className="mt-1 text-xs leading-relaxed text-ink-soft">
-        ふだん1回に食べる量で{copy.rich}食品を、ランキングの上から順に{data.shop.length}つ選びました。
+        {shop.lead ?? `食事でとりきれない${copy.name}をおぎなうのに使われる商品`}を、種類ごとに楽天市場でさがせます。
         {/* data-shop-off は商品を出す前だけ、data-shop-on は商品を出したあとだけ見せる（プログラムが切りかえる） */}
         {picked > 0 ? (
-          <span>
-            {picked < data.shop.length && `そのうち上の${picked}つには、`}楽天市場の商品の例を出しています。商品の画像や食品の名前を押すと、楽天市場のページを新しいタブでひらきます。
-          </span>
+          <span>種類ごとに、楽天市場の商品の例を出しています。商品の画像や種類の名前を押すと、楽天市場のページを新しいタブでひらきます。</span>
         ) : (
-          <span {...(api && { 'data-shop-off': '' })}>名前を押すと、楽天市場の検索結果を新しいタブでひらきます。</span>
+          <span {...(api && { 'data-shop-off': '' })}>種類の名前を押すと、楽天市場の検索結果を新しいタブでひらきます。</span>
         )}
         {api && (
           <span hidden data-shop-on="">
-            楽天市場の商品の例を出しています。商品や食品の名前を押すと、楽天市場のページを新しいタブでひらきます。
+            種類ごとに、楽天市場の商品の例を出しています。商品や種類の名前を押すと、楽天市場のページを新しいタブでひらきます。
           </span>
         )}
       </p>
-      {/* 前もって選んだ商品のある食品は幅をとるので、あいたところを、あとの食品でつめる（grid-flow-dense） */}
-      <ul className={`mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4 ${picked > 0 ? 'grid-flow-dense' : ''}`}>
-        {data.shop.map((s) => (
-          <ShopFood key={s.food.id} pick={s} api={api !== null} />
+      <ul className="mt-3 grid grid-cols-1 gap-x-3 gap-y-4 sm:grid-cols-2">
+        {shop.picks.map((s) => (
+          <ShopKind key={s.key} pick={s} api={api !== null} />
         ))}
       </ul>
       {api && (
         <>
-          {/* のこりの食品の商品を出すボタン。プログラムが、はじめの食品の商品を出せたときだけ見せる */}
+          {/* のこりの種類の商品を出すボタン。プログラムが、はじめの種類の商品を出せたときだけ見せる */}
           <button type="button" hidden data-shop-more="" className="mt-3 inline-flex min-h-11 items-center rounded-full border border-coral px-4 text-sm font-bold text-coral-ink hover:bg-coral/10">
-            ほかの食品の商品も見る
+            ほかの種類の商品も見る
           </button>
           {/* 商品1つ分のひな形。プログラムが写して、リンク・画像・名前・値段を入れる。
               relative は、読み上げ用の字（sr-only）を横に送る枠の中にとどめるため（ないと、ページが横にはみ出す） */}
@@ -704,8 +707,14 @@ function ShopLinks({ data }: { data: NutrientPageData }) {
           </template>
         </>
       )}
+      {/* 使うときの注意。広告の小さい字より、読みやすい大きさ・色で出す */}
+      <div className="mt-4 rounded-2xl bg-cream px-3 py-2.5 text-xs leading-relaxed">
+        <p className="font-bold">使う前に</p>
+        {!shop.food && <p className="mt-1">{SUPPLEMENT_CAUTION}</p>}
+        {shop.caution && <p className="mt-1">{shop.caution}</p>}
+      </div>
       <p className="mt-3 text-xs leading-relaxed text-ink-soft">
-        楽天アフィリエイトのリンクです。リンクから楽天市場で買い物をすると、モグシルの運営者に紹介料が入ります。ランキングの順位と数値は、広告とは関係なく、食品成分表の値で決めています。楽天市場に出てくる商品の成分は、このページの値と同じとはかぎりません。
+        楽天アフィリエイトのリンクです。リンクから楽天市場で買い物をすると、モグシルの運営者に紹介料が入ります。ランキングの順位と数値は、広告とは関係なく、食品成分表の値で決めています。
         {api && (
           <span hidden data-shop-on="">
             商品と値段は、ページを開いたときの楽天市場の検索結果で、このサイトが選んだものではありません。
@@ -714,9 +723,10 @@ function ShopLinks({ data }: { data: NutrientPageData }) {
         {picked > 0 && (
           <span>
             商品の例は、{RAKUTEN_PICKS_DATE}
-            に楽天市場でさがして、このサイトが選んだものです（おすすめの順ではありません）。売り切れたり、内容が変わったりしていることがあります。値段・在庫・内容は、楽天市場の商品のページで確かめてください。
+            に楽天市場でさがして、このサイトが選んだものです（おすすめの順ではありません。医薬品は選んでいません）。売り切れたり、内容が変わったりしていることがあります。
           </span>
         )}
+        値段・在庫・成分の量・使い方は、楽天市場の商品のページで確かめてください。
         <a href="/about/#about-ads" className={LINK}>
           広告について
         </a>
@@ -750,8 +760,8 @@ export function NutrientPage({ data }: { data: NutrientPageData }) {
   data.lists.forEach((l, i) => {
     sections.push({ id: `list-${l.metric}`, label: METRIC_SHORT[l.metric], node: <RankingList data={data} metric={l.metric} rows={l.rows} /> })
     if (l.metric === 'serving' && data.groups.length > 0) sections.push({ id: 'by-group', label: '種類べつ', node: <GroupLists data={data} /> })
-    // 楽天市場でさがす欄（広告）は、食品を選ぶもとの「1回の量」の一覧（と種類べつ）のすぐあとに置く
-    if (l.metric === 'serving' && data.shop.length > 0) sections.push({ id: 'shop', label: SHOP_LABEL, node: <ShopLinks data={data} /> })
+    // 楽天市場でさがす欄（広告）は、いちばん上の一覧（と種類べつ）のすぐあと、1日の目安の表の前に置く
+    if (i === 0 && data.shop) sections.push({ id: 'shop', label: SHOP_LABEL, node: <ShopLinks data={data} shop={data.shop} /> })
     if (i === 0) sections.push({ id: 'reference', label: key === 'caffeine' ? '1日の上限の目安' : '1日の目安', node: <ReferenceTable data={data} /> })
   })
   if (data.dishes.length > 0) sections.push({ id: 'dishes', label: '料理', node: <DishList data={data} /> })
@@ -768,7 +778,7 @@ export function NutrientPage({ data }: { data: NutrientPageData }) {
             ))}
           </h1>
           {/* 広告のリンクがあるページは、開いてすぐ見えるところに、そのことを書く（ステルスマーケティングの規制） */}
-          {data.shop.length > 0 && <p className="mt-1 text-xs text-ink-soft">{AD_NOTICE}</p>}
+          {data.shop && <p className="mt-1 text-xs text-ink-soft">{AD_NOTICE}</p>}
           <p className="mt-2 text-sm leading-relaxed">
             {copy.about}
             よく使う食品 {data.familiarCount.toLocaleString()} 品から、{copy.rich}

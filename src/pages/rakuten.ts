@@ -1,17 +1,18 @@
-import type { RankingRow } from '../domain/ranking'
-import type { Food } from '../domain/types'
+import type { NutrientKey } from '../domain/types'
 import picksJson from '../../data/rakuten-picks.json'
 import { RAKUTEN_ACCESS_KEY, RAKUTEN_AFFILIATE_ID, RAKUTEN_APP_ID, RAKUTEN_MEASURE_ID } from '../site'
 
-// 楽天アフィリエイト：成分のページの「〜が多い食品を楽天市場でさがす」の欄（nutrientPages.tsx）。
-// - 食品の名前のリンクの行き先は、楽天市場の検索結果（食品の名前でさがす。値段や在庫が変わっても、リンクが古くならない）
+// 楽天アフィリエイト：成分のページの「〜のサプリメントなどを楽天市場でさがす」の欄（nutrientPages.tsx）。
+// - 出すのは、その成分をおぎなうのに使われる商品の種類（たんぱく質ならプロテイン、食物繊維なら難消化性デキストリン、カルシウムならカルシウムのサプリ。下の KINDS と SHELVES）。
+//   ランキングの食品そのものは出さない（「脂質が多い食品を買う」とすすめることになるのをさけるため、とりたい成分でも、合う種類のない成分のページには欄を出さない）
+// - 種類の名前のリンクの行き先は、楽天市場の検索結果（種類の名前でさがす。値段や在庫が変わっても、リンクが古くならない）
 // - 商品の例（画像つき）の出し方は2つ（rakutenProducts）：
 //   api：楽天ウェブサービスのアプリ ID とアクセスキー（src/site.ts）があるときは、欄が画面に近づいたときに、
-//     食品ごとの商品の例を出す（public/rakuten-shop.js。楽天市場商品検索 API を、見ている人のブラウザから呼ぶ）。取れないとき・プログラムが動かないときは、文字のリンクのまま
+//     種類ごとの商品の例を出す（public/rakuten-shop.js。楽天市場商品検索 API を、見ている人のブラウザから呼ぶ）。取れないとき・プログラムが動かないときは、文字のリンクのまま
 //   picks：それがないあいだは、前もって選んだ商品（data/rakuten-picks.json。楽天アフィリエイトの「商品リンク作成」で作ったリンク）を、
-//     上の食品に、画像だけで出す（名前・値段は出さない。選んだあとで変わるので）。プログラムは使わない
+//     種類ごとに、画像だけで出す（名前・値段は出さない。選んだあとで変わるので）。プログラムは使わない
 //   楽天のプログラム（ウィジェット）は、どちらでも読みこまない
-// - 出す食品は、ランキング（ふだん1回に食べる量）の上位から順に選ぶ。広告のために順位や数値を変えない
+// - ランキングの順位や数値は、広告のために変えない
 // - アフィリエイトの ID（src/site.ts）が空・形がちがうときは、リンクも「広告」の表示も出さない
 
 const ID_FORM = /^[0-9a-f]{8}(\.[0-9a-f]{8}){3}$/i
@@ -39,12 +40,12 @@ export function rakutenApi(
   return APP_FORM.test(appId) && KEY_FORM.test(accessKey) && rakutenEnabled(affiliateId) ? { appId, accessKey, affiliateId, measure: rakutenMeasure(measure) } : null
 }
 
-// 楽天市場のジャンル。検索を食べ物にしぼる（名前だけでさがすと、同じ名前の食べ物でないものがまじるおそれがあるため）
+// 楽天市場のジャンル。食べ物・飲み物の種類は、検索をジャンルでしぼる（名前だけでさがすと、同じ名前の食べ物でないものがまじるおそれがあるため）
 const GENRE = {
   food: '100227', // 食品
   drink: '100316', // 水・ソフトドリンク
 } as const
-// all：ジャンルでしぼらない（お菓子・菓子パンは「スイーツ・お菓子」と「食品」に分かれているので）
+// all：ジャンルでしぼらない（サプリメント・プロテインは、店によってジャンルが分かれているので）
 export type RakutenGenre = keyof typeof GENRE | 'all'
 
 export type RakutenSearch = { word: string; genre: RakutenGenre }
@@ -65,134 +66,99 @@ export function rakutenAffiliateUrl(url: string, id: string = RAKUTEN_AFFILIATE_
   return `https://hb.afl.rakuten.co.jp/hgc/${id}/${rakutenMeasure(measure)}?pc=${encodeURIComponent(url)}&link_type=text`
 }
 
-// 食品ごとの「さがす言葉」。書いていない食品は、名前からかっこ（「（生）」「（ゆで）」など）を取った言葉でさがす。
-// - word：楽天市場でさがす言葉。成分表の言い方より、店で使われる言い方にする（「オリーブ油」→「オリーブオイル」）
-// - label：欄に出す名前（書かなければ、名前からかっこを取ったもの）。同じ label の食品は、順位が上の1つだけ出す
-// - genre：ジャンル（書かなければ、飲み物は drink、お菓子・菓子パンは all、ほかは food）
-// - null：出さない（葉だけでは売られていない、など）
-type Entry = { word: string; label?: string; genre?: RakutenGenre } | null
-const SEARCH: Record<string, Entry> = {
-  // 穀類
-  '01048': { word: '中華麺', label: '中華めん' },
-  '01049': { word: '焼きそば 麺', label: '焼きそばのめん' },
-  '01085': { word: '玄米', label: '玄米' },
-  '01088': { word: '白米', label: '白米' },
-  '01144': { word: 'インスタントラーメン', label: 'インスタントラーメン' },
-  '01150': { word: '冷麺', label: '冷めん' },
-  '01154': { word: 'おこわ', label: 'おこわ' },
-  '01170': { word: '押麦', label: '押麦' },
-  '01200': { word: 'カップ麺', label: 'カップめん' },
-  // いも
-  '02008': { word: '焼き芋', label: '焼きいも' },
-  '02009': { word: '干し芋', label: '干しいも' },
-  '02010': { word: '里芋', label: 'さといも' },
-  '02011': { word: '里芋', label: 'さといも' },
-  '02012': { word: '里芋', label: 'さといも' },
-  '02025': { word: '大和芋', label: 'やまといも' },
-  // 豆
-  '04001': { word: '小豆', label: 'あずき' },
-  '04052': { word: '無調整豆乳', label: '無調整豆乳', genre: 'drink' },
-  '04053': { word: '調製豆乳', label: '調製豆乳', genre: 'drink' },
-  '04055': { word: '大豆ミート', label: '大豆たんぱく' },
-  '04078': { word: '煎り大豆', label: 'いり大豆' },
-  // ナッツ
-  '05001': { word: '素焼きアーモンド', label: 'アーモンド' },
-  '05040': { word: '素焼きアーモンド', label: 'アーモンド' },
-  '05014': { word: 'くるみ 無塩', label: 'くるみ' },
-  // 野菜・果物
-  '06034': null,
-  '06130': null,
-  '06185': { word: 'トマトジュース', genre: 'drink' },
-  '06247': { word: 'パプリカ 野菜', label: 'パプリカ' },
-  '06249': { word: 'パプリカ 野菜', label: 'パプリカ' },
-  '06267': { word: 'ほうれん草', label: 'ほうれんそう' },
-  '06268': { word: 'ほうれん草', label: 'ほうれんそう' },
-  '06269': { word: 'ほうれん草', label: 'ほうれんそう' },
-  '06274': { word: '三つ葉', label: 'みつば' },
-  '06399': { word: '野菜ジュース', genre: 'drink' },
-  '07042': { word: 'オレンジジュース', label: 'オレンジジュース', genre: 'drink' },
-  // 魚介
-  '10005': { word: 'あじ 干物', label: 'あじ' },
-  '10026': { word: '鮎', label: 'あゆ' },
-  '10069': { word: 'うなぎ 白焼き', label: 'うなぎの白焼き' },
-  '10070': { word: 'うなぎ 蒲焼き', label: 'うなぎのかば焼き' },
-  '10086': { word: 'かつお 刺身', label: 'かつお' },
-  '10100': { word: 'カレイ', label: 'かれい' },
-  '10101': { word: 'カレイ', label: 'かれい' },
-  '10102': { word: 'カレイ', label: 'かれい' },
-  '10115': { word: '銀だら', label: 'ぎんだら' },
-  '10134': { word: '鮭 切り身', label: '鮭' },
-  '10136': { word: '鮭 切り身', label: '鮭' },
-  '10139': { word: '塩鮭', label: '塩ざけ' },
-  '10140': { word: 'いくら', label: 'イクラ' },
-  '10141': { word: '筋子', label: 'すじこ' },
-  '10150': { word: '紅鮭', label: '紅ざけ' },
-  '10154': { word: 'さば 切り身', label: 'さば' },
-  '10155': { word: 'さば 切り身', label: 'さば' },
-  '10156': { word: 'さば 切り身', label: 'さば' },
-  '10164': { word: 'サバ缶 水煮', label: 'さば水煮缶' },
-  '10165': { word: 'サバ缶 味噌煮', label: 'さばみそ煮缶' },
-  '10172': { word: 'さわら 切り身', label: 'さわら' },
-  '10193': { word: '真鯛', label: 'たい' },
-  '10195': { word: '真鯛', label: 'たい' },
-  '10198': { word: '太刀魚', label: 'たちうお' },
-  '10202': { word: 'たらこ', label: 'たらこ' },
-  '10203': { word: 'たらこ', label: 'たらこ' },
-  '10241': { word: 'ぶり 切り身', label: 'ぶり' },
-  '10242': { word: 'ぶり 切り身', label: 'ぶり' },
-  '10253': { word: 'まぐろ 赤身', label: 'まぐろ赤身' },
-  '10263': { word: 'ツナ缶', label: 'ツナ缶' },
-  '10292': { word: '牡蠣', label: 'かき（牡蠣）' },
-  '10412': { word: 'ほっけ 開き', label: 'ほっけの開き' },
-  '10459': { word: 'まぐろ トロ', label: 'まぐろトロ' },
-  // 肉
-  '11015': { word: '和牛 サーロイン', label: '和牛サーロイン' },
-  '11034': { word: '牛肩ロース', label: '牛かたロース' },
-  '11046': { word: '牛バラ肉', label: '牛ばら肉' },
-  '11252': { word: '牛バラ肉', label: '牛ばら肉' },
-  '11047': { word: '牛もも肉', label: '牛もも肉' },
-  '11076': { word: '牛もも肉', label: '牛もも肉' },
-  '11271': { word: '牛もも肉', label: '牛もも肉' },
-  '11119': { word: '豚肩ロース', label: '豚かたロース' },
-  '11129': { word: '豚バラ肉', label: '豚ばら肉' },
-  '11195': { word: 'チャーシュー', label: 'チャーシュー' },
-  '11202': { word: 'ラム肉', label: 'ラム肉' },
-  '11205': { word: '合鴨', label: '合鴨肉' },
-  '11227': { word: '鶏ささみ', label: '鶏ささみ' },
-  '11276': { word: 'とんかつ', label: 'とんかつ' },
-  '11289': { word: '唐揚げ', label: '鶏のから揚げ' },
-  // 乳
-  '13003': { word: '牛乳', genre: 'drink' },
-  '13006': null,
-  '13010': { word: 'スキムミルク', label: 'スキムミルク' },
-  // 油
-  '14001': { word: 'オリーブオイル', label: 'オリーブ油' },
-  '14023': { word: 'アマニ油', label: 'あまに油' },
-  // お菓子・そうざい
-  '15140': { word: 'おしるこ', label: 'おしるこ' },
-  '15168': { word: 'あんぱん', label: 'あんパン' },
-  '18055': { word: 'カキフライ', label: 'かきフライ' },
+// 商品の種類。
+// - label：欄に出す名前
+// - word：楽天市場でさがす言葉（前もって選んだ商品 data/rakuten-picks.json の見出しにもなる）
+// - genre：ジャンル（書かなければ、しぼらない）
+// - note：その種類が何かの、短い説明（何から作るか・どう使うか。体へのはたらきは書かない：健康食品の広告の決まり）
+type Kind = { label: string; word: string; genre?: RakutenGenre; note?: string }
+const KINDS = {
+  whey: { label: 'ホエイプロテイン', word: 'ホエイプロテイン', note: '牛乳からとったたんぱく質の粉。水や牛乳にとかして飲みます。' },
+  soy: { label: 'ソイプロテイン', word: 'ソイプロテイン', note: '大豆からとったたんぱく質の粉。水や牛乳にとかして飲みます。' },
+  bar: { label: 'プロテインバー', word: 'プロテインバー', note: 'たんぱく質を多くした、棒の形のお菓子。そのまま食べられます。' },
+  drink: { label: 'プロテインドリンク', word: 'プロテインドリンク', note: 'たんぱく質を多くした飲み物。そのまま飲めます。' },
+  dextrin: { label: '難消化性デキストリン', word: '難消化性デキストリン', note: 'とうもろこしなどのでんぷんから作る、水にとける食物繊維の粉。飲み物や料理にまぜて使います。' },
+  inulin: { label: 'イヌリン', word: 'イヌリン', note: 'チコリやきくいもなどに入っている、水にとける食物繊維の粉。飲み物や料理にまぜて使います。' },
+  psyllium: { label: 'サイリウム（オオバコ）', word: 'サイリウム', note: 'オオバコの種の皮の粉。水をすってふくらむ食物繊維です。たっぷりの水といっしょにとります。' },
+  guar: { label: 'グアーガム分解物', word: 'グアーガム分解物', note: 'グアー豆からとった、水にとける食物繊維の粉。飲み物や料理にまぜて使います。' },
+  ca: { label: 'カルシウムのサプリ', word: 'カルシウム サプリ' },
+  camg: { label: 'カルシウム＋マグネシウムのサプリ', word: 'カルシウム マグネシウム サプリ', note: 'カルシウムとマグネシウムを、いっしょにとれるようにしたもの。' },
+  iron: { label: '鉄のサプリ', word: '鉄 サプリ' },
+  mmin: { label: 'マルチミネラル', word: 'マルチミネラル', note: 'カルシウム・鉄・亜鉛・マグネシウムなど、いくつものミネラルをまとめたもの。' },
+  zinc: { label: '亜鉛のサプリ', word: '亜鉛 サプリ' },
+  tomato: { label: 'トマトジュース（食塩無添加）', word: 'トマトジュース 食塩無添加', genre: 'drink', note: '食塩を足していないトマトジュース。' },
+  veg: { label: '野菜ジュース（食塩無添加）', word: '野菜ジュース 食塩無添加', genre: 'drink', note: '食塩を足していない野菜ジュース。' },
+  carotene: { label: 'β-カロテンのサプリ', word: 'βカロテン サプリ', note: 'β-カロテンは、体の中で、要る分だけビタミンAに変わる成分です。' },
+  mvit: { label: 'マルチビタミン', word: 'マルチビタミン', note: 'ビタミンA・B群・C・D・E など、いくつものビタミンをまとめたもの。' },
+  vd: { label: 'ビタミンDのサプリ', word: 'ビタミンD サプリ' },
+  ve: { label: 'ビタミンEのサプリ', word: 'ビタミンE サプリ' },
+  vb: { label: 'ビタミンB群のサプリ', word: 'ビタミンB群 サプリ', note: 'ビタミンB1・B2・B6・ナイアシン・葉酸など、ビタミンB のなかまをまとめたもの。' },
+  folate: { label: '葉酸のサプリ', word: '葉酸 サプリ' },
+  vc: { label: 'ビタミンCのサプリ', word: 'ビタミンC サプリ' },
+  dha: { label: 'DHA・EPA のサプリ', word: 'DHA EPA サプリ', note: '魚の油に多いオメガ3脂肪酸（DHA・EPA）を、カプセルにしたもの。' },
+  amani: { label: 'アマニ油', word: 'アマニ油', genre: 'food', note: 'オメガ3脂肪酸（α-リノレン酸）が多い油。熱に弱いので、料理にかけて使います。' },
+} satisfies Record<string, Kind>
+type KindKey = keyof typeof KINDS
+
+// 成分のページごとの、欄の中身。書いていない成分のページには、欄を出さない：
+// - カロリー・脂質・炭水化物・オメガ6脂肪酸・一価不飽和脂肪酸：サプリメントなどでおぎなうことの少ない成分（出すなら「脂質が多い食品」になってしまう）
+// - 塩分・飽和脂肪酸・カフェイン：とりすぎに気をつけたい成分
+// title：欄の見出し（「〜を楽天市場でさがす」の「〜」）。kinds：出す種類（出す順）。
+// food：サプリメントではなく、ふつうの食べ物・飲み物だけを出す欄（サプリメントの使い方の注意を出さない）。
+// lead：欄のはじめの文の「〜を、種類ごとに楽天市場でさがせます。」の「〜」（書かなければ「食事でとりきれない○○をおぎなうのに使われる商品」）。caution：その成分だけの注意
+type Shelf = { title: string; kinds: KindKey[]; food?: boolean; lead?: string; caution?: string }
+const SUPPLEMENTS = (name: string) => `${name}のサプリメントなど`
+const B_GROUP: Shelf = { title: SUPPLEMENTS('ビタミンB群'), kinds: ['vb', 'mvit'] }
+const OMEGA3: Shelf = { title: SUPPLEMENTS('DHA・EPA '), kinds: ['dha', 'amani'] }
+const SHELVES: Partial<Record<NutrientKey, Shelf>> = {
+  protein: {
+    title: 'プロテインなど',
+    kinds: ['whey', 'soy', 'bar', 'drink'],
+    caution: '腎臓の病気などで、たんぱく質の量を決められている人は、医師の指示にしたがってください。',
+  },
+  fiber: {
+    title: SUPPLEMENTS('食物繊維'),
+    kinds: ['dextrin', 'inulin', 'psyllium', 'guar'],
+    caution: '一度にたくさんとると、おなかがゆるくなったり、はったりすることがあります。少ない量から試してください。',
+  },
+  calcium: { title: SUPPLEMENTS('カルシウム'), kinds: ['ca', 'camg'] },
+  iron: { title: SUPPLEMENTS('鉄'), kinds: ['iron', 'mmin'] },
+  // カリウムは、錠剤やカプセルのサプリメントをすすめない（国の栄養機能食品の決まりでも、カリウムは錠剤・カプセルの形が対象の外）。食塩を足していない野菜の飲み物を出す
+  potassium: {
+    title: '食塩無添加のトマトジュースなど',
+    kinds: ['tomato', 'veg'],
+    food: true,
+    lead: 'ふだんの食事にカリウムを足しやすい飲み物',
+    caution: '腎臓のはたらきが弱い人は、カリウムをひかえるように言われていることがあります。そのときは、医師の指示にしたがってください。',
+  },
+  magnesium: { title: SUPPLEMENTS('マグネシウム'), kinds: ['camg', 'mmin'] },
+  zinc: { title: SUPPLEMENTS('亜鉛'), kinds: ['zinc', 'mmin'] },
+  // ビタミンA そのもの（レチノール）のサプリメントは、とりすぎになりやすいので出さない。体の中で要る分だけビタミンAに変わる β-カロテンを出す
+  vitaminA: {
+    title: SUPPLEMENTS('β-カロテン'),
+    kinds: ['carotene', 'mvit'],
+    caution: 'ビタミンAは体にたまりやすく、とりすぎに気をつけたい成分です。たばこを吸う人は、β-カロテンのサプリメントを使う前に、医師や薬剤師に相談してください。',
+  },
+  vitaminD: { title: SUPPLEMENTS('ビタミンD'), kinds: ['vd', 'mvit'] },
+  vitaminE: { title: SUPPLEMENTS('ビタミンE'), kinds: ['ve', 'mvit'] },
+  vitaminB1: B_GROUP,
+  vitaminB2: B_GROUP,
+  niacin: B_GROUP,
+  vitaminB6: B_GROUP,
+  folate: { title: SUPPLEMENTS('葉酸'), kinds: ['folate', 'mvit'] },
+  vitaminC: { title: SUPPLEMENTS('ビタミンC'), kinds: ['vc', 'mvit'] },
+  n3Fat: OMEGA3,
+  polyUnsatFat: OMEGA3,
 }
 
-// 上の表にある食品番号（テストで、成分表にある番号かを確かめる）
-export const RAKUTEN_SEARCH_IDS = Object.keys(SEARCH)
-
-// 名前のかっこ（「（生）」「（皮つき・焼き）」など）を取る
-const plainName = (name: string) => name.replace(/（[^）]*）/g, '')
-
-// 食品群ごとのジャンル：16 は飲み物、15 はお菓子・菓子パン
-const groupGenre = (group: string): RakutenGenre => (group === '16' ? 'drink' : group === '15' ? 'all' : 'food')
-
-// その食品を楽天市場でさがすときの言葉と、欄に出す名前。出さない食品は null
-export function rakutenSearchFor(food: Pick<Food, 'id' | 'displayName' | 'group'>): (RakutenSearch & { label: string }) | null {
-  const entry = SEARCH[food.id]
-  if (entry === null) return null
-  const plain = plainName(food.displayName)
-  return { word: entry?.word ?? plain, label: entry?.label ?? plain, genre: entry?.genre ?? groupGenre(food.group) }
-}
+// 欄を出す成分と、種類の表（テストで、前もって選んだ商品とつき合わせる）
+export const RAKUTEN_SHELF_KEYS = Object.keys(SHELVES) as NutrientKey[]
+export const RAKUTEN_KINDS: Record<string, Kind> = KINDS
 
 // 前もって選んだ商品（data/rakuten-picks.json）。楽天アフィリエイトの管理画面で、さがす言葉（文字のリンクと同じ言葉・ジャンル）で商品をさがし、
-// 食品に合うものを1つの食品につき3つ（店は別々）選んで、「商品リンク作成」でリンクを作った。
+// その種類に合うものを1つの種類につき3つ選んで、「商品リンク作成」でリンクを作った。選び方の決まり：
+// 医薬品は選ばない／1日の目安の量が、食事摂取基準の耐容上限量をこえるものは選ばない／名の知られたメーカーの、公式の店・大きな店のものを先に／
+// メーカーや店が、なるべく重ならないように／期間や数にかぎりのあるものは選ばない
 // - affiliateId：リンクを作った楽天アフィリエイトの ID。src/site.ts の ID とちがうときは、商品を出さない（リンクの ID は、この ID のものなので）
 // - shops：店ごとの、楽天の店の番号（meId）と、リンクの ID（linkId。管理画面が、店ごとに作る）
 // - picks：さがす言葉ごとの商品。itemId は楽天の商品の番号、code は商品のページのアドレスの最後の部分、image は商品の画像の場所
@@ -240,32 +206,27 @@ export function rakutenProducts(api: RakutenApi | null = rakutenApi(), id: strin
   return PICKS.affiliateId === id && Object.keys(PICKS.picks).length > 0 ? 'picks' : null
 }
 
-// word・genreId：商品検索 API でさがす言葉とジャンル（リンクの先の検索結果と同じ）。items：前もって選んだ商品（上の SHOP_ROWS つの食品だけ。なければ空）
-export type ShopPick = { food: Food; label: string; href: string; word: string; genreId: string; items: ShopItem[] }
+// 欄に出す種類1つ分。word・genreId：商品検索 API でさがす言葉とジャンル（リンクの先の検索結果と同じ）。items：前もって選んだ商品（なければ空）
+export type ShopPick = { key: string; label: string; note?: string; href: string; word: string; genreId: string; items: ShopItem[] }
+// 欄1つ分。title：見出し（「〜を楽天市場でさがす」の「〜」）。food：ふつうの食べ物・飲み物だけの欄か。lead：はじめの文の言い方（あるときだけ）。caution：その成分だけの注意
+export type ShopSection = { title: string; food: boolean; lead?: string; caution?: string; picks: ShopPick[] }
 
-// 欄に出す食品の数
-export const SHOP_SIZE = 8
-// そのうち、はじめから商品を画像つきで出す食品の数（上から）。API で出すときは、のこりは「ほかの食品の商品も見る」を押したときに出す。
-// 前もって選んだ商品を出すときは、のこりは文字のリンクだけ
+// API で出すとき、はじめから商品を画像つきで出す種類の数（上から）。のこりは「ほかの種類の商品も見る」を押したときに出す
 export const SHOP_ROWS = 4
 // 商品の例を出すプログラム（public/rakuten-shop.js）。欄のあるページだけが読む
 export const RAKUTEN_SHOP_SCRIPT = '/rakuten-shop.js'
 // 楽天ウェブサービスのクレジット（API で取った商品を出すときに添える、楽天の指定の文字のリンク）
 export const RAKUTEN_CREDIT = { text: 'Supported by Rakuten Developers', href: 'https://developers.rakuten.com/' }
 
-// ランキングの上から順に、楽天市場でさがせる食品を選ぶ。同じ名前（「鶏むね肉（皮つき・焼き）」と「鶏むね肉（皮なし）」）は、上の1つだけ
-export function shopPicks(rows: RankingRow[], id: string = RAKUTEN_AFFILIATE_ID, max = SHOP_SIZE, measure: string = RAKUTEN_MEASURE_ID): ShopPick[] {
-  const picks: ShopPick[] = []
-  const seen = new Set<string>()
-  for (const r of rows) {
-    if (picks.length >= max) break
-    const search = rakutenSearchFor(r.food)
-    if (!search || seen.has(search.label) || seen.has(search.word)) continue
-    const href = rakutenAffiliateUrl(rakutenSearchUrl(search), id, measure)
-    if (!href) return []
-    seen.add(search.label).add(search.word)
-    const items = picks.length < SHOP_ROWS ? pickedItems(search.word, id, measure) : []
-    picks.push({ food: r.food, label: search.label, href, word: search.word, genreId: rakutenGenreId(search.genre), items })
-  }
-  return picks
+// その成分のページに出す欄。出さない成分・アフィリエイトの ID が使えないときは null
+export function shopSection(key: NutrientKey, id: string = RAKUTEN_AFFILIATE_ID, measure: string = RAKUTEN_MEASURE_ID): ShopSection | null {
+  const shelf = SHELVES[key]
+  if (!shelf || !rakutenEnabled(id)) return null
+  const picks = shelf.kinds.flatMap((k): ShopPick[] => {
+    const kind: Kind = KINDS[k]
+    const genre = kind.genre ?? 'all'
+    const href = rakutenAffiliateUrl(rakutenSearchUrl({ word: kind.word, genre }), id, measure)
+    return href ? [{ key: k, label: kind.label, note: kind.note, href, word: kind.word, genreId: rakutenGenreId(genre), items: pickedItems(kind.word, id, measure) }] : []
+  })
+  return picks.length > 0 ? { title: shelf.title, food: shelf.food ?? false, lead: shelf.lead, caution: shelf.caution, picks } : null
 }
